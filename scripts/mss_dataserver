@@ -126,9 +126,12 @@ def load_configuration(filename):
     parser.read(filename)
 
     config = {}
-    config['server'] = {}
-    config['server']['host'] = parser.get('server', 'host').strip()
-    config['server']['port'] = int(parser.get('server', 'port'))
+    config['websocket'] = {}
+    config['websocket']['host'] = parser.get('websocket', 'host').strip()
+    config['websocket']['port'] = int(parser.get('websocket', 'port'))
+    config['seedlink'] = {}
+    config['seedlink']['host'] = parser.get('seedlink', 'host').strip()
+    config['seedlink']['port'] = int(parser.get('seedlink', 'port'))
     config['output'] = {}
     config['output']['data_dir'] = parser.get('output', 'data_dir').strip()
     config['log'] = {}
@@ -175,8 +178,8 @@ def start_server(config):
     # defined in the MonitorClient class.
     monitor_stream = obspy.core.Stream()
     stream_lock = threading.Lock()
-    host = config['server']['host']
-    port = config['server']['port']
+    host = config['seedlink']['host']
+    port = config['seedlink']['port']
     stations = config['process']['stations']
     data_dir = config['output']['data_dir']
     process_interval = config['process']['interval']
@@ -215,9 +218,11 @@ def start_server(config):
                                       producer = client)
 
     header = {'Access-Control-Allow-Origin': '*:*'}
+    ws_host = config['websocket']['host']
+    ws_port = config['websocket']['port']
     start_ws_server = websockets.serve(bound_handler,
-                                       '89.185.98.212',
-                                       8100,
+                                       ws_host,
+                                       ws_port,
                                        extra_headers = header)
 
     logging.info('Starting WS server.')
