@@ -64,9 +64,6 @@ msg_data_id['pgv_archive'] = 'pgv_archive'
 async def register_client(websocket, sl_client):
     ''' Register a connected websocket client.
     '''
-    # Add the websocket to the known clients.
-    clients.add(websocket)
-
     # Prepare the welcome message.
     msg = {}
     msg['class'] = msg_class['soh']
@@ -89,10 +86,15 @@ async def register_client(websocket, sl_client):
     payload = sl_client.get_pgv_archive()
     msg['payload'] = payload
 
+    logging.info("Sending pgv archive: %s.", msg)
+
     # Send the archived PGV data.
     msg = json.dumps(msg)
     await websocket.send(msg)
 
+    # The client has been registered and the archive has been sent,
+    # now add the websocket to the known clients.
+    clients.add(websocket)
 
 
 async def unregister_client(websocket):
@@ -133,9 +135,12 @@ async def serve_pgv(websocket, path, sl_client):
             #producer.pgv_data_available.clear()
             #msg = json.dumps(data)
             #await websocket.send(msg)
+    except Exception as e:
+        logging.warning("Lost connection to client: %s.", websocket)
     finally:
-        logging.info('Unregistering the client.')
+        logging.info('Unregistering the client %s.', websocket)
         await unregister_client(websocket)
+        logging.info('The registered clients are now: %s.', clients)
 
 
 def load_configuration(filename):
