@@ -22,8 +22,8 @@ def get_git_version():
     return '[' + git_branch + ']' + git_latesttag + '-' + git_revcount + '(' + git_shorthash + ')'
 
 
-# Get the current mss_record version, author and description.
-for line in open('lib/mss_record/__init__.py').readlines():
+# Get the current mss_dataserver version, author and description.
+for line in open('lib/mss_dataserver/__init__.py').readlines():
     if (line.startswith('__version__')
             or line.startswith('__author__')
             or line.startswith('__authorEmail__')
@@ -34,15 +34,15 @@ for line in open('lib/mss_record/__init__.py').readlines():
         exec(line.strip())
 
 # Define the scripts to be processed.
-scripts = ['scripts/mss_record',]
+scripts = ['scripts/mss_dataserver',]
 
 # Get the version from the git repository and write it to the version file.
-version_file = 'lib/mss_record/version.py'
+version_file = 'lib/mss_dataserver/version.py'
 with open(version_file, 'w') as fid:
     fid.write('__git_version__ = "' + get_git_version() + '"')
 
 
-setuptools.setup(name = 'mss_record',
+setuptools.setup(name = 'mss_dataserver',
                  version           = __version__,
                  description       = __description__,
                  author            = __author__,
@@ -53,8 +53,13 @@ setuptools.setup(name = 'mss_record',
                  platforms         = 'any',
                  scripts           = scripts,
                  package_dir       = {'': 'lib'},
-                 packages          = ['mss_record',
-                                      'mss_record.core',
-                                      'mss_record.adc'],
-                 install_requires  = ['Adafruit-GPIO>=1.0.0'])
+                 packages          = ['mss_dataserver',
+                                      'mss_dataserver.geometry',
+                                      'mss_dataserver.monitorclient'],
+                 install_requires  = ['asyncio',
+                                      'lxml',
+                                      'numpy',
+                                      'obspy',
+                                      'pyproj',
+                                      'websockets'])
 
