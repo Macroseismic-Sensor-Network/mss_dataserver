@@ -1,0 +1,28 @@
+# Ignore the version file.
+lib/mss_dataserver/version.py
+
+# Ignore compiled python files.
+*.pyc
+
+# Ignore the tmp folder.
+/tmp/
+
+# Ignore the data folder.
+/data/
+
+# Ignore the build folder.
+build/
+
+# Ignore the dist folder.
+/dist/
+
+# Ignore the .swp file
+*.swp
+
+# Ignore build files.
+*.o
+*.so
+*.dll
+
+# Ignore the egg installation folder.
+mss_dataserver.egg-info/

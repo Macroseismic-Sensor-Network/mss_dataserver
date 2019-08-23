@@ -1,0 +1,243 @@
+#!/usr/bin/env python3
+
+# Websocket example to test the connection with javascript using vue.js.
+
+import argparse
+import configparser
+import datetime
+import functools
+import json
+import logging
+import os
+import random
+import threading
+
+import asyncio
+import concurrent.futures
+import websockets
+import obspy
+
+import mss_dataserver.geometry.inventory_parser as inventory_parser
+import mss_dataserver.monitorclient.monitorclient as monitorclient
+
+
+logger = logging.getLogger('mss_dataserver')
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler())
+
+
+# The clients connected to the server.
+clients = set()
+
+
+class Producer(object):
+    def __init__(self):
+        self.data = 0
+
+    async def rand_value(self):
+        await asyncio.sleep(1)
+        self.data += 1
+        return self.data
+
+#async def serve_pgv(websocket, path, producer):
+#    while True:
+#        product = await producer.rand_value()
+#        data = {}
+#        data['time'] = datetime.datetime.utcnow().isoformat() + 'Z'
+#        data['pgv'] = product
+#        msg = json.dumps(data)
+#        await websocket.send(msg)
+
+
+msg_class = {}
+msg_class['soh'] = 'soh'
+msg_class['data'] = 'data'
+
+msg_soh_id = {}
+msg_soh_id['connection'] = 'connection'
+
+msg_data_id = {}
+msg_data_id['pgv'] = 'pgv'
+
+
+async def register_client(websocket):
+    ''' Register a connected websocket client.
+    '''
+    clients.add(websocket)
+    msg = {}
+    msg['class'] = msg_class['soh']
+    msg['id'] = msg_soh_id['connection']
+
+    payload = {}
+    payload['state'] = 'registered'
+    payload['server_id'] = 'mss data server'
+    msg['payload'] = payload
+
+    msg = json.dumps(msg)
+    await websocket.send(msg)
+
+
+async def unregister_client(websocket):
+    ''' Unregister a disconnected websocket client.
+    '''
+    clients.remove(websocket)
+
+
+async def serve_data(sl_client):
+    ''' Send the data to all registered clients.
+    '''
+    while True:
+        await sl_client.pgv_data_available.wait()
+        payload = sl_client.get_pgv_data()
+
+        msg = {}
+        msg['class'] = msg_class['data']
+        msg['id'] = msg_data_id['pgv']
+        msg['payload'] = payload
+        msg = json.dumps(msg)
+
+        logging.info("Serving the data.")
+        for cur_client in clients:
+            logging.info("Sending to client %s.", cur_client)
+            await cur_client.send(msg)
+        sl_client.pgv_data_available.clear()
+
+
+async def serve_pgv(websocket, path, producer):
+    await register_client(websocket)
+    try:
+        while True:
+            msg = await websocket.recv()
+            #await producer.pgv_data_available.wait()
+            #data = producer.get_pgv_data()
+            #logging.info('Serving data.')
+            #producer.pgv_data_available.clear()
+            #msg = json.dumps(data)
+            #await websocket.send(msg)
+    finally:
+        logging.info('Unregistering the client.')
+        await unregister_client(websocket)
+
+
+def load_configuration(filename):
+    ''' Load the configuration from a file.
+    '''
+    parser = configparser.ConfigParser()
+    parser.read(filename)
+
+    config = {}
+    config['server'] = {}
+    config['server']['host'] = parser.get('server', 'host').strip()
+    config['server']['port'] = int(parser.get('server', 'port'))
+    config['output'] = {}
+    config['output']['data_dir'] = parser.get('output', 'data_dir').strip()
+    config['log'] = {}
+    config['log']['loglevel'] = parser.get('log', 'loglevel').strip()
+    config['process'] = {}
+    config['process']['stations'] = json.loads(parser.get('process', 'stations'))
+    config['process']['interval'] = int(parser.get('process', 'interval'))
+    config['process']['inventory_file'] = parser.get('process', 'inventory_file').strip()
+
+    return config
+
+
+def load_inventory(inventory_file):
+    ''' Load the psysmon inventory from an XML file.
+    '''
+    logger = logging.getLogger('mss_data_server.load_inventory')
+
+    if not os.path.exists(inventory_file):
+        logger.error("Can't find the inventory file %s.", inventory_file)
+        return None
+
+    parser = inventory_parser.InventoryXmlParser()
+    try:
+        inventory = parser.parse(inventory_file)
+    except Exception:
+        logger.exception("Couldn't load the inventory from file %s.",
+                         inventory_file)
+    return inventory
+
+
+def start_server(config):
+    ''' Start the websocket data server.
+    '''
+
+    # Load the psysmon inventory from XML file.
+    inventory = load_inventory(config['process']['inventory_file'])
+
+    if inventory is None:
+        logging.error("The inventory file couldn't be read.")
+        return
+
+    # Create the monitor stream attributes
+    # TODO: It seems that the monitor_stream and the stream_lock could be
+    # defined in the MonitorClient class.
+    monitor_stream = obspy.core.Stream()
+    stream_lock = threading.Lock()
+    host = config['server']['host']
+    port = config['server']['port']
+    stations = config['process']['stations']
+    data_dir = config['output']['data_dir']
+    process_interval = config['process']['interval']
+
+    if len(stations) == 0:
+        stations = None
+
+    # Start the seedlink monitor client thread.
+    logging.info('Creating the Seedlink client.')
+    server_url = host + ':' + str(port)
+    stop_event = threading.Event()
+    client = monitorclient.MonitorClient(server_url = server_url,
+                                           stations = stations,
+                                           inventory = inventory,
+                                           monitor_stream = monitor_stream,
+                                           stream_lock = stream_lock,
+                                           data_dir = data_dir,
+                                           process_interval = process_interval,
+                                           stop_event = stop_event)
+
+    client_thread = threading.Thread(target = client.run)
+    client_thread.start()
+
+    #with concurrent.futures.ThreadPoolExecutor() as pool:
+    #    logging.info('Starting the monitorclient thread.')
+    #    result = await loop.run_in_executor(pool,
+    #                                        client.run)
+    #logging.info('Creating the process thread.')
+    #process_thread = threading.Thread(name = 'process_timer',
+    #                                  target = client.task_timer,
+    #                                  args = (client.process_monitor_stream, ))
+    #process_thread.start()
+
+    prod = Producer()
+    bound_handler = functools.partial(serve_pgv,
+                                      producer = client)
+
+    header = {'Access-Control-Allow-Origin': '*:*'}
+    start_ws_server = websockets.serve(bound_handler,
+                                       '89.185.98.212',
+                                       8100,
+                                       extra_headers = header)
+
+    logging.info('Starting WS server.')
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(start_ws_server)
+    loop.create_task(client.task_timer(client.process_monitor_stream))
+    loop.create_task(serve_data(client))
+    loop.run_forever()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description = 'MSS Websocket data server.')
+    parser.add_argument('config', help = 'The name of the configuration file.',
+                        type = str)
+    parser.set_defaults(func = start_server)
+
+    args = parser.parse_args()
+
+    config = load_configuration(args.config)
+    logging.basicConfig(level = config['log']['loglevel'],
+                        format = "LOG - %(asctime)s - %(process)d - %(levelname)s - %(name)s: %(message)s")
+
+    args.func(config)
