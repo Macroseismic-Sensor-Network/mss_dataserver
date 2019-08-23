@@ -23,10 +23,9 @@ __version__ = "0.0.1"
 __author__ = "Stefan Mertl"
 __authorEmail__ = "info@mertl-research.at"
 __description__ = "MacroSeismicSensor websocket data server."
-__longDescription__ = """
-    """
+__longDescription__ = """ 
+                      """
 __website__ = "http://www.macroseismicsensor.at"
 __downloadUrl__ = ""
 __license__ = "GNU General Public Licence version 3"
-__keywords__ = '''raspberrypi seismic seismological data
-                  logger datalogger recorder macroseismic'''
+__keywords__ = """raspberrypi seismic seismological data logger datalogger recorder macroseismic"""
