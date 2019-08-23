@@ -560,8 +560,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     def trim_archive(self):
         ''' Crop the archive to a specified length.
         '''
-        max_end_time = np.max([x.stats.starttime.timestamp for x in self.pgv_archive_stream])
-        max_end_time = utcdatetime.UTCDateTime(max_end_time)
+        max_end_time = np.max([x.stats.endtime for x in self.pgv_archive_stream])
         self.logger.info("max_end_time: %s.", max_end_time)
         crop_start_time = max_end_time - self.pgv_archive_time
         self.pgv_archive_stream.trim(starttime = crop_start_time)
