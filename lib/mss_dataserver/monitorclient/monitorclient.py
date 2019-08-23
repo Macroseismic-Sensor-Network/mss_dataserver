@@ -43,8 +43,19 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # The stream used for processing.
         self.process_stream = obspy.core.Stream()
 
-        # The pgv stream.
+        # The pgv stream holding the most recent data which has not been sent
+        # over the websocket.
         self.pgv_stream = obspy.core.Stream()
+
+        # The pgv archive stream holding the PGV data of the specified archive
+        # time.
+        self.pgv_archive_stream = obspy.core.Stream()
+
+        # The length of the archive stream to keep [s].
+        self.pgv_archive_time = 1800
+
+        # The no-data value.
+        self.nodata_value = -999999
 
         self.stream_lock = stream_lock
 
@@ -56,7 +67,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # The PGV data state.
         self.pgv_data_available = asyncio.Event()
-        self.counter = 0
 
         # The psysmon geometry inventory.
         self.inventory = inventory
@@ -285,7 +295,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             # Get a stream containing only equal length traces per station.
             el_stream = self.get_equal_length_traces()
             self.logger.debug('Got el_stream: %s.', el_stream)
-            
+
             # Detrend to remove eventual offset.
             el_stream = el_stream.split()
             el_stream.detrend(type = 'constant')
@@ -294,9 +304,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             # Convert the amplitudes from counts to m/s.
             self.convert_to_physical_units(el_stream)
 
-
             # Compute the PGV values.
             self.compute_pgv(el_stream)
+
+            # Trim the archive stream.
+            self.trim_archive()
+
+            # Signal available PGV data.
             self.pgv_data_available.set()
             return
 
@@ -406,7 +420,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             for win_st in cur_stream.slide(window_length = self.process_interval - cur_delta,
                                            step = self.process_interval,
                                            offset = cur_offset):
-                self.logger.info('Processing stream slice: %s.', win_st)
+                self.logger.debug('Processing stream slice: %s.', win_st)
                 x_st = win_st.select(channel = 'Hparallel')
                 y_st = win_st.select(channel = 'Hnormal')
 
@@ -442,9 +456,19 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     self.logger.debug('data type: %s.', cur_pgv[:, 1].dtype)
                     cur_pgv_trace = obspy.core.Trace(data = cur_pgv[:, 1].astype(np.float32),
                                                      header = cur_stats)
+                    # Write the data to the current pgv stream and the archive
+                    # stream.
                     self.pgv_stream.append(cur_pgv_trace)
+                    self.pgv_archive_stream.append(cur_pgv_trace)
+
+        # Merge the current pgv stream.
         self.pgv_stream.merge()
         self.logger.debug('pgv_stream: %s.', self.pgv_stream)
+
+        # Merge the archive stream.
+        self.pgv_archive_stream.merge(fill_value = self.nodata_value)
+        self.logger.info("pgv_archive_stream: %s", self.pgv_archive_stream)
+
         #self.pgv_stream.write("/home/stefan/Schreibtisch/pgv_test.msd",
         #                      format = "MSEED",
         #                      reclen = 512)
@@ -493,7 +517,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 raise ValueError('There are more than one parameters for this component. This is not yet supported.')
 
             comp_param = comp_param[0]
-            
+
             self.logger.debug("bitweight: %f", rec_stream_param.bitweight)
             self.logger.debug("gain: %f", rec_stream_param.gain)
             self.logger.debug("sensitivity: %f", comp_param.sensitivity)
@@ -533,6 +557,16 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         return res_st
 
+    def trim_archive(self):
+        ''' Crop the archive to a specified length.
+        '''
+        max_end_time = np.max([x.stats.starttime.timestamp for x in self.pgv_archive_stream])
+        max_end_time = utcdatetime.UTCDateTime(max_end_time)
+        self.logger.info("max_end_time: %s.", max_end_time)
+        crop_start_time = max_end_time - self.pgv_archive_time
+        self.pgv_archive_stream.trim(starttime = crop_start_time)
+        self.logger.info("Trimmed the archive stream to %s.", crop_start_time)
+
     def get_pgv_data(self):
         ''' Get the latest PGV data.
         '''
@@ -540,19 +574,25 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         for cur_trace in self.pgv_stream:
             cur_start_time = cur_trace.stats.starttime
             tmp = {}
-            tmp['time'] = [(cur_start_time + x).isoformat() for x in cur_trace.times()]
-            tmp['data'] = cur_trace.data.tolist()
+            tmp['time'] = [x.isoformat() for (x, y) in zip(cur_trace.times(type = "utcdatetime"), cur_trace.data.tolist()) if y != self.nodata_value]
+            tmp['data'] = [x for x in cur_trace.data.tolist() if x != self.nodata_value]
             pgv_data[cur_trace.get_id()] = tmp
-        data = {}
-        data['time'] = datetime.datetime.utcnow().isoformat() + 'Z'
-        data['pgv'] = self.counter
-        self.counter += 1
 
         # Clear the pgv stream.
-        # TODO: Add another stream to keep track of the last ?? minutes of PGV
-        # data.
         self.pgv_stream.clear()
         return pgv_data
 
+    def get_pgv_archive(self):
+        ''' Get the archived PGV data.
+        '''
+        pgv_data = {}
+        for cur_trace in self.pgv_archive_stream:
+            try:
+                tmp = {}
+                tmp['time'] = [x.isoformat() for (x, y) in zip(cur_trace.times(type = "utcdatetime"), cur_trace.data.tolist()) if y != self.nodata_value]
+                tmp['data'] = [x for x in cur_trace.data.tolist() if x != self.nodata_value]
+                pgv_data[cur_trace.get_id()] = tmp
+            except Exception as e:
+                self.logger.exception("Error while preparing the pgv archive.")
 
-
+        return pgv_data
