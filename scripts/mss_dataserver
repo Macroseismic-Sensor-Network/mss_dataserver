@@ -58,12 +58,16 @@ msg_soh_id['connection'] = 'connection'
 
 msg_data_id = {}
 msg_data_id['pgv'] = 'pgv'
+msg_data_id['pgv_archive'] = 'pgv_archive'
 
 
-async def register_client(websocket):
+async def register_client(websocket, sl_client):
     ''' Register a connected websocket client.
     '''
+    # Add the websocket to the known clients.
     clients.add(websocket)
+
+    # Prepare the welcome message.
     msg = {}
     msg['class'] = msg_class['soh']
     msg['id'] = msg_soh_id['connection']
@@ -73,8 +77,22 @@ async def register_client(websocket):
     payload['server_id'] = 'mss data server'
     msg['payload'] = payload
 
+    # Send the welcome message.
     msg = json.dumps(msg)
     await websocket.send(msg)
+
+    # Prepare the archived PGV data message.
+    msg = {}
+    msg['class'] = msg_class['data']
+    msg['id'] = msg_data_id['pgv_archive']
+
+    payload = sl_client.get_pgv_archive()
+    msg['payload'] = payload
+
+    # Send the archived PGV data.
+    msg = json.dumps(msg)
+    await websocket.send(msg)
+
 
 
 async def unregister_client(websocket):
@@ -103,8 +121,9 @@ async def serve_data(sl_client):
         sl_client.pgv_data_available.clear()
 
 
-async def serve_pgv(websocket, path, producer):
-    await register_client(websocket)
+async def serve_pgv(websocket, path, sl_client):
+    await register_client(websocket = websocket,
+                          sl_client = sl_client)
     try:
         while True:
             msg = await websocket.recv()
@@ -192,13 +211,13 @@ def start_server(config):
     server_url = host + ':' + str(port)
     stop_event = threading.Event()
     client = monitorclient.MonitorClient(server_url = server_url,
-                                           stations = stations,
-                                           inventory = inventory,
-                                           monitor_stream = monitor_stream,
-                                           stream_lock = stream_lock,
-                                           data_dir = data_dir,
-                                           process_interval = process_interval,
-                                           stop_event = stop_event)
+                                         stations = stations,
+                                         inventory = inventory,
+                                         monitor_stream = monitor_stream,
+                                         stream_lock = stream_lock,
+                                         data_dir = data_dir,
+                                         process_interval = process_interval,
+                                         stop_event = stop_event)
 
     client_thread = threading.Thread(target = client.run)
     client_thread.start()
@@ -215,7 +234,7 @@ def start_server(config):
 
     prod = Producer()
     bound_handler = functools.partial(serve_pgv,
-                                      producer = client)
+                                      sl_client = client)
 
     header = {'Access-Control-Allow-Origin': '*:*'}
     ws_host = config['websocket']['host']
