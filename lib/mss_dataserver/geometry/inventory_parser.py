@@ -33,17 +33,17 @@ This module contains parser classes to read inventory data from files.
 import logging
 from lxml import etree
 
-from geometry.inventory import Inventory
-from geometry.inventory import Network
-from geometry.inventory import Array
-from geometry.inventory import Station
-from geometry.inventory import Channel
-from geometry.inventory import Recorder
-from geometry.inventory import RecorderStream
-from geometry.inventory import RecorderStreamParameter
-from geometry.inventory import Sensor
-from geometry.inventory import SensorComponent
-from geometry.inventory import SensorComponentParameter
+from mss_dataserver.geometry.inventory import Inventory
+from mss_dataserver.geometry.inventory import Network
+from mss_dataserver.geometry.inventory import Array
+from mss_dataserver.geometry.inventory import Station
+from mss_dataserver.geometry.inventory import Channel
+from mss_dataserver.geometry.inventory import Recorder
+from mss_dataserver.geometry.inventory import RecorderStream
+from mss_dataserver.geometry.inventory import RecorderStreamParameter
+from mss_dataserver.geometry.inventory import Sensor
+from mss_dataserver.geometry.inventory import SensorComponent
+from mss_dataserver.geometry.inventory import SensorComponentParameter
 from obspy.core.utcdatetime import UTCDateTime
 
 class InventoryXmlParser:

@@ -33,7 +33,7 @@ inventory.
 
 import itertools
 from obspy.core.utcdatetime import UTCDateTime
-import geometry.util as geom_util
+import mss_dataserver.geometry.util as geom_util
 try:
     import pyproj
 except:
