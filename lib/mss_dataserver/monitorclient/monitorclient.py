@@ -26,7 +26,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     """
     A custom SeedLink client
     """
-    def __init__(self, server_url, stations, inventory, monitor_stream, stream_lock, data_dir, process_interval, stop_event, autoconnect = False):
+    def __init__(self, server_url, stations, inventory, monitor_stream, stream_lock, data_dir, process_interval, stop_event, pgv_sps = 1, autoconnect = False):
         ''' Initialize the instance.
         '''
         easyseedlink.EasySeedLinkClient.__init__(self,
@@ -61,7 +61,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         self.data_dir = data_dir
 
+        # The time interval [s] used to process the received data.
         self.process_interval = process_interval
+
+        # The samples per second of the PGV data stream.
+        self.pgv_sps = pgv_sps
 
         self.stop_event = stop_event
 
@@ -401,6 +405,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.logger.debug('Computing the PGV.')
         unique_stations = [(x.stats.network, x.stats.station, x.stats.location) for x in stream]
         unique_stations = list(set(unique_stations))
+        samp_interval = 1 / self.pgv_sps
 
         for cur_station in unique_stations:
             self.logger.debug('Getting stream for %s.', cur_station)
@@ -412,13 +417,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.logger.debug('Selected stream: %s.', cur_stream)
 
             min_start = np.min([x.stats.starttime for x in cur_stream])
-            sec_remain = min_start.timestamp % self.process_interval
+            sec_remain = min_start.timestamp % samp_interval
             cur_offset = -sec_remain
             self.logger.debug('offset: %f.', cur_offset)
             cur_delta = cur_stream[0].stats.delta
 
-            for win_st in cur_stream.slide(window_length = self.process_interval - cur_delta,
-                                           step = self.process_interval,
+            for win_st in cur_stream.slide(window_length = samp_interval - cur_delta,
+                                           step = samp_interval,
                                            offset = cur_offset):
                 self.logger.debug('Processing stream slice: %s.', win_st)
                 x_st = win_st.select(channel = 'Hparallel')
@@ -433,12 +438,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                         self.logger.error("The x and y data lenght dont't match. Can't compute the res. PGV for this trace.")
                         continue
 
-                    cur_sec_remain = cur_x_trace.stats.starttime.timestamp % self.process_interval
+                    cur_sec_remain = cur_x_trace.stats.starttime.timestamp % samp_interval
                     cur_win_start = cur_x_trace.stats.starttime - cur_sec_remain
                     #cur_win_end = cur_win_start + self.process_interval - cur_x_trace.stats.delta
                     #cur_pgv_time = cur_x_trace.stats.starttime + \
                     #               (cur_x_trace.stats.endtime - cur_x_trace.stats.starttime) / 2
-                    cur_pgv_time = cur_win_start + self.process_interval / 2
+                    cur_pgv_time = cur_win_start + samp_interval / 2
                     cur_pgv_value = np.max(np.sqrt(cur_x**2 + cur_y**2))
                     cur_pgv.append([cur_pgv_time, cur_pgv_value])
 
@@ -451,7 +456,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                  'station': cur_x_trace.stats.station,
                                  'location': cur_x_trace.stats.location,
                                  'channel': 'pgv',
-                                 'sampling_rate': 1 / self.process_interval,
+                                 'sampling_rate': self.pgv_sps,
                                  'starttime': cur_pgv[0, 0]}
                     self.logger.debug('data type: %s.', cur_pgv[:, 1].dtype)
                     cur_pgv_trace = obspy.core.Trace(data = cur_pgv[:, 1].astype(np.float32),
@@ -469,9 +474,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.pgv_archive_stream.merge(fill_value = self.nodata_value)
         self.logger.info("pgv_archive_stream: %s", self.pgv_archive_stream)
 
-        #self.pgv_stream.write("/home/stefan/Schreibtisch/pgv_test.msd",
-        #                      format = "MSEED",
-        #                      reclen = 512)
+        #self.pgv_archive_stream.write("/home/stefan/Schreibtisch/pgv_beben_neunkirchen.msd",
+        #                             format = "MSEED",
+        #                             reclen = 512)
 
     def convert_to_physical_units(self, stream):
         ''' Convert the counts to physical units.

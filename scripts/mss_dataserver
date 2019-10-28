@@ -163,6 +163,7 @@ def load_configuration(filename):
     config['process'] = {}
     config['process']['stations'] = json.loads(parser.get('process', 'stations'))
     config['process']['interval'] = int(parser.get('process', 'interval'))
+    config['process']['pgv_sps'] = int(parser.get('process', 'pgv_sps'))
     config['process']['inventory_file'] = parser.get('process', 'inventory_file').strip()
 
     return config
@@ -207,6 +208,7 @@ def start_server(config):
     stations = config['process']['stations']
     data_dir = config['output']['data_dir']
     process_interval = config['process']['interval']
+    pgv_sps = config['process']['pgv_sps']
 
     if len(stations) == 0:
         stations = None
@@ -222,6 +224,7 @@ def start_server(config):
                                          stream_lock = stream_lock,
                                          data_dir = data_dir,
                                          process_interval = process_interval,
+                                         pgv_sps = pgv_sps,
                                          stop_event = stop_event)
 
     client_thread = threading.Thread(target = client.run)
