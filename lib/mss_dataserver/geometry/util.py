@@ -78,9 +78,8 @@ def get_epsg_dict():
     the values.
     '''
     # create dictionary that maps epsg codes to Basemap kwargs.
-    import mpl_toolkits.basemap
     import os
-    epsgf = open(os.path.join(mpl_toolkits.basemap.basemap_datadir,'epsg'))
+    epsgf = open(os.path.join(os.path.dirname(__file__), 'epsg'))
     epsg_dict={}
     for line in epsgf:
         if line.startswith("#"):
