@@ -12,6 +12,9 @@ import obspy
 import obspy.core.utcdatetime as utcdatetime
 import obspy.clients.seedlink.easyseedlink as easyseedlink
 from obspy.clients.seedlink.slpacket import SLPacket
+import pyproj
+import scipy
+import scipy.spatial
 
 
 class EasySeedLinkClientException(Exception):
@@ -58,6 +61,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.nodata_value = -999999
 
         self.stream_lock = stream_lock
+        self.archive_lock = threading.Lock()
 
         self.data_dir = data_dir
 
@@ -69,11 +73,21 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         self.stop_event = stop_event
 
+        # The most recent detected event.
+        self.last_event = {}
+
+        # The latest event detection result.
+        self.last_detection_result = {}
+
         # The PGV data state.
         self.pgv_data_available = asyncio.Event()
 
+        # The event detection result state.
+        self.event_detection_result_available = asyncio.Event()
+
         # The psysmon geometry inventory.
         self.inventory = inventory
+        self.compute_utm_coordinates(inventory.get_station(), self.inventory)
 
         self.recorder_map = self.get_recorder_mappings(station_nsl = self.stations)
 
@@ -265,11 +279,150 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         self.logger.info("Leaving the task_timer method.")
 
+    def detect_event(self):
+        ''' Run the Voronoi event detections.
+        '''
+        logger = logging.getLogger('mss_data_server.detect_event')
+        logger.info('Running the event detection.')
+        detect_win_length = 10
+        safety_win = 10
+        trigger_thr = 0.01e-3
+        min_trigger_window = 3
+
+        now = obspy.UTCDateTime()
+        with self.archive_lock:
+            working_stream = self.pgv_archive_stream.copy()
+
+        self.logger.info("event detection stream: %s", working_stream)
+        max_end_time = np.max([x.stats.endtime for x in working_stream])
+        detect_win_begin = (max_end_time.timestamp - (detect_win_length + safety_win)) // detect_win_length * detect_win_length
+        detect_win_begin = obspy.UTCDateTime(detect_win_begin)
+        detect_win_end = detect_win_begin + 10
+        logger.info("max_end_time: %s", max_end_time)
+        logger.info("now: %s", now)
+        logger.info("detect_win_begin: %s", detect_win_begin)
+        logger.info("detect_win_end: %s", detect_win_end)
+
+        # Compute the maximum possible time window length.
+        tri = self.compute_delaunay(self.inventory.get_station())
+        edge_length = self.compute_edge_length(tri, self.inventory.get_station())
+        # Use only triangles with an edge length smaller than a threshold.
+        max_time_window = np.max(edge_length) / 3500
+        max_time_window = np.ceil(max_time_window)
+
+        logger.info("max_time_window: %s", max_time_window)
+        detect_stream = working_stream.slice(starttime = detect_win_begin - max_time_window,
+                                             endtime = detect_win_end,
+                                             nearest_sample = False)
+
+        detect_stations = []
+        for cur_trace in detect_stream:
+            cur_station = self.inventory.get_station(name = cur_trace.stats.station)
+            if cur_station:
+                detect_stations.append(cur_station[0])
+        self.last_detection_result['computation_time'] = now.isoformat()
+        self.last_detection_result['used_stations'] = [x.snl for x in detect_stations]
+
+        logger.info("detect_stream: %s", detect_stream)
+        logger.info("detect_stations: %s", detect_stations)
+        logger.info("x_utm: %s", [x.x_utm for x in detect_stations])
+
+        event_trigger = []
+        if detect_stations:
+            # Compute the Delaunay triangulation.
+            tri = self.compute_delaunay(detect_stations)
+
+            if tri:
+                # Compute the max. edge lengths of the triangles.
+                edge_length = self.compute_edge_length(tri,
+                                                       detect_stations)
+
+                for k, cur_simp in enumerate(tri.simplices):
+                    cur_simp_stations = [detect_stations[x] for x in cur_simp]
+                    cur_time, cur_pgv = self.compute_max_pgv(stream = detect_stream,
+                                                             stations = cur_simp_stations,
+                                                             edge_lengths = edge_length[k],
+                                                             offset = max_time_window,
+                                                             min_trigger_window = min_trigger_window,
+                                                             compute_interval = 1)
+                    logger.info("cur_pgv: %s", cur_pgv)
+                    #cur_trig = np.nanmin(cur_pgv, axis = 1) >= trigger_thr
+                    #event_trigger.append([[x.name for x in cur_simp_stations],
+                    #                      cur_time, cur_pgv, cur_trig])
+
+        self.last_detection_result['trigger_data'] = event_trigger
+        self.event_detection_result_available.set()
+
+    def compute_delaunay(self, stations):
+        x = [x.x_utm for x in stations]
+        y = [x.y_utm for x in stations]
+        coords = np.array(list(zip(x, y)))
+        try:
+            tri = scipy.spatial.Delaunay(coords)
+        except Exception as e:
+            tri = None
+
+        return tri
+
+    def compute_edge_length(self, tri, stations):
+        x = [x.x_utm for x in stations]
+        y = [x.y_utm for x in stations]
+        coords = np.array(list(zip(x, y)))
+
+        dist = []
+        for cur_simp in tri.simplices:
+            cur_vert = coords[cur_simp]
+            cur_dist = [np.linalg.norm(x - y) for x in cur_vert for y in cur_vert]
+            dist.append(cur_dist)
+        edge_length = np.max(dist, axis=1)
+
+        return np.array(edge_length)
+
+    def compute_utm_coordinates(self, stations, inventory):
+        code = inventory.get_utm_epsg()
+        proj = pyproj.Proj(init = 'epsg:' + code[0][0])
+
+        for cur_station in stations:
+            x, y = proj(cur_station.get_lon_lat()[0],
+                        cur_station.get_lon_lat()[1])
+            cur_station.x_utm = x
+            cur_station.y_utm = y
+
+    def compute_max_pgv(self, stream, stations, edge_lengths, offset,
+                        min_trigger_window = 2, compute_interval = 1):
+        time_window = np.max(edge_lengths) / 3500
+        time_window = np.ceil(time_window)
+
+        if time_window < min_trigger_window:
+            print("Time window too small.")
+            print(edge_lengths)
+            time_window = min_trigger_window
+
+        tri_stream = obspy.Stream()
+        for cur_station in stations:
+            tri_stream = tri_stream + stream.select(station = cur_station.name)
+
+        pgv = []
+        time = []
+        for cur_stream in tri_stream.slide(window_length = time_window,
+                                           step = compute_interval,
+                                           offset = offset - time_window + compute_interval,
+                                           include_partial_windows = False):
+            cur_pgv = []
+            for cur_trace in cur_stream:
+                cur_pgv.append(np.max(cur_trace.data))
+
+            pgv.append(cur_pgv)
+            time.append(cur_trace.stats.endtime)
+
+        return np.array(time), np.array(pgv)
+
+
     def process_monitor_stream(self):
         ''' Process the data in the monitor stream.
 
         '''
-        logger = logging.getLogger('mss_data_server.write_monitor_stream')
+        logger = logging.getLogger('mss_data_server.detect_monitor_stream')
         logger.info('Processing the monitor_stream.')
         self.stream_lock.acquire()
         monitor_stream_length = len(self.monitor_stream)
@@ -316,6 +469,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
             # Signal available PGV data.
             self.pgv_data_available.set()
+
+            # Start the event detection.
+            self.detect_event()
             return
 
 
@@ -464,14 +620,16 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     # Write the data to the current pgv stream and the archive
                     # stream.
                     self.pgv_stream.append(cur_pgv_trace)
-                    self.pgv_archive_stream.append(cur_pgv_trace)
+                    with self.archive_lock:
+                        self.pgv_archive_stream.append(cur_pgv_trace)
 
         # Merge the current pgv stream.
         self.pgv_stream.merge()
         self.logger.debug('pgv_stream: %s.', self.pgv_stream)
 
         # Merge the archive stream.
-        self.pgv_archive_stream.merge(fill_value = self.nodata_value)
+        with self.archive_lock:
+            self.pgv_archive_stream.merge(fill_value = self.nodata_value)
         self.logger.info("pgv_archive_stream: %s", self.pgv_archive_stream)
 
         #self.pgv_archive_stream.write("/home/stefan/Schreibtisch/pgv_beben_neunkirchen.msd",
@@ -565,11 +723,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     def trim_archive(self):
         ''' Crop the archive to a specified length.
         '''
-        max_end_time = np.max([x.stats.endtime for x in self.pgv_archive_stream])
-        self.logger.info("max_end_time: %s.", max_end_time)
-        crop_start_time = max_end_time - self.pgv_archive_time
-        self.pgv_archive_stream.trim(starttime = crop_start_time)
-        self.logger.info("Trimmed the archive stream to %s.", crop_start_time)
+        with self.archive_lock:
+            max_end_time = np.max([x.stats.endtime for x in self.pgv_archive_stream if x])
+            self.logger.info("max_end_time: %s.", max_end_time)
+            crop_start_time = max_end_time - self.pgv_archive_time
+            self.pgv_archive_stream.trim(starttime = crop_start_time)
+            self.logger.info("Trimmed the archive stream to %s.",
+                             crop_start_time)
 
     def get_pgv_data(self):
         ''' Get the latest PGV data.
@@ -578,8 +738,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         for cur_trace in self.pgv_stream:
             cur_start_time = cur_trace.stats.starttime
             tmp = {}
-            tmp['time'] = [x.isoformat() for (x, y) in zip(cur_trace.times(type = "utcdatetime"), cur_trace.data.tolist()) if y != self.nodata_value]
-            tmp['data'] = [x for x in cur_trace.data.tolist() if x != self.nodata_value]
+            try:
+                tmp['time'] = [x.isoformat() for (x, y) in zip(cur_trace.times(type = "utcdatetime"), cur_trace.data.tolist()) if y != self.nodata_value]
+                tmp['data'] = [x for x in cur_trace.data.tolist() if x != self.nodata_value]
+            except Exception as e:
+                self.logger.exception("Error getting the PGV data.")
             pgv_data[cur_trace.get_id()] = tmp
 
         # Clear the pgv stream.
@@ -590,7 +753,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         ''' Get the archived PGV data.
         '''
         pgv_data = {}
-        for cur_trace in self.pgv_archive_stream:
+        with self.archive_lock:
+            working_stream = self.pgv_archive_stream.copy()
+
+        for cur_trace in working_stream:
             try:
                 tmp = {}
                 tmp['time'] = [x.isoformat() for (x, y) in zip(cur_trace.times(type = "utcdatetime"), cur_trace.data.tolist()) if y != self.nodata_value]
