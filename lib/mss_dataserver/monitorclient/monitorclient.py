@@ -346,9 +346,14 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                              min_trigger_window = min_trigger_window,
                                                              compute_interval = 1)
                     logger.info("cur_pgv: %s", cur_pgv)
-                    #cur_trig = np.nanmin(cur_pgv, axis = 1) >= trigger_thr
-                    #event_trigger.append([[x.name for x in cur_simp_stations],
-                    #                      cur_time, cur_pgv, cur_trig])
+                    if len(cur_pgv) > 0:
+                        cur_trig = np.nanmin(cur_pgv, axis = 1) >= trigger_thr
+                        tmp = {}
+                        tmp['simp_stations'] = [x.name for x in cur_simp_stations]
+                        tmp['time'] = [x.isoformat() for x in cur_time]
+                        tmp['pgv'] = cur_pgv.tolist()
+                        tmp['trigger'] = cur_trig.tolist()
+                        event_trigger.append(tmp)
 
         self.last_detection_result['trigger_data'] = event_trigger
         self.event_detection_result_available.set()
