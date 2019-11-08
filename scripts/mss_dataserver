@@ -60,6 +60,8 @@ msg_data_id = {}
 msg_data_id['pgv'] = 'pgv'
 msg_data_id['pgv_archive'] = 'pgv_archive'
 msg_data_id['detection_result'] = 'detection_result'
+msg_data_id['event_data'] = 'event_data'
+msg_data_id['event_warning'] = 'event_warning'
 
 
 async def register_client(websocket, sl_client):
@@ -142,6 +144,46 @@ async def serve_detection_result(sl_client):
             logging.info("Sending to client %s.", cur_client)
             await cur_client.send(msg)
         sl_client.event_detection_result_available.clear()
+
+
+async def serve_event_data(sl_client):
+    ''' Send the event data to all registerd clients.
+    '''
+    while True:
+        await sl_client.event_data_available.wait()
+        payload = sl_client.get_current_event()
+
+        msg = {}
+        msg['class'] = msg_class['data']
+        msg['id'] = msg_data_id['event_data']
+        msg['payload'] = payload
+        msg = json.dumps(msg)
+
+        logging.info("Serving the event data.")
+        for cur_client in clients:
+            logging.info("Sending to client %s.", cur_client)
+            await cur_client.send(msg)
+        sl_client.event_data_available.clear()
+
+
+async def serve_event_warning(sl_client):
+    ''' Send the event warning to all registerd clients.
+    '''
+    while True:
+        await sl_client.event_warning_available.wait()
+        payload = sl_client.get_event_warning()
+
+        msg = {}
+        msg['class'] = msg_class['data']
+        msg['id'] = msg_data_id['event_warning']
+        msg['payload'] = payload
+        msg = json.dumps(msg)
+
+        logging.info("Serving the event warning.")
+        for cur_client in clients:
+            logging.info("Sending to client %s.", cur_client)
+            await cur_client.send(msg)
+        sl_client.event_warning_available.clear()
 
 
 async def serve_pgv(websocket, path, sl_client):
@@ -280,6 +322,8 @@ def start_server(config):
     #loop.create_task(client.task_timer(client.detect_event))
     loop.create_task(serve_data(client))
     loop.create_task(serve_detection_result(client))
+    loop.create_task(serve_event_data(client))
+    loop.create_task(serve_event_warning(client))
     loop.run_forever()
 
 
