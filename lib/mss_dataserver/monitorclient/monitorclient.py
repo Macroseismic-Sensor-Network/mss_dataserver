@@ -73,8 +73,15 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         self.stop_event = stop_event
 
+        # The trigger parameters.
+        self.trigger_thr = 0.01e-3
+
         # The most recent detected event.
-        self.last_event = {}
+        self.event_triggered = False
+        self.current_event = {}
+
+        # The event warning.
+        self.event_warning = {}
 
         # The latest event detection result.
         self.last_detection_result = {}
@@ -84,6 +91,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # The event detection result state.
         self.event_detection_result_available = asyncio.Event()
+
+        # The event warning state.
+        self.event_warning_available = asyncio.Event()
+
+        # The event trigger state.
+        self.event_data_available = asyncio.Event()
 
         # The psysmon geometry inventory.
         self.inventory = inventory
@@ -279,6 +292,62 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         self.logger.info("Leaving the task_timer method.")
 
+    def detect_event_warning(self):
+        ''' Run the Voronoi detection with the most recent PGV data only.
+        This is a first crude detection of an event and is used for a
+        first warning notification of a possible event. The warning has
+        has to be confirmed by a detected event.
+        '''
+        logger = logging.getLogger('mss_data_server.detect_event_warning')
+        logger.info("Running detect_event_warning.")
+        now = obspy.UTCDateTime()
+
+        with self.stream_lock:
+            working_stream = self.pgv_stream.copy()
+
+        # Get the max. PGV and the related stations.
+        max_pgv = []
+        stations = []
+        for cur_trace in working_stream:
+            max_pgv.append(np.nanmax(cur_trace.data))
+            stations.append(self.inventory.get_station(name = cur_trace.stats.station)[0])
+
+        # Compute the Delaunay triangles.
+        tri = self.compute_delaunay(stations)
+
+        # Convert the lists to numpy arrays.
+        max_pgv = np.array(max_pgv)
+        stations = np.array(stations)
+
+        # Compute the Delaunay trigger.
+        trigger_pgv = []
+        simp_stations = []
+        if tri:
+            for k, cur_simp in enumerate(tri.simplices):
+                cur_tri_pgv = max_pgv[cur_simp]
+                simp_stations.append([x.name for x in stations[cur_simp]])
+                trigger_pgv.append(np.nanmin(cur_tri_pgv))
+
+        trigger_pgv = np.array(trigger_pgv)
+        simp_stations = np.array(simp_stations)
+
+        # Detect the event warning.
+        mask = trigger_pgv >= self.trigger_thr
+        if mask.any():
+            self.event_warning['time'] = now
+            self.event_warning['simp_stations'] = simp_stations[mask]
+            self.event_warning['trigger_pgv'] = trigger_pgv[mask]
+            self.event_warning_available.set()
+            logger.info("Event warning issued.")
+            logger.info("Event warning data: %s.", self.event_warning)
+        else:
+            self.event_warning['time'] = now
+            self.event_warning['simp_stations'] = np.array([])
+            self.event_warning['trigger_pgv'] = np.array([])
+            self.event_warning_available.set()
+            logger.info("No event warning issued.")
+
+
     def detect_event(self):
         ''' Run the Voronoi event detections.
         '''
@@ -286,7 +355,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         logger.info('Running the event detection.')
         detect_win_length = 10
         safety_win = 10
-        trigger_thr = 0.01e-3
+        trigger_thr = self.trigger_thr
         min_trigger_window = 3
 
         now = obspy.UTCDateTime()
@@ -323,11 +392,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.last_detection_result['computation_time'] = now.isoformat()
         self.last_detection_result['used_stations'] = [x.snl for x in detect_stations]
 
-        logger.info("detect_stream: %s", detect_stream)
-        logger.info("detect_stations: %s", detect_stations)
-        logger.info("x_utm: %s", [x.x_utm for x in detect_stations])
+        logger.info("number of detect_stream traces: %d.", len(detect_stream))
+        logger.info("number of detect_stations: %d.", len(detect_stations))
+        #logger.info("x_utm: %s", [x.x_utm for x in detect_stations])
 
-        event_trigger = []
+        trigger_data = []
         if detect_stations:
             # Compute the Delaunay triangulation.
             tri = self.compute_delaunay(detect_stations)
@@ -345,7 +414,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                              offset = max_time_window,
                                                              min_trigger_window = min_trigger_window,
                                                              compute_interval = 1)
-                    logger.info("cur_pgv: %s", cur_pgv)
                     if len(cur_pgv) > 0:
                         cur_trig = np.nanmin(cur_pgv, axis = 1) >= trigger_thr
                         tmp = {}
@@ -353,9 +421,57 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                         tmp['time'] = [x.isoformat() for x in cur_time]
                         tmp['pgv'] = cur_pgv.tolist()
                         tmp['trigger'] = cur_trig.tolist()
-                        event_trigger.append(tmp)
+                        trigger_data.append(tmp)
 
-        self.last_detection_result['trigger_data'] = event_trigger
+            # Check if any of the triangles has triggered and get the earliest
+            # time of the triggering.
+            trigger_times = []
+            event_start = None
+            event_end = None
+            for cur_trigger_data in trigger_data:
+                if np.any(cur_trigger_data['trigger']):
+                    cur_mask = cur_trigger_data['trigger']
+                    cur_trigger_start = np.array(cur_trigger_data['time'])[cur_mask][0]
+                    cur_trigger_end = np.array(cur_trigger_data['time'])[cur_mask][-1]
+                    trigger_times.append([obspy.UTCDateTime(cur_trigger_start),
+                                          obspy.UTCDateTime(cur_trigger_end)])
+            trigger_times = np.array(trigger_times)
+            if len(trigger_times) > 0:
+                logger.info("trigger_times: %s", trigger_times)
+                event_start = np.min(trigger_times[:, 0])
+                event_end = np.max(trigger_times[:, 1])
+
+            # If not in event mode and an event has been declared, set the
+            # event mode.
+            if not self.event_triggered and event_start is not None:
+                logger.info("Event triggered.")
+                self.event_triggered = True
+                cur_event = {}
+                cur_event['start_time'] = event_start
+                cur_event['end_time'] = event_end
+                cur_event['pgv'] = detect_stream.copy()
+                cur_event['trigger_data'] = {}
+                cur_event['trigger_data'][detect_win_end.isoformat()] = trigger_data
+                cur_event['state'] = 'triggered'
+                self.current_event = cur_event
+                self.event_data_available.set()
+            elif self.event_triggered and event_start is not None:
+                logger.info("Updating triggered event.")
+                self.current_event['end_time'] = event_end
+                self.current_event['pgv'] = self.current_event['pgv'] + detect_stream
+                self.current_event['trigger_data'][detect_win_end.isoformat()] = trigger_data
+                self.event_data_available.set()
+            elif self.event_triggered and event_start is None:
+                logger.info("Event end declared.")
+                self.current_event['pgv'].merge()
+                self.current_event['state'] = 'closed'
+                self.event_triggered = False
+                logger.info("Event stream: %s",
+                            self.current_event['pgv'].__str__(extended = True))
+                self.event_data_available.set()
+
+        logger.info("Number of trigger_data: %d.", len(trigger_data))
+        self.last_detection_result['trigger_data'] = trigger_data
         self.event_detection_result_available.set()
 
     def compute_delaunay(self, stations):
@@ -471,6 +587,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
             # Trim the archive stream.
             self.trim_archive()
+
+            # Start the event alarm detection using the most recent pgv values.
+            self.detect_event_warning()
 
             # Signal available PGV data.
             self.pgv_data_available.set()
@@ -771,3 +890,25 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.logger.exception("Error while preparing the pgv archive.")
 
         return pgv_data
+
+    def get_current_event(self):
+        ''' Return the current event in serializable form.
+        '''
+        cur_event = {}
+        cur_event['start_time'] = self.current_event['start_time'].isoformat()
+        cur_event['end_time'] = self.current_event['end_time'].isoformat()
+        cur_event['trigger_data'] = self.current_event['trigger_data']
+        cur_event['state'] = self.current_event['state']
+
+        return cur_event
+
+    def get_event_warning(self):
+        ''' Return the current event warning in serializable form.
+        '''
+        cur_warning = {}
+        if self.event_warning:
+            cur_warning['time'] = self.event_warning['time'].isoformat()
+            cur_warning['simp_stations'] = self.event_warning['simp_stations'].tolist()
+            cur_warning['trigger_pgv'] = self.event_warning['trigger_pgv'].tolist()
+
+        return cur_warning
