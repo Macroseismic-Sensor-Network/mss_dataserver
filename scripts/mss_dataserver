@@ -89,7 +89,7 @@ async def register_client(websocket, sl_client):
     payload = sl_client.get_pgv_archive()
     msg['payload'] = payload
 
-    logging.info("Sending pgv archive: %s.", msg)
+    logging.info("Sending pgv archive.")
 
     # Send the archived PGV data.
     msg = json.dumps(msg)
