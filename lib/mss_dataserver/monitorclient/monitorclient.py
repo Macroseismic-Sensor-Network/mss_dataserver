@@ -415,6 +415,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                              min_trigger_window = min_trigger_window,
                                                              compute_interval = 1)
                     if len(cur_pgv) > 0:
+                        if np.any(np.isnan(cur_pgv)):
+                            continue
                         cur_trig = np.nanmin(cur_pgv, axis = 1) >= trigger_thr
                         tmp = {}
                         tmp['simp_stations'] = [x.name for x in cur_simp_stations]
@@ -589,13 +591,20 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.trim_archive()
 
             # Start the event alarm detection using the most recent pgv values.
-            self.detect_event_warning()
+            try:
+                self.detect_event_warning()
+            except Exception as e:
+                self.logger.error("Error computing the event warning.")
 
             # Signal available PGV data.
             self.pgv_data_available.set()
 
             # Start the event detection.
-            self.detect_event()
+            try:
+                self.detect_event()
+            except Exception as e:
+                self.logger.error("Error computing the event detection.")
+
             return
 
 
@@ -863,6 +872,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             cur_start_time = cur_trace.stats.starttime
             tmp = {}
             try:
+                # There have been some NaN values in the data. I couldn't
+                # figure out where they came from. Make sure to replace them
+                # with the nodata value before creating the pgv data.
+                cur_trace.data[np.isnan(cur_trace.data)] = self.nodata_value
                 tmp['time'] = [x.isoformat() for (x, y) in zip(cur_trace.times(type = "utcdatetime"), cur_trace.data.tolist()) if y != self.nodata_value]
                 tmp['data'] = [x for x in cur_trace.data.tolist() if x != self.nodata_value]
             except Exception as e:
@@ -882,6 +895,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         for cur_trace in working_stream:
             try:
+                # There have been some NaN values in the data. I couldn't
+                # figure out where they came from. Make sure to replace them
+                # with the nodata value before creating the pgv data.
+                cur_trace.data[np.isnan(cur_trace.data)] = self.nodata_value
                 tmp = {}
                 tmp['time'] = [x.isoformat() for (x, y) in zip(cur_trace.times(type = "utcdatetime"), cur_trace.data.tolist()) if y != self.nodata_value]
                 tmp['data'] = [x for x in cur_trace.data.tolist() if x != self.nodata_value]
