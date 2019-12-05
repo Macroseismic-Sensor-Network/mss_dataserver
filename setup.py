@@ -60,6 +60,6 @@ setuptools.setup(name = 'mss_dataserver',
                                       'lxml',
                                       'numpy',
                                       'obspy',
-                                      'pyproj=2.2.0',
+                                      'pyproj==2.2.0',
                                       'websockets'])
 
