@@ -74,7 +74,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.stop_event = stop_event
 
         # The trigger parameters.
-        self.trigger_thr = 0.01e-3
+        #self.trigger_thr = 0.01e-3
+        self.trigger_thr = 0.005e-3
+        self.warn_thr = 0.005e-3
 
         # The most recent detected event.
         self.event_triggered = False
@@ -323,7 +325,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         trigger_pgv = []
         simp_stations = []
         if tri:
-            for k, cur_simp in enumerate(tri.simplices):
+            edge_length = self.compute_edge_length(tri,
+                                                   stations)
+            valid_tri = np.argwhere(edge_length < 30000).flatten()
+            edge_length = edge_length[valid_tri]
+            for k, cur_simp in enumerate(tri.simplices[valid_tri]):
                 cur_tri_pgv = max_pgv[cur_simp]
                 simp_stations.append([x.name for x in stations[cur_simp]])
                 trigger_pgv.append(np.nanmin(cur_tri_pgv))
@@ -332,7 +338,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         simp_stations = np.array(simp_stations)
 
         # Detect the event warning.
-        mask = trigger_pgv >= self.trigger_thr
+        mask = trigger_pgv >= self.warn_thr
         if mask.any():
             self.event_warning['time'] = now
             self.event_warning['simp_stations'] = simp_stations[mask]
@@ -376,6 +382,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         tri = self.compute_delaunay(self.inventory.get_station())
         edge_length = self.compute_edge_length(tri, self.inventory.get_station())
         # Use only triangles with an edge length smaller than a threshold.
+        if tri:
+            valid_tri = np.argwhere(edge_length < 40000).flatten()
+            logger.info("valid_tri: %s", valid_tri)
+            edge_length = edge_length[valid_tri]
+
         max_time_window = np.max(edge_length) / 3500
         max_time_window = np.ceil(max_time_window)
 
@@ -405,8 +416,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 # Compute the max. edge lengths of the triangles.
                 edge_length = self.compute_edge_length(tri,
                                                        detect_stations)
+                valid_tri = np.argwhere(edge_length < 30000).flatten()
+                edge_length = edge_length[valid_tri]
 
-                for k, cur_simp in enumerate(tri.simplices):
+                for k, cur_simp in enumerate(tri.simplices[valid_tri]):
                     cur_simp_stations = [detect_stations[x] for x in cur_simp]
                     cur_time, cur_pgv = self.compute_max_pgv(stream = detect_stream,
                                                              stations = cur_simp_stations,
@@ -454,6 +467,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 cur_event['pgv'] = detect_stream.copy()
                 cur_event['trigger_data'] = {}
                 cur_event['trigger_data'][detect_win_end.isoformat()] = trigger_data
+                cur_event['overall_trigger_data'] = [x for x in trigger_data if np.any(x['trigger'])]
                 cur_event['state'] = 'triggered'
                 self.current_event = cur_event
                 self.event_data_available.set()
@@ -462,6 +476,16 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.current_event['end_time'] = event_end
                 self.current_event['pgv'] = self.current_event['pgv'] + detect_stream
                 self.current_event['trigger_data'][detect_win_end.isoformat()] = trigger_data
+                overall_trigger_data = self.current_event['overall_trigger_data']
+                for cur_trigger_data in [x for x in trigger_data if np.any(x['trigger'])]:
+                    cur_simp_stations = cur_trigger_data['simp_stations']
+                    available_simp_stations = [x['simp_stations'] for x in overall_trigger_data]
+                    if cur_simp_stations not in available_simp_stations:
+                        overall_trigger_data.append(cur_trigger_data)
+                    else:
+                        cur_ind = available_simp_stations.index(cur_simp_stations)
+                        overall_trigger_data[cur_ind] = cur_trigger_data
+                self.current_event['overall_trigger_data'] = overall_trigger_data
                 self.event_data_available.set()
             elif self.event_triggered and event_start is None:
                 logger.info("Event end declared.")
@@ -594,7 +618,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             try:
                 self.detect_event_warning()
             except Exception as e:
-                self.logger.error("Error computing the event warning.")
+                self.logger.exception("Error computing the event warning.")
 
             # Signal available PGV data.
             self.pgv_data_available.set()
@@ -603,7 +627,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             try:
                 self.detect_event()
             except Exception as e:
-                self.logger.error("Error computing the event detection.")
+                self.logger.exception("Error computing the event detection.")
 
             return
 
@@ -916,6 +940,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         cur_event['end_time'] = self.current_event['end_time'].isoformat()
         cur_event['trigger_data'] = self.current_event['trigger_data']
         cur_event['state'] = self.current_event['state']
+        cur_event['overall_trigger_data'] = self.current_event['overall_trigger_data']
 
         return cur_event
 
