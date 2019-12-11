@@ -538,12 +538,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def compute_max_pgv(self, stream, stations, edge_lengths, offset,
                         min_trigger_window = 2, compute_interval = 1):
+        logger = logging.getLogger('mss_data_server.compute_max_pgv')
         time_window = np.max(edge_lengths) / 3500
         time_window = np.ceil(time_window)
 
         if time_window < min_trigger_window:
-            print("Time window too small.")
-            print(edge_lengths)
+            logger.info("Time window too small. Edge lengths: %s.", edge_lengths)
             time_window = min_trigger_window
 
         tri_stream = obspy.Stream()
