@@ -90,10 +90,24 @@ async def register_client(websocket, sl_client):
     msg['payload'] = payload
 
     logging.info("Sending pgv archive.")
-
     # Send the archived PGV data.
     msg = json.dumps(msg)
     await websocket.send(msg)
+
+    # Send the current event if it exists.
+    payload = sl_client.get_current_event()
+
+    if payload:
+        msg = {}
+        msg['class'] = msg_class['data']
+        msg['id'] = msg_data_id['event_data']
+        msg['payload'] = payload
+        msg = json.dumps(msg)
+
+        logging.info("Sending the current event.")
+        # Send the archived PGV data.
+        msg = json.dumps(msg)
+        await websocket.send(msg)
 
     # The client has been registered and the archive has been sent,
     # now add the websocket to the known clients.
@@ -110,80 +124,92 @@ async def serve_data(sl_client):
     ''' Send the data to all registered clients.
     '''
     while True:
-        await sl_client.pgv_data_available.wait()
-        payload = sl_client.get_pgv_data()
+        try:
+            await sl_client.pgv_data_available.wait()
+            payload = sl_client.get_pgv_data()
 
-        msg = {}
-        msg['class'] = msg_class['data']
-        msg['id'] = msg_data_id['pgv']
-        msg['payload'] = payload
-        msg = json.dumps(msg)
+            msg = {}
+            msg['class'] = msg_class['data']
+            msg['id'] = msg_data_id['pgv']
+            msg['payload'] = payload
+            msg = json.dumps(msg)
 
-        logging.info("Serving the data.")
-        for cur_client in clients:
-            logging.info("Sending to client %s.", cur_client)
-            await cur_client.send(msg)
-        sl_client.pgv_data_available.clear()
+            logging.info("Serving the data.")
+            for cur_client in clients:
+                logging.info("Sending to client %s.", cur_client)
+                await cur_client.send(msg)
+            sl_client.pgv_data_available.clear()
+        except Exception as e:
+            logging.exception("Error while serving the data.")
 
 
 async def serve_detection_result(sl_client):
     ''' Send the event detectionresult to all registerd clients.
     '''
     while True:
-        await sl_client.event_detection_result_available.wait()
-        payload = sl_client.last_detection_result
+        try:
+            await sl_client.event_detection_result_available.wait()
+            payload = sl_client.last_detection_result
 
-        msg = {}
-        msg['class'] = msg_class['data']
-        msg['id'] = msg_data_id['detection_result']
-        msg['payload'] = payload
-        msg = json.dumps(msg)
+            msg = {}
+            msg['class'] = msg_class['data']
+            msg['id'] = msg_data_id['detection_result']
+            msg['payload'] = payload
+            msg = json.dumps(msg)
 
-        logging.info("Serving the detection result.")
-        for cur_client in clients:
-            logging.info("Sending to client %s.", cur_client)
-            await cur_client.send(msg)
-        sl_client.event_detection_result_available.clear()
+            logging.info("Serving the detection result.")
+            for cur_client in clients:
+                logging.info("Sending to client %s.", cur_client)
+                await cur_client.send(msg)
+            sl_client.event_detection_result_available.clear()
+        except Exception as e:
+            logging.exception("Error while serving the detection result.")
 
 
 async def serve_event_data(sl_client):
     ''' Send the event data to all registerd clients.
     '''
     while True:
-        await sl_client.event_data_available.wait()
-        payload = sl_client.get_current_event()
+        try:
+            await sl_client.event_data_available.wait()
+            payload = sl_client.get_current_event()
 
-        msg = {}
-        msg['class'] = msg_class['data']
-        msg['id'] = msg_data_id['event_data']
-        msg['payload'] = payload
-        msg = json.dumps(msg)
+            msg = {}
+            msg['class'] = msg_class['data']
+            msg['id'] = msg_data_id['event_data']
+            msg['payload'] = payload
+            msg = json.dumps(msg)
 
-        logging.info("Serving the event data.")
-        for cur_client in clients:
-            logging.info("Sending to client %s.", cur_client)
-            await cur_client.send(msg)
-        sl_client.event_data_available.clear()
+            logging.info("Serving the event data.")
+            for cur_client in clients:
+                logging.info("Sending to client %s.", cur_client)
+                await cur_client.send(msg)
+            sl_client.event_data_available.clear()
+        except Exception as e:
+            logging.exception("Error while serving the event data.")
 
 
 async def serve_event_warning(sl_client):
     ''' Send the event warning to all registerd clients.
     '''
     while True:
-        await sl_client.event_warning_available.wait()
-        payload = sl_client.get_event_warning()
+        try:
+            await sl_client.event_warning_available.wait()
+            payload = sl_client.get_event_warning()
 
-        msg = {}
-        msg['class'] = msg_class['data']
-        msg['id'] = msg_data_id['event_warning']
-        msg['payload'] = payload
-        msg = json.dumps(msg)
+            msg = {}
+            msg['class'] = msg_class['data']
+            msg['id'] = msg_data_id['event_warning']
+            msg['payload'] = payload
+            msg = json.dumps(msg)
 
-        logging.info("Serving the event warning.")
-        for cur_client in clients:
-            logging.info("Sending to client %s.", cur_client)
-            await cur_client.send(msg)
-        sl_client.event_warning_available.clear()
+            logging.info("Serving the event warning.")
+            for cur_client in clients:
+                logging.info("Sending to client %s.", cur_client)
+                await cur_client.send(msg)
+            sl_client.event_warning_available.clear()
+        except Exception as e:
+            logging.exception("Error while serving the event data.")
 
 
 async def serve_pgv(websocket, path, sl_client):
