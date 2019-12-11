@@ -421,6 +421,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
                 for k, cur_simp in enumerate(tri.simplices[valid_tri]):
                     cur_simp_stations = [detect_stations[x] for x in cur_simp]
+                    logger.info("Computing max PGV for stations: %s.", [x.name for x in cur_simp_stations])
                     cur_time, cur_pgv = self.compute_max_pgv(stream = detect_stream,
                                                              stations = cur_simp_stations,
                                                              edge_lengths = edge_length[k],
