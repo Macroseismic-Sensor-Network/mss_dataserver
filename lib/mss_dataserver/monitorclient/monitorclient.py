@@ -430,6 +430,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                              compute_interval = 1)
                     if len(cur_pgv) > 0:
                         if np.any(np.isnan(cur_pgv)):
+                            logger.warning("There is a NaN value in the cur_pgv: %s.", cur_pgv)
                             continue
                         cur_trig = np.nanmin(cur_pgv, axis = 1) >= trigger_thr
                         tmp = {}
