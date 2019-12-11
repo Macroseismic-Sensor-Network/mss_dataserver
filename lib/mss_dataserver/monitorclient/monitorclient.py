@@ -542,7 +542,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         time_window = np.ceil(time_window)
 
         if time_window < min_trigger_window:
-            logger.info("Time window too small. Edge lengths: %s.", edge_lengths)
+            self.logger.info("Time window too small. Edge lengths: %s.", edge_lengths)
             time_window = min_trigger_window
 
         tri_stream = obspy.Stream()
@@ -556,7 +556,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                            offset = offset - time_window + compute_interval,
                                            include_partial_windows = False):
             if len(cur_stream) != 3:
-                logger.error("Not exactly 3 traces in the stream: %s.", cur_stream)
+                self.logger.error("Not exactly 3 traces in the stream: %s.", cur_stream)
                 continue
             cur_pgv = []
             for cur_trace in cur_stream:
