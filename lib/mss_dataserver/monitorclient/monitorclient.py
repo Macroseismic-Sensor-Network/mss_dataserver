@@ -429,6 +429,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                              min_trigger_window = min_trigger_window,
                                                              compute_interval = 1)
                     if len(cur_pgv) > 0:
+                        logger.info("cur_pgv: %s.", cur_pgv)
                         try:
                             if np.any(np.isnan(cur_pgv)):
                                 continue
@@ -559,6 +560,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                            step = compute_interval,
                                            offset = offset - time_window + compute_interval,
                                            include_partial_windows = False):
+            if len(cur_stream) != 3:
+                logger.error("Not exactly 3 traces in the stream: %s.", cur_stream)
+                continue
             cur_pgv = []
             for cur_trace in cur_stream:
                 cur_pgv.append(np.max(cur_trace.data))
