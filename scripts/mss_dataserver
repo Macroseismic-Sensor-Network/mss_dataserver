@@ -61,6 +61,7 @@ msg_data_id['pgv'] = 'pgv'
 msg_data_id['pgv_archive'] = 'pgv_archive'
 msg_data_id['detection_result'] = 'detection_result'
 msg_data_id['event_data'] = 'event_data'
+msg_data_id['event_archive'] = 'event_archive'
 msg_data_id['event_warning'] = 'event_warning'
 
 
@@ -187,6 +188,29 @@ async def serve_event_data(sl_client):
             sl_client.event_data_available.clear()
         except Exception as e:
             logging.exception("Error while serving the event data.")
+
+
+async def serve_event_archive(sl_client):
+    ''' Send the event archive to all registerd clients.
+    '''
+    while True:
+        try:
+            await sl_client.event_archive_changed.wait()
+            payload = sl_client.get_event_archive()
+
+            msg = {}
+            msg['class'] = msg_class['data']
+            msg['id'] = msg_data_id['event_archive']
+            msg['payload'] = payload
+            msg = json.dumps(msg)
+
+            logging.info("Serving the event archive.")
+            for cur_client in clients:
+                logging.info("Sending to client %s.", cur_client)
+                await cur_client.send(msg)
+            sl_client.event_archive_changed.clear()
+        except Exception as e:
+            logging.exception("Error while serving the event archive.")
 
 
 async def serve_event_warning(sl_client):
@@ -349,6 +373,7 @@ def start_server(config):
     loop.create_task(serve_data(client))
     loop.create_task(serve_detection_result(client))
     loop.create_task(serve_event_data(client))
+    loop.create_task(serve_event_archive(client))
     loop.create_task(serve_event_warning(client))
     loop.run_forever()
 

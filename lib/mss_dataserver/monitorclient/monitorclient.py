@@ -75,12 +75,16 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # The trigger parameters.
         self.trigger_thr = 0.01e-3
-        #self.trigger_thr = 0.005e-3
+        #self.trigger_thr = 0.003e-3
         self.warn_thr = 0.01e-3
 
         # The most recent detected event.
         self.event_triggered = False
         self.current_event = {}
+
+        # The last detected events.
+        self.event_archive_size = 5
+        self.event_archive = []
 
         # The event warning.
         self.event_warning = {}
@@ -99,6 +103,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # The event trigger state.
         self.event_data_available = asyncio.Event()
+
+        # The event archive state.
+        self.event_archive_changed = asyncio.Event()
 
         # The psysmon geometry inventory.
         self.inventory = inventory
@@ -462,6 +469,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             # event mode.
             if not self.event_triggered and event_start is not None:
                 logger.info("Event triggered.")
+
+                # Save the current event in the archive.
+                self.current_event_to_archive()
+
                 self.event_triggered = True
                 cur_event = {}
                 cur_event['start_time'] = event_start
@@ -568,6 +579,14 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         return np.array(time), np.array(pgv)
 
+    def current_event_to_archive(self):
+        ''' Save the current event in the archive.
+        '''
+        self.logger.info("Saving the current event to the archive.")
+        if self.current_event:
+            self.event_archive.append(self.current_event)
+            self.event_archive = self.event_archive[-self.event_archive_size:]
+            self.event_archive_changed.set()
 
     def process_monitor_stream(self):
         ''' Process the data in the monitor stream.
@@ -959,3 +978,20 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             cur_warning['trigger_pgv'] = self.event_warning['trigger_pgv'].tolist()
 
         return cur_warning
+
+    def get_event_archive(self):
+        ''' Return the current event archive in serializable form.
+        '''
+        cur_archive = []
+        if len(self.event_archive) > 0:
+            for cur_event in self.event_archive:
+                cur_archive_event = {}
+                cur_archive_event['start_time'] = cur_event['start_time'].isoformat()
+                cur_archive_event['end_time'] = cur_event['end_time'].isoformat()
+                cur_archive_event['trigger_data'] = cur_event['trigger_data']
+                cur_archive_event['state'] = cur_event['state']
+                cur_archive_event['overall_trigger_data'] = cur_event['overall_trigger_data']
+                cur_archive.append(cur_archive_event)
+
+        return cur_archive
+
