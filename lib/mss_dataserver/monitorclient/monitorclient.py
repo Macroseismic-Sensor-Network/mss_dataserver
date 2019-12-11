@@ -74,9 +74,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.stop_event = stop_event
 
         # The trigger parameters.
-        #self.trigger_thr = 0.01e-3
-        self.trigger_thr = 0.005e-3
-        self.warn_thr = 0.005e-3
+        self.trigger_thr = 0.01e-3
+        #self.trigger_thr = 0.005e-3
+        self.warn_thr = 0.01e-3
 
         # The most recent detected event.
         self.event_triggered = False
@@ -936,11 +936,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         ''' Return the current event in serializable form.
         '''
         cur_event = {}
-        cur_event['start_time'] = self.current_event['start_time'].isoformat()
-        cur_event['end_time'] = self.current_event['end_time'].isoformat()
-        cur_event['trigger_data'] = self.current_event['trigger_data']
-        cur_event['state'] = self.current_event['state']
-        cur_event['overall_trigger_data'] = self.current_event['overall_trigger_data']
+        if self.current_event:
+            cur_event['start_time'] = self.current_event['start_time'].isoformat()
+            cur_event['end_time'] = self.current_event['end_time'].isoformat()
+            cur_event['trigger_data'] = self.current_event['trigger_data']
+            cur_event['state'] = self.current_event['state']
+            cur_event['overall_trigger_data'] = self.current_event['overall_trigger_data']
 
         return cur_event
 
