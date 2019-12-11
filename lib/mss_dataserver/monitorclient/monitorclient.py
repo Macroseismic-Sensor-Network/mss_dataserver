@@ -429,8 +429,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                              min_trigger_window = min_trigger_window,
                                                              compute_interval = 1)
                     if len(cur_pgv) > 0:
-                        if np.any(np.isnan(cur_pgv)):
-                            continue
+                        try:
+                            if np.any(np.isnan(cur_pgv)):
+                                continue
+                        except Exception as e:
+                            logger.exception("Error determining the NaN values. cur_pgv: %s.", cur_pgv)
                         cur_trig = np.nanmin(cur_pgv, axis = 1) >= trigger_thr
                         tmp = {}
                         tmp['simp_stations'] = [x.name for x in cur_simp_stations]
