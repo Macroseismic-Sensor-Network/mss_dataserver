@@ -429,12 +429,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                              min_trigger_window = min_trigger_window,
                                                              compute_interval = 1)
                     if len(cur_pgv) > 0:
-                        logger.info("cur_pgv: %s.", cur_pgv)
-                        try:
-                            if np.any(np.isnan(cur_pgv)):
-                                continue
-                        except Exception as e:
-                            logger.exception("Error determining the NaN values. cur_pgv: %s.", cur_pgv)
+                        if np.any(np.isnan(cur_pgv)):
+                            continue
                         cur_trig = np.nanmin(cur_pgv, axis = 1) >= trigger_thr
                         tmp = {}
                         tmp['simp_stations'] = [x.name for x in cur_simp_stations]
@@ -542,7 +538,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def compute_max_pgv(self, stream, stations, edge_lengths, offset,
                         min_trigger_window = 2, compute_interval = 1):
-        logger = logging.getLogger('mss_data_server.compute_max_pgv')
         time_window = np.max(edge_lengths) / 3500
         time_window = np.ceil(time_window)
 
