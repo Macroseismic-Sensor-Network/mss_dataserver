@@ -180,7 +180,7 @@ async def serve_detection_result(sl_client):
             msg['class'] = msg_class['data']
             msg['id'] = msg_data_id['detection_result']
             msg['payload'] = payload
-            msg = json.dumps(msg), allow_nan = False
+            msg = json.dumps(msg, allow_nan = False)
 
             logging.info("Serving the detection result.")
             for cur_client in clients:
