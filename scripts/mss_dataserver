@@ -158,14 +158,16 @@ async def serve_data(sl_client):
             logging.info("Serving the data.")
             for cur_client in clients:
                 logging.info("Sending to client %s.", cur_client)
-                await cur_client.send(msg)
+                try:
+                    await cur_client.send(msg)
+                except Exception as e:
+                    logging.exception("Error sending to client: %s.",
+                                      cur_client)
             sl_client.pgv_data_available.clear()
     except Exception as e:
         logging.exception("Error while serving the data.")
-    finally:
-        logging.info('Unregistering the client %s.', websocket)
-        await unregister_client(websocket)
-        logging.info('The registered clients are now: %s.', clients)
+        #TODO: What happens with the task if an exception occured.
+        # Is it automatically restarted or do I have to take care of this?
 
 
 async def serve_detection_result(sl_client):
@@ -185,14 +187,14 @@ async def serve_detection_result(sl_client):
             logging.info("Serving the detection result.")
             for cur_client in clients:
                 logging.info("Sending to client %s.", cur_client)
-                await cur_client.send(msg)
+                try:
+                    await cur_client.send(msg)
+                except Exception as e:
+                    logging.exception("Error sending to client: %s.",
+                                      cur_client)
             sl_client.event_detection_result_available.clear()
     except Exception as e:
         logging.exception("Error while serving the detection result.")
-    finally:
-        logging.info('Unregistering the client %s.', websocket)
-        await unregister_client(websocket)
-        logging.info('The registered clients are now: %s.', clients)
 
 
 async def serve_event_data(sl_client):
@@ -212,14 +214,14 @@ async def serve_event_data(sl_client):
             logging.info("Serving the event data.")
             for cur_client in clients:
                 logging.info("Sending to client %s.", cur_client)
-                await cur_client.send(msg)
+                try:
+                    await cur_client.send(msg)
+                except Exception as e:
+                    logging.exception("Error sending to client: %s.",
+                                      cur_client)
             sl_client.event_data_available.clear()
     except Exception as e:
         logging.exception("Error while serving the event data.")
-    finally:
-        logging.info('Unregistering the client %s.', websocket)
-        await unregister_client(websocket)
-        logging.info('The registered clients are now: %s.', clients)
 
 
 async def serve_event_archive(sl_client):
@@ -239,14 +241,14 @@ async def serve_event_archive(sl_client):
             logging.info("Serving the event archive.")
             for cur_client in clients:
                 logging.info("Sending to client %s.", cur_client)
-                await cur_client.send(msg)
+                try:
+                    await cur_client.send(msg)
+                except Exception as e:
+                    logging.exception("Error sending to client: %s.",
+                                      cur_client)
             sl_client.event_archive_changed.clear()
     except Exception as e:
         logging.exception("Error while serving the event archive.")
-    finally:
-        logging.info('Unregistering the client %s.', websocket)
-        await unregister_client(websocket)
-        logging.info('The registered clients are now: %s.', clients)
 
 
 async def serve_event_warning(sl_client):
@@ -266,14 +268,14 @@ async def serve_event_warning(sl_client):
             logging.info("Serving the event warning.")
             for cur_client in clients:
                 logging.info("Sending to client %s.", cur_client)
-                await cur_client.send(msg)
+                try:
+                    await cur_client.send(msg)
+                except Exception as e:
+                    logging.exception("Error sending to client: %s.",
+                                      cur_client)
             sl_client.event_warning_available.clear()
     except Exception as e:
         logging.exception("Error while serving the event warning.")
-    finally:
-        logging.info('Unregistering the client %s.', websocket)
-        await unregister_client(websocket)
-        logging.info('The registered clients are now: %s.', clients)
 
 
 async def serve_pgv(websocket, path, sl_client):
