@@ -378,7 +378,13 @@ def start_server(config):
     logging.info('Creating the Seedlink client.')
     server_url = host + ':' + str(port)
     stop_event = threading.Event()
-    client = monitorclient.MonitorClient(server_url = server_url,
+    loop = asyncio.get_event_loop()
+    # TODO: Check the communication between the monitor client and the asyncio
+    # loop using the event loop. Is this a good way?
+    # TODO: Check the thread-safe access to the resources of the monitorclient
+    # from the asyncio tasks.
+    client = monitorclient.MonitorClient(asyncio_loop = loop,
+                                         server_url = server_url,
                                          stations = stations,
                                          inventory = inventory,
                                          monitor_stream = monitor_stream,
@@ -418,7 +424,6 @@ def start_server(config):
                                        extra_headers = header)
 
     logging.info('Starting WS server.')
-    loop = asyncio.get_event_loop()
     loop.run_until_complete(start_ws_server)
     loop.create_task(client.task_timer(client.process_monitor_stream))
     #loop.create_task(client.task_timer(client.detect_event))

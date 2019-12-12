@@ -33,8 +33,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     """
     def __init__(self, server_url, stations, inventory,
                  monitor_stream, stream_lock, data_dir,
-                 process_interval, stop_event, pgv_sps = 1,
-                 autoconnect = False, pgv_archive_time = 1800,
+                 process_interval, stop_event, asyncio_loop,
+                 pgv_sps = 1, autoconnect = False, pgv_archive_time = 1800,
                  trigger_thr = 0.01e-3, warn_thr = 0.01e-3,
                  event_archive_size = 5):
         ''' Initialize the instance.
@@ -43,6 +43,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                  server_url = server_url,
                                                  autoconnect = autoconnect)
         self.logger = logging.getLogger('mss_data_server')
+
+        # The asyncio event loop. Used to stop the loop if an error occures.
+        self.asyncio_loop = asyncio_loop
 
         # The stations to stream from the seedlink server.
         self.stations = stations
@@ -313,7 +316,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.on_data(trace)
                 end = time.time()
 
-
             # Start the data export thread if the write_interval has been
             # reached.
             #if end and (end - start) > self.write_interval:
@@ -336,8 +338,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         try:
             self.reconnect()
         except Exception:
-            self.logger.error("Can't reconnect to the server.")
+            self.logger.error("Can't reconnect to the seedlink server.")
             self.stop_event.set()
+            # Stop the asyncio loop.
+            self.logger.error("Stopping the asyncio event loop because there where troubles reconnecting to the seedlink server.")
+            self.asyncio_loop.stop()
 
     def on_seedlink_error(self):
         ''' Handle client errors.
