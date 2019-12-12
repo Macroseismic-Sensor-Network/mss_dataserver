@@ -439,7 +439,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                         if np.any(np.isnan(cur_pgv)):
                             logger.warning("There is a NaN value in the cur_pgv.")
                             logger.debug("cur_pgv: %s.", cur_pgv)
-                            #continue
+                            # TODO: JSON can't handle NaN values. Ignore them right
+                            # now until I find a good solution.
+                            continue
                         cur_trig = np.nanmin(cur_pgv, axis = 1) >= trigger_thr
                         tmp = {}
                         tmp['simp_stations'] = [x.name for x in cur_simp_stations]
