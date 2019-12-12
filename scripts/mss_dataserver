@@ -105,7 +105,6 @@ async def register_client(websocket, sl_client):
             msg['class'] = msg_class['data']
             msg['id'] = msg_data_id['event_data']
             msg['payload'] = payload
-            msg = json.dumps(msg, allow_nan = False)
 
             logging.info("Sending the current event.")
             # Send the archived PGV data.
@@ -120,7 +119,6 @@ async def register_client(websocket, sl_client):
             msg['class'] = msg_class['data']
             msg['id'] = msg_data_id['event_archive']
             msg['payload'] = payload
-            msg = json.dumps(msg, allow_nan = False)
 
             logging.info("Sending the event archive.")
             # Send the archived PGV data.
