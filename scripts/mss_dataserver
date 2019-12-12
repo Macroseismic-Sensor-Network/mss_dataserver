@@ -319,6 +319,10 @@ def load_configuration(filename):
     config['process']['stations'] = json.loads(parser.get('process', 'stations'))
     config['process']['interval'] = int(parser.get('process', 'interval'))
     config['process']['pgv_sps'] = int(parser.get('process', 'pgv_sps'))
+    config['process']['trigger_threshold'] = float(parser.get('process', 'trigger_threshold'))
+    config['process']['warn_threshold'] = float(parser.get('process', 'warn_threshold'))
+    config['process']['pgv_archive_time'] = int(parser.get('process', 'pgv_archive_time'))
+    config['process']['event_archive_size'] = int(parser.get('process', 'event_archive_size'))
     config['process']['inventory_file'] = parser.get('process', 'inventory_file').strip()
 
     return config
@@ -364,6 +368,10 @@ def start_server(config):
     data_dir = config['output']['data_dir']
     process_interval = config['process']['interval']
     pgv_sps = config['process']['pgv_sps']
+    pgv_archive_time = config['process']['pgv_archive_time']
+    trigger_thr = config['process']['trigger_threshold']
+    warn_thr = config['process']['warn_threshold']
+    event_archive_size = config['process']['event_archive_size']
 
     if len(stations) == 0:
         stations = None
@@ -380,7 +388,11 @@ def start_server(config):
                                          data_dir = data_dir,
                                          process_interval = process_interval,
                                          pgv_sps = pgv_sps,
-                                         stop_event = stop_event)
+                                         stop_event = stop_event,
+                                         pgv_archive_time = pgv_archive_time,
+                                         trigger_thr = trigger_thr,
+                                         warn_thr = warn_thr,
+                                         event_archive_size = event_archive_size)
 
     client_thread = threading.Thread(target = client.run)
     client_thread.start()

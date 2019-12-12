@@ -29,7 +29,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     """
     A custom SeedLink client
     """
-    def __init__(self, server_url, stations, inventory, monitor_stream, stream_lock, data_dir, process_interval, stop_event, pgv_sps = 1, autoconnect = False):
+    def __init__(self, server_url, stations, inventory,
+                 monitor_stream, stream_lock, data_dir,
+                 process_interval, stop_event, pgv_sps = 1,
+                 autoconnect = False, pgv_archive_time = 1800,
+                 trigger_thr = 0.01e-3, warn_thr = 0.01e-3,
+                 event_archive_size = 5):
         ''' Initialize the instance.
         '''
         easyseedlink.EasySeedLinkClient.__init__(self,
@@ -55,7 +60,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.pgv_archive_stream = obspy.core.Stream()
 
         # The length of the archive stream to keep [s].
-        self.pgv_archive_time = 1800
+        self.pgv_archive_time = pgv_archive_time
 
         # The no-data value.
         self.nodata_value = -999999
@@ -74,16 +79,15 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.stop_event = stop_event
 
         # The trigger parameters.
-        self.trigger_thr = 0.01e-3
-        #self.trigger_thr = 0.003e-3
-        self.warn_thr = 0.01e-3
+        self.trigger_thr = trigger_thr
+        self.warn_thr = warn_thr
 
         # The most recent detected event.
         self.event_triggered = False
         self.current_event = {}
 
         # The last detected events.
-        self.event_archive_size = 5
+        self.event_archive_size = event_archive_size
         self.event_archive = []
 
         # The event warning.
@@ -658,7 +662,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             return
 
 
-
+            # TODO: Check if something could be interesting and remove the code
+            # below.
             if len(set([len(x) for x in export_stream])) != 1:
                 logger.warning('The length of the traces in the stream is not equal. No export.')
                 logger.debug('Add the stream back to the monitor stream.')
