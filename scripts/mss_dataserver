@@ -78,41 +78,61 @@ async def register_client(websocket, sl_client):
     payload['server_id'] = 'mss data server'
     msg['payload'] = payload
 
-    # Send the welcome message.
-    msg = json.dumps(msg)
-    await websocket.send(msg)
+    try:
+        logging.info("Registering the client.")
+        # Send the welcome message.
+        msg = json.dumps(msg)
+        await websocket.send(msg)
 
-    # Prepare the archived PGV data message.
-    msg = {}
-    msg['class'] = msg_class['data']
-    msg['id'] = msg_data_id['pgv_archive']
-
-    payload = sl_client.get_pgv_archive()
-    msg['payload'] = payload
-
-    logging.info("Sending pgv archive.")
-    # Send the archived PGV data.
-    msg = json.dumps(msg)
-    await websocket.send(msg)
-
-    # Send the current event if it exists.
-    payload = sl_client.get_current_event()
-
-    if payload:
+        # Prepare the archived PGV data message.
         msg = {}
         msg['class'] = msg_class['data']
-        msg['id'] = msg_data_id['event_data']
-        msg['payload'] = payload
-        msg = json.dumps(msg)
+        msg['id'] = msg_data_id['pgv_archive']
 
-        logging.info("Sending the current event.")
+        payload = sl_client.get_pgv_archive()
+        msg['payload'] = payload
+
+        logging.info("Sending pgv archive.")
         # Send the archived PGV data.
         msg = json.dumps(msg)
         await websocket.send(msg)
 
-    # The client has been registered and the archive has been sent,
-    # now add the websocket to the known clients.
-    clients.add(websocket)
+        # Send the current event if it exists.
+        payload = sl_client.get_current_event()
+
+        if payload:
+            msg = {}
+            msg['class'] = msg_class['data']
+            msg['id'] = msg_data_id['event_data']
+            msg['payload'] = payload
+            msg = json.dumps(msg)
+
+            logging.info("Sending the current event.")
+            # Send the archived PGV data.
+            msg = json.dumps(msg)
+            await websocket.send(msg)
+
+        # Send the event archive if it exists.
+        payload = sl_client.get_event_archive()
+
+        if payload:
+            msg = {}
+            msg['class'] = msg_class['data']
+            msg['id'] = msg_data_id['event_archive']
+            msg['payload'] = payload
+            msg = json.dumps(msg)
+
+            logging.info("Sending the event archive.")
+            # Send the archived PGV data.
+            msg = json.dumps(msg)
+            await websocket.send(msg)
+
+        # The client has been registered and the archive has been sent,
+        # now add the websocket to the known clients.
+        clients.add(websocket)
+        logging.info("Client registered.")
+    except Exception as e:
+        logging.exception("Error registering the client.")
 
 
 async def unregister_client(websocket):
@@ -124,8 +144,8 @@ async def unregister_client(websocket):
 async def serve_data(sl_client):
     ''' Send the data to all registered clients.
     '''
-    while True:
-        try:
+    try:
+        while True:
             await sl_client.pgv_data_available.wait()
             payload = sl_client.get_pgv_data()
 
@@ -140,15 +160,19 @@ async def serve_data(sl_client):
                 logging.info("Sending to client %s.", cur_client)
                 await cur_client.send(msg)
             sl_client.pgv_data_available.clear()
-        except Exception as e:
-            logging.exception("Error while serving the data.")
+    except Exception as e:
+        logging.exception("Error while serving the data.")
+    finally:
+        logging.info('Unregistering the client %s.', websocket)
+        await unregister_client(websocket)
+        logging.info('The registered clients are now: %s.', clients)
 
 
 async def serve_detection_result(sl_client):
     ''' Send the event detectionresult to all registerd clients.
     '''
-    while True:
-        try:
+    try:
+        while True:
             await sl_client.event_detection_result_available.wait()
             payload = sl_client.last_detection_result
 
@@ -163,15 +187,19 @@ async def serve_detection_result(sl_client):
                 logging.info("Sending to client %s.", cur_client)
                 await cur_client.send(msg)
             sl_client.event_detection_result_available.clear()
-        except Exception as e:
-            logging.exception("Error while serving the detection result.")
+    except Exception as e:
+        logging.exception("Error while serving the detection result.")
+    finally:
+        logging.info('Unregistering the client %s.', websocket)
+        await unregister_client(websocket)
+        logging.info('The registered clients are now: %s.', clients)
 
 
 async def serve_event_data(sl_client):
     ''' Send the event data to all registerd clients.
     '''
-    while True:
-        try:
+    try:
+        while True:
             await sl_client.event_data_available.wait()
             payload = sl_client.get_current_event()
 
@@ -186,15 +214,19 @@ async def serve_event_data(sl_client):
                 logging.info("Sending to client %s.", cur_client)
                 await cur_client.send(msg)
             sl_client.event_data_available.clear()
-        except Exception as e:
-            logging.exception("Error while serving the event data.")
+    except Exception as e:
+        logging.exception("Error while serving the event data.")
+    finally:
+        logging.info('Unregistering the client %s.', websocket)
+        await unregister_client(websocket)
+        logging.info('The registered clients are now: %s.', clients)
 
 
 async def serve_event_archive(sl_client):
     ''' Send the event archive to all registerd clients.
     '''
-    while True:
-        try:
+    try:
+        while True:
             await sl_client.event_archive_changed.wait()
             payload = sl_client.get_event_archive()
 
@@ -209,15 +241,19 @@ async def serve_event_archive(sl_client):
                 logging.info("Sending to client %s.", cur_client)
                 await cur_client.send(msg)
             sl_client.event_archive_changed.clear()
-        except Exception as e:
-            logging.exception("Error while serving the event archive.")
+    except Exception as e:
+        logging.exception("Error while serving the event archive.")
+    finally:
+        logging.info('Unregistering the client %s.', websocket)
+        await unregister_client(websocket)
+        logging.info('The registered clients are now: %s.', clients)
 
 
 async def serve_event_warning(sl_client):
     ''' Send the event warning to all registerd clients.
     '''
-    while True:
-        try:
+    try:
+        while True:
             await sl_client.event_warning_available.wait()
             payload = sl_client.get_event_warning()
 
@@ -232,8 +268,12 @@ async def serve_event_warning(sl_client):
                 logging.info("Sending to client %s.", cur_client)
                 await cur_client.send(msg)
             sl_client.event_warning_available.clear()
-        except Exception as e:
-            logging.exception("Error while serving the event data.")
+    except Exception as e:
+        logging.exception("Error while serving the event warning.")
+    finally:
+        logging.info('Unregistering the client %s.', websocket)
+        await unregister_client(websocket)
+        logging.info('The registered clients are now: %s.', clients)
 
 
 async def serve_pgv(websocket, path, sl_client):
