@@ -1,6 +1,8 @@
 #! /usr/bin/env python3
 
+import copy
 import datetime
+import json
 import logging
 import os
 import threading
@@ -125,6 +127,69 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.select_stream(cur_mss[0],
                                cur_mss[1],
                                cur_mss[2] + cur_mss[3])
+
+        # Load the archived data.
+        self.load_from_archive()
+
+    def load_archive_file(self):
+        ''' Load data from the JSON archive file.
+        '''
+        archive_filename = os.path.join(self.data_dir,
+                                        'mss_dataserver_archive.json')
+        archive = {}
+        if os.path.exists(archive_filename):
+            try:
+                with open(archive_filename) as fp:
+                    archive = json.load(fp)
+                    self.logger.info('Loaded the archive from file %s.',
+                                     archive_filename)
+            except Exception as e:
+                self.logger.exception("Couldn't load the archive file %s.",
+                                      archive_filename)
+        return archive
+
+    def load_from_archive(self):
+        ''' Load data from a saved archive.
+        '''
+        archive = self.load_archive_file()
+        if archive:
+            if 'current_event' in archive.keys():
+                self.current_event = archive['current_event']
+                self.current_event['start_time'] = utcdatetime.UTCDateTime(self.current_event['start_time'])
+                self.current_event['end_time'] = utcdatetime.UTCDateTime(self.current_event['end_time'])
+                # TODO: Handle the loading of the pgv data stream.
+                self.current_event['pgv'] = obspy.core.Stream()
+            if 'event_archive' in archive.keys():
+                self.event_archive = archive['event_archive']
+
+                for cur_event in self.event_archive:
+                    cur_event['start_time'] = utcdatetime.UTCDateTime(cur_event['start_time'])
+                    cur_event['end_time'] = utcdatetime.UTCDateTime(cur_event['end_time'])
+
+    def save_to_archive(self, key):
+        ''' Save data to the JSON archive.
+        '''
+        archive_filename = os.path.join(self.data_dir,
+                                        'mss_dataserver_archive.json')
+        archive = self.load_archive_file()
+
+        if key == 'current_event':
+            data = self.get_current_event()
+            # TODO: Handle the saving of the event PGV data.
+        if key == 'event_archive':
+            data = self.get_event_archive()
+
+        try:
+            archive['last_write'] = utcdatetime.UTCDateTime().isoformat()
+            archive[key] = data
+
+            with open(archive_filename, 'w') as fp:
+                pref = json.dump(archive, fp, indent = 4, sort_keys = True)
+                self.logger.info('Saved the archive to file %s.',
+                                 archive_filename)
+        except Exception as e:
+            self.logger.exception("Error saving the data to the archive. data: %s, archive: %s",
+                                  data, archive)
 
     def get_recorder_mappings(self, station_nsl = None):
         ''' Get the mappings of the seedlink SCNL to the MSS SCNL.
@@ -512,8 +577,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.current_event['pgv'].merge()
                 self.current_event['state'] = 'closed'
                 self.event_triggered = False
-                logger.debug("Event stream: %s",
-                            self.current_event['pgv'].__str__(extended = True))
+                self.save_to_archive(key = 'current_event')
                 self.event_data_available.set()
 
         logger.debug("Number of trigger_data: %d.", len(trigger_data))
@@ -594,6 +658,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.event_archive.append(self.current_event)
             self.event_archive = self.event_archive[-self.event_archive_size:]
             self.event_archive_changed.set()
+            self.save_to_archive('event_archive')
 
     def process_monitor_stream(self):
         ''' Process the data in the monitor stream.
@@ -1002,4 +1067,3 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 cur_archive.append(cur_archive_event)
 
         return cur_archive
-
