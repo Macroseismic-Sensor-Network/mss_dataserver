@@ -816,7 +816,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     def compute_pgv(self, stream):
         ''' Compute the PGV values of the stream.
         '''
-        self.logger.inof('Computing the PGV.')
+        self.logger.info('Computing the PGV.')
         unique_stations = [(x.stats.network, x.stats.station, x.stats.location) for x in stream]
         unique_stations = list(set(unique_stations))
         samp_interval = 1 / self.pgv_sps
