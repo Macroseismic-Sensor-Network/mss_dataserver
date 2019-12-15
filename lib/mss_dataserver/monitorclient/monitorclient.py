@@ -672,7 +672,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         '''
         logger = logging.getLogger('mss_data_server.detect_monitor_stream')
-        logger.debug('Processing the monitor_stream.')
+        logger.info('Processing the monitor_stream.')
         self.stream_lock.acquire()
         monitor_stream_length = len(self.monitor_stream)
         self.monitor_stream.merge()
@@ -696,7 +696,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             logger.debug('process_stream: %s', str(self.process_stream))
 
             with self.stream_lock:
-                logger.debug('monitor_stream: %s', str(self.monitor_stream))
+                logger.info('monitor_stream: %s', str(self.monitor_stream))
 
             # Get a stream containing only equal length traces per station.
             el_stream = self.get_equal_length_traces()
@@ -715,6 +715,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
             # Trim the archive stream.
             self.trim_archive()
+
+            # TODO: The trimming of the monitor stream seems to be missing.
 
             # Start the event alarm detection using the most recent pgv values.
             try:
