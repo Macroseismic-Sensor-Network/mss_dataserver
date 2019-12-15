@@ -511,6 +511,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                              offset = max_time_window,
                                                              min_trigger_window = min_trigger_window,
                                                              compute_interval = 1)
+                    logger.info("Finished.")
                     if len(cur_pgv) > 0:
                         if np.any(np.isnan(cur_pgv)):
                             logger.warning("There is a NaN value in the cur_pgv.")
@@ -642,6 +643,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         pgv = []
         time = []
+        self.logger.info("compute_max_pgv:  tri_stream: %s.", tri_stream)
         for cur_stream in tri_stream.slide(window_length = time_window,
                                            step = compute_interval,
                                            offset = offset - time_window + compute_interval,
