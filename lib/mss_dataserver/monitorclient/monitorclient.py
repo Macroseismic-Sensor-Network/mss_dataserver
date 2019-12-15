@@ -825,13 +825,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         samp_interval = 1 / self.pgv_sps
 
         for cur_station in unique_stations:
-            self.logger.debug('Getting stream for %s.', cur_station)
+            self.logger.info('Getting stream for %s.', cur_station)
             # Get all traces for the station.
             cur_stream = stream.select(network = cur_station[0],
                                        station = cur_station[1],
                                        location = cur_station[2])
 
-            self.logger.debug('Selected stream: %s.', cur_stream)
+            self.logger.info('Selected stream: %s.', cur_stream)
 
             min_start = np.min([x.stats.starttime for x in cur_stream])
             sec_remain = min_start.timestamp % samp_interval
@@ -839,6 +839,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.logger.debug('offset: %f.', cur_offset)
             cur_delta = cur_stream[0].stats.delta
 
+            cur_pgv = []
             for win_st in cur_stream.slide(window_length = samp_interval - cur_delta,
                                            step = samp_interval,
                                            offset = cur_offset):
@@ -846,7 +847,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 x_st = win_st.select(channel = 'Hparallel')
                 y_st = win_st.select(channel = 'Hnormal')
 
-                cur_pgv = []
+                # TODO: It is assumed, that there are no gaps in the data.
+                # Handle this problem.
+                if len(x_st.traces) > 1:
+                    self.logger.error("Too many traces in the stream slice.")
                 for cur_x_trace, cur_y_trace in zip(x_st.traces, y_st.traces):
                     cur_x = cur_x_trace.data
                     cur_y = cur_y_trace.data
@@ -864,29 +868,29 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     cur_pgv_value = np.max(np.sqrt(cur_x**2 + cur_y**2))
                     cur_pgv.append([cur_pgv_time, cur_pgv_value])
 
-                if cur_pgv:
-                    cur_pgv = np.array(cur_pgv)
-                    #self.logger.debug('cur_x: %s', cur_x)
-                    #self.logger.debug('cur_y: %s', cur_y)
-                    self.logger.debug('cur_pgv: %s', cur_pgv)
-                    cur_stats = {'network': cur_x_trace.stats.network,
-                                 'station': cur_x_trace.stats.station,
-                                 'location': cur_x_trace.stats.location,
-                                 'channel': 'pgv',
-                                 'sampling_rate': self.pgv_sps,
-                                 'starttime': cur_pgv[0, 0]}
-                    self.logger.debug('data type: %s.', cur_pgv[:, 1].dtype)
-                    cur_pgv_trace = obspy.core.Trace(data = cur_pgv[:, 1].astype(np.float32),
-                                                     header = cur_stats)
-                    # Write the data to the current pgv stream and the archive
-                    # stream.
-                    self.pgv_stream.append(cur_pgv_trace)
-                    with self.archive_lock:
-                        self.pgv_archive_stream.append(cur_pgv_trace)
+            if cur_pgv:
+                cur_pgv = np.array(cur_pgv)
+                #self.logger.debug('cur_x: %s', cur_x)
+                #self.logger.debug('cur_y: %s', cur_y)
+                self.logger.debug('cur_pgv: %s', cur_pgv)
+                cur_stats = {'network': cur_x_trace.stats.network,
+                             'station': cur_x_trace.stats.station,
+                             'location': cur_x_trace.stats.location,
+                             'channel': 'pgv',
+                             'sampling_rate': self.pgv_sps,
+                             'starttime': cur_pgv[0, 0]}
+                self.logger.debug('data type: %s.', cur_pgv[:, 1].dtype)
+                cur_pgv_trace = obspy.core.Trace(data = cur_pgv[:, 1].astype(np.float32),
+                                                 header = cur_stats)
+                # Write the data to the current pgv stream.
+                self.pgv_stream.append(cur_pgv_trace)
 
         # Merge the current pgv stream.
         self.pgv_stream.merge()
         self.logger.info('pgv_stream: %s.', self.pgv_stream)
+
+        with self.archive_lock:
+            self.pgv_archive_stream = self.pgv_archive_stream + self.pgv_stream
 
         # Merge the archive stream.
         with self.archive_lock:
