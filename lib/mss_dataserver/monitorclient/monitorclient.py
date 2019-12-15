@@ -650,24 +650,64 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         pgv = []
         time = []
         self.logger.debug("compute_max_pgv:  tri_stream: %s.", tri_stream)
-        for cur_stream in tri_stream.slide(window_length = time_window,
-                                           step = compute_interval,
-                                           offset = offset - time_window + compute_interval,
-                                           include_partial_windows = False):
-            if len(cur_stream) != 3:
-                self.logger.error("Not exactly 3 traces in the stream: %s.", cur_stream)
-                continue
-            cur_pgv = []
-            for cur_trace in cur_stream:
-                cur_pgv.append(np.max(cur_trace.data))
 
-            pgv.append(cur_pgv)
-            time.append(cur_trace.stats.endtime)
+        pgv_strided = []
+        time_strided = []
+        def strided_app(a, L, S ):  # Window len = L, Stride len/stepsize = S
+            nrows = ((a.size-L)//S)+1
+            n = a.strides[0]
+            return np.lib.stride_tricks.as_strided(a, shape=(nrows,L), strides=(S*n,n))
+        for cur_trace in tri_stream:
+            self.logger.debug("cur_trace.id: %s", cur_trace.id)
+            cur_win_length = int(np.floor(time_window / cur_trace.stats.sampling_rate))
+            cur_offset = int(np.floor(offset / cur_trace.stats.sampling_rate))
+            self.logger.debug("cur_offset: %s", cur_offset)
+            self.logger.debug("cur_win_length: %d", cur_win_length)
+            self.logger.debug("cur_trace.data: %s", cur_trace.data)
+            if len(cur_trace.data) < cur_win_length:
+                self.logger.error("The window length is smaller than the data size.")
+                continue
+            cur_data = strided_app(cur_trace.data, cur_win_length,  1)
+            self.logger.debug("cur_data: %s", cur_data)
+            cur_max_pgv = np.max(cur_data, axis = 1)
+            self.logger.debug("sp filter: %s", cur_max_pgv)
+            cur_max_pgv = cur_max_pgv[(cur_offset - cur_win_length + compute_interval):]
+            cur_start = cur_trace.stats.starttime + (cur_offset - cur_win_length + compute_interval + cur_win_length - 1) * cur_trace.stats.delta
+            cur_time = [cur_start + x * compute_interval for x in range(len(cur_max_pgv))]
+            pgv_strided.append(cur_max_pgv)
+            time_strided.append(cur_time)
+
+#        for cur_stream in tri_stream.slide(window_length = time_window,
+#                                           step = compute_interval,
+#                                           offset = offset - time_window + compute_interval,
+#                                           include_partial_windows = False):
+#            if len(cur_stream) != 3:
+#                self.logger.error("Not exactly 3 traces in the stream: %s.", cur_stream)
+#                continue
+#            cur_pgv = []
+#            for cur_trace in cur_stream:
+#                cur_pgv.append(np.max(cur_trace.data))
+#
+#            pgv.append(cur_pgv)
+#            time.append(cur_trace.stats.endtime)
 
         # Delete unused instances.
         del tri_stream
 
-        return np.array(time), np.array(pgv)
+#        self.logger.info("obspy slide pgv: %s", np.array(pgv))
+#        self.logger.info("obspy slide time: %s", np.array(time))
+
+        if len(set([len(x) for x in pgv_strided])) == 1:
+            pgv_strided = np.array(pgv_strided).transpose()
+            time_strided = np.array(time_strided).transpose()[:,0]
+        else:
+            self.logger.error("The size of the computed PGV max don't match: %s.", pgv_strided)
+            pgv_strided = []
+        self.logger.debug("pgv_strides: %s", pgv_strided)
+        self.logger.debug("time_strided: %s", time_strided)
+
+        #return np.array(time), np.array(pgv)
+        return time_strided, pgv_strided
 
     def current_event_to_archive(self):
         ''' Save the current event in the archive.
