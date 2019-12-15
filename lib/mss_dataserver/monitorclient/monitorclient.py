@@ -450,7 +450,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         with self.archive_lock:
             working_stream = self.pgv_archive_stream.copy()
 
-        self.logger.info("event detection stream: %s", working_stream)
+        self.logger.info("event detection working_stream: %s", working_stream)
         max_end_time = np.max([x.stats.endtime for x in working_stream])
         detect_win_begin = (max_end_time.timestamp - (detect_win_length + safety_win)) // detect_win_length * detect_win_length
         detect_win_begin = obspy.UTCDateTime(detect_win_begin)
@@ -476,6 +476,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         detect_stream = working_stream.slice(starttime = detect_win_begin - max_time_window,
                                              endtime = detect_win_end,
                                              nearest_sample = False)
+        self.logger.info("event detection detect_stream: %s", detect_stream)
 
         detect_stations = []
         for cur_trace in detect_stream:
@@ -503,7 +504,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
                 for k, cur_simp in enumerate(tri.simplices[valid_tri]):
                     cur_simp_stations = [detect_stations[x] for x in cur_simp]
-                    logger.debug("Computing max PGV for stations: %s.", [x.name for x in cur_simp_stations])
+                    logger.info("Computing max PGV for stations: %s.", [x.name for x in cur_simp_stations])
                     cur_time, cur_pgv = self.compute_max_pgv(stream = detect_stream,
                                                              stations = cur_simp_stations,
                                                              edge_lengths = edge_length[k],
@@ -693,7 +694,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     cur_trace.trim(starttime = cur_end_time + cur_trace.stats.delta)
             self.stream_lock.release()
 
-            logger.debug('process_stream: %s', str(self.process_stream))
+            logger.info('process_stream: %s', str(self.process_stream))
 
             with self.stream_lock:
                 logger.info('monitor_stream: %s', str(self.monitor_stream))
@@ -715,8 +716,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
             # Trim the archive stream.
             self.trim_archive()
-
-            # TODO: The trimming of the monitor stream seems to be missing.
 
             # Start the event alarm detection using the most recent pgv values.
             try:
