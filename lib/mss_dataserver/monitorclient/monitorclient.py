@@ -382,7 +382,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         has to be confirmed by a detected event.
         '''
         logger = logging.getLogger('mss_data_server.detect_event_warning')
-        logger.debug("Running detect_event_warning.")
+        logger.info("Running detect_event_warning.")
         now = obspy.UTCDateTime()
 
         with self.stream_lock:
@@ -425,21 +425,22 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.event_warning['simp_stations'] = simp_stations[mask]
             self.event_warning['trigger_pgv'] = trigger_pgv[mask]
             self.event_warning_available.set()
-            logger.debug("Event warning issued.")
+            logger.info("Event warning issued.")
             logger.debug("Event warning data: %s.", self.event_warning)
         else:
             self.event_warning['time'] = now
             self.event_warning['simp_stations'] = np.array([])
             self.event_warning['trigger_pgv'] = np.array([])
             self.event_warning_available.set()
-            logger.debug("No event warning issued.")
+            logger.info("No event warning issued.")
+        logger.info("Finished the event warning computation.")
 
 
     def detect_event(self):
         ''' Run the Voronoi event detections.
         '''
         logger = logging.getLogger('mss_data_server.detect_event')
-        logger.debug('Running the event detection.')
+        logger.info('Running the event detection.')
         detect_win_length = 10
         safety_win = 10
         trigger_thr = self.trigger_thr
@@ -449,7 +450,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         with self.archive_lock:
             working_stream = self.pgv_archive_stream.copy()
 
-        self.logger.debug("event detection stream: %s", working_stream)
+        self.logger.info("event detection stream: %s", working_stream)
         max_end_time = np.max([x.stats.endtime for x in working_stream])
         detect_win_begin = (max_end_time.timestamp - (detect_win_length + safety_win)) // detect_win_length * detect_win_length
         detect_win_begin = obspy.UTCDateTime(detect_win_begin)
@@ -545,7 +546,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             # If not in event mode and an event has been declared, set the
             # event mode.
             if not self.event_triggered and event_start is not None:
-                logger.debug("Event triggered.")
+                logger.info("Event triggered.")
 
                 # Save the current event in the archive.
                 self.current_event_to_archive()
@@ -562,7 +563,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.current_event = cur_event
                 self.event_data_available.set()
             elif self.event_triggered and event_start is not None:
-                logger.debug("Updating triggered event.")
+                logger.info("Updating triggered event.")
                 self.current_event['end_time'] = event_end
                 self.current_event['pgv'] = self.current_event['pgv'] + detect_stream
                 self.current_event['trigger_data'][detect_win_end.isoformat()] = trigger_data
@@ -578,13 +579,14 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.current_event['overall_trigger_data'] = overall_trigger_data
                 self.event_data_available.set()
             elif self.event_triggered and event_start is None:
-                logger.debug("Event end declared.")
+                logger.info("Event end declared.")
                 self.current_event['pgv'].merge()
                 self.current_event['state'] = 'closed'
                 self.event_triggered = False
                 self.save_to_archive(key = 'current_event')
                 self.event_data_available.set()
 
+        logger.info("Finished event detection.")
         logger.debug("Number of trigger_data: %d.", len(trigger_data))
         self.last_detection_result['trigger_data'] = trigger_data
         self.event_detection_result_available.set()
