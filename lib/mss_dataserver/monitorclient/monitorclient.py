@@ -2,6 +2,7 @@
 
 import copy
 import datetime
+import gc
 import json
 import logging
 import os
@@ -504,14 +505,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
                 for k, cur_simp in enumerate(tri.simplices[valid_tri]):
                     cur_simp_stations = [detect_stations[x] for x in cur_simp]
-                    logger.info("Computing max PGV for stations: %s.", [x.name for x in cur_simp_stations])
+                    logger.debug("Computing max PGV for stations: %s.", [x.name for x in cur_simp_stations])
                     cur_time, cur_pgv = self.compute_max_pgv(stream = detect_stream,
                                                              stations = cur_simp_stations,
                                                              edge_lengths = edge_length[k],
                                                              offset = max_time_window,
                                                              min_trigger_window = min_trigger_window,
                                                              compute_interval = 1)
-                    logger.info("Finished.")
                     if len(cur_pgv) > 0:
                         if np.any(np.isnan(cur_pgv)):
                             logger.warning("There is a NaN value in the cur_pgv.")
@@ -591,6 +591,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         logger.info("Finished event detection.")
         logger.debug("Number of trigger_data: %d.", len(trigger_data))
         self.last_detection_result['trigger_data'] = trigger_data
+
+        # Delete unused instances.
+        del working_stream
+        del detect_stream
+        logger.info('# gc.get_objects: %d', len(gc.get_objects()))
+
         self.event_detection_result_available.set()
 
     def compute_delaunay(self, stations):
@@ -643,7 +649,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         pgv = []
         time = []
-        self.logger.info("compute_max_pgv:  tri_stream: %s.", tri_stream)
+        self.logger.debug("compute_max_pgv:  tri_stream: %s.", tri_stream)
         for cur_stream in tri_stream.slide(window_length = time_window,
                                            step = compute_interval,
                                            offset = offset - time_window + compute_interval,
@@ -657,6 +663,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
             pgv.append(cur_pgv)
             time.append(cur_trace.stats.endtime)
+
+        # Delete unused instances.
+        del tri_stream
 
         return np.array(time), np.array(pgv)
 
@@ -676,6 +685,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         '''
         logger = logging.getLogger('mss_data_server.detect_monitor_stream')
         logger.info('Processing the monitor_stream.')
+        logger.info('# gc.get_objects: %d', len(gc.get_objects()))
         self.stream_lock.acquire()
         monitor_stream_length = len(self.monitor_stream)
         self.monitor_stream.merge()
@@ -827,13 +837,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         samp_interval = 1 / self.pgv_sps
 
         for cur_station in unique_stations:
-            self.logger.info('Getting stream for %s.', cur_station)
+            self.logger.debug('Getting stream for %s.', cur_station)
             # Get all traces for the station.
             cur_stream = stream.select(network = cur_station[0],
                                        station = cur_station[1],
                                        location = cur_station[2])
 
-            self.logger.info('Selected stream: %s.', cur_stream)
+            self.logger.debug('Selected stream: %s.', cur_stream)
 
             min_start = np.min([x.stats.starttime for x in cur_stream])
             sec_remain = min_start.timestamp % samp_interval
@@ -898,6 +908,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         with self.archive_lock:
             self.pgv_archive_stream.merge(fill_value = self.nodata_value)
         self.logger.info("pgv_archive_stream: %s", self.pgv_archive_stream)
+        self.logger.info("Finished compute_pgv.")
 
         #self.pgv_archive_stream.write("/home/stefan/Schreibtisch/pgv_beben_neunkirchen.msd",
         #                             format = "MSEED",
