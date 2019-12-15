@@ -361,7 +361,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         while not self.stop_event.is_set():
             try:
-                self.logger.debug('Executing callback.')
+                self.logger.info('task_timer: Executing callback.')
                 callback()
             except Exception as e:
                 self.logger.exception(e)
@@ -369,7 +369,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
             now = obspy.UTCDateTime()
             delay_to_next_interval = interval - (now.timestamp % interval)
-            self.logger.debug('Sleeping for %f seconds.', delay_to_next_interval)
+            self.logger.info('task_timer: Sleeping for %f seconds.', delay_to_next_interval)
             #time.sleep(delay_to_next_interval)
             await asyncio.sleep(delay_to_next_interval)
 
@@ -816,7 +816,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     def compute_pgv(self, stream):
         ''' Compute the PGV values of the stream.
         '''
-        self.logger.debug('Computing the PGV.')
+        self.logger.inof('Computing the PGV.')
         unique_stations = [(x.stats.network, x.stats.station, x.stats.location) for x in stream]
         unique_stations = list(set(unique_stations))
         samp_interval = 1 / self.pgv_sps
@@ -883,12 +883,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # Merge the current pgv stream.
         self.pgv_stream.merge()
-        self.logger.debug('pgv_stream: %s.', self.pgv_stream)
+        self.logger.info('pgv_stream: %s.', self.pgv_stream)
 
         # Merge the archive stream.
         with self.archive_lock:
             self.pgv_archive_stream.merge(fill_value = self.nodata_value)
-        self.logger.debug("pgv_archive_stream: %s", self.pgv_archive_stream)
+        self.logger.info("pgv_archive_stream: %s", self.pgv_archive_stream)
 
         #self.pgv_archive_stream.write("/home/stefan/Schreibtisch/pgv_beben_neunkirchen.msd",
         #                             format = "MSEED",
