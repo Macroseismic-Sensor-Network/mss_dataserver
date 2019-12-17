@@ -37,7 +37,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                  process_interval, stop_event, asyncio_loop,
                  pgv_sps = 1, autoconnect = False, pgv_archive_time = 1800,
                  trigger_thr = 0.01e-3, warn_thr = 0.01e-3,
-                 event_archive_size = 5):
+                 valid_event_thr = 0.1e-3, event_archive_size = 5):
         ''' Initialize the instance.
         '''
         easyseedlink.EasySeedLinkClient.__init__(self,
@@ -87,6 +87,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # The trigger parameters.
         self.trigger_thr = trigger_thr
         self.warn_thr = warn_thr
+        self.valid_event_thr = valid_event_thr
 
         # The most recent detected event.
         self.event_triggered = False
@@ -549,10 +550,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             # event mode.
             if not self.event_triggered and event_start is not None:
                 logger.info("Event triggered.")
-
-                # Save the current event in the archive.
-                self.current_event_to_archive()
-
                 self.event_triggered = True
                 cur_event = {}
                 cur_event['start_time'] = event_start
@@ -577,7 +574,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                         overall_trigger_data.append(cur_trigger_data)
                     else:
                         cur_ind = available_simp_stations.index(cur_simp_stations)
-                        overall_trigger_data[cur_ind] = cur_trigger_data
+                        overall_trigger_data[cur_ind]['pgv'].extend(cur_trigger_data['pgv'])
+                        overall_trigger_data[cur_ind]['time'].extend(cur_trigger_data['time'])
+                        overall_trigger_data[cur_ind]['trigger'].extend(cur_trigger_data['trigger'])
+
                 self.current_event['overall_trigger_data'] = overall_trigger_data
                 self.event_data_available.set()
             elif self.event_triggered and event_start is None:
@@ -585,7 +585,17 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.current_event['pgv'].merge()
                 self.current_event['state'] = 'closed'
                 self.event_triggered = False
-                self.save_to_archive(key = 'current_event')
+                self.logger.info('overall_trigger_data: %s', self.current_event['overall_trigger_data'])
+                # Compute the max. PGV of the event.
+                max_pgv = []
+                for cur_pgv in [x['pgv'] for x in self.current_event['overall_trigger_data']]:
+                    max_pgv.append(np.nanmax(cur_pgv))
+                max_pgv = np.nanmax(max_pgv)
+                self.current_event['max_pgv'] = max_pgv
+                self.logger.info('max_pgv: %f', self.current_event['max_pgv'])
+                if max_pgv >= self.valid_event_thr:
+                    self.current_event_to_archive()
+                self.current_event = {}
                 self.event_data_available.set()
 
         logger.info("Finished event detection.")
@@ -1100,7 +1110,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         if self.current_event:
             cur_event['start_time'] = self.current_event['start_time'].isoformat()
             cur_event['end_time'] = self.current_event['end_time'].isoformat()
-            cur_event['trigger_data'] = self.current_event['trigger_data']
+            #cur_event['trigger_data'] = self.current_event['trigger_data']
             cur_event['state'] = self.current_event['state']
             cur_event['overall_trigger_data'] = self.current_event['overall_trigger_data']
 
@@ -1126,7 +1136,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 cur_archive_event = {}
                 cur_archive_event['start_time'] = cur_event['start_time'].isoformat()
                 cur_archive_event['end_time'] = cur_event['end_time'].isoformat()
-                cur_archive_event['trigger_data'] = cur_event['trigger_data']
+                #cur_archive_event['trigger_data'] = cur_event['trigger_data']
                 cur_archive_event['state'] = cur_event['state']
                 cur_archive_event['overall_trigger_data'] = cur_event['overall_trigger_data']
                 cur_archive.append(cur_archive_event)
