@@ -339,6 +339,7 @@ def load_configuration(filename):
     config['process']['pgv_sps'] = int(parser.get('process', 'pgv_sps'))
     config['process']['trigger_threshold'] = float(parser.get('process', 'trigger_threshold'))
     config['process']['warn_threshold'] = float(parser.get('process', 'warn_threshold'))
+    config['process']['valid_event_threshold'] = float(parser.get('process', 'valid_event_threshold'))
     config['process']['pgv_archive_time'] = int(parser.get('process', 'pgv_archive_time'))
     config['process']['event_archive_size'] = int(parser.get('process', 'event_archive_size'))
     config['process']['inventory_file'] = parser.get('process', 'inventory_file').strip()
@@ -389,6 +390,7 @@ def start_server(config):
     pgv_archive_time = config['process']['pgv_archive_time']
     trigger_thr = config['process']['trigger_threshold']
     warn_thr = config['process']['warn_threshold']
+    valid_event_thr = config['process']['valid_event_threshold']
     event_archive_size = config['process']['event_archive_size']
 
     if len(stations) == 0:
@@ -416,6 +418,7 @@ def start_server(config):
                                          pgv_archive_time = pgv_archive_time,
                                          trigger_thr = trigger_thr,
                                          warn_thr = warn_thr,
+                                         valid_event_thr = valid_event_thr,
                                          event_archive_size = event_archive_size)
 
     client_thread = threading.Thread(target = client.run)
