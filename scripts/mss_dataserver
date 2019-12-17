@@ -4,6 +4,7 @@
 
 import argparse
 import configparser
+import copy
 import datetime
 import functools
 import json
@@ -27,6 +28,7 @@ logger.addHandler(logging.StreamHandler())
 
 
 # The clients connected to the server.
+clients_lock = threading.Lock()
 clients = set()
 
 
@@ -127,7 +129,8 @@ async def register_client(websocket, sl_client):
 
         # The client has been registered and the archive has been sent,
         # now add the websocket to the known clients.
-        clients.add(websocket)
+        with clients_lock:
+            clients.add(websocket)
         logging.info("Client registered.")
     except Exception as e:
         logging.exception("Error registering the client.")
@@ -136,7 +139,8 @@ async def register_client(websocket, sl_client):
 async def unregister_client(websocket):
     ''' Unregister a disconnected websocket client.
     '''
-    clients.remove(websocket)
+    with clients_lock:
+        clients.remove(websocket)
 
 
 async def serve_data(sl_client):
@@ -154,7 +158,9 @@ async def serve_data(sl_client):
             msg = json.dumps(msg, allow_nan = False)
 
             logging.info("Serving the data.")
-            for cur_client in clients:
+            with clients_lock:
+                clients_copy = copy.copy(clients)
+            for cur_client in clients_copy:
                 logging.info("Sending to client %s.", cur_client)
                 try:
                     await cur_client.send(msg)
@@ -183,7 +189,9 @@ async def serve_detection_result(sl_client):
             msg = json.dumps(msg, allow_nan = False)
 
             logging.info("Serving the detection result.")
-            for cur_client in clients:
+            with clients_lock:
+                clients_copy = copy.copy(clients)
+            for cur_client in clients_copy:
                 logging.info("Sending to client %s.", cur_client)
                 try:
                     await cur_client.send(msg)
@@ -210,7 +218,9 @@ async def serve_event_data(sl_client):
             msg = json.dumps(msg, allow_nan = False)
 
             logging.info("Serving the event data.")
-            for cur_client in clients:
+            with clients_lock:
+                clients_copy = copy.copy(clients)
+            for cur_client in clients_copy:
                 logging.info("Sending to client %s.", cur_client)
                 try:
                     await cur_client.send(msg)
@@ -230,6 +240,11 @@ async def serve_event_archive(sl_client):
             await sl_client.event_archive_changed.wait()
             payload = sl_client.get_event_archive()
 
+            # TODO: Sending the archive each time an event has been added
+            # doesn't make sense. All data is already at the Client. Move the
+            # update of the archive completely to the server. Send the archive
+            # only at first connection with the client.
+
             msg = {}
             msg['class'] = msg_class['data']
             msg['id'] = msg_data_id['event_archive']
@@ -237,7 +252,9 @@ async def serve_event_archive(sl_client):
             msg = json.dumps(msg, allow_nan = False)
 
             logging.info("Serving the event archive.")
-            for cur_client in clients:
+            with clients_lock:
+                clients_copy = copy.copy(clients)
+            for cur_client in clients_copy:
                 logging.info("Sending to client %s.", cur_client)
                 try:
                     await cur_client.send(msg)
@@ -264,7 +281,9 @@ async def serve_event_warning(sl_client):
             msg = json.dumps(msg, allow_nan = False)
 
             logging.info("Serving the event warning.")
-            for cur_client in clients:
+            with clients_lock:
+                clients_copy = copy.copy(clients)
+            for cur_client in clients_copy:
                 logging.info("Sending to client %s.", cur_client)
                 try:
                     await cur_client.send(msg)
@@ -293,7 +312,8 @@ async def serve_pgv(websocket, path, sl_client):
     finally:
         logging.info('Unregistering the client %s.', websocket)
         await unregister_client(websocket)
-        logging.info('The registered clients are now: %s.', clients)
+        with clients_lock:
+            logging.info('The registered clients are now: %s.', clients)
 
 
 def load_configuration(filename):
