@@ -1052,12 +1052,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         ''' Crop the archive to a specified length.
         '''
         with self.archive_lock:
-            max_end_time = np.max([x.stats.endtime for x in self.pgv_archive_stream if x])
-            self.logger.debug("max_end_time: %s.", max_end_time)
-            crop_start_time = max_end_time - self.pgv_archive_time
-            self.pgv_archive_stream.trim(starttime = crop_start_time)
-            self.logger.debug("Trimmed the archive stream to %s.",
-                             crop_start_time)
+            if len(self.pgv_archive_stream) > 0:
+                max_end_time = np.max([x.stats.endtime for x in self.pgv_archive_stream if x])
+                self.logger.debug("max_end_time: %s.", max_end_time)
+                crop_start_time = max_end_time - self.pgv_archive_time
+                self.pgv_archive_stream.trim(starttime = crop_start_time)
+                self.logger.debug("Trimmed the archive stream to %s.",
+                                 crop_start_time)
 
     def get_pgv_data(self):
         ''' Get the latest PGV data.
