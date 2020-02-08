@@ -37,7 +37,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                  process_interval, stop_event, asyncio_loop,
                  pgv_sps = 1, autoconnect = False, pgv_archive_time = 1800,
                  trigger_thr = 0.01e-3, warn_thr = 0.01e-3,
-                 valid_event_thr = 0.1e-3, event_archive_size = 5):
+                 valid_event_thr = 0.1e-3, felt_thr = 0.1e-3,
+                 event_archive_size = 5):
         ''' Initialize the instance.
         '''
         easyseedlink.EasySeedLinkClient.__init__(self,
@@ -88,6 +89,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.trigger_thr = trigger_thr
         self.warn_thr = warn_thr
         self.valid_event_thr = valid_event_thr
+        self.felt_thr = felt_thr
 
         # The most recent detected event.
         self.event_triggered = False
@@ -117,6 +119,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # The event archive state.
         self.event_archive_changed = asyncio.Event()
+
+        # The keydata event.
+        self.event_keydata_available = asyncio.Event()
 
         # The psysmon geometry inventory.
         self.inventory = inventory
@@ -559,6 +564,21 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 cur_event['trigger_data'][detect_win_end.isoformat()] = trigger_data
                 cur_event['overall_trigger_data'] = [x for x in trigger_data if np.any(x['trigger'])]
                 cur_event['state'] = 'triggered'
+                cur_event['max_station_pgv'] = {}
+
+                # Compute the max. PGV of each triggered station.
+                cur_max_station_pgv = {}
+                for cur_data in cur_event['overall_trigger_data']:
+                    cur_pgv = np.array(cur_data['pgv'])
+                    cur_max_pgv = np.max(cur_pgv, axis = 0)
+                    for k, cur_station in enumerate(cur_data['simp_stations']):
+                        cur_station_max = cur_max_pgv[k]
+                        if cur_station not in cur_max_station_pgv:
+                            cur_max_station_pgv[cur_station] = cur_station_max
+                        elif cur_station_max > cur_max_station_pgv[cur_station]:
+                            cur_max_station_pgv[cur_station] = cur_station_max
+
+                cur_event['max_station_pgv'] = cur_max_station_pgv
                 self.current_event = cur_event
                 self.event_data_available.set()
             elif self.event_triggered and event_start is not None:
@@ -579,6 +599,19 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                         overall_trigger_data[cur_ind]['trigger'].extend(cur_trigger_data['trigger'])
 
                 self.current_event['overall_trigger_data'] = overall_trigger_data
+
+                # Compute the max. PGV of each triggered station.
+                cur_max_station_pgv = {}
+                for cur_data in self.current_event['overall_trigger_data']:
+                    cur_pgv = np.array(cur_data['pgv'])
+                    cur_max_pgv = np.max(cur_pgv, axis = 0)
+                    for k, cur_station in enumerate(cur_data['simp_stations']):
+                        cur_station_max = cur_max_pgv[k]
+                        if cur_station not in cur_max_station_pgv:
+                            cur_max_station_pgv[cur_station] = cur_station_max
+                        elif cur_station_max > cur_max_station_pgv[cur_station]:
+                            cur_max_station_pgv[cur_station] = cur_station_max
+                self.current_event['max_station_pgv'] = cur_max_station_pgv
                 self.event_data_available.set()
             elif self.event_triggered and event_start is None:
                 logger.info("Event end declared.")
@@ -794,6 +827,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             except Exception as e:
                 self.logger.exception("Error computing the event detection.")
 
+            # Set the flag to mark another SOH state available.
+            self.event_keydata_available.set()
             return
 
 
@@ -1048,6 +1083,45 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         return res_st
 
+    def get_triggered_stations(self):
+        ''' Get the stations which have a PGV exceeding the threshold value.
+        '''
+        now = utcdatetime.UTCDateTime()
+        window = 120
+
+        with self.archive_lock:
+            working_stream = self.pgv_archive_stream.copy()
+
+        working_stream.trim(starttime = now - window)
+        all_stations = {}
+        triggered_stations = {}
+        for cur_trace in working_stream:
+            cur_max_pgv = np.max(cur_trace.data)
+            all_stations[cur_trace.stats.station] = float(cur_max_pgv)
+            if cur_max_pgv >= self.felt_thr:
+                triggered_stations[cur_trace.stats.station] = float(cur_max_pgv)
+        self.logger.debug("triggered_stations: %s", triggered_stations)
+
+        return (all_stations, triggered_stations)
+
+    def get_triggered_event_stations(self):
+        ''' Get the stations which have triggered during the last event.
+        '''
+        now = utcdatetime.UTCDateTime()
+        window = 300
+        triggered_stations = {}
+
+        if self.current_event and self.current_event['start_time'] >= (now - window):
+            for cur_station, cur_max_station_pgv in self.current_event['max_station_pgv'].items():
+                if cur_max_station_pgv >= self.felt_thr:
+                    triggered_stations[cur_station] = float(cur_max_station_pgv)
+        elif self.event_archive and self.event_archive[-1]['start_time'] >= (now - window):
+            for cur_station, cur_max_station_pgv in self.event_archive[-1]['max_station_pgv'].items():
+                if cur_max_station_pgv >= self.felt_thr:
+                    triggered_stations[cur_station] = float(cur_max_station_pgv)
+
+        return triggered_stations
+
     def trim_archive(self):
         ''' Crop the archive to a specified length.
         '''
@@ -1114,6 +1188,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             #cur_event['trigger_data'] = self.current_event['trigger_data']
             cur_event['state'] = self.current_event['state']
             cur_event['overall_trigger_data'] = self.current_event['overall_trigger_data']
+            cur_archive_event['max_station_pgv'] = cur_event['max_station_pgv']
 
         return cur_event
 
@@ -1140,6 +1215,19 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 #cur_archive_event['trigger_data'] = cur_event['trigger_data']
                 cur_archive_event['state'] = cur_event['state']
                 cur_archive_event['overall_trigger_data'] = cur_event['overall_trigger_data']
+                cur_archive_event['max_station_pgv'] = cur_event['max_station_pgv']
                 cur_archive.append(cur_archive_event)
 
         return cur_archive
+
+    def get_keydata(self):
+        ''' Return the keydata.
+        '''
+        all_stations, triggered_stations = self.get_triggered_stations()
+        keydata = {}
+        keydata['time'] = utcdatetime.UTCDateTime().isoformat()
+        keydata['all_stations'] = all_stations
+        keydata['triggered_stations'] = triggered_stations
+        keydata['triggered_event_stations'] = self.get_triggered_event_stations()
+
+        return keydata
