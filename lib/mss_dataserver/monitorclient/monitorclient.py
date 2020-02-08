@@ -1096,8 +1096,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         all_stations = {}
         triggered_stations = {}
         for cur_trace in working_stream:
-            cur_max_pgv = np.max(cur_trace.data)
-            all_stations[cur_trace.stats.station] = float(cur_max_pgv)
+            cur_max_pgv = np.nanmax(cur_trace.data)
+            if np.isnan(cur_max_pgv):
+                all_stations[cur_trace.stats.station] = self.nodata_value
+            else:
+                all_stations[cur_trace.stats.station] = float(cur_max_pgv)
             if cur_max_pgv >= self.felt_thr:
                 triggered_stations[cur_trace.stats.station] = float(cur_max_pgv)
         self.logger.debug("triggered_stations: %s", triggered_stations)
