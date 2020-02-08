@@ -171,6 +171,7 @@ async def register_keydata_client(websocket, sl_client):
             msg['class'] = msg_class['data']
             msg['id'] = msg_data_id['keydata']
             msg['payload'] = payload
+            logging.info('msg: %s', msg)
             msg = json.dumps(msg, allow_nan = False)
             await websocket.send(msg)
 
