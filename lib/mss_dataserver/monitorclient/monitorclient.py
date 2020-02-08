@@ -1215,7 +1215,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 #cur_archive_event['trigger_data'] = cur_event['trigger_data']
                 cur_archive_event['state'] = cur_event['state']
                 cur_archive_event['overall_trigger_data'] = cur_event['overall_trigger_data']
-                cur_archive_event['max_station_pgv'] = cur_event['max_station_pgv']
+                try:
+                    cur_archive_event['max_station_pgv'] = cur_event['max_station_pgv']
+                except Exception:
+                    cur_archive_event['max_station_pgv'] = {}
                 cur_archive.append(cur_archive_event)
 
         return cur_archive
