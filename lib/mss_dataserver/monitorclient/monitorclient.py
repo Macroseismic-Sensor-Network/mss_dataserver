@@ -555,81 +555,93 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             # event mode.
             if not self.event_triggered and event_start is not None:
                 logger.info("Event triggered.")
-                self.event_triggered = True
-                cur_event = {}
-                cur_event['start_time'] = event_start
-                cur_event['end_time'] = event_end
-                cur_event['pgv'] = detect_stream.copy()
-                cur_event['trigger_data'] = {}
-                cur_event['trigger_data'][detect_win_end.isoformat()] = trigger_data
-                cur_event['overall_trigger_data'] = [x for x in trigger_data if np.any(x['trigger'])]
-                cur_event['state'] = 'triggered'
-                cur_event['max_station_pgv'] = {}
+                try:
+                    cur_event = {}
+                    cur_event['start_time'] = event_start
+                    cur_event['end_time'] = event_end
+                    cur_event['pgv'] = detect_stream.copy()
+                    cur_event['trigger_data'] = {}
+                    cur_event['trigger_data'][detect_win_end.isoformat()] = trigger_data
+                    cur_event['overall_trigger_data'] = [x for x in trigger_data if np.any(x['trigger'])]
+                    cur_event['state'] = 'triggered'
+                    cur_event['max_station_pgv'] = {}
 
-                # Compute the max. PGV of each triggered station.
-                cur_max_station_pgv = {}
-                for cur_data in cur_event['overall_trigger_data']:
-                    cur_pgv = np.array(cur_data['pgv'])
-                    cur_max_pgv = np.max(cur_pgv, axis = 0)
-                    for k, cur_station in enumerate(cur_data['simp_stations']):
-                        cur_station_max = cur_max_pgv[k]
-                        if cur_station not in cur_max_station_pgv:
-                            cur_max_station_pgv[cur_station] = cur_station_max
-                        elif cur_station_max > cur_max_station_pgv[cur_station]:
-                            cur_max_station_pgv[cur_station] = cur_station_max
+                    # Compute the max. PGV of each triggered station.
+                    cur_max_station_pgv = {}
+                    for cur_data in cur_event['overall_trigger_data']:
+                        cur_pgv = np.array(cur_data['pgv'])
+                        cur_max_pgv = np.max(cur_pgv, axis = 0)
+                        for k, cur_station in enumerate(cur_data['simp_stations']):
+                            cur_station_max = cur_max_pgv[k]
+                            if cur_station not in cur_max_station_pgv:
+                                cur_max_station_pgv[cur_station] = cur_station_max
+                            elif cur_station_max > cur_max_station_pgv[cur_station]:
+                                cur_max_station_pgv[cur_station] = cur_station_max
 
-                cur_event['max_station_pgv'] = cur_max_station_pgv
-                self.current_event = cur_event
-                self.event_data_available.set()
+                    cur_event['max_station_pgv'] = cur_max_station_pgv
+                    self.current_event = cur_event
+                    self.event_triggered = True
+                    self.event_data_available.set()
+                except Exception as e:
+                    logger.exception("Error processing the event trigger.")
+                    self.event_triggered = False
+                    self.current_event = {}
             elif self.event_triggered and event_start is not None:
                 logger.info("Updating triggered event.")
-                self.current_event['end_time'] = event_end
-                self.current_event['pgv'] = self.current_event['pgv'] + detect_stream
-                self.current_event['trigger_data'][detect_win_end.isoformat()] = trigger_data
-                overall_trigger_data = self.current_event['overall_trigger_data']
-                for cur_trigger_data in [x for x in trigger_data if np.any(x['trigger'])]:
-                    cur_simp_stations = cur_trigger_data['simp_stations']
-                    available_simp_stations = [x['simp_stations'] for x in overall_trigger_data]
-                    if cur_simp_stations not in available_simp_stations:
-                        overall_trigger_data.append(cur_trigger_data)
-                    else:
-                        cur_ind = available_simp_stations.index(cur_simp_stations)
-                        overall_trigger_data[cur_ind]['pgv'].extend(cur_trigger_data['pgv'])
-                        overall_trigger_data[cur_ind]['time'].extend(cur_trigger_data['time'])
-                        overall_trigger_data[cur_ind]['trigger'].extend(cur_trigger_data['trigger'])
+                try:
+                    self.current_event['end_time'] = event_end
+                    self.current_event['pgv'] = self.current_event['pgv'] + detect_stream
+                    self.current_event['trigger_data'][detect_win_end.isoformat()] = trigger_data
+                    overall_trigger_data = self.current_event['overall_trigger_data']
+                    for cur_trigger_data in [x for x in trigger_data if np.any(x['trigger'])]:
+                        cur_simp_stations = cur_trigger_data['simp_stations']
+                        available_simp_stations = [x['simp_stations'] for x in overall_trigger_data]
+                        if cur_simp_stations not in available_simp_stations:
+                            overall_trigger_data.append(cur_trigger_data)
+                        else:
+                            cur_ind = available_simp_stations.index(cur_simp_stations)
+                            overall_trigger_data[cur_ind]['pgv'].extend(cur_trigger_data['pgv'])
+                            overall_trigger_data[cur_ind]['time'].extend(cur_trigger_data['time'])
+                            overall_trigger_data[cur_ind]['trigger'].extend(cur_trigger_data['trigger'])
 
-                self.current_event['overall_trigger_data'] = overall_trigger_data
+                    self.current_event['overall_trigger_data'] = overall_trigger_data
 
-                # Compute the max. PGV of each triggered station.
-                cur_max_station_pgv = {}
-                for cur_data in self.current_event['overall_trigger_data']:
-                    cur_pgv = np.array(cur_data['pgv'])
-                    cur_max_pgv = np.max(cur_pgv, axis = 0)
-                    for k, cur_station in enumerate(cur_data['simp_stations']):
-                        cur_station_max = cur_max_pgv[k]
-                        if cur_station not in cur_max_station_pgv:
-                            cur_max_station_pgv[cur_station] = cur_station_max
-                        elif cur_station_max > cur_max_station_pgv[cur_station]:
-                            cur_max_station_pgv[cur_station] = cur_station_max
-                self.current_event['max_station_pgv'] = cur_max_station_pgv
-                self.event_data_available.set()
+                    # Compute the max. PGV of each triggered station.
+                    cur_max_station_pgv = {}
+                    for cur_data in self.current_event['overall_trigger_data']:
+                        cur_pgv = np.array(cur_data['pgv'])
+                        cur_max_pgv = np.max(cur_pgv, axis = 0)
+                        for k, cur_station in enumerate(cur_data['simp_stations']):
+                            cur_station_max = cur_max_pgv[k]
+                            if cur_station not in cur_max_station_pgv:
+                                cur_max_station_pgv[cur_station] = cur_station_max
+                            elif cur_station_max > cur_max_station_pgv[cur_station]:
+                                cur_max_station_pgv[cur_station] = cur_station_max
+                    self.current_event['max_station_pgv'] = cur_max_station_pgv
+                    self.event_data_available.set()
+                except Exception as e:
+                    logger.exception("Error updating the current event.")
             elif self.event_triggered and event_start is None:
                 logger.info("Event end declared.")
-                self.current_event['pgv'].merge()
-                self.current_event['state'] = 'closed'
-                self.event_triggered = False
-                self.logger.info('overall_trigger_data: %s', self.current_event['overall_trigger_data'])
-                # Compute the max. PGV of the event.
-                max_pgv = []
-                for cur_pgv in [x['pgv'] for x in self.current_event['overall_trigger_data']]:
-                    max_pgv.append(np.nanmax(cur_pgv))
-                max_pgv = np.nanmax(max_pgv)
-                self.current_event['max_pgv'] = max_pgv
-                self.logger.info('max_pgv: %f', self.current_event['max_pgv'])
-                if max_pgv >= self.valid_event_thr:
-                    self.current_event_to_archive()
-                self.current_event = {}
-                self.event_data_available.set()
+                try:
+                    self.current_event['pgv'].merge()
+                    self.current_event['state'] = 'closed'
+                    self.event_triggered = False
+                    self.logger.info('overall_trigger_data: %s', self.current_event['overall_trigger_data'])
+                    # Compute the max. PGV of the event.
+                    max_pgv = []
+                    for cur_pgv in [x['pgv'] for x in self.current_event['overall_trigger_data']]:
+                        max_pgv.append(np.nanmax(cur_pgv))
+                    max_pgv = np.nanmax(max_pgv)
+                    self.current_event['max_pgv'] = max_pgv
+                    self.logger.info('max_pgv: %f', self.current_event['max_pgv'])
+                    if max_pgv >= self.valid_event_thr:
+                        self.current_event_to_archive()
+                    self.current_event = {}
+                    self.event_data_available.set()
+                except Exception as e:
+                    logger.exception("Error processing the event end.")
+                    self.current_event = {}
 
         logger.info("Finished event detection.")
         logger.debug("Number of trigger_data: %d.", len(trigger_data))
