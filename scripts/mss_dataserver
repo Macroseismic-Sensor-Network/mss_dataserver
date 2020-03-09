@@ -17,6 +17,9 @@ import asyncio
 import concurrent.futures
 import websockets
 import obspy
+import sqlalchemy
+import sqlalchemy.ext.declarative
+import sqlalchemy.orm
 
 import mss_dataserver.geometry.inventory_parser as inventory_parser
 import mss_dataserver.monitorclient.monitorclient as monitorclient
@@ -467,7 +470,7 @@ def load_inventory(inventory_file):
     return inventory
 
 
-def start_server(config):
+def start_server(args):
     ''' Start the websocket data server.
     '''
 
@@ -561,11 +564,68 @@ def start_server(config):
     loop.run_forever()
 
 
+def create_db(config):
+    ''' Create or update the database.
+    '''
+    logging.info('Creating the database tables.')
+    import mss_dataserver.event as event
+    import mss_dataserver.core.database_util as db_util
+
+    try:
+        db_engine, db_metadata, db_base = connect_to_db(dialect = 'mysql',
+                                                        driver = 'pymysql',
+                                                        username = 'mss_dataserver',
+                                                        pwd = 'mss_db_20200309',
+                                                        host = 'localhost',
+                                                        database_name = 'mssdataserver')
+    except Exception as e:
+        logging.exception("Can't connect to the database.")
+
+    event_tables = event.databaseFactory(db_base)
+    for cur_table in event_tables:
+        logging.info("Creating table %s.", cur_table.__tablename__)
+        db_util.db_table_migration(table = cur_table,
+                                   engine = db_engine,
+                                   prefix = 'dataserver' + '_')
+    db_metadata.create_all()
+
+
+def connect_to_db(dialect, driver, username, pwd, host, database_name):
+    ''' Connect to the database.
+    '''
+    if driver is not None:
+        dialect_string = dialect + "+" + driver
+    else:
+        dialect_string = dialect
+
+    if pwd is not None:
+        engine_string = dialect_string + "://" + username + ":" + pwd + "@" + host + "/" + database_name
+    else:
+        engine_string = dialect_string + "://" + username + "@" + host + "/" + database_name
+
+    engine_string = engine_string + "?charset=utf8"
+
+    db_engine = sqlalchemy.create_engine(engine_string)
+    db_engine.echo = False
+    db_metadata = sqlalchemy.MetaData(db_engine)
+    db_base = sqlalchemy.ext.declarative.declarative_base(metadata = db_metadata)
+    db_session_class = sqlalchemy.orm.sessionmaker(bind = db_engine)
+
+    return db_engine, db_metadata, db_base
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'MSS Websocket data server.')
+    subparsers = parser.add_subparsers(title = 'sub commands',
+                                       description = 'valid sub commands')
     parser.add_argument('config', help = 'The name of the configuration file.',
                         type = str)
-    parser.set_defaults(func = start_server)
+
+    parser_run = subparsers.add_parser('run', help = 'Run the mss_dataserver.')
+    parser_run.set_defaults(func = start_server)
+
+    parser_create_db = subparsers.add_parser('create_db', help = 'Create the database tables.')
+    parser_create_db.set_defaults(func = create_db)
 
     args = parser.parse_args()
 
