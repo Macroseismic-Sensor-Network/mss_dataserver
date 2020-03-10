@@ -19,6 +19,8 @@ import pyproj
 import scipy
 import scipy.spatial
 
+import mss_dataserver.event.core as event_core
+
 
 class EasySeedLinkClientException(Exception):
     """
@@ -32,7 +34,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     """
     A custom SeedLink client
     """
-    def __init__(self, server_url, stations, inventory,
+    def __init__(self, project, server_url, stations,
                  monitor_stream, stream_lock, data_dir,
                  process_interval, stop_event, asyncio_loop,
                  pgv_sps = 1, autoconnect = False, pgv_archive_time = 1800,
@@ -45,6 +47,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                  server_url = server_url,
                                                  autoconnect = autoconnect)
         self.logger = logging.getLogger('mss_data_server')
+
+        # The project instance.
+        self.project = project
 
         # The asyncio event loop. Used to stop the loop if an error occures.
         self.asyncio_loop = asyncio_loop
@@ -124,8 +129,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.event_keydata_available = asyncio.Event()
 
         # The psysmon geometry inventory.
-        self.inventory = inventory
-        self.compute_utm_coordinates(inventory.get_station(), self.inventory)
+        self.inventory = self.project.inventory
+        self.compute_utm_coordinates(self.inventory.get_station(),
+                                     self.inventory)
 
         self.recorder_map = self.get_recorder_mappings(station_nsl = self.stations)
 
@@ -200,6 +206,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         except Exception as e:
             self.logger.exception("Error saving the data to the archive. data: %s, archive: %s",
                                   data, archive)
+
 
     def get_recorder_mappings(self, station_nsl = None):
         ''' Get the mappings of the seedlink SCNL to the MSS SCNL.
@@ -566,6 +573,14 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     cur_event['state'] = 'triggered'
                     cur_event['max_station_pgv'] = {}
 
+
+                    # Use the Event class to create an event.
+                    cur_event_obj = event_core.Event(start_time = event_start,
+                                                     end_time = event_end,
+                                                     author_uri = self.project.author_uri,
+                                                     agency_uri = self.project.agency_uri
+                                                     )
+
                     # Compute the max. PGV of each triggered station.
                     cur_max_station_pgv = {}
                     for cur_data in cur_event['overall_trigger_data']:
@@ -580,12 +595,14 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
                     cur_event['max_station_pgv'] = cur_max_station_pgv
                     self.current_event = cur_event
+                    self.current_event_obj = cur_event_obj
                     self.event_triggered = True
                     self.event_data_available.set()
                 except Exception as e:
                     logger.exception("Error processing the event trigger.")
                     self.event_triggered = False
                     self.current_event = {}
+                    self.current_event_obj = None
             elif self.event_triggered and event_start is not None:
                 logger.info("Updating triggered event.")
                 try:
@@ -605,6 +622,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                             overall_trigger_data[cur_ind]['trigger'].extend(cur_trigger_data['trigger'])
 
                     self.current_event['overall_trigger_data'] = overall_trigger_data
+
+                    self.current_event_obj.end_time = event_end
 
                     # Compute the max. PGV of each triggered station.
                     cur_max_station_pgv = {}
@@ -637,7 +656,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     self.logger.info('max_pgv: %f', self.current_event['max_pgv'])
                     if max_pgv >= self.valid_event_thr:
                         self.current_event_to_archive()
+                    self.current_event_obj.write_to_database(self.project)
                     self.current_event = {}
+                    self.current_event_obj = None
                     self.event_data_available.set()
                 except Exception as e:
                     logger.exception("Error processing the event end.")

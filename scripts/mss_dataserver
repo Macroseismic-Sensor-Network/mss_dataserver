@@ -21,6 +21,7 @@ import sqlalchemy
 import sqlalchemy.ext.declarative
 import sqlalchemy.orm
 
+import mss_dataserver.core.project
 import mss_dataserver.geometry.inventory_parser as inventory_parser
 import mss_dataserver.monitorclient.monitorclient as monitorclient
 
@@ -438,6 +439,16 @@ def load_configuration(filename):
     config['output']['data_dir'] = parser.get('output', 'data_dir').strip()
     config['log'] = {}
     config['log']['loglevel'] = parser.get('log', 'loglevel').strip()
+    config['project'] = {}
+    config['project']['author_uri'] = parser.get('project', 'author_uri').strip()
+    config['project']['agency_uri'] = parser.get('project', 'agency_uri').strip()
+    config['database'] = {}
+    config['database']['host'] = parser.get('database', 'host').strip()
+    config['database']['username'] = parser.get('database', 'username').strip()
+    config['database']['password'] = parser.get('database', 'password').strip()
+    config['database']['dialect'] = parser.get('database', 'dialect').strip()
+    config['database']['driver'] = parser.get('database', 'driver').strip()
+    config['database']['database_name'] = parser.get('database', 'database_name').strip()
     config['process'] = {}
     config['process']['stations'] = json.loads(parser.get('process', 'stations'))
     config['process']['interval'] = int(parser.get('process', 'interval'))
@@ -452,33 +463,15 @@ def load_configuration(filename):
     return config
 
 
-def load_inventory(inventory_file):
-    ''' Load the psysmon inventory from an XML file.
-    '''
-    logger = logging.getLogger('mss_data_server.load_inventory')
-
-    if not os.path.exists(inventory_file):
-        logger.error("Can't find the inventory file %s.", inventory_file)
-        return None
-
-    parser = inventory_parser.InventoryXmlParser()
-    try:
-        inventory = parser.parse(inventory_file)
-    except Exception:
-        logger.exception("Couldn't load the inventory from file %s.",
-                         inventory_file)
-    return inventory
-
-
-def start_server(args):
+def start_server(project):
     ''' Start the websocket data server.
     '''
 
     # Load the psysmon inventory from XML file.
-    inventory = load_inventory(config['process']['inventory_file'])
+    project.load_inventory()
 
-    if inventory is None:
-        logging.error("The inventory file couldn't be read.")
+    if project.inventory is None:
+        logging.error("No inventory found in the project. Quitting.")
         return
 
     # Create the monitor stream attributes
@@ -510,10 +503,10 @@ def start_server(args):
     # loop using the event loop. Is this a good way?
     # TODO: Check the thread-safe access to the resources of the monitorclient
     # from the asyncio tasks.
-    client = monitorclient.MonitorClient(asyncio_loop = loop,
+    client = monitorclient.MonitorClient(project = project,
+                                         asyncio_loop = loop,
                                          server_url = server_url,
                                          stations = stations,
-                                         inventory = inventory,
                                          monitor_stream = monitor_stream,
                                          stream_lock = stream_lock,
                                          data_dir = data_dir,
@@ -564,54 +557,12 @@ def start_server(args):
     loop.run_forever()
 
 
-def create_db(config):
+def create_db(project):
     ''' Create or update the database.
     '''
     logging.info('Creating the database tables.')
-    import mss_dataserver.event as event
-    import mss_dataserver.core.database_util as db_util
 
-    try:
-        db_engine, db_metadata, db_base = connect_to_db(dialect = 'mysql',
-                                                        driver = 'pymysql',
-                                                        username = 'mss_dataserver',
-                                                        pwd = 'mss_db_20200309',
-                                                        host = 'localhost',
-                                                        database_name = 'mssdataserver')
-    except Exception as e:
-        logging.exception("Can't connect to the database.")
-
-    event_tables = event.databaseFactory(db_base)
-    for cur_table in event_tables:
-        logging.info("Creating table %s.", cur_table.__tablename__)
-        db_util.db_table_migration(table = cur_table,
-                                   engine = db_engine,
-                                   prefix = 'dataserver' + '_')
-    db_metadata.create_all()
-
-
-def connect_to_db(dialect, driver, username, pwd, host, database_name):
-    ''' Connect to the database.
-    '''
-    if driver is not None:
-        dialect_string = dialect + "+" + driver
-    else:
-        dialect_string = dialect
-
-    if pwd is not None:
-        engine_string = dialect_string + "://" + username + ":" + pwd + "@" + host + "/" + database_name
-    else:
-        engine_string = dialect_string + "://" + username + "@" + host + "/" + database_name
-
-    engine_string = engine_string + "?charset=utf8"
-
-    db_engine = sqlalchemy.create_engine(engine_string)
-    db_engine.echo = False
-    db_metadata = sqlalchemy.MetaData(db_engine)
-    db_base = sqlalchemy.ext.declarative.declarative_base(metadata = db_metadata)
-    db_session_class = sqlalchemy.orm.sessionmaker(bind = db_engine)
-
-    return db_engine, db_metadata, db_base
+    project.create_database_tables()
 
 
 if __name__ == '__main__':
@@ -633,4 +584,7 @@ if __name__ == '__main__':
     logging.basicConfig(level = config['log']['loglevel'],
                         format = "LOG - %(asctime)s - %(process)d - %(levelname)s - %(name)s: %(message)s")
 
-    args.func(config)
+    project = mss_dataserver.core.project.Project(**config)
+    logging.info(project)
+
+    args.func(project)
