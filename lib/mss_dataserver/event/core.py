@@ -28,9 +28,6 @@ import warnings
 
 import obspy.core.utcdatetime as utcdatetime
 
-import psysmon
-import psysmon.packages.event.detect as detect
-
 #from profilehooks import profile
 
 class Event(object):
@@ -164,78 +161,81 @@ class Event(object):
             else:
                 catalog_id = None
 
-            db_session = project.getDbSession()
-            db_event_orm = project.dbTables['event']
-            db_event = db_event_orm(ev_catalog_id = catalog_id,
-                                    start_time = self.start_time.timestamp,
-                                    end_time = self.end_time.timestamp,
-                                    public_id = self.public_id,
-                                    pref_origin_id = None,
-                                    pref_magnitude_id = None,
-                                    pref_focmec_id = None,
-                                    ev_type_id = None,
-                                    ev_type_certainty = self.event_type_certainty,
-                                    description = self.description,
-                                    agency_uri = self.agency_uri,
-                                    author_uri = self.author_uri,
-                                    creation_time = creation_time)
+            db_session = project.get_db_session()
+            try:
+                db_event_orm = project.db_tables['event']
+                db_event = db_event_orm(ev_catalog_id = catalog_id,
+                                        start_time = self.start_time.timestamp,
+                                        end_time = self.end_time.timestamp,
+                                        public_id = self.public_id,
+                                        pref_origin_id = None,
+                                        pref_magnitude_id = None,
+                                        pref_focmec_id = None,
+                                        ev_type_id = None,
+                                        ev_type_certainty = self.event_type_certainty,
+                                        description = self.description,
+                                        agency_uri = self.agency_uri,
+                                        author_uri = self.author_uri,
+                                        creation_time = creation_time)
 
-            # Commit the event to the database to get an id.
-            db_session.add(db_event)
-            db_session.commit()
-            self.db_id = db_event.id
+                # Commit the event to the database to get an id.
+                db_session.add(db_event)
+                db_session.commit()
+                self.db_id = db_event.id
 
-            # Add the detections to the event. Do this after the event got an
-            # id.
-            if len(self.detections) > 0 :
-                # Load the detection_orms from the database.
-                detection_table = project.dbTables['detection']
-                d2e_orm_class = project.dbTables['detection_to_event']
-                query = db_session.query(detection_table).\
-                        filter(detection_table.id.in_([x.db_id for x in self.detections]))
-                for cur_detection_orm in query:
-                    d2e_orm = d2e_orm_class(ev_id = self.db_id,
-                                            det_id = cur_detection_orm.id)
-                    db_event.detections.append(d2e_orm)
-            db_session.commit()
-
-            db_session.close()
-            self.changed = False
+                # Add the detections to the event. Do this after the event got an
+                # id.
+                if len(self.detections) > 0 :
+                    # Load the detection_orms from the database.
+                    detection_table = project.dbTables['detection']
+                    d2e_orm_class = project.dbTables['detection_to_event']
+                    query = db_session.query(detection_table).\
+                            filter(detection_table.id.in_([x.db_id for x in self.detections]))
+                    for cur_detection_orm in query:
+                        d2e_orm = d2e_orm_class(ev_id = self.db_id,
+                                                det_id = cur_detection_orm.id)
+                        db_event.detections.append(d2e_orm)
+                db_session.commit()
+                self.changed = False
+            finally:
+                db_session.close()
         else:
             # If the db_id is not None, update the existing event.
-            db_session = project.getDbSession()
-            db_event_orm = project.dbTables['event']
-            query = db_session.query(db_event_orm).filter(db_event_orm.id == self.db_id)
-            if db_session.query(query.exists()):
-                db_event = query.scalar()
-                if self.parent is not None:
-                    db_event.ev_catalog_id = self.parent.db_id
-                else:
-                    db_event.ev_catalog_id = None
-                db_event.start_time = self.start_time.timestamp
-                db_event.end_time = self.end_time.timestamp
-                db_event.public_id = self.public_id
-                #db_event.pref_origin_id = self.pref_origin_id
-                #db_event.pref_magnitude_id = self.pref_magnitude_id
-                #db_event.pref_focmec_id = self.pref_focmec_id
-                db_event.ev_type = self.event_type
-                db_event.ev_type_certainty = self.event_type_certainty
-                db_event.tags = ','.join(self.tags)
-                db_event.agency_uri = self.agency_uri
-                db_event.author_uri = self.author_uri
-                if self.creation_time is not None:
-                    db_event.creation_time = self.creation_time.isoformat()
-                else:
-                    db_event.creation_time = None
+            db_session = project.get_db_session()
+            try:
+                db_event_orm = project.db_tables['event']
+                query = db_session.query(db_event_orm).filter(db_event_orm.id == self.db_id)
+                if db_session.query(query.exists()):
+                    db_event = query.scalar()
+                    if self.parent is not None:
+                        db_event.ev_catalog_id = self.parent.db_id
+                    else:
+                        db_event.ev_catalog_id = None
+                    db_event.start_time = self.start_time.timestamp
+                    db_event.end_time = self.end_time.timestamp
+                    db_event.public_id = self.public_id
+                    #db_event.pref_origin_id = self.pref_origin_id
+                    #db_event.pref_magnitude_id = self.pref_magnitude_id
+                    #db_event.pref_focmec_id = self.pref_focmec_id
+                    db_event.ev_type = self.event_type
+                    db_event.ev_type_certainty = self.event_type_certainty
+                    db_event.tags = ','.join(self.tags)
+                    db_event.agency_uri = self.agency_uri
+                    db_event.author_uri = self.author_uri
+                    if self.creation_time is not None:
+                        db_event.creation_time = self.creation_time.isoformat()
+                    else:
+                        db_event.creation_time = None
 
-                # TODO: Add the handling of changed detections assigned to this
-                # event.
+                    # TODO: Add the handling of changed detections assigned to this
+                    # event.
 
-                db_session.commit()
+                    db_session.commit()
+                    self.changed = False
+                else:
+                    raise RuntimeError("The event with ID=%d was not found in the database.", self.db_id)
+            finally:
                 db_session.close()
-                self.changed = False
-            else:
-                raise RuntimeError("The event with ID=%d was not found in the database.", self.db_id)
 
     def get_db_orm(self, project):
         ''' Get an orm representation to use it for bulk insertion into
