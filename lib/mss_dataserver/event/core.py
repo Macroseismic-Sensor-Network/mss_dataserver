@@ -684,5 +684,3 @@ class Library(object):
         finally:
             db_session.close()
 
-
-
