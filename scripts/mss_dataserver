@@ -442,6 +442,7 @@ def load_configuration(filename):
     config['project'] = {}
     config['project']['author_uri'] = parser.get('project', 'author_uri').strip()
     config['project']['agency_uri'] = parser.get('project', 'agency_uri').strip()
+    config['project']['inventory_file'] = parser.get('project', 'inventory_file').strip()
     config['database'] = {}
     config['database']['host'] = parser.get('database', 'host').strip()
     config['database']['username'] = parser.get('database', 'username').strip()
@@ -458,7 +459,6 @@ def load_configuration(filename):
     config['process']['valid_event_threshold'] = float(parser.get('process', 'valid_event_threshold'))
     config['process']['pgv_archive_time'] = int(parser.get('process', 'pgv_archive_time'))
     config['process']['event_archive_size'] = int(parser.get('process', 'event_archive_size'))
-    config['process']['inventory_file'] = parser.get('process', 'inventory_file').strip()
 
     return config
 
@@ -466,10 +466,6 @@ def load_configuration(filename):
 def start_server(project):
     ''' Start the websocket data server.
     '''
-
-    # Load the psysmon inventory from XML file.
-    project.load_inventory()
-
     if project.inventory is None:
         logging.error("No inventory found in the project. Quitting.")
         return
@@ -564,6 +560,13 @@ def create_db(project):
 
     project.create_database_tables()
 
+def load_geometry(project):
+    ''' Load the geometry inventory file into the database.
+    '''
+    logging.info('Updateing the database inventory with the XML inventory.')
+
+    project.load_inventory()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'MSS Websocket data server.')
@@ -572,12 +575,17 @@ if __name__ == '__main__':
     parser.add_argument('config', help = 'The name of the configuration file.',
                         type = str)
 
+    # The run parser.
     parser_run = subparsers.add_parser('run', help = 'Run the mss_dataserver.')
     parser_run.set_defaults(func = start_server)
 
+    # The create_db parser.
     parser_create_db = subparsers.add_parser('create_db', help = 'Create the database tables.')
     parser_create_db.set_defaults(func = create_db)
 
+    # The load_geometry parser.
+    parser_load_geometry = subparsers.add_parser('load_geometry', help = 'Load the geometry inventory from an XML file into the database..')
+    parser_load_geometry.set_defaults(func = load_geometry)
     args = parser.parse_args()
 
     config = load_configuration(args.config)
