@@ -666,6 +666,7 @@ class Inventory(object):
             lonLat.extend([stat.get_lon_lat() for stat in curNet.stations])
 
         if len(lonLat) == 0:
+            self.logger.error("Length of lonLat is zero. No stations found in the inventory. Can't compute the UTM zone.")
             return
 
         lonLatMin = np.min(lonLat, 0)

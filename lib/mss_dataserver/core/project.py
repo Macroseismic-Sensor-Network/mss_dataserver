@@ -1,4 +1,5 @@
-
+import configparser
+import json
 import logging
 import os
 
@@ -7,8 +8,10 @@ import sqlalchemy.ext.declarative
 import sqlalchemy.orm
 
 import mss_dataserver.event as event
+import mss_dataserver.geometry as geometry
 import mss_dataserver.core.database_util as db_util
 import mss_dataserver.geometry.inventory_parser as inventory_parser
+import mss_dataserver.geometry.db_inventory as database_inventory
 
 
 class Project(object):
@@ -21,9 +24,9 @@ class Project(object):
         logger_name = __name__ + "." + self.__class__.__name__
         self.logger = logging.getLogger(logger_name)
 
-        project_config = kwargs['project']
-        self.author_uri = project_config['author_uri']
-        self.agency_uri = project_config['agency_uri']
+        self.project_config = kwargs['project']
+        self.author_uri = self.project_config['author_uri']
+        self.agency_uri = self.project_config['agency_uri']
 
         # The processing configuration.
         self.process_config = kwargs['process']
@@ -46,9 +49,6 @@ class Project(object):
         # A dictionary of the project database tables.
         self.db_tables = {}
 
-        # The geometry inventory.
-        self.inventory = None
-
         # Load the database table definitions.
         try:
             self.connect_to_db()
@@ -59,6 +59,58 @@ class Project(object):
             self.load_database_table_structure()
         else:
             self.logger.error("The db_metadata is empty. There seems to be no connection to the database.")
+
+        # The geometry inventory.
+        self.db_inventory = database_inventory.DbInventory(project = self)
+        self.db_inventory.load()
+
+
+    @property
+    def inventory(self):
+        ''' The geometry inventory.
+        '''
+        return self.db_inventory
+
+    @classmethod
+    def load_configuration(cls, filename):
+        ''' Load the configuration from a file.
+        '''
+        parser = configparser.ConfigParser()
+        parser.read(filename)
+
+        config = {}
+        config['websocket'] = {}
+        config['websocket']['host'] = parser.get('websocket', 'host').strip()
+        config['websocket']['port'] = int(parser.get('websocket', 'port'))
+        config['seedlink'] = {}
+        config['seedlink']['host'] = parser.get('seedlink', 'host').strip()
+        config['seedlink']['port'] = int(parser.get('seedlink', 'port'))
+        config['output'] = {}
+        config['output']['data_dir'] = parser.get('output', 'data_dir').strip()
+        config['log'] = {}
+        config['log']['loglevel'] = parser.get('log', 'loglevel').strip()
+        config['project'] = {}
+        config['project']['author_uri'] = parser.get('project', 'author_uri').strip()
+        config['project']['agency_uri'] = parser.get('project', 'agency_uri').strip()
+        config['project']['inventory_file'] = parser.get('project', 'inventory_file').strip()
+        config['database'] = {}
+        config['database']['host'] = parser.get('database', 'host').strip()
+        config['database']['username'] = parser.get('database', 'username').strip()
+        config['database']['password'] = parser.get('database', 'password').strip()
+        config['database']['dialect'] = parser.get('database', 'dialect').strip()
+        config['database']['driver'] = parser.get('database', 'driver').strip()
+        config['database']['database_name'] = parser.get('database', 'database_name').strip()
+        config['process'] = {}
+        config['process']['stations'] = json.loads(parser.get('process', 'stations'))
+        config['process']['interval'] = int(parser.get('process', 'interval'))
+        config['process']['pgv_sps'] = int(parser.get('process', 'pgv_sps'))
+        config['process']['trigger_threshold'] = float(parser.get('process', 'trigger_threshold'))
+        config['process']['warn_threshold'] = float(parser.get('process', 'warn_threshold'))
+        config['process']['valid_event_threshold'] = float(parser.get('process', 'valid_event_threshold'))
+        config['process']['pgv_archive_time'] = int(parser.get('process', 'pgv_archive_time'))
+        config['process']['event_archive_size'] = int(parser.get('process', 'event_archive_size'))
+
+        return config
 
 
     def connect_to_db(self):
@@ -86,10 +138,16 @@ class Project(object):
     def load_database_table_structure(self):
         ''' Load the required database tables from the modules.
         '''
+        geom_tables = geometry.databaseFactory(self.db_base)
+        for cur_table in geom_tables:
+            cur_name = cur_table.__table__.name
+            self.db_tables[cur_name] = cur_table
+
         event_tables = event.databaseFactory(self.db_base)
         for cur_table in event_tables:
             cur_name = cur_table.__table__.name
             self.db_tables[cur_name] = cur_table
+
 
 
     def create_database_tables(self):
@@ -123,7 +181,14 @@ class Project(object):
     def load_inventory(self):
         ''' Load the geometry inventory from a XML file.
         '''
-        inventory_file = self.process_config['inventory_file']
+        # Load the existing inventory from the database.
+        try:
+            self.db_inventory.load()
+        except Exception:
+            self.logger.exception("Error while loading the database inventory.")
+
+        # Read the inventory from the XML file.
+        inventory_file = self.project_config['inventory_file']
         if not os.path.exists(inventory_file):
             self.logger.error("Can't find the inventory file %s.",
                               inventory_file)
@@ -131,7 +196,13 @@ class Project(object):
 
         parser = inventory_parser.InventoryXmlParser()
         try:
-            self.inventory = parser.parse(inventory_file)
+            xml_inventory = parser.parse(inventory_file)
         except Exception:
             self.logger.exception("Couldn't load the inventory from file %s.",
                                   inventory_file)
+
+        # Update the database inventory with the loaded XML inventory.
+        self.db_inventory.merge(xml_inventory)
+        self.db_inventory.commit()
+
+        self.logger.info("Updated the database inventory with data read from %s.", inventory_file)

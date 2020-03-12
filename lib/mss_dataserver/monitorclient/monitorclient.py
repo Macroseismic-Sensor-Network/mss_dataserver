@@ -20,6 +20,7 @@ import scipy
 import scipy.spatial
 
 import mss_dataserver.event.core as event_core
+import mss_dataserver.event.detection as event_detection
 
 
 class EasySeedLinkClientException(Exception):
@@ -584,6 +585,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     # Compute the max. PGV of each triggered station.
                     cur_max_station_pgv = {}
                     for cur_data in cur_event['overall_trigger_data']:
+                        # Create a detection instance.
+                        cur_detection = event_detection.Detection(start_time = cur_data['time'][0],
+                                                                  end_time = cur_data['time'][-1])
                         cur_pgv = np.array(cur_data['pgv'])
                         cur_max_pgv = np.max(cur_pgv, axis = 0)
                         for k, cur_station in enumerate(cur_data['simp_stations']):
@@ -656,6 +660,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     self.logger.info('max_pgv: %f', self.current_event['max_pgv'])
                     if max_pgv >= self.valid_event_thr:
                         self.current_event_to_archive()
+
+                    # Write the event to the database.
                     self.current_event_obj.write_to_database(self.project)
                     self.current_event = {}
                     self.current_event_obj = None
