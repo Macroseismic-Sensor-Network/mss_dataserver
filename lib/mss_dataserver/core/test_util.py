@@ -71,6 +71,21 @@ def drop_database_tables(db_dialect, db_driver, db_user,
     db_metadata.drop_all(tables = tables_to_drop)
 
 
+def drop_project_database_tables(project):
+    project.connect_to_db()
+    project.db_metadata.reflect(project.db_engine)
+    tables_to_remove = [table for key, table in list(project.db_metadata.tables.items())]
+    project.db_metadata.drop_all(tables = tables_to_remove)
+
+
+def clear_project_database_tables(project):
+    project.connect_to_db()
+    project.db_metadata.reflect(project.db_engine)
+    tables_to_clear = [table for table in reversed(project.db_metadata.sorted_tables)]
+    for cur_table in tables_to_clear:
+        project.db_engine.execute(cur_table.delete())
+
+
 def create_db_test_project():
     ''' Create a project with a database connection to the unit_test database.
     '''
@@ -78,3 +93,4 @@ def create_db_test_project():
     config_file = os.path.join(base_dir, 'test', 'mss_dataserver_unittest.ini')
     config = mss_dataserver.core.project.Project.load_configuration(config_file)
     project = mss_dataserver.core.project.Project(**config)
+    return project
