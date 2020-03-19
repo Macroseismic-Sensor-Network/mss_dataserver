@@ -135,8 +135,8 @@ class Detection(object):
             else:
                 catalog_id = None
 
-            db_session = project.getDbSession()
-            db_detection_orm = project.dbTables['detection']
+            db_session = project.get_db_session()
+            db_detection_orm = project.db_tables['detection']
             db_detection = db_detection_orm(catalog_id = catalog_id,
                                             start_time = self.start_time.timestamp,
                                             end_time = self.end_time.timestamp,
@@ -156,8 +156,8 @@ class Detection(object):
 
         else:
             # If the db_id is not None, update the existing event.
-            db_session = project.getDbSession()
-            db_detection_orm = project.dbTables['detection']
+            db_session = project.get_db_session()
+            db_detection_orm = project.db_tables['detection']
             query = db_session.query(db_detection_orm).filter(db_detection_orm.id == self.db_id)
             if db_session.query(query.exists()):
                 db_detection = query.scalar()
@@ -388,9 +388,9 @@ class Catalog(object):
         if project is None:
             raise RuntimeError("The project is None. Can't query the database without a project.")
 
-        db_session = project.getDbSession()
+        db_session = project.get_db_session()
         try:
-            detection_table = project.dbTables['detection']
+            detection_table = project.db_tables['detection']
             query = db_session.query(detection_table).\
                     filter(detection_table.catalog_id == self.db_id).\
                     filter(detection_table.end_time > detection_table.start_time)
@@ -434,8 +434,8 @@ class Catalog(object):
             else:
                 creation_time = None
 
-            db_session = project.getDbSession()
-            db_catalog_orm = project.dbTables['detection_catalog']
+            db_session = project.get_db_session()
+            db_catalog_orm = project.db_tables['detection_catalog']
             db_catalog = db_catalog_orm(name = self.name,
                                     description = self.description,
                                     agency_uri = self.agency_uri,
@@ -449,8 +449,8 @@ class Catalog(object):
 
         else:
             # If the db_id is not None, update the existing catalog.
-            db_session = project.getDbSession()
-            db_catalog_orm = project.dbTables['detection_catalog']
+            db_session = project.get_db_session()
+            db_catalog_orm = project.db_tables['detection_catalog']
             query = db_session.query(db_catalog_orm).filter(db_catalog_orm.id == self.db_id)
             if db_session.query(query.exists()):
                 db_catalog = query.scalar()
@@ -575,9 +575,9 @@ class Library(object):
             The available catalog names in the database.
         '''
         catalog_names = []
-        db_session = project.getDbSession()
+        db_session = project.get_db_session()
         try:
-            db_catalog_orm = project.dbTables['detection_catalog']
+            db_catalog_orm = project.db_tables['detection_catalog']
             query = db_session.query(db_catalog_orm)
             if db_session.query(query.exists()):
                 catalog_names = [x.name for x in query.order_by(db_catalog_orm.name)]
@@ -601,9 +601,9 @@ class Library(object):
         if isinstance(name, basestring):
             name = [name, ]
 
-        db_session = project.getDbSession()
+        db_session = project.get_db_session()
         try:
-            db_catalog_orm = project.dbTables['detection_catalog']
+            db_catalog_orm = project.db_tables['detection_catalog']
             query = db_session.query(db_catalog_orm).filter(db_catalog_orm.name.in_(name))
             if db_session.query(query.exists()):
                 for cur_db_catalog in query:
