@@ -216,11 +216,13 @@ class DbInventory(Inventory):
     def load(self):
         ''' Load the inventory from the database.
         '''
-        self.load_sensors()
-        self.load_recorders()
-        self.load_networks()
-        self.load_arrays()
-
+        try:
+            self.load_sensors()
+            self.load_recorders()
+            self.load_networks()
+            self.load_arrays()
+        except Exception:
+            self.logger.exception("Error loading the geometry from the database.")
 
     def commit(self):
         ''' Commit the database changes.
