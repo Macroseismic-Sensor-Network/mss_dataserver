@@ -527,7 +527,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                             continue
                         cur_trig = np.nanmin(cur_pgv, axis = 1) >= trigger_thr
                         tmp = {}
-                        tmp['simp_stations'] = [x.name for x in cur_simp_stations]
+                        tmp['simp_stations'] = [x.snl_string for x in cur_simp_stations]
                         tmp['time'] = [x.isoformat() for x in cur_time]
                         tmp['pgv'] = cur_pgv.tolist()
                         tmp['trigger'] = cur_trig.tolist()
@@ -566,10 +566,29 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     cur_event['state'] = 'triggered'
                     cur_event['max_station_pgv'] = {}
 
+                    # Compute the max. PGV of all used stations.
+                    cur_max_station_pgv_used = {}
+                    for cur_data in trigger_data:
+                        cur_pgv = np.array(cur_data['pgv'])
+                        logger.info("simp_stations: %s", cur_data['simp_stations'])
+                        logger.info("cur_pgv: %s", cur_pgv)
+                        cur_max_pgv = np.max(cur_pgv, axis = 0)
+                        logger.info("cur_max_pgv: %s", cur_max_pgv)
+                        for k, cur_station in enumerate(cur_data['simp_stations']):
+                            cur_station_max = cur_max_pgv[k]
+                            logger.info("cur_station, cur_station_max: %s, %s", cur_station, cur_station_max)
+                            if cur_station not in cur_max_station_pgv_used:
+                                cur_max_station_pgv_used[cur_station] = cur_station_max
+                            elif cur_station_max > cur_max_station_pgv_used[cur_station]:
+                                cur_max_station_pgv_used[cur_station] = cur_station_max
+                    cur_event['max_station_pgv_used'] = cur_max_station_pgv_used
+
                     # Compute the max. PGV of each triggered station.
                     cur_max_station_pgv = {}
                     for cur_data in cur_event['overall_trigger_data']:
                         cur_pgv = np.array(cur_data['pgv'])
+                        # Use only the triggered data.
+                        cur_pgv = cur_pgv[cur_data['trigger']]
                         cur_max_pgv = np.max(cur_pgv, axis = 0)
                         for k, cur_station in enumerate(cur_data['simp_stations']):
                             cur_station_max = cur_max_pgv[k]
@@ -593,6 +612,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     self.current_event['pgv'] = self.current_event['pgv'] + detect_stream
                     self.current_event['trigger_data'][detect_win_end.isoformat()] = trigger_data
                     overall_trigger_data = self.current_event['overall_trigger_data']
+
                     for cur_trigger_data in [x for x in trigger_data if np.any(x['trigger'])]:
                         cur_simp_stations = cur_trigger_data['simp_stations']
                         available_simp_stations = [x['simp_stations'] for x in overall_trigger_data]
@@ -606,10 +626,29 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
                     self.current_event['overall_trigger_data'] = overall_trigger_data
 
+                    # Compute the max. PGV of all used stations.
+                    cur_max_station_pgv_used = self.current_event['max_station_pgv_used']
+                    for cur_data in trigger_data:
+                        cur_pgv = np.array(cur_data['pgv'])
+                        logger.info("simp_stations: %s", cur_data['simp_stations'])
+                        logger.info("cur_pgv: %s", cur_pgv)
+                        cur_max_pgv = np.max(cur_pgv, axis = 0)
+                        logger.info("cur_max_pgv: %s", cur_max_pgv)
+                        for k, cur_station in enumerate(cur_data['simp_stations']):
+                            cur_station_max = cur_max_pgv[k]
+                            logger.info("cur_station, cur_station_max: %s, %s", cur_station, cur_station_max)
+                            if cur_station not in cur_max_station_pgv_used:
+                                cur_max_station_pgv_used[cur_station] = cur_station_max
+                            elif cur_station_max > cur_max_station_pgv_used[cur_station]:
+                                cur_max_station_pgv_used[cur_station] = cur_station_max
+                    self.current_event['max_station_pgv_used'] = cur_max_station_pgv_used
+
                     # Compute the max. PGV of each triggered station.
-                    cur_max_station_pgv = {}
+                    cur_max_station_pgv = self.current_event['max_station_pgv']
                     for cur_data in self.current_event['overall_trigger_data']:
                         cur_pgv = np.array(cur_data['pgv'])
+                        # Use only the triggered data.
+                        cur_pgv = cur_pgv[cur_data['trigger']]
                         cur_max_pgv = np.max(cur_pgv, axis = 0)
                         for k, cur_station in enumerate(cur_data['simp_stations']):
                             cur_station_max = cur_max_pgv[k]
@@ -630,8 +669,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     self.logger.info('overall_trigger_data: %s', self.current_event['overall_trigger_data'])
                     # Compute the max. PGV of the event.
                     max_pgv = []
-                    for cur_pgv in [x['pgv'] for x in self.current_event['overall_trigger_data']]:
-                        max_pgv.append(np.nanmax(cur_pgv))
+                    for cur_pgv, cur_trigger in [(x['pgv'], x['trigger']) for x in self.current_event['overall_trigger_data']]:
+                        # Use only the triggered data.
+                        cur_max_pgv = np.array(cur_pgv)[cur_trigger]
+                        max_pgv.append(np.nanmax(cur_max_pgv))
                     max_pgv = np.nanmax(max_pgv)
                     self.current_event['max_pgv'] = max_pgv
                     self.logger.info('max_pgv: %f', self.current_event['max_pgv'])
@@ -1229,11 +1270,20 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 cur_archive_event['end_time'] = cur_event['end_time'].isoformat()
                 #cur_archive_event['trigger_data'] = cur_event['trigger_data']
                 cur_archive_event['state'] = cur_event['state']
+                try:
+                    cur_archive_event['max_pgv'] = cur_event['max_pgv']
+                except Exception:
+                    cur_archive_event['max_pgv'] = -9999
+
                 cur_archive_event['overall_trigger_data'] = cur_event['overall_trigger_data']
                 try:
                     cur_archive_event['max_station_pgv'] = cur_event['max_station_pgv']
                 except Exception:
                     cur_archive_event['max_station_pgv'] = {}
+                try:
+                    cur_archive_event['max_station_pgv_used'] = cur_event['max_station_pgv_used']
+                except Exception:
+                    cur_archive_event['max_station_pgv_used'] = {}
                 cur_archive.append(cur_archive_event)
 
         return cur_archive
