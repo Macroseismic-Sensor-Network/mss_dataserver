@@ -554,7 +554,7 @@ def start_server(config):
     #loop.create_task(client.task_timer(client.detect_event))
     loop.create_task(serve_keydata(client))
     loop.create_task(serve_data(client))
-    loop.create_task(serve_detection_result(client))
+    #loop.create_task(serve_detection_result(client))
     loop.create_task(serve_event_data(client))
     loop.create_task(serve_event_archive(client))
     loop.create_task(serve_event_warning(client))
