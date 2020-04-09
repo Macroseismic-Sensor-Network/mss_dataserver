@@ -1244,8 +1244,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             #cur_event['trigger_data'] = self.current_event['trigger_data']
             cur_event['state'] = self.current_event['state']
             cur_event['overall_trigger_data'] = self.current_event['overall_trigger_data']
-            cur_archive_event['max_station_pgv'] = cur_event['max_station_pgv']
-
+            cur_event['max_station_pgv'] = self.current_event['max_station_pgv']
+            cur_event['max_station_pgv_used'] = self.current_event['max_station_pgv_used']
         return cur_event
 
     def get_event_warning(self):
