@@ -74,6 +74,44 @@ def databaseFactory(base):
     tables.append(EventCatalogDb)
 
 
+    ###########################################################################
+    # EVENT_TYPE table mapper class
+    class EventTypeDb(base):
+        __tablename__  = 'event_type'
+        __table_args__ = (
+                          UniqueConstraint('name'),
+                          {'mysql_engine': 'InnoDB'}
+                         )
+        _version = '1.0.0'
+
+        id = Column(Integer, primary_key = True, autoincrement = True)
+        parent_id = Column(Integer,
+                           ForeignKey('event_type.id',
+                                      onupdate = 'cascade',
+                                      ondelete = 'cascade'),
+                           nullable = True)
+        name = Column(String(191), nullable = False)
+        description = Column(Text, nullable = True)
+        agency_uri = Column(String(255), nullable = True)
+        author_uri = Column(String(255), nullable = True)
+        creation_time = Column(String(30), nullable = True)
+
+        children = relationship('EventTypeDb',
+                                cascade = 'all',
+                                backref = backref('parent', remote_side = [id]))
+
+
+        def __init__(self, name, description, agency_uri,
+                     author_uri, creation_time):
+            self.name = name
+            self.description = description
+            self.agency_uri = agency_uri
+            self.author_uri = author_uri
+            self.creation_time = creation_time
+
+    tables.append(EventTypeDb)
+
+
 
     ###########################################################################
     # EVENT table mapper class
@@ -138,42 +176,6 @@ def databaseFactory(base):
 
 
 
-    ###########################################################################
-    # EVENT_TYPE table mapper class
-    class EventTypeDb(base):
-        __tablename__  = 'event_type'
-        __table_args__ = (
-                          UniqueConstraint('name'),
-                          {'mysql_engine': 'InnoDB'}
-                         )
-        _version = '1.0.0'
-
-        id = Column(Integer, primary_key = True, autoincrement = True)
-        parent_id = Column(Integer,
-                           ForeignKey('event_type.id',
-                                      onupdate = 'cascade',
-                                      ondelete = 'cascade'),
-                           nullable = True)
-        name = Column(String(191), nullable = False)
-        description = Column(Text, nullable = True)
-        agency_uri = Column(String(255), nullable = True)
-        author_uri = Column(String(255), nullable = True)
-        creation_time = Column(String(30), nullable = True)
-
-        children = relationship('EventTypeDb',
-                                cascade = 'all',
-                                backref = backref('parent', remote_side = [id]))
-
-
-        def __init__(self, name, description, agency_uri,
-                     author_uri, creation_time):
-            self.name = name
-            self.description = description
-            self.agency_uri = agency_uri
-            self.author_uri = author_uri
-            self.creation_time = creation_time
-
-    tables.append(EventTypeDb)
 
 
     ###########################################################################
