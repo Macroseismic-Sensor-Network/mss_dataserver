@@ -23,13 +23,13 @@ class EventTestCase(unittest.TestCase):
         # Configure the logger.
         logger = logging.getLogger('mss_dataserver')
         logger.addHandler(logging.StreamHandler())
-        logging.basicConfig(level = logging.DEBUG,
+        logging.basicConfig(level = logging.INFO,
                             format = "LOG - %(asctime)s - %(process)d - %(levelname)s - %(name)s: %(message)s")
 
         cls.project = test_util.create_db_test_project()
-        #test_util.clear_project_database_tables(cls.project)
+        test_util.clear_project_database_tables(cls.project)
         #test_util.drop_project_database_tables(cls.project)
-        cls.project.create_database_tables()
+        #cls.project.create_database_tables()
         cls.project.load_inventory()
 
     @classmethod
@@ -87,7 +87,8 @@ class EventTestCase(unittest.TestCase):
 
         db_event_orm = self.project.db_tables['event']
         db_session = self.project.get_db_session()
-        result = db_session.query(db_event_orm).all()
+        result = db_session.query(db_event_orm).\
+            filter(db_event_orm.id == event.db_id).all()
         db_session.close()
         self.assertEqual(len(result), 1)
         tmp = result[0]
@@ -95,6 +96,7 @@ class EventTestCase(unittest.TestCase):
         self.assertEqual(tmp.end_time, event.end_time.timestamp)
         self.assertEqual(tmp.creation_time, event.creation_time.isoformat())
 
+    #@unittest.skip("temporary disabled")
     def test_add_detection_to_event(self):
         ''' Test the adding of detections.
         '''
@@ -115,9 +117,12 @@ class EventTestCase(unittest.TestCase):
         # can be associated with the event in the database.
         det.write_to_database(self.project)
 
+        # Check for a valid database id.
+        self.assertEqual(det.db_id, 1)
+
         # Create an event.
         start_time = '2000-01-01T00:00:00'
-        end_time = '2000-01-01T01:00:00'
+        end_time = '2000-01-01T02:00:00'
         creation_time = UTCDateTime()
         event = Event(start_time = start_time,
                       end_time = end_time,
@@ -132,7 +137,7 @@ class EventTestCase(unittest.TestCase):
         db_event_orm = self.project.db_tables['event']
         try:
             db_session = self.project.get_db_session()
-            result = db_session.query(db_event_orm).all()
+            result = db_session.query(db_event_orm).filter(db_event_orm.id == event.db_id).all()
             cur_event = Event.from_db_event(result[0])
             self.assertEqual(len(cur_event.detections), 1)
             self.assertEqual(cur_event.detections[0].start_time, det.start_time)
