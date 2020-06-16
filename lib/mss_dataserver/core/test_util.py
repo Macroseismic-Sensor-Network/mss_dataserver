@@ -84,13 +84,17 @@ def clear_project_database_tables(project):
     tables_to_clear = [table for table in reversed(project.db_metadata.sorted_tables)]
     for cur_table in tables_to_clear:
         project.db_engine.execute(cur_table.delete())
+        project.db_engine.execute('alter table {0:s} AUTO_INCREMENT = 1'.format(str(cur_table)))
 
 
 def create_db_test_project():
     ''' Create a project with a database connection to the unit_test database.
     '''
     base_dir = os.path.dirname(os.path.abspath(mss_dataserver.__file__))
-    config_file = os.path.join(base_dir, 'test', 'mss_dataserver_unittest.ini')
+    config_file = os.path.join(base_dir, 'test', 'config', 'mss_dataserver_unittest.ini')
     config = mss_dataserver.core.project.Project.load_configuration(config_file)
+    # Update the configuration filepaths.
+    config['project']['inventory_file'] = os.path.join(base_dir, 'test', 'data', config['project']['inventory_file'])
+    config['output']['data_dir'] = os.path.join(base_dir, 'test', 'output', config['output']['data_dir'])
     project = mss_dataserver.core.project.Project(**config)
     return project
