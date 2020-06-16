@@ -184,7 +184,7 @@ class Detection(object):
         ''' Get an orm representation to use it for bulk insertion into
         the database.
         '''
-        db_detection_orm = project.dbTables['detection']
+        db_detection_orm = project.db_tables['detection']
 
         if self.creation_time is not None:
             creation_time = self.creation_time.isoformat()
@@ -225,9 +225,13 @@ class Detection(object):
         detection = cls(start_time = detection_orm.start_time,
                         end_time = detection_orm.end_time,
                         db_id = detection_orm.id,
-                        rec_stream_id = detection_orm.rec_stream_id,
                         catalog_id = detection_orm.catalog_id,
-                        method = detection_orm.method,
+                        stat1_id = detection_orm.stat1_id,
+                        stat2_id = detection_orm.stat2_id,
+                        stat3_id = detection_orm.stat3_id,
+                        max_pgv1 = detection_orm.max_pgv1,
+                        max_pgv2 = detection_orm.max_pgv2,
+                        max_pgv3 = detection_orm.max_pgv3,
                         agency_uri = detection_orm.agency_uri,
                         author_uri = detection_orm.author_uri,
                         creation_time = detection_orm.creation_time)
