@@ -466,6 +466,9 @@ def load_configuration(filename):
 def start_server(project):
     ''' Start the websocket data server.
     '''
+    project.connect_to_db()
+    project.load_inventory()
+
     if project.inventory is None:
         logging.error("No inventory found in the project. Quitting.")
         return
@@ -557,8 +560,10 @@ def create_db(project):
     ''' Create or update the database.
     '''
     logging.info('Creating the database tables.')
+    project.connect_to_db()
 
     project.create_database_tables()
+
 
 def load_geometry(project):
     ''' Load the geometry inventory file into the database.
