@@ -27,6 +27,7 @@ import logging
 import warnings
 
 import obspy.core.utcdatetime as utcdatetime
+import mss_dataserver.event.detection as detection
 
 #from profilehooks import profile
 
@@ -185,10 +186,10 @@ class Event(object):
 
                 # Add the detections to the event. Do this after the event got an
                 # id.
-                if len(self.detections) > 0 :
+                if len(self.detections) > 0:
                     # Load the detection_orms from the database.
-                    detection_table = project.dbTables['detection']
-                    d2e_orm_class = project.dbTables['detection_to_event']
+                    detection_table = project.db_tables['detection']
+                    d2e_orm_class = project.db_tables['detection_to_event']
                     query = db_session.query(detection_table).\
                             filter(detection_table.id.in_([x.db_id for x in self.detections]))
                     for cur_detection_orm in query:
@@ -309,7 +310,7 @@ class Event(object):
                     agency_uri = db_event.agency_uri,
                     author_uri = db_event.author_uri,
                     creation_time = db_event.creation_time,
-                    detections = [detect.Detection.from_db_detection(x.detection) for x in db_event.detections],
+                    detections = [detection.Detection.from_db_detection(x.detection) for x in db_event.detections],
                     changed = False
                     )
         return event
