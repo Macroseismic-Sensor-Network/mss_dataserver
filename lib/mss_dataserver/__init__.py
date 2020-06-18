@@ -29,3 +29,17 @@ __website__ = "http://www.macroseismicsensor.at"
 __downloadUrl__ = ""
 __license__ = "GNU General Public Licence version 3"
 __keywords__ = """raspberrypi seismic seismological data logger datalogger recorder macroseismic"""
+
+import logging
+
+
+def get_logger_handler(log_level = None):
+    ch = logging.StreamHandler()
+    if log_level is None:
+        log_level = 'INFO'
+    ch.setLevel(log_level)
+    formatter = logging.Formatter("#LOG# - %(asctime)s - %(process)d - %(levelname)s - %(name)s: %(message)s")
+    ch.setFormatter(formatter)
+
+    return ch
+
