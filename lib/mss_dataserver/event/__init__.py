@@ -249,6 +249,13 @@ def databaseFactory(base):
         author_uri = Column(String(255), nullable = True)
         creation_time = Column(String(30), nullable = True)
 
+        stat1 = relationship('GeomStation',
+                             foreign_keys = [stat1_id])
+        stat2 = relationship('GeomStation',
+                             foreign_keys = [stat2_id])
+        stat3 = relationship('GeomStation',
+                             foreign_keys = [stat3_id])
+
         def __init__(self, catalog_id,
                      start_time, end_time,
                      stat1_id, stat2_id, stat3_id,
