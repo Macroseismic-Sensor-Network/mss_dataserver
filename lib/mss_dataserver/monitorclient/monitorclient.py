@@ -535,10 +535,14 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                             continue
                         cur_trig = np.nanmin(cur_pgv, axis = 1) >= trigger_thr
                         tmp = {}
-                        tmp['simp_stations'] = [x.name for x in cur_simp_stations]
-                        tmp['time'] = [x.isoformat() for x in cur_time]
-                        tmp['pgv'] = cur_pgv.tolist()
-                        tmp['trigger'] = cur_trig.tolist()
+                        #tmp['simp_stations'] = [x.name for x in cur_simp_stations]
+                        #tmp['time'] = [x.isoformat() for x in cur_time]
+                        #tmp['pgv'] = cur_pgv.tolist()
+                        #tmp['trigger'] = cur_trig.tolist()
+                        tmp['simp_stations'] = cur_simp_stations
+                        tmp['time'] = cur_time
+                        tmp['pgv'] = cur_pgv
+                        tmp['trigger'] = cur_trig
                         trigger_data.append(tmp)
 
             # Check if any of the triangles has triggered and get the earliest
@@ -564,17 +568,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             if not self.event_triggered and event_start is not None:
                 logger.info("Event triggered.")
                 try:
-                    cur_event = {}
-                    cur_event['start_time'] = event_start
-                    cur_event['end_time'] = event_end
-                    cur_event['pgv'] = detect_stream.copy()
-                    cur_event['trigger_data'] = {}
-                    cur_event['trigger_data'][detect_win_end.isoformat()] = trigger_data
-                    cur_event['overall_trigger_data'] = [x for x in trigger_data if np.any(x['trigger'])]
-                    cur_event['state'] = 'triggered'
-                    cur_event['max_station_pgv'] = {}
-
-
                     # Use the Event class to create an event.
                     cur_event_obj = event_core.Event(start_time = event_start,
                                                      end_time = event_end,
@@ -584,20 +577,17 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
                     # Compute the max. PGV of each triggered station.
                     cur_max_station_pgv = {}
-                    for cur_data in cur_event['overall_trigger_data']:
+                    for cur_data in [x for x in trigger_data if np.any(x['trigger'])]:
                         # Create a detection instance.
+                        pgv_max = np.max(cur_data['pgv'], axis = 0)
                         cur_detection = event_detection.Detection(start_time = cur_data['time'][0],
-                                                                  end_time = cur_data['time'][-1])
-                        cur_pgv = np.array(cur_data['pgv'])
-                        cur_max_pgv = np.max(cur_pgv, axis = 0)
-                        for k, cur_station in enumerate(cur_data['simp_stations']):
-                            cur_station_max = cur_max_pgv[k]
-                            if cur_station not in cur_max_station_pgv:
-                                cur_max_station_pgv[cur_station] = cur_station_max
-                            elif cur_station_max > cur_max_station_pgv[cur_station]:
-                                cur_max_station_pgv[cur_station] = cur_station_max
+                                                                  end_time = cur_data['time'][-1],
+                                                                  stations = cur_simp_stations,
+                                                                  pgv_max = {cur_simp_stations[0].snl: pgv_max[0],
+                                                                             cur_simp_stations[1].snl: pgv_max[1],
+                                                                             cur_simp_stations[2].snl: pgv_max[2]})
+                        cur_event_obj.add_detection(cur_detection)
 
-                    cur_event['max_station_pgv'] = cur_max_station_pgv
                     self.current_event = cur_event
                     self.current_event_obj = cur_event_obj
                     self.event_triggered = True
@@ -613,34 +603,34 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     self.current_event['end_time'] = event_end
                     self.current_event['pgv'] = self.current_event['pgv'] + detect_stream
                     self.current_event['trigger_data'][detect_win_end.isoformat()] = trigger_data
-                    overall_trigger_data = self.current_event['overall_trigger_data']
-                    for cur_trigger_data in [x for x in trigger_data if np.any(x['trigger'])]:
-                        cur_simp_stations = cur_trigger_data['simp_stations']
-                        available_simp_stations = [x['simp_stations'] for x in overall_trigger_data]
-                        if cur_simp_stations not in available_simp_stations:
-                            overall_trigger_data.append(cur_trigger_data)
-                        else:
-                            cur_ind = available_simp_stations.index(cur_simp_stations)
-                            overall_trigger_data[cur_ind]['pgv'].extend(cur_trigger_data['pgv'])
-                            overall_trigger_data[cur_ind]['time'].extend(cur_trigger_data['time'])
-                            overall_trigger_data[cur_ind]['trigger'].extend(cur_trigger_data['trigger'])
-
-                    self.current_event['overall_trigger_data'] = overall_trigger_data
 
                     self.current_event_obj.end_time = event_end
 
-                    # Compute the max. PGV of each triggered station.
-                    cur_max_station_pgv = {}
-                    for cur_data in self.current_event['overall_trigger_data']:
-                        cur_pgv = np.array(cur_data['pgv'])
-                        cur_max_pgv = np.max(cur_pgv, axis = 0)
-                        for k, cur_station in enumerate(cur_data['simp_stations']):
-                            cur_station_max = cur_max_pgv[k]
-                            if cur_station not in cur_max_station_pgv:
-                                cur_max_station_pgv[cur_station] = cur_station_max
-                            elif cur_station_max > cur_max_station_pgv[cur_station]:
-                                cur_max_station_pgv[cur_station] = cur_station_max
-                    self.current_event['max_station_pgv'] = cur_max_station_pgv
+                    overall_trigger_data = self.current_event['overall_trigger_data']
+                    for cur_trigger_data in [x for x in trigger_data if np.any(x['trigger'])]:
+                        cur_simp_stations = cur_trigger_data['simp_stations']
+                        pgv_max = np.max(cur_data['pgv'], axis = 0)
+                        if self.current_event_obj.has_detection(cur_simp_stations):
+                            # Update the detection.
+                            cur_detection = self.current_event_obj.get_detection(cur_simp_stations)
+                            if len(cur_detectin == 1):
+                                cur_detection = cur_detection[0]
+                            else:
+                                logger.error("Expected exactly one detection. Got: %s.", cur_detection)
+                            cur_detection.update(end_time = cur_data['time'][-1],
+                                                 pgv_max = {cur_simp_stations[0].snl: pgv_max[0],
+                                                            cur_simp_stations[1].snl: pgv_max[1],
+                                                            cur_simp_stations[2].snl: pgv_max[2]})
+                        else:
+                            # Add the detection.
+                            cur_detection = event_detection.Detection(start_time = cur_data['time'][0],
+                                                                      end_time = cur_data['time'][-1],
+                                                                      stations = cur_simp_stations,
+                                                                      pgv_max = {cur_simp_stations[0].snl: pgv_max[0],
+                                                                                 cur_simp_stations[1].snl: pgv_max[1],
+                                                                                 cur_simp_stations[2].snl: pgv_max[2]})
+                            self.current_event_obj.add_detection(cur_detection)
+
                     self.event_data_available.set()
                 except Exception as e:
                     logger.exception("Error updating the current event.")
