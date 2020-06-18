@@ -9,6 +9,7 @@ import os
 
 from obspy.core.utcdatetime import UTCDateTime
 
+import mss_dataserver
 from mss_dataserver.event.core import Event
 import mss_dataserver.event.detection as detection
 import mss_dataserver.core.test_util as test_util
@@ -21,10 +22,8 @@ class EventTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Configure the logger.
-        logger = logging.getLogger('mss_dataserver')
-        logger.addHandler(logging.StreamHandler())
-        logging.basicConfig(level = logging.INFO,
-                            format = "LOG - %(asctime)s - %(process)d - %(levelname)s - %(name)s: %(message)s")
+        cls.logger = logging.getLogger('mss_dataserver')
+        cls.logger.addHandler(mss_dataserver.get_logger_handler(log_level = 'DEBUG'))
 
         cls.project = test_util.create_db_test_project()
         test_util.clear_project_database_tables(cls.project)
@@ -75,6 +74,42 @@ class EventTestCase(unittest.TestCase):
         self.assertEqual(event.start_time, UTCDateTime(start_time))
         self.assertEqual(event.end_time, UTCDateTime(end_time))
         self.assertTrue(event.changed)
+
+    def test_update_detection(self):
+        ''' The the updating of existing detections.
+        '''
+        start_time = '2000-01-01T00:00:00'
+        end_time = '2000-01-01T01:00:00'
+        creation_time = UTCDateTime()
+
+        # Get the stations from the inventory.
+        inventory = self.project.db_inventory
+        stat1 = inventory.get_station(name = 'DUBA')[0]
+        stat2 = inventory.get_station(name = 'WADU')[0]
+        stat3 = inventory.get_station(name = 'WAPE')[0]
+
+        det = detection.Detection(start_time = start_time,
+                                  end_time = end_time,
+                                  creation_time = creation_time,
+                                  stations = [stat1, stat2, stat3],
+                                  max_pgv = [0.1, 0.2, 0.3])
+
+        # Create an event.
+        start_time = '2000-01-01T00:00:00'
+        end_time = '2000-01-01T02:00:00'
+        creation_time = UTCDateTime()
+        event = Event(start_time = start_time,
+                      end_time = end_time,
+                      creation_time = creation_time,
+                      detections = [det, ])
+
+        # Check for existing detections.
+        res = event.has_detection([stat1, stat2, stat3])
+        self.assertEqual(res, True)
+        res = event.has_detection([stat2, stat1, stat3])
+        self.assertEqual(res, True)
+        res = event.has_detection([stat1, stat1, stat3])
+        self.assertEqual(res, False)
 
     def test_write_event_to_database(self):
         ''' Test the writing of an event to the database.
