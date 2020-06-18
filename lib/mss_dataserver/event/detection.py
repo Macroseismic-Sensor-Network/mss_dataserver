@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import mss_dataserver.geometry.db_inventory as db_inventory
 import obspy.core.utcdatetime as utcdatetime
 
 class Detection(object):
     ''' A MSS Delaunay detection.
     '''
-    def __init__(self, start_time, end_time, db_id = None, catalog_id = None,
-                 stat1_id = None, stat2_id = None, stat3_id = None,
-                 max_pgv1 = None, max_pgv2 = None, max_pgv3 = None,
+    def __init__(self, start_time, end_time, stations, max_pgv,
+                 db_id = None, catalog_id = None,
                  agency_uri = None, author_uri = None, creation_time = None,
                  parent = None, changed = True):
         ''' Initialize the instance.
@@ -43,14 +43,10 @@ class Detection(object):
         self.end_time = utcdatetime.UTCDateTime(end_time)
 
         # The stations of the Delaunay triangle.
-        self.stat1_id = stat1_id
-        self.stat2_id = stat2_id
-        self.stat3_id = stat3_id
+        self.stations = stations
 
         # The max. PGV values of the detection timespan.
-        self.max_pgv1 = max_pgv1
-        self.max_pgv2 = max_pgv2
-        self.max_pgv3 = max_pgv3
+        self.max_pgv = max_pgv
 
         # The agency_uri of the creator.
         self.agency_uri = agency_uri
@@ -140,12 +136,12 @@ class Detection(object):
             db_detection = db_detection_orm(catalog_id = catalog_id,
                                             start_time = self.start_time.timestamp,
                                             end_time = self.end_time.timestamp,
-                                            stat1_id = self.stat1_id,
-                                            stat2_id = self.stat2_id,
-                                            stat3_id = self.stat3_id,
-                                            max_pgv1 = self.max_pgv1,
-                                            max_pgv2 = self.max_pgv2,
-                                            max_pgv3 = self.max_pgv3,
+                                            stat1_id = self.stations[0].id,
+                                            stat2_id = self.stations[1].id,
+                                            stat3_id = self.stations[2].id,
+                                            max_pgv1 = self.max_pgv[0],
+                                            max_pgv2 = self.max_pgv[1],
+                                            max_pgv3 = self.max_pgv[2],
                                             agency_uri = self.agency_uri,
                                             author_uri = self.author_uri,
                                             creation_time = creation_time)
@@ -214,7 +210,7 @@ class Detection(object):
         return db_detection
 
     @classmethod
-    def from_db_detection(cls, detection_orm):
+    def from_orm(cls, detection_orm, inventory):
         ''' Convert a database orm mapper detection to a detection.
 
         Parameters
@@ -222,16 +218,17 @@ class Detection(object):
         detection_orm : SQLAlchemy ORM
             The ORM of the detection_orm database table.
         '''
+        stat1 = inventory.get_station(id = detection_orm.stat1_id)[0]
+        stat2 = inventory.get_station(id = detection_orm.stat2_id)[0]
+        stat3 = inventory.get_station(id = detection_orm.stat3_id)[0]
         detection = cls(start_time = detection_orm.start_time,
                         end_time = detection_orm.end_time,
                         db_id = detection_orm.id,
                         catalog_id = detection_orm.catalog_id,
-                        stat1_id = detection_orm.stat1_id,
-                        stat2_id = detection_orm.stat2_id,
-                        stat3_id = detection_orm.stat3_id,
-                        max_pgv1 = detection_orm.max_pgv1,
-                        max_pgv2 = detection_orm.max_pgv2,
-                        max_pgv3 = detection_orm.max_pgv3,
+                        stations = [stat1, stat2, stat3],
+                        max_pgv = [detection_orm.max_pgv1,
+                                   detection_orm.max_pgv2,
+                                   detection_orm.max_pgv3],
                         agency_uri = detection_orm.agency_uri,
                         author_uri = detection_orm.author_uri,
                         creation_time = detection_orm.creation_time)
@@ -411,7 +408,7 @@ class Catalog(object):
             detections_to_add = []
             for cur_orm in query:
                 try:
-                    cur_detection = Detection.from_db_detection(cur_orm)
+                    cur_detection = Detection.from_orm(cur_orm)
                     detections_to_add.append(cur_detection)
                 except:
                     self.logger.exception("Error when creating a detection object from database values for detection id %d. Skipping this detection.", cur_orm.id)
@@ -481,7 +478,7 @@ class Catalog(object):
 
 
     @classmethod
-    def from_db_catalog(cls, db_catalog, load_detections = False):
+    def from_orm(cls, db_catalog, load_detections = False):
         ''' Convert a database orm mapper catalog to a catalog.
 
         Parameters
@@ -504,7 +501,7 @@ class Catalog(object):
         # Add the detections to the catalog.
         if load_detections is True:
             for cur_detection_orm in db_catalog.detections:
-                cur_detection = Detection.from_db_detection(cur_detection_orm)
+                cur_detection = Detection.from_orm(cur_detection_orm)
                 catalog.add_detections([cur_detection,])
         return catalog
 
@@ -611,7 +608,7 @@ class Library(object):
             query = db_session.query(db_catalog_orm).filter(db_catalog_orm.name.in_(name))
             if db_session.query(query.exists()):
                 for cur_db_catalog in query:
-                    cur_catalog = Catalog.from_db_catalog(cur_db_catalog, load_detections)
+                    cur_catalog = Catalog.from_orm(cur_db_catalog, load_detections)
                     self.add_catalog(cur_catalog)
         finally:
             db_session.close()

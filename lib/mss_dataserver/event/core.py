@@ -130,7 +130,6 @@ class Event(object):
         '''
         return self.end_time - self.start_time
 
-
     def assign_channel_to_detections(self, inventory):
         ''' Set the channels according to the rec_stream_ids.
         '''
@@ -287,7 +286,7 @@ class Event(object):
         return db_event
 
     @classmethod
-    def from_db_event(cls, db_event):
+    def from_orm(cls, db_event, inventory):
         ''' Convert a database orm mapper event to a event.
 
         Parameters
@@ -310,7 +309,7 @@ class Event(object):
                     agency_uri = db_event.agency_uri,
                     author_uri = db_event.author_uri,
                     creation_time = db_event.creation_time,
-                    detections = [detection.Detection.from_db_detection(x.detection) for x in db_event.detections],
+                    detections = [detection.Detection.from_orm(x.detection, inventory) for x in db_event.detections],
                     changed = False
                     )
         return event
@@ -526,7 +525,7 @@ class Catalog(object):
             events_to_add = []
             for cur_orm in query:
                 try:
-                    cur_event = Event.from_db_event(cur_orm)
+                    cur_event = Event.from_orm(cur_orm)
                     events_to_add.append(cur_event)
                 except:
                     self.logger.exception("Error when creating an event object from database values for event %d. Skipping this event.", cur_orm.id)
@@ -549,7 +548,7 @@ class Catalog(object):
 
 
     @classmethod
-    def from_db_catalog(cls, db_catalog, load_events = False):
+    def from_orm(cls, db_catalog, load_events = False):
         ''' Convert a database orm mapper catalog to a catalog.
 
         Parameters
@@ -572,7 +571,7 @@ class Catalog(object):
         # Add the events to the catalog.
         if load_events is True:
             for cur_db_event in db_catalog.events:
-                cur_event = Event.from_db_event(cur_db_event)
+                cur_event = Event.from_orm(cur_db_event)
                 catalog.add_events([cur_event,])
         return catalog
 
@@ -680,7 +679,7 @@ class Library(object):
             query = db_session.query(db_catalog_orm).filter(db_catalog_orm.name.in_(name))
             if db_session.query(query.exists()):
                 for cur_db_catalog in query:
-                    cur_catalog = Catalog.from_db_catalog(cur_db_catalog, load_events)
+                    cur_catalog = Catalog.from_orm(cur_db_catalog, load_events)
                     self.add_catalog(cur_catalog)
         finally:
             db_session.close()
