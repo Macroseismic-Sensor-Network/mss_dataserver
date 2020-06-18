@@ -109,6 +109,23 @@ class Detection(object):
             return (self.channel.scnl[0], self.channel.scnl[2], self.channel.scnl[3])
 
 
+    def update(self, start_time = None, end_time = None,
+               pgv_max = None):
+        ''' Update the attributes of the detection.
+        '''
+        if start_time is not None:
+            self.start_time = utcdatetime.UTCDateTime(start_time)
+
+        if end_time is not None:
+            self.end_time = utcdatetime.UTCDateTime(end_time)
+
+        if pgv_max is not None:
+            for cur_key, cur_value in pgv_max.items:
+                if cur_value > self.pgv_max[cur_key]:
+                    self.pgv_max[cur_key] = cur_value
+
+
+
     def set_channel_from_inventory(self, inventory):
         ''' Set the channel matching the recorder stream.
         '''
@@ -139,9 +156,9 @@ class Detection(object):
                                             stat1_id = self.stations[0].id,
                                             stat2_id = self.stations[1].id,
                                             stat3_id = self.stations[2].id,
-                                            max_pgv1 = self.max_pgv[0],
-                                            max_pgv2 = self.max_pgv[1],
-                                            max_pgv3 = self.max_pgv[2],
+                                            max_pgv1 = self.max_pgv[self.stations[0].snl],
+                                            max_pgv2 = self.max_pgv[self.stations[1].snl],
+                                            max_pgv3 = self.max_pgv[self.stations[2].snl],
                                             agency_uri = self.agency_uri,
                                             author_uri = self.author_uri,
                                             creation_time = creation_time)
@@ -226,9 +243,9 @@ class Detection(object):
                         db_id = detection_orm.id,
                         catalog_id = detection_orm.catalog_id,
                         stations = [stat1, stat2, stat3],
-                        max_pgv = [detection_orm.max_pgv1,
-                                   detection_orm.max_pgv2,
-                                   detection_orm.max_pgv3],
+                        max_pgv = {stat1.snl: detection_orm.max_pgv1,
+                                   stat2.snl: detection_orm.max_pgv2,
+                                   stat3.snl: detection_orm.max_pgv3},
                         agency_uri = detection_orm.agency_uri,
                         author_uri = detection_orm.author_uri,
                         creation_time = detection_orm.creation_time)
