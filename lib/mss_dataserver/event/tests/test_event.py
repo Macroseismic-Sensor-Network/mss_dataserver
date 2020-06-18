@@ -101,24 +101,25 @@ class EventTestCase(unittest.TestCase):
         ''' Test the adding of detections.
         '''
         # Create a detection.
+        # Set the date values.
         start_time = '2000-01-01T00:00:00'
         end_time = '2000-01-01T01:00:00'
         creation_time = UTCDateTime()
+
+        # Get the stations from the inventory.
+        inventory = self.project.db_inventory
+        stat1 = inventory.get_station(name = 'DUBA')[0]
+        stat2 = inventory.get_station(name = 'WADU')[0]
+        stat3 = inventory.get_station(name = 'WAPE')[0]
+
         det = detection.Detection(start_time = start_time,
                                   end_time = end_time,
-                                  stat1_id = 1,
-                                  stat2_id = 2,
-                                  stat3_id = 3,
-                                  max_pgv1 = 0.1,
-                                  max_pgv2 = 0.2,
-                                  max_pgv3 = 0.3,
-                                  creation_time = creation_time)
+                                  creation_time = creation_time,
+                                  stations = [stat1, stat2, stat3],
+                                  max_pgv = [0.1, 0.2, 0.3])
         # Write the detection to the database. Only detections in a database
         # can be associated with the event in the database.
         det.write_to_database(self.project)
-
-        # Check for a valid database id.
-        self.assertEqual(det.db_id, 1)
 
         # Create an event.
         start_time = '2000-01-01T00:00:00'
@@ -138,10 +139,18 @@ class EventTestCase(unittest.TestCase):
         try:
             db_session = self.project.get_db_session()
             result = db_session.query(db_event_orm).filter(db_event_orm.id == event.db_id).all()
-            cur_event = Event.from_db_event(result[0])
+            cur_event = Event.from_orm(result[0],
+                                       inventory = inventory)
             self.assertEqual(len(cur_event.detections), 1)
             self.assertEqual(cur_event.detections[0].start_time, det.start_time)
             self.assertEqual(cur_event.detections[0].end_time, det.end_time)
+            self.assertEqual(len(cur_event.detections[0].stations), 3)
+            self.assertEqual(cur_event.detections[0].stations[0].snl,
+                             stat1.snl)
+            self.assertEqual(cur_event.detections[0].stations[1].snl,
+                             stat2.snl)
+            self.assertEqual(cur_event.detections[0].stations[2].snl,
+                             stat3.snl)
         finally:
             db_session.close()
 
