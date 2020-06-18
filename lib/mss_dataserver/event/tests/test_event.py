@@ -38,7 +38,9 @@ class EventTestCase(unittest.TestCase):
         pass
 
     def setUp(self):
-        pass
+        test_util.clear_project_database_tables(self.project,
+                                                tables = ['event',
+                                                          'detection'])
 
     def tearDown(self):
         pass
@@ -154,6 +156,84 @@ class EventTestCase(unittest.TestCase):
         finally:
             db_session.close()
 
+    def test_add_multiple_detections_to_event(self):
+        ''' Test the adding of multiple detections.
+        '''
+        # Create a detection.
+        # Set the date values.
+        start_time = '2000-01-01T00:00:00'
+        end_time = '2000-01-01T01:00:00'
+        creation_time = UTCDateTime()
+
+        # Get the stations from the inventory.
+        inventory = self.project.db_inventory
+        stat_11 = inventory.get_station(name = 'DUBA')[0]
+        stat_12 = inventory.get_station(name = 'WADU')[0]
+        stat_13 = inventory.get_station(name = 'WAPE')[0]
+
+        det1 = detection.Detection(start_time = start_time,
+                                   end_time = end_time,
+                                   creation_time = creation_time,
+                                   stations = [stat_11, stat_12, stat_13],
+                                   max_pgv = [0.1, 0.2, 0.3])
+        det1.write_to_database(self.project)
+
+        stat_21 = inventory.get_station(name = 'HOWA')[0]
+        stat_22 = inventory.get_station(name = 'WEIK')[0]
+        stat_23 = inventory.get_station(name = 'BAFI')[0]
+
+        det2 = detection.Detection(start_time = start_time,
+                                   end_time = end_time,
+                                   creation_time = creation_time,
+                                   stations = [stat_21, stat_22, stat_23],
+                                   max_pgv = [0.11, 0.22, 0.33])
+        det2.write_to_database(self.project)
+
+        # Create an event.
+        start_time = '2000-02-01T00:00:00'
+        end_time = '2000-02-01T02:00:00'
+        creation_time = UTCDateTime()
+        event = Event(start_time = start_time,
+                      end_time = end_time,
+                      creation_time = creation_time,
+                      detections = [det1, det2])
+
+        # Write the event to the database.
+        event.write_to_database(self.project)
+
+        # Now reload the event and check if the detections were linked
+        # correctly with the event.
+        db_event_orm = self.project.db_tables['event']
+        try:
+            db_session = self.project.get_db_session()
+            result = db_session.query(db_event_orm).filter(db_event_orm.id == event.db_id).all()
+            cur_event = Event.from_orm(result[0],
+                                       inventory = inventory)
+            self.assertEqual(len(cur_event.detections), 2)
+
+            cur_det = cur_event.detections[0]
+            self.assertEqual(cur_det.start_time, det1.start_time)
+            self.assertEqual(cur_det.end_time, det1.end_time)
+            self.assertEqual(len(cur_det.stations), 3)
+            self.assertEqual(cur_det.stations[0].snl,
+                             stat_11.snl)
+            self.assertEqual(cur_det.stations[1].snl,
+                             stat_12.snl)
+            self.assertEqual(cur_det.stations[2].snl,
+                             stat_13.snl)
+
+            cur_det = cur_event.detections[1]
+            self.assertEqual(cur_det.start_time, det1.start_time)
+            self.assertEqual(cur_det.end_time, det1.end_time)
+            self.assertEqual(len(cur_det.stations), 3)
+            self.assertEqual(cur_det.stations[0].snl,
+                             stat_21.snl)
+            self.assertEqual(cur_det.stations[1].snl,
+                             stat_22.snl)
+            self.assertEqual(cur_det.stations[2].snl,
+                             stat_23.snl)
+        finally:
+            db_session.close()
 
 def suite():
 #    tests = ['testXmlImport']
