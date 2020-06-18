@@ -78,10 +78,13 @@ def drop_project_database_tables(project):
     project.db_metadata.drop_all(tables = tables_to_remove)
 
 
-def clear_project_database_tables(project):
+def clear_project_database_tables(project, tables = None):
     project.connect_to_db()
     project.db_metadata.reflect(project.db_engine)
     tables_to_clear = [table for table in reversed(project.db_metadata.sorted_tables)]
+
+    if tables is not None:
+        tables_to_clear = [table for table in tables_to_clear if str(table) in tables]
     for cur_table in tables_to_clear:
         project.db_engine.execute(cur_table.delete())
         project.db_engine.execute('alter table {0:s} AUTO_INCREMENT = 1'.format(str(cur_table)))
