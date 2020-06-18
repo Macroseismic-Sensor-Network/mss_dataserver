@@ -10,6 +10,7 @@ import os
 from obspy.core.utcdatetime import UTCDateTime
 import sqlalchemy.orm
 
+import mss_dataserver
 import mss_dataserver.event.detection as detection
 import mss_dataserver.core.test_util as test_util
 
@@ -20,10 +21,9 @@ class DetectionTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Configure the logger.
-        logger = logging.getLogger('mss_dataserver')
-        logger.addHandler(logging.StreamHandler())
-        logging.basicConfig(level = logging.INFO,
-                            format = "LOG - %(asctime)s - %(process)d - %(levelname)s - %(name)s: %(message)s")
+        # Configure the logger.
+        cls.logger = logging.getLogger('mss_dataserver')
+        cls.logger.addHandler(mss_dataserver.get_logger_handler(log_level = 'DEBUG'))
 
         cls.project = test_util.create_db_test_project()
         test_util.clear_project_database_tables(cls.project)
@@ -88,10 +88,47 @@ class DetectionTestCase(unittest.TestCase):
                                   end_time = end_time,
                                   creation_time = creation_time,
                                   stations = [stat1, stat2, stat3],
-                                  max_pgv = [0.1, 0.2, 0.3])
+                                  max_pgv = {stat1.snl: 0.1,
+                                             stat2.snl: 0.2,
+                                             stat3.snl: 0.3})
         self.assertIsInstance(det, detection.Detection)
         self.assertEqual(det.start_time, UTCDateTime(start_time))
         self.assertEqual(det.end_time, UTCDateTime(end_time))
+        self.assertIsInstance(det.max_pgv, dict)
+        self.assertEqual(det.max_pgv[stat1.snl], 0.1)
+        self.assertEqual(det.max_pgv[stat2.snl], 0.2)
+        self.assertEqual(det.max_pgv[stat3.snl], 0.3)
+
+
+    def test_update_detection(self):
+        ''' Test the updating of a detection.
+        '''
+        # Set the date values.
+        start_time = '2000-01-01T00:00:00'
+        end_time = '2000-01-01T01:00:00'
+        creation_time = UTCDateTime()
+
+        # Get the stations from the inventory.
+        inventory = self.project.db_inventory
+        stat1 = inventory.get_station(name = 'DUBA')[0]
+        stat2 = inventory.get_station(name = 'WADU')[0]
+        stat3 = inventory.get_station(name = 'WAPE')[0]
+
+        det = detection.Detection(start_time = start_time,
+                                  end_time = end_time,
+                                  creation_time = creation_time,
+                                  stations = [stat1, stat2, stat3],
+                                  max_pgv = {stat1.snl: 0.1,
+                                             stat2.snl: 0.2,
+                                             stat3.snl: 0.3})
+
+        new_start_time = '2020-01-01T00:00:00'
+        new_end_time = '2020-01-01T02:00:00'
+        det.update(start_time = new_start_time,
+                   end_time = new_end_time)
+
+        self.assertEqual(det.start_time, UTCDateTime(new_start_time))
+        self.assertEqual(det.end_time, UTCDateTime(new_end_time))
 
     def test_write_detection_to_database(self):
         ''' Test the writing to the database.
@@ -112,7 +149,9 @@ class DetectionTestCase(unittest.TestCase):
                                   end_time = end_time,
                                   creation_time = creation_time,
                                   stations = [stat1, stat2, stat3],
-                                  max_pgv = [0.1, 0.2, 0.3])
+                                  max_pgv = {stat1.snl: 0.1,
+                                             stat2.snl: 0.2,
+                                             stat3.snl: 0.3})
         det.write_to_database(self.project)
 
         detection_orm = self.project.db_tables['detection']
