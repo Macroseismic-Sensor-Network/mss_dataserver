@@ -130,6 +130,41 @@ class Event(object):
         '''
         return self.end_time - self.start_time
 
+
+    def add_detection(self, detection):
+        ''' Add a detection to the event.
+        '''
+        if type(detection) is list:
+            self.detections.extend(detection)
+        else:
+            self.detections.append(detection)
+
+
+    def get_detection(self, stations):
+        ''' Get a detecion with the provided stations.
+        '''
+        unique_stations = []
+        for cur_station in stations:
+            if cur_station not in unique_stations:
+                unique_stations.append(cur_station)
+
+        found_detections = []
+        for cur_detection in self.detections:
+            found = [x for x in unique_stations if x in cur_detection.stations]
+            if len(found) == len(cur_detection.stations):
+                found_detections.append(cur_detection)
+
+        return found_detections
+
+    def has_detection(self, stations):
+        ''' Check if a detection is available for a set of stations.
+        '''
+        detections = self.get_detection(stations)
+        if len(detections > 0):
+            return True
+        else:
+            return False
+
     def assign_channel_to_detections(self, inventory):
         ''' Set the channels according to the rec_stream_ids.
         '''
