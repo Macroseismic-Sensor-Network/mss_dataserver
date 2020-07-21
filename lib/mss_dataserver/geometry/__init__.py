@@ -1,21 +1,29 @@
+# -*- coding: utf-8 -*-
+##############################################################################
+ # LICENSE
+ #
+ # This file is part of mss_dataserver.
+ # 
+ # If you use mss_dataserver in any program or publication, please inform and
+ # acknowledge its authors.
+ # 
+ # mss_dataserver is free software: you can redistribute it and/or modify
+ # it under the terms of the GNU General Public License as published by
+ # the Free Software Foundation, either version 3 of the License, or
+ # (at your option) any later version.
+ # 
+ # mss_dataserver is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ # GNU General Public License for more details.
+ # 
+ # You should have received a copy of the GNU General Public License
+ # along with mss_dataserver. If not, see <http://www.gnu.org/licenses/>.
+ #
+ # Copyright 2019 Stefan Mertl
+##############################################################################
+
 ''' Database change history
-version 0.0.4 - 2017-05-02
-Added the geom_array table.
-Added the geom_stat_to_array table.
-
-version 0.0.3 - 2016-04-28
-Changed the primary key of geom_component_to_stream:
-    stream_id, component_id, start_time
-
-version 0.0.2 - 2016-01-27
-Added the following fields to geom_recorder:
-    model
-    producer
-Removed the following fields from geom_recorder:
-    type
-Added the following unique constraint to geom_recorder:
-    serial, model, producer
-
 '''
 import obspy
 
