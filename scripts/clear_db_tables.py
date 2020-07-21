@@ -35,7 +35,7 @@ Remove the database tables of a psysmon project.
     (http://www.gnu.org/licenses/gpl-3.0.html)
 '''
 import sys
-from mss_dataserver.core.test_util import clear_database_tables
+from mss_dataserver.test.util import clear_database_tables
 
 def run():
     if len(sys.argv) <= 4:

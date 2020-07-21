@@ -37,7 +37,7 @@ import sqlalchemy.orm
 
 import mss_dataserver
 import mss_dataserver.event.detection as detection
-import mss_dataserver.core.test_util as test_util
+import mss_dataserver.test.util as test_util
 
 
 class DetectionTestCase(unittest.TestCase):

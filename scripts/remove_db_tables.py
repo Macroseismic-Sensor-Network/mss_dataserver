@@ -37,7 +37,7 @@ Remove the database tables of a psysmon project.
 from __future__ import print_function
 
 import sys
-from mss_dataserver.core.test_util import drop_database_tables
+from mss_dataserver.test.util import drop_database_tables
 
 def run():
     if len(sys.argv) <= 4:
