@@ -105,4 +105,11 @@ def create_db_test_project():
     config['project']['inventory_file'] = os.path.join(base_dir, 'test', 'data', config['project']['inventory_file'])
     config['output']['data_dir'] = os.path.join(base_dir, 'test', 'output', config['output']['data_dir'])
     project = mss_dataserver.core.project.Project(**config)
+    try:
+        drop_project_database_tables(project)
+    except Exception as e:
+        print("Error when dropping the database tables.")
+    project.connect_to_db()
+    project.create_database_tables()
+    project.load_inventory()
     return project
