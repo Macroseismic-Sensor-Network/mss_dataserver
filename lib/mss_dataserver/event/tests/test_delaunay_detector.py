@@ -31,6 +31,8 @@ Created on May 17, 2011
 import unittest
 import logging
 
+import numpy as np
+import obspy
 from obspy.core.utcdatetime import UTCDateTime
 
 import mss_dataserver
@@ -67,6 +69,7 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         ''' Test the pSysmon Event class.
         '''
         inventory = self.project.db_inventory
+        inventory.compute_utm_coordinates()
         stations = inventory.get_station()
         detector = delaunay_detection.DelaunayDetector(network_stations = stations)
 
@@ -79,7 +82,57 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         self.assertIsNone(detector.tri)
         self.assertEqual(len(detector.edge_length), 0)
         self.assertTrue(detector.max_edge_length > 0)
+        self.assertTrue(detector.max_time_window > 0)
 
+    def test_prepare_detection_stream(self):
+        ''' Test the computation of the delaunay triangle max. pgv values.
+        '''
+        inventory = self.project.db_inventory
+        inventory.compute_utm_coordinates()
+        all_stations = inventory.get_station()
+        stations = []
+        stations.append(inventory.get_station(name = 'OBWA')[0])
+        stations.append(inventory.get_station(name = 'PFAF')[0])
+        stations.append(inventory.get_station(name = 'MUDO')[0])
+        stations.append(inventory.get_station(name = 'EBDO')[0])
+        stations.append(inventory.get_station(name = 'PODO')[0])
+        stations.append(inventory.get_station(name = 'SOLL')[0])
+        stations.append(inventory.get_station(name = 'BAVO')[0])
+
+        # Create the test seismogram stream.
+        sps = 100
+        signal_length = 120
+        traces = []
+        starttime = obspy.UTCDateTime('2020-07-20T10:00:00')
+        for cur_station in stations:
+            cur_data = np.random.random(signal_length * sps)
+            cur_stats = {'network': cur_station.network,
+                         'station': cur_station.name,
+                         'location': '',
+                         'channel': 'pgv',
+                         'sampling_rate': sps,
+                         'npts': len(cur_data),
+                         'starttime': starttime}
+            cur_trace = obspy.Trace(data = cur_data,
+                                    header = cur_stats)
+            traces.append(cur_trace)
+        stream = obspy.Stream(traces)
+        self.logger.info("Stream: %s", stream)
+
+        detector = delaunay_detection.DelaunayDetector(network_stations = all_stations)
+        detector.prepare_detection_stream(stream = stream)
+
+        self.assertEqual(len(detector.detect_stream), len(stations))
+        self.assertEqual(len(detector.detect_stations), len(stations))
+        self.assertEqual(detector.detect_stations, stations)
+        for cur_trace in detector.detect_stream:
+            self.assertEqual(cur_trace.stats.starttime, starttime)
+            self.assertEqual(cur_trace.stats.endtime,
+                             starttime + signal_length - detector.window_length - detector.safety_time - 1 / sps)
+            self.assertEqual(cur_trace.stats.npts,
+                             signal_length * sps - (detector.window_length + detector.safety_time) * sps)
+
+    #@unittest.skip("temporary disabled")
     def test_compute_delaunay_triangulation(self):
         ''' Test the computation of the Delaunay triangles.
         '''
@@ -105,7 +158,6 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         expected_triangles = [sorted(x) for x in expected_triangles]
 
         detector = delaunay_detection.DelaunayDetector(network_stations = all_stations)
-
         tri = detector.compute_delaunay_triangulation(stations)
 
         self.assertIsNotNone(tri)
@@ -137,7 +189,55 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         edge_length = detector.compute_edge_length(stations, tri)
 
         self.assertEqual(len(edge_length), 6)
+        self.assertEqual(sorted(edge_length.keys()),
+                         sorted([tuple(x.tolist()) for x in tri.simplices]))
         self.logger.info("edge_length: %s", edge_length)
+
+
+    @unittest.skip("temporary disabled")
+    def test_compute_max_pv(self):
+        ''' Test the computation of the max. PGV values.
+        '''
+        inventory = self.project.db_inventory
+        inventory.compute_utm_coordinates()
+        all_stations = inventory.get_station()
+
+        stations = []
+        stations.append(inventory.get_station(name = 'OBWA')[0])
+        stations.append(inventory.get_station(name = 'PFAF')[0])
+        stations.append(inventory.get_station(name = 'MUDO')[0])
+        stations.append(inventory.get_station(name = 'EBDO')[0])
+        stations.append(inventory.get_station(name = 'PODO')[0])
+        stations.append(inventory.get_station(name = 'SOLL')[0])
+        stations.append(inventory.get_station(name = 'BAVO')[0])
+
+        # Create the test seismogram stream.
+        sps = 100
+        signal_length = 120
+        traces = []
+        starttime = obspy.UTCDateTime('2020-07-20T10:00:00')
+        for cur_station in stations:
+            cur_data = np.random.random(signal_length * sps)
+            cur_stats = {'network': cur_station.network,
+                         'station': cur_station.name,
+                         'location': '',
+                         'channel': 'pgv',
+                         'sampling_rate': sps,
+                         'npts': len(cur_data),
+                         'starttime': starttime}
+            cur_trace = obspy.Trace(data = cur_data,
+                                    header = cur_stats)
+            traces.append(cur_trace)
+        stream = obspy.Stream(traces)
+
+        detector = delaunay_detection.DelaunayDetector(network_stations = all_stations)
+        detector.init_detection_run(stream = stream)
+        time, pgv = detector.compute_max_pgv()
+
+        self.logger.info("time: %s", time)
+        self.logger.info("pgv: %s", pgv)
+
+        self.assertEqual(pgv.shape[1], len(stations))
 
 
 def suite():
