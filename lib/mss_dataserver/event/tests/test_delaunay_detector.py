@@ -66,12 +66,16 @@ class DelaunayDetectorTestCase(unittest.TestCase):
     def test_detection_creation(self):
         ''' Test the pSysmon Event class.
         '''
-        detector = delaunay_detection.DelaunayDetector()
+        inventory = self.project.db_inventory
+        stations = inventory.get_station()
+        detector = delaunay_detection.DelaunayDetector(network_stations = stations)
 
         self.assertIsInstance(detector, delaunay_detection.DelaunayDetector)
+        self.assertEqual(len(detector.network_stations), len(stations))
+        self.assertEqual(detector.network_stations, stations)
         self.assertIsNone(detector.current_event)
         self.assertEqual(detector.min_trigger_window, 2)
-        self.assertEqual(len(detector.stations), 0)
+        self.assertEqual(len(detector.detect_stations), 0)
         self.assertIsNone(detector.tri)
         self.assertEqual(len(detector.edge_length), 0)
         self.assertTrue(detector.max_edge_length > 0)
@@ -82,6 +86,7 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         # Get the stations from the inventory.
         inventory = self.project.db_inventory
         inventory.compute_utm_coordinates()
+        all_stations = inventory.get_station()
         stations = []
         stations.append(inventory.get_station(name = 'OBWA')[0])
         stations.append(inventory.get_station(name = 'PFAF')[0])
@@ -99,23 +104,25 @@ class DelaunayDetectorTestCase(unittest.TestCase):
                               ['OBWA', 'BAVO', 'PFAF']]
         expected_triangles = [sorted(x) for x in expected_triangles]
 
-        detector = delaunay_detection.DelaunayDetector()
-        detector.set_stations(stations)
-        detector.compute_delaunay_triangulation()
+        detector = delaunay_detection.DelaunayDetector(network_stations = all_stations)
 
-        self.assertIsNotNone(detector.tri)
-        self.assertEqual(len(detector.tri.simplices), 6)
+        tri = detector.compute_delaunay_triangulation(stations)
 
-        for cur_simp in detector.tri.simplices:
+        self.assertIsNotNone(tri)
+        self.assertEqual(len(tri.simplices), 6)
+
+        for cur_simp in tri.simplices:
             cur_stations = [stations[int(x)] for x in cur_simp]
             cur_stat_names = sorted([x.name for x in cur_stations])
             self.assertTrue(cur_stat_names in expected_triangles)
 
+    #@unittest.skip("temporary disabled")
     def test_compute_edge_length(self):
         ''' Test the computation of the triangle edge lengths.
         '''
         inventory = self.project.db_inventory
         inventory.compute_utm_coordinates()
+        all_stations = inventory.get_station()
         stations = []
         stations.append(inventory.get_station(name = 'OBWA')[0])
         stations.append(inventory.get_station(name = 'PFAF')[0])
@@ -125,13 +132,12 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         stations.append(inventory.get_station(name = 'SOLL')[0])
         stations.append(inventory.get_station(name = 'BAVO')[0])
 
-        detector = delaunay_detection.DelaunayDetector()
-        detector.set_stations(stations)
-        detector.compute_delaunay_triangulation()
-        detector.compute_edge_length()
+        detector = delaunay_detection.DelaunayDetector(network_stations = all_stations)
+        tri = detector.compute_delaunay_triangulation(stations)
+        edge_length = detector.compute_edge_length(stations, tri)
 
-        self.assertEqual(len(detector.edge_length), 6)
-        self.logger.info("edge_length: %s", detector.edge_length)
+        self.assertEqual(len(edge_length), 6)
+        self.logger.info("edge_length: %s", edge_length)
 
 
 def suite():
