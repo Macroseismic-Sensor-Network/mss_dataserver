@@ -33,14 +33,14 @@ class DelaunayDetector(object):
     ''' Event detection using amplitudes and Delaunay Triangulation.
 
     '''
-    def __init__(self, stations,
+    def __init__(self, network_stations,
                  p_vel = 3500,
                  min_trigger_window = 2,
                  max_edge_length = 40000):
         ''' Initialization of the instance.
         '''
         # All available network stations.
-        self.network_stations = stations
+        self.network_stations = network_stations
 
         # The p wave velocity [m/s].
         self.p_vel = p_vel
@@ -55,7 +55,7 @@ class DelaunayDetector(object):
         self.current_event = None
 
         # The stations used for the event detection.
-        self.stations = []
+        self.detect_stations = []
 
         # The delaunay triangulation result.
         self.tri = None
@@ -66,11 +66,10 @@ class DelaunayDetector(object):
         # The maximum maximum time that a wave needs to pass the triangles [s].
         self.max_time_window = None
 
-    def set_stations(self, stations):
-        self.stations = stations
+    def init_detection_run(self, stations):
+        self.detect_stations = stations
         self.tri = None
         self.edge_length = []
-        self.max_time_window = None
 
     def compute_max_time_window(self):
         ''' Compute the maximum time window that a wave needs to pass the triangles.
@@ -81,7 +80,6 @@ class DelaunayDetector(object):
             self.max_time_window = np.max(edge_length) / self.p_vel
             self.max_time_window = np.ceil(self.max_time_window)
 
-
     def compute_delaunay_triangulation(self, stations):
         x = [stat.x_utm for stat in stations]
         y = [stat.y_utm for stat in stations]
@@ -89,6 +87,7 @@ class DelaunayDetector(object):
         try:
             tri = scipy.spatial.Delaunay(coords)
         except Exception:
+            self.logger.exception("Error computing the delaunay triangulation.")
             tri = None
         return tri
 
