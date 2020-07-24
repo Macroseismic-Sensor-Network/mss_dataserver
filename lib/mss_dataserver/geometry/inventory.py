@@ -689,6 +689,16 @@ class Inventory(object):
         code = [(c, x) for c, x in epsg_dict.items() if  x == search_dict]
         return code
 
+    def compute_utm_coordinates(self):
+        code = self.get_utm_epsg()
+        proj = pyproj.Proj(init = 'epsg:' + code[0][0])
+
+        for cur_station in self.get_station():
+            x, y = proj(cur_station.get_lon_lat()[0],
+                        cur_station.get_lon_lat()[1])
+            cur_station.x_utm = x
+            cur_station.y_utm = y
+
 
     @classmethod
     def from_db_inventory(cls, db_inventory):
