@@ -193,8 +193,7 @@ class DelaunayDetectorTestCase(unittest.TestCase):
                          sorted([tuple(x.tolist()) for x in tri.simplices]))
         self.logger.info("edge_length: %s", edge_length)
 
-
-    @unittest.skip("temporary disabled")
+    #@unittest.skip("temporary disabled")
     def test_compute_max_pv(self):
         ''' Test the computation of the max. PGV values.
         '''
@@ -213,7 +212,7 @@ class DelaunayDetectorTestCase(unittest.TestCase):
 
         # Create the test seismogram stream.
         sps = 100
-        signal_length = 120
+        signal_length = 52
         traces = []
         starttime = obspy.UTCDateTime('2020-07-20T10:00:00')
         for cur_station in stations:
@@ -232,12 +231,12 @@ class DelaunayDetectorTestCase(unittest.TestCase):
 
         detector = delaunay_detection.DelaunayDetector(network_stations = all_stations)
         detector.init_detection_run(stream = stream)
-        time, pgv = detector.compute_max_pgv()
+        time, pgv = detector.compute_triangle_max_pgv(detector.tri.simplices[0])
 
         self.logger.info("time: %s", time)
         self.logger.info("pgv: %s", pgv)
 
-        self.assertEqual(pgv.shape[1], len(stations))
+        self.assertEqual(pgv.shape[1], 3)
 
 
 def suite():
