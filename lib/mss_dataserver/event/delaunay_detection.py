@@ -157,16 +157,15 @@ class DelaunayDetector(object):
             if cur_station:
                 self.detect_stations.append(cur_station[0])
 
-
-
     def compute_triangle_max_pgv(self, simp):
         ''' Compute the maximal PGV values of a delaunay triangle.
         '''
         offset = self.max_time_window
+        simp_edge_length = self.edge_length[tuple(simp.tolist())]
 
         # Compute the length of the search time window using a default velocity
         # of 3500 m/s.
-        time_window = np.max(list(self.edge_length.values())) / self.p_vel
+        time_window = simp_edge_length / self.p_vel
         time_window = np.ceil(time_window)
 
         # Use the minimum time window if the computed time window is smaller
@@ -178,15 +177,23 @@ class DelaunayDetector(object):
 
         # Split an array into chunks using numpy stride_tricks. This is much
         # faster than using a loop.
-        def strided_app(a, L, S):  # Window len = L, Stride len/stepsize = S
-            nrows = ((a.size - L) // S) + 1
+        def strided_app(a, length, stepsize):
+            ''' Create overlapping subarrays using numpy stride_tricks.
+
+            The strides is the step in bytes in each dimension of the array.
+
+            a: the array to split into subarrays
+            length: lenght of the subarrays [samples]
+            stepsize: stepsize [samples]
+            '''
+            nrows = ((a.size - length) // stepsize) + 1
             n = a.strides[0]
             return np.lib.stride_tricks.as_strided(a,
-                                                   shape=(nrows, L),
-                                                   strides=(S * n, n))
+                                                   shape=(nrows, length),
+                                                   strides=(stepsize * n, n))
 
         # Get the stations of the triangle corners.
-        simp_stations = [self.detect_stations for x in simp]
+        simp_stations = [self.detect_stations[x] for x in simp]
 
         # Select the data of the triangle stations from the detection stream.
         tri_stream = obspy.Stream()
@@ -206,6 +213,8 @@ class DelaunayDetector(object):
             if len(cur_trace.data) < cur_win_length:
                 self.logger.error("The data size is smaller than the window length.")
                 continue
+            # Create overlapping windows with the computed length with 1 sample
+            # step size.
             cur_data = strided_app(cur_trace.data, cur_win_length, 1)
             self.logger.info("cur_data: %s", cur_data)
             cur_max_pgv = np.max(cur_data, axis = 1)
@@ -219,7 +228,7 @@ class DelaunayDetector(object):
             #cur_time = [cur_start + x * compute_interval for x in range(len(cur_max_pgv))]
             cur_max_pgv = cur_max_pgv[(cur_offset - cur_win_length):]
             cur_start = cur_trace.stats.starttime + cur_offset * cur_trace.stats.delta
-            cur_time = [cur_start + x for x in range(len(cur_max_pgv))]
+            cur_time = [cur_start + x * cur_trace.stats.delta for x in range(len(cur_max_pgv))]
             pgv.append(cur_max_pgv)
             time.append(cur_time)
 
