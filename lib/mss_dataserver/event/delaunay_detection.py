@@ -221,13 +221,6 @@ class DelaunayDetector(object):
             self.logger.info("cur_data: %s", cur_data)
             cur_max_pgv = np.max(cur_data, axis = 1)
             self.logger.info("cur_max_pgv: %s", cur_max_pgv)
-            # TODO: The compute_interval variable seems useless. It is a relict
-            # of the old code using a non-strided version. Check if the
-            # selection of the PGV values and the pgv sample times are correct
-            # without the compute_interval.
-            #cur_max_pgv = cur_max_pgv[(cur_offset - cur_win_length + compute_interval):]
-            #cur_start = cur_trace.stats.starttime + (cur_offset - cur_win_length + compute_interval + cur_win_length - 1) * cur_trace.stats.delta
-            #cur_time = [cur_start + x * compute_interval for x in range(len(cur_max_pgv))]
             cur_max_pgv = cur_max_pgv[(cur_offset - cur_win_length) + 1:]
             cur_start = cur_trace.stats.starttime + cur_offset * cur_trace.stats.delta
             cur_time = [cur_start + x * cur_trace.stats.delta for x in range(len(cur_max_pgv))]
