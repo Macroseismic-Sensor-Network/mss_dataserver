@@ -29,6 +29,10 @@ import obspy
 import scipy
 import scipy.spatial
 
+import mss_dataserver.event.core as event_core
+import mss_dataserver.event.detection as event_detection
+
+
 class DelaunayDetector(object):
     ''' Event detection using amplitudes and Delaunay Triangulation.
 
@@ -39,7 +43,9 @@ class DelaunayDetector(object):
                  safety_time = 10,
                  p_vel = 3500,
                  min_trigger_window = 2,
-                 max_edge_length = 40000):
+                 max_edge_length = 40000,
+                 author_uri = '',
+                 agency_uri = ''):
         ''' Initialization of the instance.
         '''
         self.logger = logging.getLogger('mss_dataserver')
@@ -66,6 +72,12 @@ class DelaunayDetector(object):
         # The maximum edge length of a triangle used for the detection [m].
         self.max_edge_length = max_edge_length
 
+        # The URI of the author.
+        self.author_uri = author_uri
+
+        # The URI of the agency
+        self.agency_uri = agency_uri
+
         # The maximum maximum time that a wave needs to pass the triangles [s].
         self.max_time_window = None
 
@@ -86,6 +98,12 @@ class DelaunayDetector(object):
 
         # The time of the last data used for detection.
         self.last_detection_end = None
+
+        # The current trigger data.
+        self.trigger_data = []
+
+        # The trigger state of an event.
+        self.event_triggered = False
 
         # Compute the maximum time window based on all available stations.
         self.compute_max_time_window()
@@ -126,9 +144,11 @@ class DelaunayDetector(object):
 
         edge_length = {}
         for cur_simp in tri.simplices:
+            cur_stations = [stations[k] for k in cur_simp]
+            cur_key = tuple(sorted([stat.snl_string for stat in cur_stations]))
             cur_vert = coords[cur_simp]
             cur_dist = [np.linalg.norm(a - b) for a in cur_vert for b in cur_vert]
-            edge_length[tuple(cur_simp.tolist())] = np.max(cur_dist)
+            edge_length[cur_key] = np.max(cur_dist)
         return edge_length
 
     def prepare_detection_stream(self, stream):
@@ -163,7 +183,8 @@ class DelaunayDetector(object):
         ''' Compute the maximal PGV values of a delaunay triangle.
         '''
         offset = self.max_time_window
-        simp_edge_length = self.edge_length[tuple(simp.tolist())]
+        simp_keys = tuple(sorted([self.detect_stations[x].snl_string for x in simp]))
+        simp_edge_length = self.edge_length[simp_keys]
 
         # Compute the length of the search time window using a default velocity
         # of 3500 m/s.
@@ -205,23 +226,26 @@ class DelaunayDetector(object):
         pgv = []
         time = []
         for cur_trace in tri_stream:
-            self.logger.info("cur_trace.id: %s", cur_trace.id)
-            self.logger.info("time_window: %s", time_window)
+            self.logger.debug("cur_trace.id: %s", cur_trace.id)
+            self.logger.debug("time_window: %s", time_window)
             cur_win_length = int(np.floor(time_window * cur_trace.stats.sampling_rate))
             cur_offset = int(np.floor(offset * cur_trace.stats.sampling_rate))
-            self.logger.info("cur_offset: %s", cur_offset)
-            self.logger.info("cur_win_length: %d", cur_win_length)
-            self.logger.info("cur_trace.data: %s", cur_trace.data)
+            self.logger.debug("cur_offset: %s", cur_offset)
+            self.logger.debug("cur_win_length: %d", cur_win_length)
+            self.logger.debug("cur_trace.data: %s", cur_trace.data)
             if len(cur_trace.data) < cur_win_length:
                 self.logger.error("The data size is smaller than the window length.")
                 continue
             # Create overlapping windows with the computed length with 1 sample
             # step size.
             cur_data = strided_app(cur_trace.data, cur_win_length, 1)
-            self.logger.info("cur_data: %s", cur_data)
+            self.logger.debug("cur_data: %s", cur_data)
             cur_max_pgv = np.max(cur_data, axis = 1)
-            self.logger.info("cur_max_pgv: %s", cur_max_pgv)
-            cur_max_pgv = cur_max_pgv[(cur_offset - cur_win_length) + 1:]
+            self.logger.debug("cur_max_pgv: %s", cur_max_pgv)
+            # Set max. PGV sample is assigned to the last time of the
+            # computation window. I'm using the past data values to compute the
+            # max. PGV of a given time value.
+            cur_max_pgv = cur_max_pgv[(cur_offset - cur_win_length + 1):]
             cur_start = cur_trace.stats.starttime + cur_offset * cur_trace.stats.delta
             cur_time = [cur_start + x * cur_trace.stats.delta for x in range(len(cur_max_pgv))]
             pgv.append(cur_max_pgv)
@@ -239,7 +263,92 @@ class DelaunayDetector(object):
         self.logger.debug("pgv: %s", pgv)
         self.logger.debug("time: %s", time)
 
-        return time, pgv
+        return time, pgv, simp_stations
+
+    def compute_trigger_data(self):
+        ''' Compute the trigger data for all Delaunay triangles.
+        '''
+        for cur_simp in self.tri.simplices:
+            cur_time, cur_pgv, cur_simp_stations = self.compute_triangle_max_pgv(cur_simp)
+
+            if len(cur_pgv) > 0:
+                if np.any(np.isnan(cur_pgv)):
+                    self.logger.warning("There is a NaN value in the cur_pgv.")
+                    self.logger.debug("cur_pgv: %s.", cur_pgv)
+                    # TODO: JSON can't handle NaN values. Ignore them right
+                    # now until I find a better solution.
+                    continue
+
+                cur_trig = np.nanmin(cur_pgv, axis = 1) >= self.trigger_thr
+                if np.any(cur_trig):
+                    tmp = {}
+                    tmp['simp_stations'] = cur_simp_stations
+                    tmp['time'] = cur_time
+                    tmp['pgv'] = cur_pgv
+                    tmp['trigger'] = cur_trig
+                    self.trigger_data.append(tmp)
+
+    def check_for_event_trigger(self):
+        ''' Compute if an event trigger is available.
+        '''
+        trigger_times = []
+        trigger_start = None
+        trigger_end = None
+        for cur_trigger_data in self.trigger_data:
+            if np.any(cur_trigger_data['trigger']):
+                cur_mask = cur_trigger_data['trigger']
+                cur_trigger_start = np.array(cur_trigger_data['time'])[cur_mask][0]
+                cur_trigger_end = np.array(cur_trigger_data['time'])[cur_mask][-1]
+                trigger_times.append([obspy.UTCDateTime(cur_trigger_start),
+                                      obspy.UTCDateTime(cur_trigger_end)])
+        trigger_times = np.array(trigger_times)
+        if len(trigger_times) > 0:
+            self.logger.debug("trigger_times: %s", trigger_times)
+            trigger_start = np.min(trigger_times[:, 0])
+            trigger_end = np.max(trigger_times[:, 1])
+
+        return trigger_start, trigger_end
+
+    def evaluate_event_trigger(self):
+        ''' Evaluate the event trigger data and declare or update an event.
+        '''
+        trigger_start, trigger_end = self.check_for_event_trigger()
+        if not self.event_triggered and trigger_start is not None:
+            # A new event has been triggered.
+            self.logger.info("New Event triggered.")
+            try:
+                cur_event = event_core.Event(start_time = trigger_start,
+                                             end_time = trigger_end,
+                                             author_uri = self.author_uri,
+                                             agency_uri = self.agency_uri)
+
+                # Compute the max. PGV of each triggered station.
+                for cur_data in [x for x in self.trigger_data if np.any(x['trigger'])]:
+                    # Create a detection instance.
+                    pgv_max = np.max(cur_data['pgv'], axis = 0)
+                    cur_simp_stations = cur_data['simp_stations']
+                    cur_detection = event_detection.Detection(start_time = cur_data['time'][0],
+                                                              end_time = cur_data['time'][-1],
+                                                              stations = cur_simp_stations,
+                                                              pgv_max = {cur_simp_stations[0].snl_strin: pgv_max[0],
+                                                                         cur_simp_stations[1].snl_string: pgv_max[1],
+                                                                         cur_simp_stations[2].snl_string: pgv_max[2]})
+                    cur_event.add_detection(cur_detection)
+
+                self.current_event = cur_event
+                self.event_triggered = True
+            except Exception:
+                self.logger.exception("Error processing the event trigger.")
+                self.event_triggered = False
+                self.current_event = None
+
+        elif self.event_triggered and trigger_start is not None:
+            # A trigger occured during an existing event.
+            pass
+
+        elif self.event_triggered and trigger_start is None:
+            # Check for an event end.
+            pass
 
     def run_detection(self, stream):
         ''' Run the event detection using the passed stream.
