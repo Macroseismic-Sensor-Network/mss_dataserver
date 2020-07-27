@@ -99,8 +99,8 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         stations.append(inventory.get_station(name = 'SOLL')[0])
         stations.append(inventory.get_station(name = 'BAVO')[0])
 
-        # Create the test seismogram stream.
-        sps = 100
+        # Create the test PGV stream.
+        sps = 10
         signal_length = 120
         traces = []
         starttime = obspy.UTCDateTime('2020-07-20T10:00:00')
@@ -128,9 +128,9 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         for cur_trace in detector.detect_stream:
             self.assertEqual(cur_trace.stats.starttime, starttime)
             self.assertEqual(cur_trace.stats.endtime,
-                             starttime + signal_length - detector.window_length - detector.safety_time - 1 / sps)
+                             starttime + signal_length - detector.safety_time - 1 / sps)
             self.assertEqual(cur_trace.stats.npts,
-                             signal_length * sps - (detector.window_length + detector.safety_time) * sps)
+                             signal_length * sps - detector.safety_time * sps)
 
     #@unittest.skip("temporary disabled")
     def test_compute_delaunay_triangulation(self):
@@ -194,7 +194,7 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         self.logger.info("edge_length: %s", edge_length)
 
     #@unittest.skip("temporary disabled")
-    def test_compute_max_pv(self):
+    def test_compute_triangle_max_pv(self):
         ''' Test the computation of the max. PGV values.
         '''
         inventory = self.project.db_inventory
@@ -210,9 +210,9 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         stations.append(inventory.get_station(name = 'SOLL')[0])
         stations.append(inventory.get_station(name = 'BAVO')[0])
 
-        # Create the test seismogram stream.
-        sps = 100
-        signal_length = 52
+        # Create the test PGV data stream.
+        sps = 10
+        signal_length = 57
         traces = []
         starttime = obspy.UTCDateTime('2020-07-20T10:00:00')
         for cur_station in stations:
@@ -229,14 +229,34 @@ class DelaunayDetectorTestCase(unittest.TestCase):
             traces.append(cur_trace)
         stream = obspy.Stream(traces)
 
-        detector = delaunay_detection.DelaunayDetector(network_stations = all_stations)
+        window_length = 10
+        safety_time = 10
+        detector = delaunay_detection.DelaunayDetector(network_stations = all_stations,
+                                                       window_length = window_length,
+                                                       safety_time = safety_time,
+                                                       p_vel = 3500)
         detector.init_detection_run(stream = stream)
         time, pgv = detector.compute_triangle_max_pgv(detector.tri.simplices[0])
 
         self.logger.info("time: %s", time)
         self.logger.info("pgv: %s", pgv)
+        self.logger.info("pgv.shape: %s", pgv.shape)
 
+        # The PGV values for three stations should have been computed.
         self.assertEqual(pgv.shape[1], 3)
+
+        # The length of the PGV array should equal the total length of the pgv
+        # data stream minus the detectors maximum time window and the safety
+        # time.
+        expected_length = ((signal_length // window_length) * window_length) * sps - (detector.max_time_window + safety_time) * sps
+        self.assertEqual(pgv.shape[0], expected_length)
+
+        # Check the pgv start time.
+        self.assertEqual(time[0], starttime + detector.max_time_window)
+
+        # Check if the last detection end time has been set correctly.
+        self.assertEqual(detector.last_detection_end,
+                         starttime + detector.max_time_window + expected_length / sps - 1 / sps)
 
 
 def suite():
