@@ -134,14 +134,16 @@ class DelaunayDetector(object):
     def prepare_detection_stream(self, stream):
         ''' Prepare the data stream used for the detection run.
         '''
+        self.logger.info("passed stream: %s", stream)
         max_end_time = np.max([x.stats.endtime for x in stream])
         if self.last_detection_end is None:
             detect_win_start = np.min([x.stats.starttime for x in stream])
         else:
-            detect_win_start = self.last_detection_end
+            sps = stream[0].sps
+            detect_win_start = self.last_detection_end + 1 / sps
 
         min_delta = np.min([x.stats.delta for x in stream])
-        detect_win_end = ((max_end_time.timestamp + min_delta) - (self.window_length + self.safety_time)) // self.window_length * self.window_length
+        detect_win_end = ((max_end_time.timestamp + min_delta) - self.safety_time) // self.window_length * self.window_length
         detect_win_end = obspy.UTCDateTime(detect_win_end) - min_delta
         self.logger.info("detect_win_start: %s", detect_win_start)
         self.logger.info("detect_win_end: %s", detect_win_end)
@@ -226,7 +228,7 @@ class DelaunayDetector(object):
             #cur_max_pgv = cur_max_pgv[(cur_offset - cur_win_length + compute_interval):]
             #cur_start = cur_trace.stats.starttime + (cur_offset - cur_win_length + compute_interval + cur_win_length - 1) * cur_trace.stats.delta
             #cur_time = [cur_start + x * compute_interval for x in range(len(cur_max_pgv))]
-            cur_max_pgv = cur_max_pgv[(cur_offset - cur_win_length):]
+            cur_max_pgv = cur_max_pgv[(cur_offset - cur_win_length) + 1:]
             cur_start = cur_trace.stats.starttime + cur_offset * cur_trace.stats.delta
             cur_time = [cur_start + x * cur_trace.stats.delta for x in range(len(cur_max_pgv))]
             pgv.append(cur_max_pgv)
@@ -238,6 +240,9 @@ class DelaunayDetector(object):
         else:
             self.logger.error("The size of the computed PGV max don't match: %s.", pgv)
             pgv = []
+
+        # Set the last detection end time.
+        self.last_detection_end = cur_time[-1]
         self.logger.debug("pgv: %s", pgv)
         self.logger.debug("time: %s", time)
 
