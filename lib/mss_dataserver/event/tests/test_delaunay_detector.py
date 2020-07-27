@@ -65,27 +65,15 @@ class DelaunayDetectorTestCase(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_detection_creation(self):
-        ''' Test the pSysmon Event class.
-        '''
-        inventory = self.project.db_inventory
-        inventory.compute_utm_coordinates()
-        stations = inventory.get_station()
-        detector = delaunay_detection.DelaunayDetector(network_stations = stations)
-
-        self.assertIsInstance(detector, delaunay_detection.DelaunayDetector)
-        self.assertEqual(len(detector.network_stations), len(stations))
-        self.assertEqual(detector.network_stations, stations)
-        self.assertIsNone(detector.current_event)
-        self.assertEqual(detector.min_trigger_window, 2)
-        self.assertEqual(len(detector.detect_stations), 0)
-        self.assertIsNone(detector.tri)
-        self.assertEqual(len(detector.edge_length), 0)
-        self.assertTrue(detector.max_edge_length > 0)
-        self.assertTrue(detector.max_time_window > 0)
-
-    def test_prepare_detection_stream(self):
-        ''' Test the computation of the delaunay triangle max. pgv values.
+    def create_detection_test_data(self,
+                                   start_time = '2020-07-20T10:00:00',
+                                   sps = 10,
+                                   signal_length = 60,
+                                   amp = 0.001e-3,
+                                   event_start = 30,
+                                   event_length = 2,
+                                   event_amp = 0.5e-3):
+        ''' Create a test data set for the detection algorithm.
         '''
         inventory = self.project.db_inventory
         inventory.compute_utm_coordinates()
@@ -100,12 +88,16 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         stations.append(inventory.get_station(name = 'BAVO')[0])
 
         # Create the test PGV stream.
-        sps = 10
-        signal_length = 120
         traces = []
-        starttime = obspy.UTCDateTime('2020-07-20T10:00:00')
+        n_samples = signal_length * sps
+        starttime = obspy.UTCDateTime(start_time)
+        event_delay = {'OBWA': 0,
+                       'PFAF': 0.2,
+                       'MUDO': 0.4,
+                       'PODO': 1,
+                       'SOLL': 1.5}
         for cur_station in stations:
-            cur_data = np.random.random(signal_length * sps)
+            cur_data = np.random.random(n_samples) * amp
             cur_stats = {'network': cur_station.network,
                          'station': cur_station.name,
                          'location': '',
@@ -113,10 +105,54 @@ class DelaunayDetectorTestCase(unittest.TestCase):
                          'sampling_rate': sps,
                          'npts': len(cur_data),
                          'starttime': starttime}
+
+            if cur_station.name in event_delay.keys():
+                cur_event_start = event_start + event_delay[cur_station.name]
+                cur_start_ind = int(cur_event_start * sps)
+                cur_end_ind = int((cur_event_start + event_length) * sps)
+                cur_data[cur_start_ind:cur_end_ind] = event_amp
+
             cur_trace = obspy.Trace(data = cur_data,
                                     header = cur_stats)
             traces.append(cur_trace)
         stream = obspy.Stream(traces)
+
+        return {'all_stations': all_stations,
+                'stations': stations,
+                'stream': stream,
+                'event_delay': event_delay}
+
+    def test_detection_creation(self):
+        ''' Test the pSysmon Event class.
+        '''
+        test_data = self.create_detection_test_data()
+        all_stations = test_data['all_stations']
+
+        detector = delaunay_detection.DelaunayDetector(network_stations = all_stations)
+
+        self.assertIsInstance(detector, delaunay_detection.DelaunayDetector)
+        self.assertEqual(len(detector.network_stations), len(all_stations))
+        self.assertEqual(detector.network_stations, all_stations)
+        self.assertIsNone(detector.current_event)
+        self.assertEqual(detector.min_trigger_window, 2)
+        self.assertEqual(len(detector.detect_stations), 0)
+        self.assertIsNone(detector.tri)
+        self.assertEqual(len(detector.edge_length), 0)
+        self.assertTrue(detector.max_edge_length > 0)
+        self.assertTrue(detector.max_time_window > 0)
+
+    def test_prepare_detection_stream(self):
+        ''' Test the computation of the delaunay triangle max. pgv values.
+        '''
+        start_time = obspy.UTCDateTime('2020-07-20T10:00:00')
+        signal_length = 60
+        sps = 10
+        test_data = self.create_detection_test_data(start_time = start_time,
+                                                    signal_length = signal_length,
+                                                    sps = sps)
+        all_stations = test_data['all_stations']
+        stations = test_data['stations']
+        stream = test_data['stream']
         self.logger.info("Stream: %s", stream)
 
         detector = delaunay_detection.DelaunayDetector(network_stations = all_stations)
@@ -126,9 +162,9 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         self.assertEqual(len(detector.detect_stations), len(stations))
         self.assertEqual(detector.detect_stations, stations)
         for cur_trace in detector.detect_stream:
-            self.assertEqual(cur_trace.stats.starttime, starttime)
+            self.assertEqual(cur_trace.stats.starttime, start_time)
             self.assertEqual(cur_trace.stats.endtime,
-                             starttime + signal_length - detector.safety_time - 1 / sps)
+                             start_time + signal_length - detector.safety_time - 1 / sps)
             self.assertEqual(cur_trace.stats.npts,
                              signal_length * sps - detector.safety_time * sps)
 
@@ -136,18 +172,9 @@ class DelaunayDetectorTestCase(unittest.TestCase):
     def test_compute_delaunay_triangulation(self):
         ''' Test the computation of the Delaunay triangles.
         '''
-        # Get the stations from the inventory.
-        inventory = self.project.db_inventory
-        inventory.compute_utm_coordinates()
-        all_stations = inventory.get_station()
-        stations = []
-        stations.append(inventory.get_station(name = 'OBWA')[0])
-        stations.append(inventory.get_station(name = 'PFAF')[0])
-        stations.append(inventory.get_station(name = 'MUDO')[0])
-        stations.append(inventory.get_station(name = 'EBDO')[0])
-        stations.append(inventory.get_station(name = 'PODO')[0])
-        stations.append(inventory.get_station(name = 'SOLL')[0])
-        stations.append(inventory.get_station(name = 'BAVO')[0])
+        test_data = self.create_detection_test_data()
+        all_stations = test_data['all_stations']
+        stations = test_data['stations']
 
         expected_triangles = [['OBWA', 'PFAF', 'MUDO'],
                               ['OBWA', 'MUDO', 'EBDO'],
@@ -172,62 +199,41 @@ class DelaunayDetectorTestCase(unittest.TestCase):
     def test_compute_edge_length(self):
         ''' Test the computation of the triangle edge lengths.
         '''
-        inventory = self.project.db_inventory
-        inventory.compute_utm_coordinates()
-        all_stations = inventory.get_station()
-        stations = []
-        stations.append(inventory.get_station(name = 'OBWA')[0])
-        stations.append(inventory.get_station(name = 'PFAF')[0])
-        stations.append(inventory.get_station(name = 'MUDO')[0])
-        stations.append(inventory.get_station(name = 'EBDO')[0])
-        stations.append(inventory.get_station(name = 'PODO')[0])
-        stations.append(inventory.get_station(name = 'SOLL')[0])
-        stations.append(inventory.get_station(name = 'BAVO')[0])
+        test_data = self.create_detection_test_data()
+        all_stations = test_data['all_stations']
+        stations = test_data['stations']
 
         detector = delaunay_detection.DelaunayDetector(network_stations = all_stations)
         tri = detector.compute_delaunay_triangulation(stations)
         edge_length = detector.compute_edge_length(stations, tri)
 
         self.assertEqual(len(edge_length), 6)
+        keys = []
+        for cur_simp in tri.simplices:
+            cur_stations = [stations[x] for x in cur_simp]
+            keys.append(tuple(sorted([x.snl_string for x in cur_stations])))
         self.assertEqual(sorted(edge_length.keys()),
-                         sorted([tuple(x.tolist()) for x in tri.simplices]))
+                         sorted(keys))
         self.logger.info("edge_length: %s", edge_length)
 
     #@unittest.skip("temporary disabled")
     def test_compute_triangle_max_pv(self):
         ''' Test the computation of the max. PGV values.
         '''
-        inventory = self.project.db_inventory
-        inventory.compute_utm_coordinates()
-        all_stations = inventory.get_station()
-
-        stations = []
-        stations.append(inventory.get_station(name = 'OBWA')[0])
-        stations.append(inventory.get_station(name = 'PFAF')[0])
-        stations.append(inventory.get_station(name = 'MUDO')[0])
-        stations.append(inventory.get_station(name = 'EBDO')[0])
-        stations.append(inventory.get_station(name = 'PODO')[0])
-        stations.append(inventory.get_station(name = 'SOLL')[0])
-        stations.append(inventory.get_station(name = 'BAVO')[0])
-
-        # Create the test PGV data stream.
+        start_time = obspy.UTCDateTime('2020-07-20T10:00:00')
+        signal_length = 60
         sps = 10
-        signal_length = 57
-        traces = []
-        starttime = obspy.UTCDateTime('2020-07-20T10:00:00')
-        for cur_station in stations:
-            cur_data = np.random.random(signal_length * sps)
-            cur_stats = {'network': cur_station.network,
-                         'station': cur_station.name,
-                         'location': '',
-                         'channel': 'pgv',
-                         'sampling_rate': sps,
-                         'npts': len(cur_data),
-                         'starttime': starttime}
-            cur_trace = obspy.Trace(data = cur_data,
-                                    header = cur_stats)
-            traces.append(cur_trace)
-        stream = obspy.Stream(traces)
+        event_start = 30
+        event_length = 2
+        test_data = self.create_detection_test_data(start_time = start_time,
+                                                    signal_length = signal_length,
+                                                    sps = sps,
+                                                    event_start = event_start,
+                                                    event_length = event_length)
+        all_stations = test_data['all_stations']
+        stations = test_data['stations']
+        stream = test_data['stream']
+        event_delay = test_data['event_delay']
 
         window_length = 10
         safety_time = 10
@@ -236,11 +242,14 @@ class DelaunayDetectorTestCase(unittest.TestCase):
                                                        safety_time = safety_time,
                                                        p_vel = 3500)
         detector.init_detection_run(stream = stream)
-        time, pgv = detector.compute_triangle_max_pgv(detector.tri.simplices[0])
+        desired_triangle = [x for x in detector.tri.simplices if sorted(x) == [0, 1, 2]][0]
+        time, pgv, simp_stations = detector.compute_triangle_max_pgv(desired_triangle)
 
-        self.logger.info("time: %s", time)
-        self.logger.info("pgv: %s", pgv)
-        self.logger.info("pgv.shape: %s", pgv.shape)
+        # Check the correct stations of the used triangle.
+        simp_stat_snl = [x.snl for x in simp_stations]
+        expected_stations = [stations[x] for x in desired_triangle]
+        expected_snl = [x.snl for x in expected_stations]
+        self.assertEqual(simp_stat_snl, expected_snl)
 
         # The PGV values for three stations should have been computed.
         self.assertEqual(pgv.shape[1], 3)
@@ -252,11 +261,91 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         self.assertEqual(pgv.shape[0], expected_length)
 
         # Check the pgv start time.
-        self.assertEqual(time[0], starttime + detector.max_time_window)
+        self.assertEqual(time[0], start_time + detector.max_time_window)
 
         # Check if the last detection end time has been set correctly.
         self.assertEqual(detector.last_detection_end,
-                         starttime + detector.max_time_window + expected_length / sps - 1 / sps)
+                         start_time + detector.max_time_window + expected_length / sps - 1 / sps)
+
+        # Check the correct time of the event pgv value.
+        key = tuple(sorted([x.snl_string for x in simp_stations]))
+        edge_length = detector.edge_length[key]
+        time_window = np.ceil(edge_length / detector.p_vel)
+        for k, cur_stat in enumerate(simp_stations):
+            cur_delay = event_delay[cur_stat.name]
+            cur_mask = pgv[:, k] >= 0.5e-3
+            expected_start = start_time + event_start + cur_delay
+            # The expected lenght of computed max PGV is the event length plus the computation
+            # time window minus 2 samples.
+            expected_end = start_time + event_start + cur_delay + event_length + time_window - 2 / sps
+            self.assertEqual(time[cur_mask][0], expected_start)
+            self.assertEqual(time[cur_mask][-1], expected_end)
+
+
+    def test_compute_trigger_data(self):
+        ''' Test the computation of the trigger data.
+        '''
+        start_time = obspy.UTCDateTime('2020-07-20T10:00:00')
+        signal_length = 60
+        sps = 10
+        test_data = self.create_detection_test_data(start_time = start_time,
+                                                    signal_length = signal_length,
+                                                    sps = sps)
+        all_stations = test_data['all_stations']
+        stream = test_data['stream']
+
+        window_length = 10
+        safety_time = 10
+        detector = delaunay_detection.DelaunayDetector(network_stations = all_stations,
+                                                       window_length = window_length,
+                                                       safety_time = safety_time,
+                                                       p_vel = 3500)
+        detector.init_detection_run(stream = stream)
+        detector.compute_trigger_data()
+
+        self.assertEqual(len(detector.trigger_data), 2)
+        expected_stations = []
+        expected_stations.append(sorted(['OBWA', 'PFAF', 'MUDO']))
+        expected_stations.append(sorted(['OBWA', 'PODO', 'SOLL']))
+        available_stations = []
+        for cur_data in detector.trigger_data:
+            available_stations.append(sorted([x.name for x in cur_data['simp_stations']]))
+
+        for cur_exp_stations in expected_stations:
+            self.assertTrue(cur_exp_stations in available_stations)
+
+    @unittest.skip("temporary disabled")
+    def test_check_for_event_trigger(self):
+        ''' Test the computation of the trigger start- and endtimes.
+        '''
+        start_time = obspy.UTCDateTime('2020-07-20T10:00:00')
+        signal_length = 60
+        sps = 10
+        event_start = 30
+        event_length = 2
+        test_data = self.create_detection_test_data(start_time = start_time,
+                                                    signal_length = signal_length,
+                                                    sps = sps)
+        all_stations = test_data['all_stations']
+        stream = test_data['stream']
+        event_delay = test_data['event_delay']
+
+        window_length = 10
+        safety_time = 10
+        detector = delaunay_detection.DelaunayDetector(network_stations = all_stations,
+                                                       window_length = window_length,
+                                                       safety_time = safety_time,
+                                                       p_vel = 3500)
+        detector.init_detection_run(stream = stream)
+        detector.compute_trigger_data()
+        trigger_start, trigger_end = detector.check_for_event_trigger()
+
+        expected_start = start_time + event_start + event_delay['MUDO']
+        edge_length = detector.edge_length[('OBWA:MSSNet:00', 'PODO:MSSNet:00', 'SOLL:MSSNet:00')]
+        time_window = np.ceil(edge_length / detector.p_vel)
+        expected_end = expected_start + event_length + time_window
+        self.assertEqual(trigger_start, expected_start)
+        self.assertEqual(trigger_end, expected_end)
 
 
 def suite():
