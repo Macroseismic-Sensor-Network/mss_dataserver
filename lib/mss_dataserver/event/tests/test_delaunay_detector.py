@@ -314,7 +314,7 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         for cur_exp_stations in expected_stations:
             self.assertTrue(cur_exp_stations in available_stations)
 
-    @unittest.skip("temporary disabled")
+    #@unittest.skip("temporary disabled")
     def test_check_for_event_trigger(self):
         ''' Test the computation of the trigger start- and endtimes.
         '''
@@ -341,9 +341,11 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         trigger_start, trigger_end = detector.check_for_event_trigger()
 
         expected_start = start_time + event_start + event_delay['MUDO']
-        edge_length = detector.edge_length[('OBWA:MSSNet:00', 'PODO:MSSNet:00', 'SOLL:MSSNet:00')]
+        edge_length = detector.edge_length[('OBWA:MSSNet:00',
+                                            'PODO:MSSNet:00',
+                                            'SOLL:MSSNet:00')]
         time_window = np.ceil(edge_length / detector.p_vel)
-        expected_end = expected_start + event_length + time_window
+        expected_end = start_time + event_start + event_length + time_window - 2 / sps
         self.assertEqual(trigger_start, expected_start)
         self.assertEqual(trigger_end, expected_end)
 
