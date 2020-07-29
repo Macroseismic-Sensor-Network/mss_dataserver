@@ -165,7 +165,7 @@ class Event(object):
         ''' Check if a detection is available for a set of stations.
         '''
         detections = self.get_detection(stations)
-        if len(detections > 0):
+        if len(detections) > 0:
             return True
         else:
             return False
