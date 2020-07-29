@@ -110,7 +110,7 @@ class Detection(object):
 
 
     def update(self, start_time = None, end_time = None,
-               pgv_max = None):
+               max_pgv = None):
         ''' Update the attributes of the detection.
         '''
         if start_time is not None:
@@ -119,10 +119,10 @@ class Detection(object):
         if end_time is not None:
             self.end_time = utcdatetime.UTCDateTime(end_time)
 
-        if pgv_max is not None:
-            for cur_key, cur_value in pgv_max.items:
-                if cur_value > self.pgv_max[cur_key]:
-                    self.pgv_max[cur_key] = cur_value
+        if max_pgv is not None:
+            for cur_key, cur_value in max_pgv.items():
+                if cur_value > self.max_pgv[cur_key]:
+                    self.max_pgv[cur_key] = cur_value
 
 
 
