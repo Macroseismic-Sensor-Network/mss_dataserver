@@ -110,6 +110,7 @@ class DelaunayDetector(object):
 
 
     def init_detection_run(self, stream):
+        self.trigger_data = []
         if self.detect_stream is not None:
             del self.detect_stream
         self.prepare_detection_stream(stream)
@@ -137,19 +138,31 @@ class DelaunayDetector(object):
             tri = None
         return tri
 
-    def compute_edge_length(self, stations, tri):
+    def compute_edge_length(self, stations, tri, clean_tri = True):
         x = [stat.x_utm for stat in stations]
         y = [stat.y_utm for stat in stations]
         coords = np.array(list(zip(x, y)))
 
         edge_length = {}
+        valid_simp = []
         for cur_simp in tri.simplices:
             cur_stations = [stations[k] for k in cur_simp]
             cur_key = tuple(sorted([stat.snl_string for stat in cur_stations]))
             cur_vert = coords[cur_simp]
             cur_dist = [np.linalg.norm(a - b) for a in cur_vert for b in cur_vert]
-            edge_length[cur_key] = np.max(cur_dist)
+            cur_max_edge = np.max(cur_dist)
+            if clean_tri and cur_max_edge <= self.max_edge_length:
+                edge_length[cur_key] = cur_max_edge
+                valid_simp.append(cur_simp)
+            elif not clean_tri:
+                edge_length[cur_key] = cur_max_edge
+                valid_simp.append(cur_simp)
+
+        if clean_tri:
+            tri.simplices = valid_simp
+
         return edge_length
+
 
     def prepare_detection_stream(self, stream):
         ''' Prepare the data stream used for the detection run.
@@ -159,7 +172,8 @@ class DelaunayDetector(object):
         if self.last_detection_end is None:
             detect_win_start = np.min([x.stats.starttime for x in stream])
         else:
-            sps = stream[0].sps
+            # Assume, that all traces have the same sampling rate.
+            sps = stream[0].stats.sampling_rate
             detect_win_start = self.last_detection_end + 1 / sps
 
         min_delta = np.min([x.stats.delta for x in stream])
@@ -268,6 +282,7 @@ class DelaunayDetector(object):
     def compute_trigger_data(self):
         ''' Compute the trigger data for all Delaunay triangles.
         '''
+        self.trigger_data = []
         for cur_simp in self.tri.simplices:
             cur_time, cur_pgv, cur_simp_stations = self.compute_triangle_max_pgv(cur_simp)
 
@@ -313,6 +328,9 @@ class DelaunayDetector(object):
         ''' Evaluate the event trigger data and declare or update an event.
         '''
         trigger_start, trigger_end = self.check_for_event_trigger()
+        self.logger.info("trigger_start: %s", trigger_start)
+        self.logger.info("trigger_end: %s", trigger_end)
+
         if not self.event_triggered and trigger_start is not None:
             # A new event has been triggered.
             self.logger.info("New Event triggered.")
@@ -325,14 +343,14 @@ class DelaunayDetector(object):
                 # Compute the max. PGV of each triggered station.
                 for cur_data in [x for x in self.trigger_data if np.any(x['trigger'])]:
                     # Create a detection instance.
-                    pgv_max = np.max(cur_data['pgv'], axis = 0)
+                    max_pgv = np.max(cur_data['pgv'], axis = 0)
                     cur_simp_stations = cur_data['simp_stations']
                     cur_detection = event_detection.Detection(start_time = cur_data['time'][0],
                                                               end_time = cur_data['time'][-1],
                                                               stations = cur_simp_stations,
-                                                              pgv_max = {cur_simp_stations[0].snl_strin: pgv_max[0],
-                                                                         cur_simp_stations[1].snl_string: pgv_max[1],
-                                                                         cur_simp_stations[2].snl_string: pgv_max[2]})
+                                                              max_pgv = {cur_simp_stations[0].snl_string: max_pgv[0],
+                                                                         cur_simp_stations[1].snl_string: max_pgv[1],
+                                                                         cur_simp_stations[2].snl_string: max_pgv[2]})
                     cur_event.add_detection(cur_detection)
 
                 self.current_event = cur_event
@@ -344,11 +362,50 @@ class DelaunayDetector(object):
 
         elif self.event_triggered and trigger_start is not None:
             # A trigger occured during an existing event.
-            pass
+            self.logger.info("Updating an existing event.")
+            self.current_event.end_time = trigger_end
+
+            for cur_data in [x for x in self.trigger_data if np.any(x['trigger'])]:
+                cur_simp_stations = cur_data['simp_stations']
+                max_pgv = np.max(cur_data['pgv'], axis = 0)
+                if self.current_event.has_detection(cur_simp_stations):
+                    # Update the detection.
+                    cur_detection = self.current_event.get_detection(cur_simp_stations)
+                    if len(cur_detection) == 1:
+                        cur_detection = cur_detection[0]
+                        cur_detection.update(end_time = cur_data['time'][-1],
+                                             max_pgv = {cur_simp_stations[0].snl_string: max_pgv[0],
+                                                        cur_simp_stations[1].snl_string: max_pgv[1],
+                                                        cur_simp_stations[2].snl_string: max_pgv[2]})
+                    else:
+                        self.logger.error("Expected exactly one detection. Got: %s.", cur_detection)
+                else:
+                    # Add the detection.
+                    cur_detection = event_detection.Detection(start_time = cur_data['time'][0],
+                                                              end_time = cur_data['time'][-1],
+                                                              stations = cur_simp_stations,
+                                                              max_pgv = {cur_simp_stations[0].snl_string: max_pgv[0],
+                                                                         cur_simp_stations[1].snl_string: max_pgv[1],
+                                                                         cur_simp_stations[2].snl_string: max_pgv[2]})
+                    self.current_event.add_detection(cur_detection)
 
         elif self.event_triggered and trigger_start is None:
             # Check for an event end.
             pass
+
+
+        # Check if the event has to be closed because the time from the event
+        # end to the currently processed time is large than the keep listening
+        # time.
+        if self.current_event is not None:
+            keep_listening = self.max_time_window
+            if (self.last_detection_end - self.current_event.end_time) > keep_listening:
+                self.logger.info("Closing an event.")
+                self.event_triggered = False
+
+                # TODO: Write the event to the database.
+
+                self.current_event = None
 
     def run_detection(self, stream):
         ''' Run the event detection using the passed stream.
