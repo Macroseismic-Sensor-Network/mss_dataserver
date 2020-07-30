@@ -154,8 +154,17 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # The psysmon geometry inventory.
         self.inventory = self.project.inventory
-        self.compute_utm_coordinates(self.inventory.get_station(),
-                                     self.inventory)
+        self.inventory.compute_utm_coordinates()
+
+        # The delaunay detector instance.
+        all_stations = self.inventory.get_station()
+        self.detector = ddet.DelaunayDetector(network_stations = all_stations,
+                                              trigger_thr = self.trigger_thr,
+                                              window_length = 10,
+                                              safety_time = 10,
+                                              p_vel = 3500,
+                                              min_trigger_window = 3,
+                                              max_edge_length = 40000)
 
         self.recorder_map = self.get_recorder_mappings(station_nsl = self.stations)
 
@@ -473,8 +482,40 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             logger.info("No event warning issued.")
         logger.info("Finished the event warning computation.")
 
-
     def detect_event(self):
+        ''' Run the Voronoi event detection.
+        '''
+        logger = logging.getLogger('mss_data_server.detect_event')
+        logger.info('Running the event detection.')
+        detect_win_length = 10
+        safety_win = 10
+        trigger_thr = self.trigger_thr
+        min_trigger_window = 3
+
+        now = obspy.UTCDateTime()
+        with self.archive_lock:
+            working_stream = self.pgv_archive_stream.copy()
+        self.logger.info("event detection working_stream: %s", working_stream)
+
+        # Run the Delaunay detection.
+        detector.init_detection_run(stream = working_stream)
+        detector.compute_trigger_data()
+        detector.evaluate_event_trigger()
+
+        # Evaluate the detection result.
+        if detector.new_event_available:
+            self.current_event = self.detector.get_event()
+            self.event_data_available.set()
+
+            if self.current_event.detection_state == 'closed':
+                # Write the event to the database.
+                self.current_event.write_to_database(self.project)
+                # Clear the event instance.
+                self.current_event = None
+                # Clear the detector flag.
+                self.detector.new_event_available = False
+
+    def detect_event_old(self):
         ''' Run the Voronoi event detections.
         '''
         logger = logging.getLogger('mss_data_server.detect_event')
@@ -694,7 +735,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         self.event_detection_result_available.set()
 
-    def compute_delaunay(self, stations):
+    def compute_delaunay_old(self, stations):
         x = [x.x_utm for x in stations]
         y = [x.y_utm for x in stations]
         coords = np.array(list(zip(x, y)))
@@ -705,7 +746,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         return tri
 
-    def compute_edge_length(self, tri, stations):
+    def compute_edge_length_old(self, tri, stations):
         x = [x.x_utm for x in stations]
         y = [x.y_utm for x in stations]
         coords = np.array(list(zip(x, y)))
@@ -719,7 +760,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         return np.array(edge_length)
 
-    def compute_utm_coordinates(self, stations, inventory):
+    def compute_utm_coordinates_old(self, stations, inventory):
         code = inventory.get_utm_epsg()
         proj = pyproj.Proj(init = 'epsg:' + code[0][0])
 
@@ -729,7 +770,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             cur_station.x_utm = x
             cur_station.y_utm = y
 
-    def compute_max_pgv(self, stream, stations, edge_lengths, offset,
+    def compute_max_pgv_old(self, stream, stations, edge_lengths, offset,
                         min_trigger_window = 2, compute_interval = 1):
         time_window = np.max(edge_lengths) / 3500
         time_window = np.ceil(time_window)
@@ -804,7 +845,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         #return np.array(time), np.array(pgv)
         return time_strided, pgv_strided
 
-    def current_event_to_archive(self):
+    def current_event_to_archive_old(self):
         ''' Save the current event in the archive.
         '''
         self.logger.debug("Saving the current event to the archive.")
@@ -1238,12 +1279,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         '''
         cur_event = {}
         if self.current_event:
-            cur_event['start_time'] = self.current_event['start_time'].isoformat()
-            cur_event['end_time'] = self.current_event['end_time'].isoformat()
+            cur_event['start_time'] = self.current_event.start_time.isoformat()
+            cur_event['end_time'] = self.current_event.end_time.isoformat()
             #cur_event['trigger_data'] = self.current_event['trigger_data']
-            cur_event['state'] = self.current_event['state']
-            cur_event['overall_trigger_data'] = self.current_event['overall_trigger_data']
-            cur_archive_event['max_station_pgv'] = cur_event['max_station_pgv']
+            cur_event['state'] = self.current_event.detection_state
+            #cur_event['overall_trigger_data'] = self.current_event['overall_trigger_data']
+            #cur_archive_event['max_station_pgv'] = cur_event['max_station_pgv']
 
         return cur_event
 
