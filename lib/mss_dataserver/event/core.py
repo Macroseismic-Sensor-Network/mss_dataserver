@@ -107,6 +107,9 @@ class Event(object):
         # Flag to indicate a change of the event attributes.
         self.changed = changed
 
+        # State of the event during detection (new, updated, closed).
+        self.detection_station = None
+
 
     @property
     def rid(self):
