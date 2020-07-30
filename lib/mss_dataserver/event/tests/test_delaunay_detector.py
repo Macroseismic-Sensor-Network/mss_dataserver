@@ -450,6 +450,7 @@ class DelaunayDetectorTestCase(unittest.TestCase):
 
         self.assertTrue(detector.event_triggered)
         self.assertIsNotNone(detector.current_event)
+        self.assertEqual(len(detector.current_event.detections), 2)
         stream_start = np.min([x.stats.starttime for x in test_stream])
         stream_end = np.max([x.stats.endtime for x in test_stream])
         stream_length = stream_end - stream_start
@@ -465,7 +466,6 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         expected_end = start_time + event_start + event_length + time_window - 2 / sps
         self.assertEqual(detector.current_event.start_time, expected_start)
         self.assertEqual(detector.current_event.end_time, expected_end)
-        self.assertEqual(len(detector.current_event.detections), 2)
 
         # Test with the next data chunk containing no event. The current event
         # should be closed.
@@ -484,6 +484,104 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         self.assertEqual(detector.last_detection_end,
                          stream_start + detector.max_time_window + expected_length / sps - 1 / sps)
 
+    def test_evaluate_event_trigger_long_event(self):
+        ''' Test handling of event triggers.
+        '''
+        start_time = obspy.UTCDateTime('2020-07-20T10:00:00')
+        signal_length = 160
+        sps = 10
+        event_start = 65
+        event_length = 10
+        test_data = self.create_detection_test_data(start_time = start_time,
+                                                    signal_length = signal_length,
+                                                    sps = sps,
+                                                    event_start = event_start,
+                                                    event_length = event_length)
+        all_stations = test_data['all_stations']
+        stream = test_data['stream']
+        event_delay = test_data['event_delay']
+
+        window_length = 10
+        safety_time = 10
+        detector = delaunay_detection.DelaunayDetector(network_stations = all_stations,
+                                                       window_length = window_length,
+                                                       safety_time = safety_time,
+                                                       p_vel = 3500)
+
+        # Test with a stream containing no event. Use a sliced part of the test
+        # data for initialization, otherwise, the whole data of the stream
+        # would be used for detection.
+        test_stream = stream.slice(starttime = start_time,
+                                   endtime = start_time + 70)
+        detector.init_detection_run(stream = test_stream)
+        detector.compute_trigger_data()
+        detector.evaluate_event_trigger()
+
+        self.assertFalse(detector.event_triggered)
+        self.assertIsNone(detector.current_event)
+        stream_start = np.min([x.stats.starttime for x in test_stream])
+        stream_end = np.max([x.stats.endtime for x in test_stream])
+        stream_length = stream_end - stream_start
+        expected_length = ((stream_length // window_length) * window_length) * sps - (detector.max_time_window + safety_time) * sps
+        self.assertEqual(detector.last_detection_end,
+                         stream_start + detector.max_time_window + expected_length / sps - 1 / sps)
+
+
+        # Test with the next data chunk containing an event.
+        test_stream = stream.slice(starttime = start_time,
+                                   endtime = start_time + 80)
+        detector.init_detection_run(stream = test_stream)
+        detector.compute_trigger_data()
+        detector.evaluate_event_trigger()
+
+        self.assertTrue(detector.event_triggered)
+        self.assertIsNotNone(detector.current_event)
+        self.assertEqual(len(detector.current_event.detections), 2)
+        stream_start = np.min([x.stats.starttime for x in test_stream])
+        stream_end = np.max([x.stats.endtime for x in test_stream])
+        stream_length = stream_end - stream_start
+        expected_length = ((stream_length // window_length) * window_length) * sps - (detector.max_time_window + safety_time) * sps
+        self.assertEqual(detector.last_detection_end,
+                         stream_start + detector.max_time_window + expected_length / sps - 1 / sps)
+
+        expected_start = start_time + event_start + event_delay['MUDO']
+        expected_end = start_time + 70 - 1 / sps
+        self.assertEqual(detector.current_event.start_time, expected_start)
+        self.assertEqual(detector.current_event.end_time, expected_end)
+
+        # Test with the next data chunk containing the still active event.
+        test_stream = stream.slice(starttime = start_time,
+                                   endtime = start_time + 90)
+        detector.init_detection_run(stream = test_stream)
+        detector.compute_trigger_data()
+        detector.evaluate_event_trigger()
+
+        self.assertTrue(detector.event_triggered)
+        self.assertIsNotNone(detector.current_event)
+        self.assertEqual(len(detector.current_event.detections), 2)
+        stream_start = np.min([x.stats.starttime for x in test_stream])
+        stream_end = np.max([x.stats.endtime for x in test_stream])
+        stream_length = stream_end - stream_start
+        expected_length = ((stream_length // window_length) * window_length) * sps - (detector.max_time_window + safety_time) * sps
+        self.assertEqual(detector.last_detection_end,
+                         stream_start + detector.max_time_window + expected_length / sps - 1 / sps)
+
+        # Test with the next data chunk containing no event. The current event
+        # should be closed.
+        test_stream = stream.slice(starttime = start_time,
+                                   endtime = start_time + 100)
+        detector.init_detection_run(stream = test_stream)
+        detector.compute_trigger_data()
+        detector.evaluate_event_trigger()
+
+        self.assertFalse(detector.event_triggered)
+        self.assertIsNone(detector.current_event)
+        stream_start = np.min([x.stats.starttime for x in test_stream])
+        stream_end = np.max([x.stats.endtime for x in test_stream])
+        stream_length = stream_end - stream_start
+        expected_length = ((stream_length // window_length) * window_length) * sps - (detector.max_time_window + safety_time) * sps
+        self.assertEqual(detector.last_detection_end,
+                         stream_start + detector.max_time_window + expected_length / sps - 1 / sps)
 
 def suite():
     return unittest.makeSuite(DelaunayDetectorTestCase, 'test')
