@@ -410,9 +410,8 @@ class DelaunayDetector(object):
                 self.current_event.detection_state = 'closed'
 
     def get_event(self):
-        ''' Return a copy of the current event and reset the event state.
+        ''' Return a copy of the current event.
         '''
-        self.new_event_available = False
         return copy.copy(self.current_event)
 
 
