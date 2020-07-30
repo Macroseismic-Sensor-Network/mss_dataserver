@@ -186,6 +186,8 @@ class DelaunayDetector(object):
                                           endtime = detect_win_end,
                                           nearest_sample = False)
         self.logger.info("detect_stream: %s", self.detect_stream)
+        # Set the last detection end time.
+        self.last_detection_end = detect_win_end
 
         self.detect_stations = []
         for cur_trace in self.detect_stream:
@@ -271,9 +273,8 @@ class DelaunayDetector(object):
         else:
             self.logger.error("The size of the computed PGV max don't match: %s.", pgv)
             pgv = []
+            time = []
 
-        # Set the last detection end time.
-        self.last_detection_end = cur_time[-1]
         self.logger.debug("pgv: %s", pgv)
         self.logger.debug("time: %s", time)
 
@@ -389,11 +390,6 @@ class DelaunayDetector(object):
                                                                          cur_simp_stations[2].snl_string: max_pgv[2]})
                     self.current_event.add_detection(cur_detection)
 
-        elif self.event_triggered and trigger_start is None:
-            # Check for an event end.
-            pass
-
-
         # Check if the event has to be closed because the time from the event
         # end to the currently processed time is large than the keep listening
         # time.
@@ -401,6 +397,7 @@ class DelaunayDetector(object):
             keep_listening = self.max_time_window
             if (self.last_detection_end - self.current_event.end_time) > keep_listening:
                 self.logger.info("Closing an event.")
+                self.logger.info("keep_listening: %s", keep_listening)
                 self.event_triggered = False
 
                 # TODO: Write the event to the database.
