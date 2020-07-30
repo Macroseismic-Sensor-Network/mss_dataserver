@@ -23,6 +23,8 @@
  # Copyright 2019 Stefan Mertl
 ##############################################################################
 
+import copy
+
 import logging
 import numpy as np
 import obspy
@@ -102,8 +104,11 @@ class DelaunayDetector(object):
         # The current trigger data.
         self.trigger_data = []
 
-        # The trigger state of an event.
+        # The state of the event detector.
+        # An event has been triggered.
         self.event_triggered = False
+        # A new event is available.
+        self.new_event_available = False
 
         # Compute the maximum time window based on all available stations.
         self.compute_max_time_window()
@@ -355,16 +360,19 @@ class DelaunayDetector(object):
                     cur_event.add_detection(cur_detection)
 
                 self.current_event = cur_event
+                self.current_event.detection_state = 'new'
                 self.event_triggered = True
+                self.new_event_available = True
             except Exception:
                 self.logger.exception("Error processing the event trigger.")
                 self.event_triggered = False
-                self.current_event = None
+                self.new_event_available = False
 
         elif self.event_triggered and trigger_start is not None:
             # A trigger occured during an existing event.
             self.logger.info("Updating an existing event.")
             self.current_event.end_time = trigger_end
+            self.current_event.detection_state = 'updated'
 
             for cur_data in [x for x in self.trigger_data if np.any(x['trigger'])]:
                 cur_simp_stations = cur_data['simp_stations']
@@ -393,16 +401,20 @@ class DelaunayDetector(object):
         # Check if the event has to be closed because the time from the event
         # end to the currently processed time is large than the keep listening
         # time.
-        if self.current_event is not None:
+        if self.event_triggered:
             keep_listening = self.max_time_window
             if (self.last_detection_end - self.current_event.end_time) > keep_listening:
                 self.logger.info("Closing an event.")
                 self.logger.info("keep_listening: %s", keep_listening)
                 self.event_triggered = False
+                self.current_event.detection_state = 'closed'
 
-                # TODO: Write the event to the database.
+    def get_event(self):
+        ''' Return a copy of the current event and reset the event state.
+        '''
+        self.new_event_available = False
+        return copy.copy(self.current_event)
 
-                self.current_event = None
 
     def run_detection(self, stream):
         ''' Run the event detection using the passed stream.
