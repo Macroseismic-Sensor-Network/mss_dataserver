@@ -492,7 +492,7 @@ class DelaunayDetectorTestCase(unittest.TestCase):
 
         # Get the event.
         event = detector.get_event()
-        self.assertFalse(detector.new_event_available)
+        self.assertTrue(detector.new_event_available)
         self.assertIsInstance(event, mss_dataserver.event.core.Event)
 
     def test_evaluate_event_trigger_long_event(self):
@@ -603,7 +603,7 @@ class DelaunayDetectorTestCase(unittest.TestCase):
 
         # Get the event.
         event = detector.get_event()
-        self.assertFalse(detector.new_event_available)
+        self.assertTrue(detector.new_event_available)
         self.assertIsInstance(event, mss_dataserver.event.core.Event)
 
 def suite():
