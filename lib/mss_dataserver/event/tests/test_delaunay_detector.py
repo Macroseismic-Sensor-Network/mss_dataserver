@@ -36,6 +36,7 @@ import obspy
 from obspy.core.utcdatetime import UTCDateTime
 
 import mss_dataserver
+import mss_dataserver.event
 import mss_dataserver.event.delaunay_detection as delaunay_detection
 import mss_dataserver.test.util as test_util
 
@@ -415,8 +416,9 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         detector.compute_trigger_data()
         detector.evaluate_event_trigger()
 
-        self.assertFalse(detector.event_triggered)
         self.assertIsNone(detector.current_event)
+        self.assertFalse(detector.event_triggered)
+        self.assertFalse(detector.new_event_available)
         stream_start = np.min([x.stats.starttime for x in test_stream])
         stream_end = np.max([x.stats.endtime for x in test_stream])
         stream_length = stream_end - stream_start
@@ -433,6 +435,7 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         detector.evaluate_event_trigger()
 
         self.assertFalse(detector.event_triggered)
+        self.assertFalse(detector.new_event_available)
         self.assertIsNone(detector.current_event)
         stream_start = np.min([x.stats.starttime for x in test_stream])
         stream_end = np.max([x.stats.endtime for x in test_stream])
@@ -449,7 +452,9 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         detector.evaluate_event_trigger()
 
         self.assertTrue(detector.event_triggered)
+        self.assertTrue(detector.new_event_available)
         self.assertIsNotNone(detector.current_event)
+        self.assertEqual(detector.current_event.detection_state, 'new')
         self.assertEqual(len(detector.current_event.detections), 2)
         stream_start = np.min([x.stats.starttime for x in test_stream])
         stream_end = np.max([x.stats.endtime for x in test_stream])
@@ -476,13 +481,19 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         detector.evaluate_event_trigger()
 
         self.assertFalse(detector.event_triggered)
-        self.assertIsNone(detector.current_event)
+        self.assertTrue(detector.new_event_available)
+        self.assertEqual(detector.current_event.detection_state, 'closed')
         stream_start = np.min([x.stats.starttime for x in test_stream])
         stream_end = np.max([x.stats.endtime for x in test_stream])
         stream_length = stream_end - stream_start
         expected_length = ((stream_length // window_length) * window_length) * sps - (detector.max_time_window + safety_time) * sps
         self.assertEqual(detector.last_detection_end,
                          stream_start + detector.max_time_window + expected_length / sps - 1 / sps)
+
+        # Get the event.
+        event = detector.get_event()
+        self.assertFalse(detector.new_event_available)
+        self.assertIsInstance(event, mss_dataserver.event.core.Event)
 
     def test_evaluate_event_trigger_long_event(self):
         ''' Test handling of event triggers.
@@ -518,6 +529,7 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         detector.evaluate_event_trigger()
 
         self.assertFalse(detector.event_triggered)
+        self.assertFalse(detector.new_event_available)
         self.assertIsNone(detector.current_event)
         stream_start = np.min([x.stats.starttime for x in test_stream])
         stream_end = np.max([x.stats.endtime for x in test_stream])
@@ -535,7 +547,9 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         detector.evaluate_event_trigger()
 
         self.assertTrue(detector.event_triggered)
+        self.assertTrue(detector.new_event_available)
         self.assertIsNotNone(detector.current_event)
+        self.assertEqual(detector.current_event.detection_state, 'new')
         self.assertEqual(len(detector.current_event.detections), 2)
         stream_start = np.min([x.stats.starttime for x in test_stream])
         stream_end = np.max([x.stats.endtime for x in test_stream])
@@ -557,7 +571,9 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         detector.evaluate_event_trigger()
 
         self.assertTrue(detector.event_triggered)
+        self.assertTrue(detector.new_event_available)
         self.assertIsNotNone(detector.current_event)
+        self.assertEqual(detector.current_event.detection_state, 'updated')
         self.assertEqual(len(detector.current_event.detections), 2)
         stream_start = np.min([x.stats.starttime for x in test_stream])
         stream_end = np.max([x.stats.endtime for x in test_stream])
@@ -575,13 +591,20 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         detector.evaluate_event_trigger()
 
         self.assertFalse(detector.event_triggered)
-        self.assertIsNone(detector.current_event)
+        self.assertTrue(detector.new_event_available)
+        self.assertIsNotNone(detector.current_event)
+        self.assertEqual(detector.current_event.detection_state, 'closed')
         stream_start = np.min([x.stats.starttime for x in test_stream])
         stream_end = np.max([x.stats.endtime for x in test_stream])
         stream_length = stream_end - stream_start
         expected_length = ((stream_length // window_length) * window_length) * sps - (detector.max_time_window + safety_time) * sps
         self.assertEqual(detector.last_detection_end,
                          stream_start + detector.max_time_window + expected_length / sps - 1 / sps)
+
+        # Get the event.
+        event = detector.get_event()
+        self.assertFalse(detector.new_event_available)
+        self.assertIsInstance(event, mss_dataserver.event.core.Event)
 
 def suite():
     return unittest.makeSuite(DelaunayDetectorTestCase, 'test')
