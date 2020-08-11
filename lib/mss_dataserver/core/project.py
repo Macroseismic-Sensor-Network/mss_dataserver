@@ -199,7 +199,7 @@ class Project(object):
         return self.db_session_class()
 
 
-    def load_inventory(self):
+    def load_inventory(self, update_from_xml = False):
         ''' Load the geometry inventory from a XML file.
         '''
         # Load the existing inventory from the database.
@@ -209,22 +209,23 @@ class Project(object):
         except Exception:
             self.logger.exception("Error while loading the database inventory.")
 
-        # Read the inventory from the XML file.
-        inventory_file = self.project_config['inventory_file']
-        if not os.path.exists(inventory_file):
-            self.logger.error("Can't find the inventory file %s.",
-                              inventory_file)
-            return None
-
-        parser = inventory_parser.InventoryXmlParser()
-        try:
-            xml_inventory = parser.parse(inventory_file)
-        except Exception:
-            self.logger.exception("Couldn't load the inventory from file %s.",
+        if update_from_xml:
+            # Read the inventory from the XML file.
+            inventory_file = self.project_config['inventory_file']
+            if not os.path.exists(inventory_file):
+                self.logger.error("Can't find the inventory file %s.",
                                   inventory_file)
+                return None
 
-        # Update the database inventory with the loaded XML inventory.
-        self.db_inventory.merge(xml_inventory)
-        self.db_inventory.commit()
+            parser = inventory_parser.InventoryXmlParser()
+            try:
+                xml_inventory = parser.parse(inventory_file)
+            except Exception:
+                self.logger.exception("Couldn't load the inventory from file %s.",
+                                      inventory_file)
 
-        self.logger.info("Updated the database inventory with data read from %s.", inventory_file)
+            # Update the database inventory with the loaded XML inventory.
+            self.db_inventory.merge(xml_inventory)
+            self.db_inventory.commit()
+
+            self.logger.info("Updated the database inventory with data read from %s.", inventory_file)
