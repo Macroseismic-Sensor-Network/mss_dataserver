@@ -105,6 +105,8 @@ class DelaunayDetector(object):
         self.trigger_data = []
 
         # The state of the event detector.
+        # A new detection run has been initialized.
+        self.detection_run_initialized = False
         # An event has been triggered.
         self.event_triggered = False
         # A new event is available.
@@ -115,13 +117,26 @@ class DelaunayDetector(object):
 
 
     def init_detection_run(self, stream):
+        ''' Initialize a new detection run.
+        '''
         self.trigger_data = []
         if self.detect_stream is not None:
             del self.detect_stream
-        self.prepare_detection_stream(stream)
-        self.tri = self.compute_delaunay_triangulation(self.detect_stations)
-        self.edge_length = self.compute_edge_length(stations = self.detect_stations,
-                                                    tri = self.tri)
+            self.detect_stream = None
+
+        if len(stream) == 0:
+            self.logger.warning("The passed stream contains no traces. Aborting the initialisation of the detection run.")
+            self.detection_run_initialized = False
+        else:
+            self.prepare_detection_stream(stream)
+            if self.detect_stream is not None:
+                self.tri = self.compute_delaunay_triangulation(self.detect_stations)
+                self.edge_length = self.compute_edge_length(stations = self.detect_stations,
+                                                            tri = self.tri)
+                self.detection_run_initialized = True
+            else:
+                self.detection_run_initialized = False
+
 
     def compute_max_time_window(self):
         ''' Compute the maximum time window that a wave needs to pass the triangles.
@@ -150,21 +165,22 @@ class DelaunayDetector(object):
 
         edge_length = {}
         valid_simp = []
-        for cur_simp in tri.simplices:
-            cur_stations = [stations[k] for k in cur_simp]
-            cur_key = tuple(sorted([stat.snl_string for stat in cur_stations]))
-            cur_vert = coords[cur_simp]
-            cur_dist = [np.linalg.norm(a - b) for a in cur_vert for b in cur_vert]
-            cur_max_edge = np.max(cur_dist)
-            if clean_tri and cur_max_edge <= self.max_edge_length:
-                edge_length[cur_key] = cur_max_edge
-                valid_simp.append(cur_simp)
-            elif not clean_tri:
-                edge_length[cur_key] = cur_max_edge
-                valid_simp.append(cur_simp)
+        if tri is not None:
+            for cur_simp in tri.simplices:
+                cur_stations = [stations[k] for k in cur_simp]
+                cur_key = tuple(sorted([stat.snl_string for stat in cur_stations]))
+                cur_vert = coords[cur_simp]
+                cur_dist = [np.linalg.norm(a - b) for a in cur_vert for b in cur_vert]
+                cur_max_edge = np.max(cur_dist)
+                if clean_tri and cur_max_edge <= self.max_edge_length:
+                    edge_length[cur_key] = cur_max_edge
+                    valid_simp.append(cur_simp)
+                elif not clean_tri:
+                    edge_length[cur_key] = cur_max_edge
+                    valid_simp.append(cur_simp)
 
-        if clean_tri:
-            tri.simplices = valid_simp
+            if clean_tri:
+                tri.simplices = valid_simp
 
         return edge_length
 
@@ -187,18 +203,23 @@ class DelaunayDetector(object):
         self.logger.info("detect_win_start: %s", detect_win_start)
         self.logger.info("detect_win_end: %s", detect_win_end)
 
-        self.detect_stream = stream.slice(starttime = detect_win_start - self.max_time_window,
-                                          endtime = detect_win_end,
-                                          nearest_sample = False)
-        self.logger.info("detect_stream: %s", self.detect_stream)
-        # Set the last detection end time.
-        self.last_detection_end = detect_win_end
+        if (detect_win_end - detect_win_start) < self.window_length:
+            self.logger.warning("The length of the available data is smaller than the detection window length. Skipping the preparation of the detection stream.")
+            self.detect_stream = None
+        else:
+            self.detect_stream = stream.slice(starttime = detect_win_start - self.max_time_window,
+                                              endtime = detect_win_end,
+                                              nearest_sample = False)
+            self.logger.info("detect_stream: %s", self.detect_stream)
+            # Set the last detection end time.
+            self.last_detection_end = detect_win_end
 
-        self.detect_stations = []
-        for cur_trace in self.detect_stream:
-            cur_station = [x for x in self.network_stations if x.name == cur_trace.stats.station]
-            if cur_station:
-                self.detect_stations.append(cur_station[0])
+            self.detect_stations = []
+            for cur_trace in self.detect_stream:
+                cur_station = [x for x in self.network_stations if x.name == cur_trace.stats.station]
+                if cur_station:
+                    self.detect_stations.append(cur_station[0])
+
 
     def compute_triangle_max_pgv(self, simp):
         ''' Compute the maximal PGV values of a delaunay triangle.
@@ -289,25 +310,26 @@ class DelaunayDetector(object):
         ''' Compute the trigger data for all Delaunay triangles.
         '''
         self.trigger_data = []
-        for cur_simp in self.tri.simplices:
-            cur_time, cur_pgv, cur_simp_stations = self.compute_triangle_max_pgv(cur_simp)
+        if self.tri is not None:
+            for cur_simp in self.tri.simplices:
+                cur_time, cur_pgv, cur_simp_stations = self.compute_triangle_max_pgv(cur_simp)
 
-            if len(cur_pgv) > 0:
-                if np.any(np.isnan(cur_pgv)):
-                    self.logger.warning("There is a NaN value in the cur_pgv.")
-                    self.logger.debug("cur_pgv: %s.", cur_pgv)
-                    # TODO: JSON can't handle NaN values. Ignore them right
-                    # now until I find a better solution.
-                    continue
+                if len(cur_pgv) > 0:
+                    if np.any(np.isnan(cur_pgv)):
+                        self.logger.warning("There is a NaN value in the cur_pgv.")
+                        self.logger.debug("cur_pgv: %s.", cur_pgv)
+                        # TODO: JSON can't handle NaN values. Ignore them right
+                        # now until I find a better solution.
+                        continue
 
-                cur_trig = np.nanmin(cur_pgv, axis = 1) >= self.trigger_thr
-                if np.any(cur_trig):
-                    tmp = {}
-                    tmp['simp_stations'] = cur_simp_stations
-                    tmp['time'] = cur_time
-                    tmp['pgv'] = cur_pgv
-                    tmp['trigger'] = cur_trig
-                    self.trigger_data.append(tmp)
+                    cur_trig = np.nanmin(cur_pgv, axis = 1) >= self.trigger_thr
+                    if np.any(cur_trig):
+                        tmp = {}
+                        tmp['simp_stations'] = cur_simp_stations
+                        tmp['time'] = cur_time
+                        tmp['pgv'] = cur_pgv
+                        tmp['trigger'] = cur_trig
+                        self.trigger_data.append(tmp)
 
     def check_for_event_trigger(self):
         ''' Compute if an event trigger is available.
