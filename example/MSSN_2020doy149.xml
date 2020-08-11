@@ -894,6 +894,33 @@
                 </component_parameter>            
             </component>
         </sensor> 
+        <sensor serial="AT55G">
+            <model>4.5 Hz H</model>
+            <producer>RTC</producer>
+            <description></description>
+            <component name="Hnormal">
+                <description>normal to wall</description>
+                <input_unit>m</input_unit>
+                <output_unit>m/s</output_unit>
+                <deliver_unit>V</deliver_unit>            
+                <component_parameter>
+                    <start_time>2019-10-24T09:01:00</start_time>
+                    <end_time></end_time>
+                    <sensitivity>27</sensitivity>
+                </component_parameter>            
+            </component>
+            <component name="Hparallel">
+                <description>parallel to wall</description>
+                <input_unit>m</input_unit>
+                <output_unit>m/s</output_unit>
+                <deliver_unit>V</deliver_unit>            
+                <component_parameter>
+                    <start_time>2019-10-24T09:01:00</start_time>
+                    <end_time></end_time>
+                    <sensitivity>27</sensitivity>
+                </component_parameter>            
+            </component>
+        </sensor> 
         <sensor serial="AT56G">
             <model>4.5 Hz H</model>
             <producer>RTC</producer>
@@ -970,6 +997,33 @@
                 <deliver_unit>V</deliver_unit>            
                 <component_parameter>
                     <start_time>2019-05-16T00:00:00</start_time>
+                    <end_time></end_time>
+                    <sensitivity>27</sensitivity>
+                </component_parameter>            
+            </component>
+        </sensor> 
+        <sensor serial="AT59G">
+            <model>4.5 Hz H</model>
+            <producer>RTC</producer>
+            <description></description>
+            <component name="Hnormal">
+                <description>normal to wall</description>
+                <input_unit>m</input_unit>
+                <output_unit>m/s</output_unit>
+                <deliver_unit>V</deliver_unit>            
+                <component_parameter>
+                    <start_time>2020-03-02T12:30:00</start_time>
+                    <end_time></end_time>
+                    <sensitivity>27</sensitivity>
+                </component_parameter>            
+            </component>
+            <component name="Hparallel">
+                <description>parallel to wall</description>
+                <input_unit>m</input_unit>
+                <output_unit>m/s</output_unit>
+                <deliver_unit>V</deliver_unit>            
+                <component_parameter>
+                    <start_time>2020-03-02T12:30:00</start_time>
                     <end_time></end_time>
                     <sensitivity>27</sensitivity>
                 </component_parameter>            
@@ -1105,6 +1159,33 @@
                 <deliver_unit>V</deliver_unit>            
                 <component_parameter>
                     <start_time>2019-05-21T00:00:00</start_time>
+                    <end_time></end_time>
+                    <sensitivity>27</sensitivity>
+                </component_parameter>            
+            </component>
+        </sensor> 
+        <sensor serial="AT65G">
+            <model>4.5 Hz H</model>
+            <producer>RTC</producer>
+            <description></description>
+            <component name="Hnormal">
+                <description>normal to wall</description>
+                <input_unit>m</input_unit>
+                <output_unit>m/s</output_unit>
+                <deliver_unit>V</deliver_unit>            
+                <component_parameter>
+                    <start_time>2020-05-27T09:00:00</start_time>
+                    <end_time></end_time>
+                    <sensitivity>27</sensitivity>
+                </component_parameter>            
+            </component>
+            <component name="Hparallel">
+                <description>parallel to wall</description>
+                <input_unit>m</input_unit>
+                <output_unit>m/s</output_unit>
+                <deliver_unit>V</deliver_unit>            
+                <component_parameter>
+                    <start_time>2020-05-27T09:00:00</start_time>
                     <end_time></end_time>
                     <sensitivity>27</sensitivity>
                 </component_parameter>            
@@ -3806,6 +3887,45 @@
                 </assigned_component>
             </stream>
         </recorder>
+        <recorder serial="00055">
+            <model>MSS M2</model>
+            <producer>MSS-Team</producer>
+            <description></description>
+            <stream name="00:002">
+                <label>Hnormal</label>
+                <stream_parameter>
+                    <start_time>2019-10-24T09:01:00</start_time>
+                    <end_time></end_time>
+                    <gain>2</gain>
+                    <bitweight>30.518e-6</bitweight>
+                </stream_parameter>
+                <assigned_component>
+                    <sensor_serial>AT55G</sensor_serial>
+                    <sensor_model>4.5 Hz H</sensor_model>
+                    <sensor_producer>RTC</sensor_producer>
+                    <component_name>Hnormal</component_name>
+                    <start_time>2019-10-24T09:01:00</start_time>
+                    <end_time></end_time>
+                </assigned_component>
+            </stream>
+            <stream name="00:001">
+                <label>Hparallel</label>
+                <stream_parameter>
+                    <start_time>2019-10-24T09:01:00</start_time>
+                    <end_time></end_time>
+                    <gain>2</gain>
+                    <bitweight>30.518e-6</bitweight>
+                </stream_parameter>
+                <assigned_component>
+                    <sensor_serial>AT55G</sensor_serial>
+                    <sensor_model>4.5 Hz H</sensor_model>
+                    <sensor_producer>RTC</sensor_producer>
+                    <component_name>Hparallel</component_name>
+                    <start_time>2019-10-24T09:01:00</start_time>
+                    <end_time></end_time>
+                </assigned_component>
+            </stream>
+        </recorder>
         <recorder serial="00056">
             <model>MSS M2</model>
             <producer>MSS-Team</producer>
@@ -3919,6 +4039,45 @@
                     <sensor_producer>RTC</sensor_producer>
                     <component_name>Hparallel</component_name>
                     <start_time>2019-05-16T00:00:00</start_time>
+                    <end_time></end_time>
+                </assigned_component>
+            </stream>
+        </recorder>
+        <recorder serial="00059">
+            <model>MSS M2</model>
+            <producer>MSS-Team</producer>
+            <description></description>
+            <stream name="00:002">
+                <label>Hnormal</label>
+                <stream_parameter>
+                    <start_time>2020-03-02T12:30:00</start_time>
+                    <end_time></end_time>
+                    <gain>2</gain>
+                    <bitweight>30.518e-6</bitweight>
+                </stream_parameter>
+                <assigned_component>
+                    <sensor_serial>AT59G</sensor_serial>
+                    <sensor_model>4.5 Hz H</sensor_model>
+                    <sensor_producer>RTC</sensor_producer>
+                    <component_name>Hnormal</component_name>
+                    <start_time>2020-03-02T12:30:00</start_time>
+                    <end_time></end_time>
+                </assigned_component>
+            </stream>
+            <stream name="00:001">
+                <label>Hparallel</label>
+                <stream_parameter>
+                    <start_time>2020-03-02T12:30:00</start_time>
+                    <end_time></end_time>
+                    <gain>2</gain>
+                    <bitweight>30.518e-6</bitweight>
+                </stream_parameter>
+                <assigned_component>
+                    <sensor_serial>AT59G</sensor_serial>
+                    <sensor_model>4.5 Hz H</sensor_model>
+                    <sensor_producer>RTC</sensor_producer>
+                    <component_name>Hparallel</component_name>
+                    <start_time>2020-03-02T12:30:00</start_time>
                     <end_time></end_time>
                 </assigned_component>
             </stream>
@@ -4114,6 +4273,45 @@
                     <sensor_producer>RTC</sensor_producer>
                     <component_name>Hparallel</component_name>
                     <start_time>2019-05-21T00:00:00</start_time>
+                    <end_time></end_time>
+                </assigned_component>
+            </stream>
+        </recorder>
+        <recorder serial="00065">
+            <model>MSS M2</model>
+            <producer>MSS-Team</producer>
+            <description></description>
+            <stream name="00:002">
+                <label>Hnormal</label>
+                <stream_parameter>
+                    <start_time>2020-05-27T09:00:00</start_time>
+                    <end_time></end_time>
+                    <gain>2</gain>
+                    <bitweight>30.518e-6</bitweight>
+                </stream_parameter>
+                <assigned_component>
+                    <sensor_serial>AT65G</sensor_serial>
+                    <sensor_model>4.5 Hz H</sensor_model>
+                    <sensor_producer>RTC</sensor_producer>
+                    <component_name>Hnormal</component_name>
+                    <start_time>2020-05-27T09:00:00</start_time>
+                    <end_time></end_time>
+                </assigned_component>
+            </stream>
+            <stream name="00:001">
+                <label>Hparallel</label>
+                <stream_parameter>
+                    <start_time>2020-05-27T09:00:00</start_time>
+                    <end_time></end_time>
+                    <gain>2</gain>
+                    <bitweight>30.518e-6</bitweight>
+                </stream_parameter>
+                <assigned_component>
+                    <sensor_serial>AT65G</sensor_serial>
+                    <sensor_model>4.5 Hz H</sensor_model>
+                    <sensor_producer>RTC</sensor_producer>
+                    <component_name>Hparallel</component_name>
+                    <start_time>2020-05-27T09:00:00</start_time>
                     <end_time></end_time>
                 </assigned_component>
             </stream>
@@ -5801,6 +5999,37 @@
                 </channel> 
             </location>
         </station>
+        <station name="HOLB">
+            <location name="00">
+                <x>16.5788</x>
+                <y>47.9438</y>
+                <z>221</z>
+                <coord_system>epsg:4326</coord_system>
+                <description>GM Hof am Leithaberge</description>
+                <channel name="Hnormal">
+                    <description></description>
+                    <assigned_stream>
+                        <recorder_serial>00055</recorder_serial>
+                        <recorder_model>MSS M2</recorder_model>
+                        <recorder_producer>MSS-Team</recorder_producer>
+                        <stream_name>00:002</stream_name>
+                        <start_time>2019-10-24T09:01:00</start_time>
+                        <end_time></end_time>
+                    </assigned_stream>
+                </channel>
+                <channel name="Hparallel">
+                    <description></description>
+                    <assigned_stream>
+                        <recorder_serial>00055</recorder_serial>
+                        <recorder_model>MSS M2</recorder_model>
+                        <recorder_producer>MSS-Team</recorder_producer>
+                        <stream_name>00:001</stream_name>
+                        <start_time>2019-10-24T09:01:00</start_time>
+                        <end_time></end_time>
+                    </assigned_stream>
+                </channel> 
+            </location>
+        </station>
         <station name="BRUK">
             <location name="00">
                 <x>16.7795</x>
@@ -5832,13 +6061,13 @@
                 </channel> 
             </location>
         </station>
-        <station name="MUDO">
+        <station name="PFAF">
             <location name="00">
-                <x>16.3771</x>
-                <y>48.0262</y>
-                <z>186</z>
+                <x>16.2642</x>
+                <y>48.0126</y>
+                <z>216</z>
                 <coord_system>epsg:4326</coord_system>
-                <description>GM M�nchendorf</description>
+                <description>GM Pfaffst�tten</description>
                 <channel name="Hnormal">
                     <description></description>
                     <assigned_stream>
@@ -5863,13 +6092,13 @@
                 </channel> 
             </location>
         </station>
-        <station name="PFAF">
+        <station name="MUDO">
             <location name="00">
-                <x>16.2642</x>
-                <y>48.0126</y>
-                <z>216</z>
+                <x>16.3771</x>
+                <y>48.0262</y>
+                <z>186</z>
                 <coord_system>epsg:4326</coord_system>
-                <description>GM Pfaffst�tten</description>
+                <description>GM M�nchendorf</description>
                 <channel name="Hnormal">
                     <description></description>
                     <assigned_stream>
@@ -5889,6 +6118,37 @@
                         <recorder_producer>MSS-Team</recorder_producer>
                         <stream_name>00:001</stream_name>
                         <start_time>2019-05-16T00:00:00</start_time>
+                        <end_time></end_time>
+                    </assigned_stream>
+                </channel> 
+            </location>
+        </station>
+        <station name="DABU">
+            <location name="00">
+                <x>16.9079</x>
+                <y>48.1331</y>
+                <z>153</z>
+                <coord_system>epsg:4326</coord_system>
+                <description>GM Bad Deutsch Altenburg</description>
+                <channel name="Hnormal">
+                    <description></description>
+                    <assigned_stream>
+                        <recorder_serial>00059</recorder_serial>
+                        <recorder_model>MSS M2</recorder_model>
+                        <recorder_producer>MSS-Team</recorder_producer>
+                        <stream_name>00:002</stream_name>
+                        <start_time>2020-03-02T12:30:00</start_time>
+                        <end_time></end_time>
+                    </assigned_stream>
+                </channel>
+                <channel name="Hparallel">
+                    <description></description>
+                    <assigned_stream>
+                        <recorder_serial>00059</recorder_serial>
+                        <recorder_model>MSS M2</recorder_model>
+                        <recorder_producer>MSS-Team</recorder_producer>
+                        <stream_name>00:001</stream_name>
+                        <start_time>2020-03-02T12:30:00</start_time>
                         <end_time></end_time>
                     </assigned_stream>
                 </channel> 
@@ -6044,6 +6304,37 @@
                         <recorder_producer>MSS-Team</recorder_producer>
                         <stream_name>00:001</stream_name>
                         <start_time>2019-05-21T00:00:00</start_time>
+                        <end_time></end_time>
+                    </assigned_stream>
+                </channel> 
+            </location>
+        </station>
+        <station name="NKJC">
+            <location name="00">
+                <x>16.0961</x>
+                <y>47.7201</y>
+                <z>360</z>
+                <coord_system>epsg:4326</coord_system>
+                <description>Neunkirchen (Jakob)</description>
+                <channel name="Hnormal">
+                    <description></description>
+                    <assigned_stream>
+                        <recorder_serial>00065</recorder_serial>
+                        <recorder_model>MSS M2</recorder_model>
+                        <recorder_producer>MSS-Team</recorder_producer>
+                        <stream_name>00:002</stream_name>
+                        <start_time>2020-05-27T09:00:00</start_time>
+                        <end_time></end_time>
+                    </assigned_stream>
+                </channel>
+                <channel name="Hparallel">
+                    <description></description>
+                    <assigned_stream>
+                        <recorder_serial>00065</recorder_serial>
+                        <recorder_model>MSS M2</recorder_model>
+                        <recorder_producer>MSS-Team</recorder_producer>
+                        <stream_name>00:001</stream_name>
+                        <start_time>2020-05-27T09:00:00</start_time>
                         <end_time></end_time>
                     </assigned_stream>
                 </channel> 
