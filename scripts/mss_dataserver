@@ -39,6 +39,7 @@ import random
 import threading
 
 import asyncio
+import click
 import concurrent.futures
 import websockets
 import obspy
@@ -49,6 +50,7 @@ import sqlalchemy.orm
 import mss_dataserver.core.project
 import mss_dataserver.geometry.inventory_parser as inventory_parser
 import mss_dataserver.monitorclient.monitorclient as monitorclient
+import mss_dataserver.test.util as test_util
 
 
 logger = logging.getLogger('mss_dataserver')
@@ -447,6 +449,19 @@ async def serve_pgv(websocket, path, sl_client):
                              clients_keydata)
 
 
+@click.group()
+@click.argument('config')
+@click.pass_context
+def cli(ctx, config):
+    config = load_configuration(config)
+    logging.basicConfig(level = config['log']['loglevel'],
+                        format = "LOG - %(asctime)s - %(process)d - %(levelname)s - %(name)s: %(message)s")
+
+    project = mss_dataserver.core.project.Project(**config)
+
+    ctx.obj['project'] = project
+
+
 def load_configuration(filename):
     ''' Load the configuration from a file.
     '''
@@ -581,24 +596,47 @@ def start_server(project):
     loop.run_forever()
 
 
-def create_db(project):
+@cli.command()
+@click.pass_context
+def create_db(ctx):
     ''' Create or update the database.
     '''
     logging.info('Creating the database tables.')
+    project = ctx.obj['project']
     project.connect_to_db()
 
     project.create_database_tables()
 
 
-def load_geometry(project):
+@cli.command()
+@click.pass_context
+def load_geometry(ctx):
     ''' Load the geometry inventory file into the database.
     '''
     logging.info('Updateing the database inventory with the XML inventory.')
+    project = ctx.obj['project']
     project.connect_to_db()
-    project.load_inventory()
+    project.load_inventory(update_from_xml = True)
+
+
+@cli.command()
+@click.pass_context
+def clear_db_tables(ctx):
+    ''' Clear the project database tables.
+    '''
+    logging.info('Clearing the project database tables.')
+    project = ctx.obj['project']
+    confirm_delete = click.confirm('Clearing the database tables is irreversible. Do you really want to clear the database tables?')
+    if confirm_delete:
+        logging.info('Clearing the database tables.')
+        test_util.clear_project_database_tables(project)
+    else:
+        logging.info('Relax...everthing stays as it was.')
 
 
 if __name__ == '__main__':
+    cli(obj = {})
+else:
     parser = argparse.ArgumentParser(description = 'MSS Websocket data server.')
     subparsers = parser.add_subparsers(title = 'sub commands',
                                        description = 'valid sub commands')
@@ -616,6 +654,11 @@ if __name__ == '__main__':
     # The load_geometry parser.
     parser_load_geometry = subparsers.add_parser('load_geometry', help = 'Load the geometry inventory from an XML file into the database..')
     parser_load_geometry.set_defaults(func = load_geometry)
+
+    # The clear_database_tables parser.
+    parser_clear_db_tables = subparsers.add_parser('clear_db_tables', help = 'Clear the project database tables.')
+    parser_clear_db_tables.set_defaults(func = clear_db_tables)
+
     args = parser.parse_args()
 
     config = load_configuration(args.config)
