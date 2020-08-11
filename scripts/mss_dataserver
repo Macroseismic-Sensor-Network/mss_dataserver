@@ -456,10 +456,13 @@ def cli(ctx, config):
     config = load_configuration(config)
     logging.basicConfig(level = config['log']['loglevel'],
                         format = "LOG - %(asctime)s - %(process)d - %(levelname)s - %(name)s: %(message)s")
+    logger = logging.getLogger('mss_dataserver')
+    logger.setLevel(config['log']['loglevel'])
 
     project = mss_dataserver.core.project.Project(**config)
 
     ctx.obj['project'] = project
+    ctx.obj['config'] = config
 
 
 def load_configuration(filename):
@@ -503,9 +506,15 @@ def load_configuration(filename):
     return config
 
 
-def start_server(project):
+@cli.command()
+@click.pass_context
+def start_server(ctx):
     ''' Start the websocket data server.
     '''
+    logging.info('Starting the server.')
+    project = ctx.obj['project']
+    config = ctx.obj['config']
+
     project.connect_to_db()
     project.load_inventory()
 
@@ -586,13 +595,12 @@ def start_server(project):
     logging.info('Starting WS server.')
     loop.run_until_complete(start_ws_server)
     loop.create_task(client.task_timer(client.process_monitor_stream))
-    #loop.create_task(client.task_timer(client.detect_event))
-    loop.create_task(serve_keydata(client))
-    loop.create_task(serve_data(client))
-    loop.create_task(serve_detection_result(client))
-    loop.create_task(serve_event_data(client))
-    loop.create_task(serve_event_archive(client))
-    loop.create_task(serve_event_warning(client))
+    #loop.create_task(serve_keydata(client))
+    #loop.create_task(serve_data(client))
+    #loop.create_task(serve_detection_result(client))
+    #loop.create_task(serve_event_data(client))
+    #loop.create_task(serve_event_archive(client))
+    #loop.create_task(serve_event_warning(client))
     loop.run_forever()
 
 
