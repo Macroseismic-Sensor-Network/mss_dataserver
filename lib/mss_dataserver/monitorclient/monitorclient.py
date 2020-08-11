@@ -44,6 +44,7 @@ import scipy.spatial
 
 import mss_dataserver.event.core as event_core
 import mss_dataserver.event.detection as event_detection
+import mss_dataserver.event.delaunay_detection as event_ddet
 
 
 class EasySeedLinkClientException(Exception):
@@ -70,7 +71,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         easyseedlink.EasySeedLinkClient.__init__(self,
                                                  server_url = server_url,
                                                  autoconnect = autoconnect)
-        self.logger = logging.getLogger('mss_data_server')
+        logger_name = __name__ + "." + self.__class__.__name__
+        self.logger = logging.getLogger(logger_name)
 
         # The project instance.
         self.project = project
@@ -158,13 +160,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # The delaunay detector instance.
         all_stations = self.inventory.get_station()
-        self.detector = ddet.DelaunayDetector(network_stations = all_stations,
-                                              trigger_thr = self.trigger_thr,
-                                              window_length = 10,
-                                              safety_time = 10,
-                                              p_vel = 3500,
-                                              min_trigger_window = 3,
-                                              max_edge_length = 40000)
+        self.detector = event_ddet.DelaunayDetector(network_stations = all_stations,
+                                                    trigger_thr = self.trigger_thr,
+                                                    window_length = 10,
+                                                    safety_time = 10,
+                                                    p_vel = 3500,
+                                                    min_trigger_window = 3,
+                                                    max_edge_length = 40000)
 
         self.recorder_map = self.get_recorder_mappings(station_nsl = self.stations)
 
@@ -428,8 +430,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         first warning notification of a possible event. The warning has
         has to be confirmed by a detected event.
         '''
-        logger = logging.getLogger('mss_data_server.detect_event_warning')
-        logger.info("Running detect_event_warning.")
+        self.logger.info("Running detect_event_warning.")
         now = obspy.UTCDateTime()
 
         with self.stream_lock:
@@ -485,8 +486,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     def detect_event(self):
         ''' Run the Voronoi event detection.
         '''
-        logger = logging.getLogger('mss_data_server.detect_event')
-        logger.info('Running the event detection.')
+        self.logger.info('Running the event detection.')
         detect_win_length = 10
         safety_win = 10
         trigger_thr = self.trigger_thr
@@ -498,22 +498,23 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.logger.info("event detection working_stream: %s", working_stream)
 
         # Run the Delaunay detection.
-        detector.init_detection_run(stream = working_stream)
-        detector.compute_trigger_data()
-        detector.evaluate_event_trigger()
+        self.detector.init_detection_run(stream = working_stream)
+        if self.detector.detection_run_initialized:
+            self.detector.compute_trigger_data()
+            self.detector.evaluate_event_trigger()
 
-        # Evaluate the detection result.
-        if detector.new_event_available:
-            self.current_event = self.detector.get_event()
-            self.event_data_available.set()
+            # Evaluate the detection result.
+            if self.detector.new_event_available:
+                self.current_event = self.detector.get_event()
+                self.event_data_available.set()
 
-            if self.current_event.detection_state == 'closed':
-                # Write the event to the database.
-                self.current_event.write_to_database(self.project)
-                # Clear the event instance.
-                self.current_event = None
-                # Clear the detector flag.
-                self.detector.new_event_available = False
+                if self.current_event.detection_state == 'closed':
+                    # Write the event to the database.
+                    self.current_event.write_to_database(self.project)
+                    # Clear the event instance.
+                    self.current_event = None
+                    # Clear the detector flag.
+                    self.detector.new_event_available = False
 
     def detect_event_old(self):
         ''' Run the Voronoi event detections.
@@ -906,10 +907,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.trim_archive()
 
             # Start the event alarm detection using the most recent pgv values.
-            try:
-                self.detect_event_warning()
-            except Exception as e:
-                self.logger.exception("Error computing the event warning.")
+            #try:
+            #    self.detect_event_warning()
+            #except Exception as e:
+            #    self.logger.exception("Error computing the event warning.")
 
             # Signal available PGV data.
             self.pgv_data_available.set()
