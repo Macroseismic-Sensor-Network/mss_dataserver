@@ -594,7 +594,7 @@ def load_geometry(project):
     ''' Load the geometry inventory file into the database.
     '''
     logging.info('Updateing the database inventory with the XML inventory.')
-
+    project.connect_to_db()
     project.load_inventory()
 
 
