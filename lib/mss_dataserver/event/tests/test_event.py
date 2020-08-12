@@ -37,7 +37,7 @@ from obspy.core.utcdatetime import UTCDateTime
 import mss_dataserver
 from mss_dataserver.event.core import Event
 import mss_dataserver.event.detection as detection
-import mss_dataserver.core.test_util as test_util
+import mss_dataserver.test.util as test_util
 
 
 class EventTestCase(unittest.TestCase):
@@ -52,9 +52,7 @@ class EventTestCase(unittest.TestCase):
 
         cls.project = test_util.create_db_test_project()
         test_util.clear_project_database_tables(cls.project)
-        #test_util.drop_project_database_tables(cls.project)
-        #cls.project.create_database_tables()
-        cls.project.load_inventory()
+        cls.project.load_inventory(update_from_xml = True)
 
     @classmethod
     def tearDownClass(cls):
@@ -62,9 +60,10 @@ class EventTestCase(unittest.TestCase):
         pass
 
     def setUp(self):
-        test_util.clear_project_database_tables(self.project,
-                                                tables = ['event',
-                                                          'detection'])
+        #test_util.clear_project_database_tables(self.project,
+        #                                        tables = ['event',
+        #                                                  'detection'])
+        pass
 
     def tearDown(self):
         pass
@@ -117,7 +116,9 @@ class EventTestCase(unittest.TestCase):
                                   end_time = end_time,
                                   creation_time = creation_time,
                                   stations = [stat1, stat2, stat3],
-                                  max_pgv = [0.1, 0.2, 0.3])
+                                  max_pgv = {stat1.snl_string: 0.1,
+                                             stat2.snl_string: 0.2,
+                                             stat3.snl_string: 0.3})
 
         # Create an event.
         start_time = '2000-01-01T00:00:00'
@@ -178,7 +179,9 @@ class EventTestCase(unittest.TestCase):
                                   end_time = end_time,
                                   creation_time = creation_time,
                                   stations = [stat1, stat2, stat3],
-                                  max_pgv = [0.1, 0.2, 0.3])
+                                  max_pgv = {stat1.snl_string: 0.1,
+                                             stat2.snl_string: 0.2,
+                                             stat3.snl_string: 0.3})
         # Write the detection to the database. Only detections in a database
         # can be associated with the event in the database.
         det.write_to_database(self.project)
@@ -235,7 +238,9 @@ class EventTestCase(unittest.TestCase):
                                    end_time = end_time,
                                    creation_time = creation_time,
                                    stations = [stat_11, stat_12, stat_13],
-                                   max_pgv = [0.1, 0.2, 0.3])
+                                   max_pgv = {stat_11.snl_string: 0.1,
+                                              stat_12.snl_string: 0.2,
+                                              stat_13.snl_string: 0.3})
         det1.write_to_database(self.project)
 
         stat_21 = inventory.get_station(name = 'HOWA')[0]
@@ -246,7 +251,9 @@ class EventTestCase(unittest.TestCase):
                                    end_time = end_time,
                                    creation_time = creation_time,
                                    stations = [stat_21, stat_22, stat_23],
-                                   max_pgv = [0.11, 0.22, 0.33])
+                                   max_pgv = {stat_21.snl_string: 0.11,
+                                              stat_22.snl_string: 0.22,
+                                              stat_23.snl_string: 0.33})
         det2.write_to_database(self.project)
 
         # Create an event.
