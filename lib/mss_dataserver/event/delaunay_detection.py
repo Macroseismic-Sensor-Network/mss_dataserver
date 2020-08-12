@@ -119,6 +119,7 @@ class DelaunayDetector(object):
     def init_detection_run(self, stream):
         ''' Initialize a new detection run.
         '''
+        self.logger.info('Initializing the detection run.')
         self.trigger_data = []
         if self.detect_stream is not None:
             del self.detect_stream
@@ -136,6 +137,10 @@ class DelaunayDetector(object):
                 self.detection_run_initialized = True
             else:
                 self.detection_run_initialized = False
+            self.logger.debug('detect_stations: %s', self.detect_stations)
+            self.logger.debug('tri: %s', self.tri)
+            self.logger.debug('edge_length: %s', self.edge_length)
+            self.logger.debug('detection_run_initialized: %s', self.detection_run_initialized)
 
 
     def compute_max_time_window(self):
@@ -200,6 +205,7 @@ class DelaunayDetector(object):
         min_delta = np.min([x.stats.delta for x in stream])
         detect_win_end = ((max_end_time.timestamp + min_delta) - self.safety_time) // self.window_length * self.window_length
         detect_win_end = obspy.UTCDateTime(detect_win_end) - min_delta
+        self.logger.info("max_time_window: %s", self.max_time_window)
         self.logger.info("detect_win_start: %s", detect_win_start)
         self.logger.info("detect_win_end: %s", detect_win_end)
 
@@ -268,22 +274,22 @@ class DelaunayDetector(object):
         pgv = []
         time = []
         for cur_trace in tri_stream:
-            self.logger.debug("cur_trace.id: %s", cur_trace.id)
-            self.logger.debug("time_window: %s", time_window)
+            self.logger.info("cur_trace.id: %s", cur_trace.id)
+            self.logger.info("time_window: %s", time_window)
             cur_win_length = int(np.floor(time_window * cur_trace.stats.sampling_rate))
             cur_offset = int(np.floor(offset * cur_trace.stats.sampling_rate))
-            self.logger.debug("cur_offset: %s", cur_offset)
-            self.logger.debug("cur_win_length: %d", cur_win_length)
-            self.logger.debug("cur_trace.data: %s", cur_trace.data)
+            self.logger.info("cur_offset: %s", cur_offset)
+            self.logger.info("cur_win_length: %d", cur_win_length)
+            self.logger.info("cur_trace.data: %s", cur_trace.data)
             if len(cur_trace.data) < cur_win_length:
                 self.logger.error("The data size is smaller than the window length.")
                 continue
             # Create overlapping windows with the computed length with 1 sample
             # step size.
             cur_data = strided_app(cur_trace.data, cur_win_length, 1)
-            self.logger.debug("cur_data: %s", cur_data)
+            self.logger.info("cur_data: %s", cur_data)
             cur_max_pgv = np.max(cur_data, axis = 1)
-            self.logger.debug("cur_max_pgv: %s", cur_max_pgv)
+            self.logger.info("cur_max_pgv: %s", cur_max_pgv)
             # Set max. PGV sample is assigned to the last time of the
             # computation window. I'm using the past data values to compute the
             # max. PGV of a given time value.
@@ -309,6 +315,7 @@ class DelaunayDetector(object):
     def compute_trigger_data(self):
         ''' Compute the trigger data for all Delaunay triangles.
         '''
+        self.logger.info("Computing the trigger data.")
         self.trigger_data = []
         if self.tri is not None:
             for cur_simp in self.tri.simplices:
@@ -330,6 +337,8 @@ class DelaunayDetector(object):
                         tmp['pgv'] = cur_pgv
                         tmp['trigger'] = cur_trig
                         self.trigger_data.append(tmp)
+        else:
+            self.logger.warning("The delaunay triangles are not available.")
 
     def check_for_event_trigger(self):
         ''' Compute if an event trigger is available.
@@ -355,6 +364,7 @@ class DelaunayDetector(object):
     def evaluate_event_trigger(self):
         ''' Evaluate the event trigger data and declare or update an event.
         '''
+        self.logger.info("Evaluating the event trigger.")
         trigger_start, trigger_end = self.check_for_event_trigger()
         self.logger.info("trigger_start: %s", trigger_start)
         self.logger.info("trigger_end: %s", trigger_end)
@@ -427,9 +437,10 @@ class DelaunayDetector(object):
             keep_listening = self.max_time_window
             if (self.last_detection_end - self.current_event.end_time) > keep_listening:
                 self.logger.info("Closing an event.")
-                self.logger.info("keep_listening: %s", keep_listening)
                 self.event_triggered = False
                 self.current_event.detection_state = 'closed'
+            else:
+                self.logger.info("Event is over, but keep_listening: %s", keep_listening)
 
     def get_event(self):
         ''' Return a copy of the current event.
