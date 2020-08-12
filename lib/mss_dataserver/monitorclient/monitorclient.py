@@ -515,6 +515,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     self.current_event = None
                     # Clear the detector flag.
                     self.detector.new_event_available = False
+        else:
+            self.logger.warning("Failed to initialize the detection run.")
 
     def detect_event_old(self):
         ''' Run the Voronoi event detections.
