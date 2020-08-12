@@ -53,7 +53,7 @@ class DelaunayDetectorTestCase(unittest.TestCase):
 
         cls.project = test_util.create_db_test_project()
         test_util.clear_project_database_tables(cls.project)
-        cls.project.load_inventory()
+        cls.project.load_inventory(update_from_xml = True)
 
     @classmethod
     def tearDownClass(cls):
