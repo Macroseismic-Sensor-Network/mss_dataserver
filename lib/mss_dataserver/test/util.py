@@ -111,5 +111,5 @@ def create_db_test_project():
         print("Error when dropping the database tables.")
     project.connect_to_db()
     project.create_database_tables()
-    project.load_inventory()
+    project.load_inventory(update_from_xml = True)
     return project
