@@ -236,6 +236,23 @@ class Project(object):
 
             self.logger.info("Updated the database inventory with data read from %s.", inventory_file)
 
+    def get_event_catalog(self, name):
+        ''' Get an event catalog.
+        '''
+        if name in self.event_library.catalogs.keys():
+            self.logger.info("Using an already existing catalog in the library.")
+            cur_cat = self.event_library.catalogs[name]
+        else:
+            ev_catalogs = self.event_library.get_catalogs_in_db(project = self)
+            if name not in ev_catalogs:
+                self.logger.info("Creating a new event catalog.")
+                cur_cat = self.project.create_event_catalog(name = name)
+            else:
+                self.logger.info("Loading the event catalog from database.")
+                cur_cat = self.project.load_event_catalog(name = name,
+                                                          load_events = True)
+        return cur_cat
+
     def get_event_catalog_names(self):
         ''' Get the event catalog names available in the database.
         '''
