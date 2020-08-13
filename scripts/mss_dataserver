@@ -54,7 +54,6 @@ import mss_dataserver.test.util as test_util
 
 logger = logging.getLogger('mss_dataserver')
 logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler())
 
 
 # The clients connected to the server.
@@ -138,32 +137,32 @@ async def register_pgv_client(websocket, sl_client):
         await websocket.send(msg)
 
         # Send the current event if it exists.
-        payload = sl_client.get_current_event()
+        #payload = sl_client.get_current_event()
 
-        if payload:
-            msg = {}
-            msg['class'] = msg_class['data']
-            msg['id'] = msg_data_id['event_data']
-            msg['payload'] = payload
+        #if payload:
+        #    msg = {}
+        #    msg['class'] = msg_class['data']
+        #    msg['id'] = msg_data_id['event_data']
+        #    msg['payload'] = payload
 
-            logging.info("Sending the current event.")
-            # Send the archived PGV data.
-            msg = json.dumps(msg, allow_nan = False)
-            await websocket.send(msg)
+        #    logging.info("Sending the current event.")
+        #    # Send the archived PGV data.
+        #    msg = json.dumps(msg, allow_nan = False)
+        #    await websocket.send(msg)
 
         # Send the event archive if it exists.
-        payload = sl_client.get_event_archive()
+        #payload = sl_client.get_event_archive()
 
-        if payload:
-            msg = {}
-            msg['class'] = msg_class['data']
-            msg['id'] = msg_data_id['event_archive']
-            msg['payload'] = payload
+        #if payload:
+        #    msg = {}
+        #    msg['class'] = msg_class['data']
+        #    msg['id'] = msg_data_id['event_archive']
+        #    msg['payload'] = payload
 
-            logging.info("Sending the event archive.")
-            # Send the archived PGV data.
-            msg = json.dumps(msg, allow_nan = False)
-            await websocket.send(msg)
+        #    logging.info("Sending the event archive.")
+        #    # Send the archived PGV data.
+        #    msg = json.dumps(msg, allow_nan = False)
+        #    await websocket.send(msg)
 
         # The client has been registered and the archive has been sent,
         # now add the websocket to the known clients.
