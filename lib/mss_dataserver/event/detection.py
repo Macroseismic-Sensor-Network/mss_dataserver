@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import logging
+
 import mss_dataserver.geometry.db_inventory as db_inventory
 import obspy.core.utcdatetime as utcdatetime
 
@@ -156,9 +158,9 @@ class Detection(object):
                                             stat1_id = self.stations[0].id,
                                             stat2_id = self.stations[1].id,
                                             stat3_id = self.stations[2].id,
-                                            max_pgv1 = self.max_pgv[self.stations[0].snl_string],
-                                            max_pgv2 = self.max_pgv[self.stations[1].snl_string],
-                                            max_pgv3 = self.max_pgv[self.stations[2].snl_string],
+                                            max_pgv1 = float(self.max_pgv[self.stations[0].snl_string]),
+                                            max_pgv2 = float(self.max_pgv[self.stations[1].snl_string]),
+                                            max_pgv3 = float(self.max_pgv[self.stations[2].snl_string]),
                                             agency_uri = self.agency_uri,
                                             author_uri = self.author_uri,
                                             creation_time = creation_time)
@@ -262,9 +264,8 @@ class Catalog(object):
         ''' Instance initialization.
         '''
         # The logging logger instance.
-        logger_prefix = psysmon.logConfig['package_prefix']
-        loggerName = logger_prefix + "." + __name__ + "." + self.__class__.__name__
-        self.logger = logging.getLogger(loggerName)
+        logger_name = __name__ + "." + self.__class__.__name__
+        self.logger = logging.getLogger(logger_name)
 
         # The unique database ID.
         self.db_id = db_id
@@ -616,7 +617,7 @@ class Library(object):
         name : String or list of Strings
             The name of the catalog to load from the database.
         '''
-        if isinstance(name, basestring):
+        if isinstance(name, str):
             name = [name, ]
 
         db_session = project.get_db_session()
