@@ -27,7 +27,6 @@
 
 # Websocket example to test the connection with javascript using vue.js.
 
-import argparse
 import configparser
 import copy
 import datetime
@@ -644,36 +643,3 @@ def clear_db_tables(ctx):
 
 if __name__ == '__main__':
     cli(obj = {})
-else:
-    parser = argparse.ArgumentParser(description = 'MSS Websocket data server.')
-    subparsers = parser.add_subparsers(title = 'sub commands',
-                                       description = 'valid sub commands')
-    parser.add_argument('config', help = 'The name of the configuration file.',
-                        type = str)
-
-    # The run parser.
-    parser_run = subparsers.add_parser('run', help = 'Run the mss_dataserver.')
-    parser_run.set_defaults(func = start_server)
-
-    # The create_db parser.
-    parser_create_db = subparsers.add_parser('create_db', help = 'Create the database tables.')
-    parser_create_db.set_defaults(func = create_db)
-
-    # The load_geometry parser.
-    parser_load_geometry = subparsers.add_parser('load_geometry', help = 'Load the geometry inventory from an XML file into the database..')
-    parser_load_geometry.set_defaults(func = load_geometry)
-
-    # The clear_database_tables parser.
-    parser_clear_db_tables = subparsers.add_parser('clear_db_tables', help = 'Clear the project database tables.')
-    parser_clear_db_tables.set_defaults(func = clear_db_tables)
-
-    args = parser.parse_args()
-
-    config = load_configuration(args.config)
-    logging.basicConfig(level = config['log']['loglevel'],
-                        format = "LOG - %(asctime)s - %(process)d - %(levelname)s - %(name)s: %(message)s")
-
-    project = mss_dataserver.core.project.Project(**config)
-    logging.info(project)
-
-    args.func(project)
