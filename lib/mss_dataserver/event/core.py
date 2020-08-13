@@ -589,7 +589,7 @@ class Catalog(object):
 
 
     @classmethod
-    def from_orm(cls, db_catalog, load_events = False):
+    def from_orm(cls, db_catalog, inventory, load_events = False):
         ''' Convert a database orm mapper catalog to a catalog.
 
         Parameters
@@ -612,7 +612,8 @@ class Catalog(object):
         # Add the events to the catalog.
         if load_events is True:
             for cur_db_event in db_catalog.events:
-                cur_event = Event.from_orm(cur_db_event)
+                cur_event = Event.from_orm(db_event = cur_db_event,
+                                           inventory = inventory)
                 catalog.add_events([cur_event,])
         return catalog
 
@@ -720,7 +721,9 @@ class Library(object):
             query = db_session.query(db_catalog_orm).filter(db_catalog_orm.name.in_(name))
             if db_session.query(query.exists()):
                 for cur_db_catalog in query:
-                    cur_catalog = Catalog.from_orm(cur_db_catalog, load_events)
+                    cur_catalog = Catalog.from_orm(db_catalog = cur_db_catalog,
+                                                   load_events = load_events,
+                                                   inventory = project.inventory)
                     self.add_catalog(cur_catalog)
         finally:
             db_session.close()
