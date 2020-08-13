@@ -166,7 +166,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                     safety_time = 10,
                                                     p_vel = 3500,
                                                     min_trigger_window = 3,
-                                                    max_edge_length = 40000)
+                                                    max_edge_length = 40000,
+                                                    author_uri = self.project.project_config['author_uri'],
+                                                    agency_uri = self.project.project_config['agency_uri'])
 
         self.recorder_map = self.get_recorder_mappings(station_nsl = self.stations)
 
@@ -509,6 +511,33 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.event_data_available.set()
 
                 if self.current_event.detection_state == 'closed':
+                    # Get or create the event catalog and add the event to it.
+                    cat_name = "{0:04d}-{1:02d}-{2:02d}".format(self.current_event.start_time.year,
+                                                                self.current_event.start_time.month,
+                                                                self.current_event.start_time.day)
+                    ev_catalogs = self.project.get_event_catalog_names()
+                    if cat_name not in ev_catalogs:
+                        cur_cat = self.project.create_event_catalog(name = cat_name)
+                    else:
+                        cur_cat = self.project.load_event_catalog(name = cat_name)
+                    cur_cat.add_events([self.current_event, ])
+
+
+                    # Get or create the detection catalog and add the event
+                    # detections to it.
+                    det_catalogs = self.project.get_detection_catalog_names()
+                    if cat_name not in det_catalogs:
+                        cur_det_cat = self.project.create_detection_catalog(name = cat_name)
+                    else:
+                        cur_det_cat = self.project.load_detection_catalog(name = cat_name)
+                    cur_det_cat.add_detections(self.current_event.detections)
+
+                    # Write the detections to the database. This has to be done
+                    # separately. Adding the detection to the event and then
+                    # writing the event to the database doesn't write the
+                    # detections to the database.
+                    for cur_detection in self.current_event.detections:
+                        cur_detection.write_to_database(self.project)
                     # Write the event to the database.
                     self.current_event.write_to_database(self.project)
                     # Clear the event instance.
