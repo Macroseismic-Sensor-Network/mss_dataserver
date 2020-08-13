@@ -77,6 +77,12 @@ class Project(object):
         # The geometry inventory.
         self.db_inventory = None
 
+        # The events library.
+        self.event_library = event.core.Library(name = 'mss events')
+
+        # The detections library.
+        self.detection_library = event.detection.Library(name = 'mss detections')
+
 
     @property
     def inventory(self):
@@ -229,3 +235,57 @@ class Project(object):
             self.db_inventory.commit()
 
             self.logger.info("Updated the database inventory with data read from %s.", inventory_file)
+
+    def get_event_catalog_names(self):
+        ''' Get the event catalog names available in the database.
+        '''
+        return self.event_library.get_catalogs_in_db(project = self)
+
+    def create_event_catalog(self, name, description = ''):
+        ''' Create an event catalog in the database.
+        '''
+        cat = event.core.Catalog(name = name,
+                                 description = description,
+                                 agency_uri = self.agency_uri,
+                                 author_uri = self.author_uri)
+        cat.write_to_database(self)
+        return cat
+
+    def load_event_catalog(self, name, load_events = False):
+        ''' Load an event catalog from the database.
+        '''
+        self.event_library.load_catalog_from_db(project = self,
+                                                name = name,
+                                                load_events = load_events)
+        cat = None
+        if name in self.event_library.catalogs.keys():
+            cat = self.event_library.catalogs[name]
+
+        return cat
+
+    def get_detection_catalog_names(self):
+        ''' Get the detection catalog names available in the database.
+        '''
+        return self.detection_library.get_catalogs_in_db(project = self)
+
+    def create_detection_catalog(self, name, description = ''):
+        ''' Create an detection catalog in the database.
+        '''
+        cat = event.detection.Catalog(name = name,
+                                      description = description,
+                                      agency_uri = self.agency_uri,
+                                      author_uri = self.author_uri)
+        cat.write_to_database(self)
+        return cat
+
+    def load_detection_catalog(self, name, load_detections = False):
+        ''' Load a detection catalog from the database.
+        '''
+        self.detection_library.load_catalog_from_db(project = self,
+                                                    name = name,
+                                                    load_detections = load_detections)
+        cat = None
+        if name in self.detection_library.catalogs.keys():
+            cat = self.detection_library.catalogs[name]
+
+        return cat
