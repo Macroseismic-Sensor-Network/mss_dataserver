@@ -25,7 +25,6 @@
 
 from builtins import str
 from builtins import zip
-from past.builtins import basestring
 from builtins import object
 import itertools
 import logging
@@ -284,8 +283,8 @@ class Event(object):
         ''' Get an orm representation to use it for bulk insertion into
         the database.
         '''
-        db_event_orm_class = project.dbTables['event']
-        d2e_orm_class = project.dbTables['detection_to_event']
+        db_event_orm_class = project.db_tables['event']
+        d2e_orm_class = project.db_tables['detection_to_event']
 
         if self.creation_time is not None:
             cur_creation_time = self.creation_time.isoformat()
@@ -367,9 +366,8 @@ class Catalog(object):
         ''' Instance initialization.
         '''
         # The logging logger instance.
-        logger_prefix = psysmon.logConfig['package_prefix']
-        loggerName = logger_prefix + "." + __name__ + "." + self.__class__.__name__
-        self.logger = logging.getLogger(loggerName)
+        logger_name = __name__ + "." + self.__class__.__name__
+        self.logger = logging.getLogger(logger_name)
 
         # The unique database ID.
         self.db_id = db_id
@@ -388,9 +386,9 @@ class Catalog(object):
 
         # The time of creation of this event.
         if creation_time is None:
-            self.creation_time = utcdatetime.UTCDateTime();
+            self.creation_time = utcdatetime.UTCDateTime()
         else:
-            self.creation_time = utcdatetime.UTCDateTime(creation_time);
+            self.creation_time = utcdatetime.UTCDateTime(creation_time)
 
         # The events of the catalog.
         if events is None:
@@ -459,8 +457,8 @@ class Catalog(object):
             else:
                 creation_time = None
 
-            db_session = project.getDbSession()
-            db_catalog_orm = project.dbTables['event_catalog']
+            db_session = project.get_db_session()
+            db_catalog_orm = project.db_tables['event_catalog']
             db_catalog = db_catalog_orm(name = self.name,
                                     description = self.description,
                                     agency_uri = self.agency_uri,
@@ -474,8 +472,8 @@ class Catalog(object):
 
         else:
             # If the db_id is not None, update the existing event.
-            db_session = project.getDbSession()
-            db_catalog_orm = project.dbTables['event_catalog']
+            db_session = project.get_db_session()
+            db_catalog_orm = project.db_tables['event_catalog']
             query = db_session.query(db_catalog_orm).filter(db_catalog_orm.id == self.db_id)
             if db_session.query(query.exists()):
                 db_catalog = query.scalar()
@@ -498,7 +496,7 @@ class Catalog(object):
         # Write or update all events of the catalog to the database.
         if bulk_insert:
             db_data = self.get_events_db_data(project = project)
-            db_session = project.getDbSession()
+            db_session = project.get_db_session()
             try:
                 assigned_detections = [x.detections for x in db_data]
 
@@ -543,9 +541,9 @@ class Catalog(object):
         if project is None:
             raise RuntimeError("The project is None. Can't query the database without a project.")
 
-        db_session = project.getDbSession()
+        db_session = project.get_db_session()
         try:
-            events_table = project.dbTables['event']
+            events_table = project.db_tables['event']
             query = db_session.query(events_table).\
                     filter(events_table.ev_catalog_id == self.db_id)
 
@@ -690,9 +688,9 @@ class Library(object):
             The available catalog names in the database.
         '''
         catalog_names = []
-        db_session = project.getDbSession()
+        db_session = project.get_db_session()
         try:
-            db_catalog_orm = project.dbTables['event_catalog']
+            db_catalog_orm = project.db_tables['event_catalog']
             query = db_session.query(db_catalog_orm)
             if db_session.query(query.exists()):
                 catalog_names = [x.name for x in query.order_by(db_catalog_orm.name)]
@@ -713,12 +711,12 @@ class Library(object):
         name : String or list of Strings
             The name of the catalog to load from the database.
         '''
-        if isinstance(name, basestring):
+        if isinstance(name, str):
             name = [name, ]
 
-        db_session = project.getDbSession()
+        db_session = project.get_db_session()
         try:
-            db_catalog_orm = project.dbTables['event_catalog']
+            db_catalog_orm = project.db_tables['event_catalog']
             query = db_session.query(db_catalog_orm).filter(db_catalog_orm.name.in_(name))
             if db_session.query(query.exists()):
                 for cur_db_catalog in query:
