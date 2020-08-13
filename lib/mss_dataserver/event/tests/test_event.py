@@ -35,6 +35,7 @@ import os
 from obspy.core.utcdatetime import UTCDateTime
 
 import mss_dataserver
+import mss_dataserver.event.core as ev_core
 from mss_dataserver.event.core import Event
 import mss_dataserver.event.detection as detection
 import mss_dataserver.test.util as test_util
@@ -301,6 +302,42 @@ class EventTestCase(unittest.TestCase):
                              stat_23.snl)
         finally:
             db_session.close()
+
+
+    def test_event_library(self):
+        ''' Test event library and event catalogs.
+        '''
+        catalogs = self.project.get_event_catalog_names()
+        self.assertEqual(catalogs, [])
+
+        cat = self.project.create_event_catalog(name = 'test name',
+                                                description = 'test description')
+
+        catalogs = self.project.get_event_catalog_names()
+        self.assertEqual(catalogs, ['test name'])
+
+        cat = self.project.load_event_catalog(name = 'test name')
+        self.assertIsNotNone(cat)
+        self.assertEqual(cat.name, 'test name')
+        self.assertEqual(cat.description, 'test description')
+
+    def test_detection_library(self):
+        ''' Test detection library and detection catalogs.
+        '''
+        catalogs = self.project.get_detection_catalog_names()
+        self.assertEqual(catalogs, [])
+
+        cat = self.project.create_detection_catalog(name = 'test name',
+                                                    description = 'test description')
+
+        catalogs = self.project.get_detection_catalog_names()
+        self.assertEqual(catalogs, ['test name'])
+
+        cat = self.project.load_detection_catalog(name = 'test name')
+        self.assertIsNotNone(cat)
+        self.assertEqual(cat.name, 'test name')
+        self.assertEqual(cat.description, 'test description')
+
 
 def suite():
 #    tests = ['testXmlImport']
