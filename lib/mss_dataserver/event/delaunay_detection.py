@@ -50,7 +50,8 @@ class DelaunayDetector(object):
                  agency_uri = ''):
         ''' Initialization of the instance.
         '''
-        self.logger = logging.getLogger('mss_dataserver')
+        logger_name = __name__ + "." + self.__class__.__name__
+        self.logger = logging.getLogger(logger_name)
 
         # All available network stations.
         self.network_stations = network_stations
@@ -195,11 +196,11 @@ class DelaunayDetector(object):
         '''
         self.logger.info("passed stream: %s", stream)
         max_end_time = np.max([x.stats.endtime for x in stream])
+        # Assume, that all traces have the same sampling rate.
+        sps = stream[0].stats.sampling_rate
         if self.last_detection_end is None:
             detect_win_start = np.min([x.stats.starttime for x in stream])
         else:
-            # Assume, that all traces have the same sampling rate.
-            sps = stream[0].stats.sampling_rate
             detect_win_start = self.last_detection_end + 1 / sps
 
         min_delta = np.min([x.stats.delta for x in stream])
@@ -209,7 +210,7 @@ class DelaunayDetector(object):
         self.logger.info("detect_win_start: %s", detect_win_start)
         self.logger.info("detect_win_end: %s", detect_win_end)
 
-        if (detect_win_end - detect_win_start) < self.window_length:
+        if (detect_win_end - detect_win_start) <  (self.window_length - 1/sps):
             self.logger.warning("The length of the available data is smaller than the detection window length. Skipping the preparation of the detection stream.")
             self.detect_stream = None
         else:
@@ -274,22 +275,22 @@ class DelaunayDetector(object):
         pgv = []
         time = []
         for cur_trace in tri_stream:
-            self.logger.info("cur_trace.id: %s", cur_trace.id)
-            self.logger.info("time_window: %s", time_window)
+            self.logger.debug("cur_trace.id: %s", cur_trace.id)
+            self.logger.debug("time_window: %s", time_window)
             cur_win_length = int(np.floor(time_window * cur_trace.stats.sampling_rate))
             cur_offset = int(np.floor(offset * cur_trace.stats.sampling_rate))
-            self.logger.info("cur_offset: %s", cur_offset)
-            self.logger.info("cur_win_length: %d", cur_win_length)
-            self.logger.info("cur_trace.data: %s", cur_trace.data)
+            self.logger.debug("cur_offset: %s", cur_offset)
+            self.logger.debug("cur_win_length: %d", cur_win_length)
+            self.logger.debug("cur_trace.data: %s", cur_trace.data)
             if len(cur_trace.data) < cur_win_length:
                 self.logger.error("The data size is smaller than the window length.")
                 continue
             # Create overlapping windows with the computed length with 1 sample
             # step size.
             cur_data = strided_app(cur_trace.data, cur_win_length, 1)
-            self.logger.info("cur_data: %s", cur_data)
+            self.logger.debug("cur_data: %s", cur_data)
             cur_max_pgv = np.max(cur_data, axis = 1)
-            self.logger.info("cur_max_pgv: %s", cur_max_pgv)
+            self.logger.debug("cur_max_pgv: %s", cur_max_pgv)
             # Set max. PGV sample is assigned to the last time of the
             # computation window. I'm using the past data values to compute the
             # max. PGV of a given time value.
@@ -388,7 +389,9 @@ class DelaunayDetector(object):
                                                               stations = cur_simp_stations,
                                                               max_pgv = {cur_simp_stations[0].snl_string: max_pgv[0],
                                                                          cur_simp_stations[1].snl_string: max_pgv[1],
-                                                                         cur_simp_stations[2].snl_string: max_pgv[2]})
+                                                                         cur_simp_stations[2].snl_string: max_pgv[2]},
+                                                              author_uri = self.author_uri,
+                                                              agency_uri = self.agency_uri)
                     cur_event.add_detection(cur_detection)
 
                 self.current_event = cur_event
@@ -427,7 +430,9 @@ class DelaunayDetector(object):
                                                               stations = cur_simp_stations,
                                                               max_pgv = {cur_simp_stations[0].snl_string: max_pgv[0],
                                                                          cur_simp_stations[1].snl_string: max_pgv[1],
-                                                                         cur_simp_stations[2].snl_string: max_pgv[2]})
+                                                                         cur_simp_stations[2].snl_string: max_pgv[2]},
+                                                              author_uri = self.author_uri,
+                                                              agency_uri = self.agency_uri)
                     self.current_event.add_detection(cur_detection)
 
         # Check if the event has to be closed because the time from the event
