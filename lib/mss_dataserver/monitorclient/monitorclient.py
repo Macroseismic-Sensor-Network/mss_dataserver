@@ -182,7 +182,24 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                cur_mss[2] + cur_mss[3])
 
         # Load the archived data.
-        self.load_from_archive()
+        self.load_archive_catalogs(days = 2)
+
+    def load_archive_catalogs(self, days = 2):
+        ''' Load the event catalogs of the specified last days.
+        '''
+        print("load_archive_catalogs")
+        now = utcdatetime.UTCDateTime()
+        for k in range(days):
+            cur_cat_date = now - k * 86400
+            cur_name = "{0:04d}-{1:02d}-{2:02d}".format(cur_cat_date.year,
+                                                        cur_cat_date.month,
+                                                        cur_cat_date.day)
+            cur_cat = self.project.load_event_catalog(name = cur_name,
+                                                      load_events = True)
+            if cur_cat:
+                self.logger.info("events in catalog: %s", cur_cat.events)
+            self.logger.info("Catalog keys: %s", self.project.event_library.catalogs.keys())
+
 
     def load_archive_file(self):
         ''' Load data from the JSON archive file.
@@ -475,15 +492,15 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.event_warning['simp_stations'] = simp_stations[mask]
             self.event_warning['trigger_pgv'] = trigger_pgv[mask]
             self.event_warning_available.set()
-            logger.info("Event warning issued.")
-            logger.debug("Event warning data: %s.", self.event_warning)
+            self.logger.info("Event warning issued.")
+            self.logger.debug("Event warning data: %s.", self.event_warning)
         else:
             self.event_warning['time'] = now
             self.event_warning['simp_stations'] = np.array([])
             self.event_warning['trigger_pgv'] = np.array([])
             self.event_warning_available.set()
-            logger.info("No event warning issued.")
-        logger.info("Finished the event warning computation.")
+            self.logger.info("No event warning issued.")
+        self.logger.info("Finished the event warning computation.")
 
     def detect_event(self):
         ''' Run the Voronoi event detection.
@@ -515,13 +532,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     cat_name = "{0:04d}-{1:02d}-{2:02d}".format(self.current_event.start_time.year,
                                                                 self.current_event.start_time.month,
                                                                 self.current_event.start_time.day)
-                    ev_catalogs = self.project.get_event_catalog_names()
-                    if cat_name not in ev_catalogs:
-                        cur_cat = self.project.create_event_catalog(name = cat_name)
-                    else:
-                        cur_cat = self.project.load_event_catalog(name = cat_name)
+                    cur_cat = self.project.get_event_catalog(cat_name)
                     cur_cat.add_events([self.current_event, ])
-
 
                     # Get or create the detection catalog and add the event
                     # detections to it.
@@ -891,9 +903,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         ''' Process the data in the monitor stream.
 
         '''
-        logger = logging.getLogger('mss_data_server.detect_monitor_stream')
-        logger.info('Processing the monitor_stream.')
-        logger.info('# gc.get_objects: %d', len(gc.get_objects()))
+        self.logger.info('Processing the monitor_stream.')
+        self.logger.info('# gc.get_objects: %d', len(gc.get_objects()))
         self.stream_lock.acquire()
         monitor_stream_length = len(self.monitor_stream)
         self.monitor_stream.merge()
@@ -907,17 +918,17 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 sec_remain = cur_trace.stats.endtime.timestamp % self.process_interval
                 cur_end_time = obspy.UTCDateTime(round(cur_trace.stats.endtime.timestamp - sec_remain))
                 cur_end_time = cur_end_time - cur_trace.stats.delta
-                logger.debug('Trimming %s to end time: %f.', cur_trace.id, cur_end_time.timestamp)
+                self.logger.debug('Trimming %s to end time: %f.', cur_trace.id, cur_end_time.timestamp)
                 cur_slice_trace = cur_trace.slice(endtime = cur_end_time)
                 if len(cur_slice_trace) > 0:
                     self.process_stream.append(cur_slice_trace)
                     cur_trace.trim(starttime = cur_end_time + cur_trace.stats.delta)
             self.stream_lock.release()
 
-            logger.info('process_stream: %s', str(self.process_stream))
+            self.logger.info('process_stream: %s', str(self.process_stream))
 
             with self.stream_lock:
-                logger.info('monitor_stream: %s', str(self.monitor_stream))
+                self.logger.info('monitor_stream: %s', str(self.monitor_stream))
 
             # Get a stream containing only equal length traces per station.
             el_stream = self.get_equal_length_traces()
@@ -960,25 +971,25 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             # TODO: Check if something could be interesting and remove the code
             # below.
             if len(set([len(x) for x in export_stream])) != 1:
-                logger.warning('The length of the traces in the stream is not equal. No export.')
-                logger.debug('Add the stream back to the monitor stream.')
+                self.logger.warning('The length of the traces in the stream is not equal. No export.')
+                self.logger.debug('Add the stream back to the monitor stream.')
                 stream_lock.acquire()
                 monitor_stream += export_stream
                 monitor_stream.merge()
-                logger.debug(monitor_stream)
+                self.logger.debug(monitor_stream)
                 stream_lock.release()
             else:
                 if len(export_stream) > 0:
-                    logger.debug('Exporting the stream.')
+                    self.logger.debug('Exporting the stream.')
                     for cur_trace in export_stream:
-                        logger.debug(cur_trace.get_id().replace('.', '_'))
-                        logger.debug(cur_trace.stats.starttime.isoformat())
+                        self.logger.debug(cur_trace.get_id().replace('.', '_'))
+                        self.logger.debug(cur_trace.stats.starttime.isoformat())
                         cur_filename = 'syscom_{0:s}_{1:s}.msd'.format(cur_trace.get_id().replace('.', '_'), cur_trace.stats.starttime.isoformat().replace('-', '').replace(':', '').replace('.', '_').replace('T', '_'))
                         cur_filename = os.path.join(data_dir, cur_filename)
                         export_stream.write(cur_filename, format = 'MSEED', reclen = 512, encoding = 11)
-                    logger.debug('Done.')
+                    self.logger.debug('Done.')
                 else:
-                    logger.debug('No data in stream.')
+                    self.logger.debug('No data in stream.')
 
             # Delete old files.
             now = utcdatetime.UTCDateTime()
@@ -1187,7 +1198,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             cur_y = cur_y_trace.data
 
             if len(cur_x) != len(cur_y):
-                logger.error("The x and y data lenght dont't match. Can't compute the res. PGV for this trace.")
+                self.logger.error("The x and y data lenght dont't match. Can't compute the res. PGV for this trace.")
                 continue
 
             self.logger.debug("x: %s", cur_x)
