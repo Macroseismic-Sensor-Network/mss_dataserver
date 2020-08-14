@@ -310,16 +310,96 @@ class EventTestCase(unittest.TestCase):
         catalogs = self.project.get_event_catalog_names()
         self.assertEqual(catalogs, [])
 
-        cat = self.project.create_event_catalog(name = 'test name',
-                                                description = 'test description')
-
+        cat_1 = self.project.create_event_catalog(name = '2020-08-13',
+                                                  description = 'test description 1')
         catalogs = self.project.get_event_catalog_names()
-        self.assertEqual(catalogs, ['test name'])
+        self.assertEqual(catalogs, [cat_1.name])
+        self.assertEqual(len(self.project.event_library.catalogs), 1)
 
-        cat = self.project.load_event_catalog(name = 'test name')
+        cat = self.project.get_event_catalog(name = cat_1.name)
+        self.assertEqual(cat.name, cat_1.name)
+        self.assertEqual(cat.description, cat_1.description)
+
+        cat = self.project.load_event_catalog(name = cat_1.name)
         self.assertIsNotNone(cat)
-        self.assertEqual(cat.name, 'test name')
-        self.assertEqual(cat.description, 'test description')
+        self.assertEqual(cat.name, cat_1.name)
+        self.assertEqual(cat.description, cat_1.description)
+
+        # Create a second catalog.
+        cat_2 = self.project.create_event_catalog(name = '2020-08-14',
+                                                  description = 'test description 2')
+        catalogs = self.project.get_event_catalog_names()
+        self.assertEqual(catalogs, [cat_1.name, cat_2.name])
+
+        # Add events to the catalogs.
+        cat = self.project.get_event_catalog(name = '2020-08-13')
+        self.assertIsNotNone(cat)
+        self.assertEqual(cat.name, cat_1.name)
+        self.assertEqual(cat.description, cat_1.description)
+
+        start_time = UTCDateTime('2020-08-13T00:00:00')
+        n_events = 10
+        event_list_1 = []
+        for k in range(n_events):
+            cur_start_time = start_time + k * 3600
+            cur_end_time = cur_start_time + 10
+            cur_creation_time = UTCDateTime()
+            cur_event = Event(start_time = cur_start_time,
+                              end_time = cur_end_time,
+                              creation_time = cur_creation_time)
+            event_list_1.append(cur_event)
+        cat.add_events(event_list_1)
+        self.assertEqual(len(cat.events), 10)
+
+        cat = self.project.get_event_catalog(name = '2020-08-14')
+        self.assertIsNotNone(cat)
+        self.assertEqual(cat.name, cat_2.name)
+        self.assertEqual(cat.description, cat_2.description)
+
+        start_time = UTCDateTime('2020-08-14T00:00:00')
+        n_events = 10
+        event_list_2 = []
+        for k in range(n_events):
+            cur_start_time = start_time + k * 3600
+            cur_end_time = cur_start_time + 10
+            cur_creation_time = UTCDateTime()
+            cur_event = Event(start_time = cur_start_time,
+                              end_time = cur_end_time,
+                              creation_time = cur_creation_time)
+            event_list_2.append(cur_event)
+        cat.add_events(event_list_2)
+        self.assertEqual(len(cat.events), 10)
+
+        # Get all events in the library.
+        events = self.project.get_events()
+        self.assertEqual(len(events), 20)
+
+        # Get events for a limited timespan.
+        request_start = UTCDateTime('2020-08-13')
+        request_end = request_start + 86400
+        events = self.project.get_events(start_time = request_start,
+                                         end_time = request_end)
+        self.assertEqual(len(events), len(event_list_1))
+        for k in range(len(events)):
+            self.assertEqual(events[k].start_time,
+                             event_list_1[k].start_time)
+
+        # Get events for a limited timespan.
+        request_start = UTCDateTime('2020-08-14')
+        request_end = request_start + 86400
+        events = self.project.get_events(start_time = request_start,
+                                         end_time = request_end)
+        self.assertEqual(len(events), len(event_list_2))
+        for k in range(len(events)):
+            self.assertEqual(events[k].start_time,
+                             event_list_2[k].start_time)
+
+        # Get events for a catalog.
+        events = self.project.get_events(catalog_names = ['2020-08-13'])
+        self.assertEqual(len(events), len(event_list_1))
+        for k in range(len(events)):
+            self.assertEqual(events[k].start_time,
+                             event_list_1[k].start_time)
 
     def test_detection_library(self):
         ''' Test detection library and detection catalogs.
@@ -337,6 +417,8 @@ class EventTestCase(unittest.TestCase):
         self.assertIsNotNone(cat)
         self.assertEqual(cat.name, 'test name')
         self.assertEqual(cat.description, 'test description')
+
+
 
 
 def suite():

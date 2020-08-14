@@ -728,3 +728,32 @@ class Library(object):
         finally:
             db_session.close()
 
+
+    def get_events(self, catalog_names = None, start_time = None, end_time = None, **kwargs):
+        ''' Get events using search criteria passed as keywords.
+
+        Parameters
+        ----------
+        start_time : :class:`~obspy.core.utcdatetime.UTCDateTime`
+            The minimum starttime of the detections.
+
+        end_time : :class:`~obspy.core.utcdatetime.UTCDateTime`
+            The maximum end_time of the detections.
+
+        scnl : tuple of Strings
+            The scnl code of the channel (e.g. ('GILA, 'HHZ', 'XX', '00')).
+        '''
+        ret_events = []
+
+        if catalog_names is None:
+            catalog_names = list(self.catalogs.keys())
+
+        # Filter out catalog names, that are not available.
+        catalog_names = [x for x in catalog_names if x in self.catalogs.keys()]
+
+        for cur_catalog_name in catalog_names:
+            cur_catalog = self.catalogs[cur_catalog_name]
+            ret_events.extend(cur_catalog.get_events(start_time = start_time,
+                                                     end_time = end_time,
+                                                     **kwargs))
+        return ret_events

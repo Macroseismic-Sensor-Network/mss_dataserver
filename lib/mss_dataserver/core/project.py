@@ -246,11 +246,11 @@ class Project(object):
             ev_catalogs = self.event_library.get_catalogs_in_db(project = self)
             if name not in ev_catalogs:
                 self.logger.info("Creating a new event catalog.")
-                cur_cat = self.project.create_event_catalog(name = name)
+                cur_cat = self.create_event_catalog(name = name)
             else:
                 self.logger.info("Loading the event catalog from database.")
-                cur_cat = self.project.load_event_catalog(name = name,
-                                                          load_events = True)
+                cur_cat = self.load_event_catalog(name = name,
+                                                  load_events = True)
         return cur_cat
 
     def get_event_catalog_names(self):
@@ -266,6 +266,7 @@ class Project(object):
                                  agency_uri = self.agency_uri,
                                  author_uri = self.author_uri)
         cat.write_to_database(self)
+        self.event_library.add_catalog(cat)
         return cat
 
     def load_event_catalog(self, name, load_events = False):
@@ -279,6 +280,27 @@ class Project(object):
             cat = self.event_library.catalogs[name]
 
         return cat
+
+    def get_events(self, catalog_names = None,
+                   start_time = None, end_time = None, **kwargs):
+        ''' Get events using search criteria passed as keywords.
+
+        Parameters
+        ----------
+        start_time : :class:`~obspy.core.utcdatetime.UTCDateTime`
+            The minimum starttime of the detections.
+
+        end_time : :class:`~obspy.core.utcdatetime.UTCDateTime`
+            The maximum end_time of the detections.
+
+        scnl : tuple of Strings
+            The scnl code of the channel (e.g. ('GILA, 'HHZ', 'XX', '00')).
+        '''
+        ret_events = self.event_library.get_events(catalog_names = catalog_names,
+                                                   start_time = start_time,
+                                                   end_time = end_time,
+                                                   **kwargs)
+        return ret_events
 
     def get_detection_catalog_names(self):
         ''' Get the detection catalog names available in the database.

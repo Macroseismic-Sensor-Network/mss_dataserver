@@ -1345,14 +1345,18 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     def get_event_archive(self):
         ''' Return the current event archive in serializable form.
         '''
+        now = utcdatetime.UTCDateTime()
+        today = utcdatetime.UTCDateTime(now.timestamp // 86400 * 86400)
+        request_start = today - 86400 * 2
+        events = self.project.get_events(start_time = request_start)
         cur_archive = []
-        if len(self.event_archive) > 0:
-            for cur_event in self.event_archive:
+        if len(events) > 0:
+            for cur_event in events:
                 cur_archive_event = {}
-                cur_archive_event['start_time'] = cur_event['start_time'].isoformat()
-                cur_archive_event['end_time'] = cur_event['end_time'].isoformat()
+                cur_archive_event['start_time'] = cur_event.start_time.isoformat()
+                cur_archive_event['end_time'] = cur_event.end_time.isoformat()
                 #cur_archive_event['trigger_data'] = cur_event['trigger_data']
-                cur_archive_event['state'] = cur_event['state']
+                #cur_archive_event['state'] = cur_event.state
                 cur_archive_event['overall_trigger_data'] = cur_event['overall_trigger_data']
                 try:
                     cur_archive_event['max_station_pgv'] = cur_event['max_station_pgv']
