@@ -30,6 +30,7 @@ import itertools
 import logging
 import warnings
 
+import obspy
 import obspy.core.utcdatetime as utcdatetime
 import mss_dataserver.event.detection as detection
 
@@ -107,7 +108,10 @@ class Event(object):
         self.changed = changed
 
         # State of the event during detection (new, updated, closed).
-        self.detection_station = None
+        self.detection_state = None
+
+        # The PGV data stream.
+        self.pgv_stream = obspy.Stream()
 
 
     @property
