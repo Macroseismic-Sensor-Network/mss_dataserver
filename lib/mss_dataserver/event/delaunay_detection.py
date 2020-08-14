@@ -379,6 +379,9 @@ class DelaunayDetector(object):
                                              author_uri = self.author_uri,
                                              agency_uri = self.agency_uri)
 
+                # Add the PGV stream data.
+                cur_event.pgv_stream = copy.deepcopy(self.detect_stream)
+
                 # Compute the max. PGV of each triggered station.
                 for cur_data in [x for x in self.trigger_data if np.any(x['trigger'])]:
                     # Create a detection instance.
@@ -440,12 +443,16 @@ class DelaunayDetector(object):
         # time.
         if self.event_triggered:
             keep_listening = self.max_time_window
+            self.current_event.pgv_stream += self.detect_stream
+            self.current_event.pgv_stream.merge()
+            # Add the PGV stream to the event pgv stream.
             if (self.last_detection_end - self.current_event.end_time) > keep_listening:
                 self.logger.info("Closing an event.")
                 self.event_triggered = False
                 self.current_event.detection_state = 'closed'
             else:
                 self.logger.info("Event is over, but keep_listening: %s", keep_listening)
+
 
     def get_event(self):
         ''' Return a copy of the current event.

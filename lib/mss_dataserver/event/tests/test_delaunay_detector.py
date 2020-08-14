@@ -381,6 +381,7 @@ class DelaunayDetectorTestCase(unittest.TestCase):
                                                     event_start = event_start,
                                                     event_length = event_length)
         all_stations = test_data['all_stations']
+        stations = test_data['stations']
         stream = test_data['stream']
         event_delay = test_data['event_delay']
 
@@ -456,6 +457,8 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         self.assertIsNotNone(detector.current_event)
         self.assertEqual(detector.current_event.detection_state, 'new')
         self.assertEqual(len(detector.current_event.detections), 2)
+        self.assertEqual(len(detector.current_event.pgv_stream), len(stations))
+        self.assertEqual(detector.current_event.pgv_stream, detector.detect_stream)
         stream_start = np.min([x.stats.starttime for x in test_stream])
         stream_end = np.max([x.stats.endtime for x in test_stream])
         stream_length = stream_end - stream_start
@@ -483,6 +486,9 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         self.assertFalse(detector.event_triggered)
         self.assertTrue(detector.new_event_available)
         self.assertEqual(detector.current_event.detection_state, 'closed')
+        self.assertEqual(len(detector.current_event.pgv_stream), len(stations))
+        self.assertEqual(detector.current_event.pgv_stream[0].stats.endtime,
+                         detector.detect_stream[0].stats.endtime)
         stream_start = np.min([x.stats.starttime for x in test_stream])
         stream_end = np.max([x.stats.endtime for x in test_stream])
         stream_length = stream_end - stream_start
