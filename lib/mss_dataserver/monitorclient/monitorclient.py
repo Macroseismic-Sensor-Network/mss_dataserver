@@ -97,6 +97,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # time.
         self.pgv_archive_stream = obspy.core.Stream()
 
+        # The velocity waveform data archive stream with the same length as the
+        # PGV archive stream.
+        self.vel_archive_stream = obspy.core.Stream()
+
         # The length of the archive stream to keep [s].
         self.pgv_archive_time = pgv_archive_time
 
@@ -525,6 +529,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             # Evaluate the detection result.
             if self.detector.new_event_available:
                 self.current_event = self.detector.get_event()
+
+                # TODO: Add the original waveform data to the event.
+
                 self.event_data_available.set()
 
                 if self.current_event.detection_state == 'closed':
@@ -942,6 +949,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             # Convert the amplitudes from counts to m/s.
             self.convert_to_physical_units(el_stream)
 
+            # Add the velocity waveform data to an archive stream.
+            with self.archive_lock:
+                self.vel_archive_stream = self.vel_archive_stream + el_stream
+
             # Compute the PGV values.
             self.compute_pgv(el_stream)
 
@@ -1270,8 +1281,16 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.logger.debug("max_end_time: %s.", max_end_time)
                 crop_start_time = max_end_time - self.pgv_archive_time
                 self.pgv_archive_stream.trim(starttime = crop_start_time)
-                self.logger.debug("Trimmed the archive stream to %s.",
-                                 crop_start_time)
+                self.logger.debug("Trimmed the pgv archive stream to %s.",
+                                  crop_start_time)
+
+            if len(self.vel_archive_stream) > 0:
+                max_end_time = np.max([x.stats.endtime for x in self.vel_archive_stream if x])
+                self.logger.debug("max_end_time: %s.", max_end_time)
+                crop_start_time = max_end_time - self.vel_archive_time
+                self.vel_archive_stream.trim(starttime = crop_start_time)
+                self.logger.debug("Trimmed the velocity archive stream to %s.",
+                                  crop_start_time)
 
     def get_pgv_data(self):
         ''' Get the latest PGV data.
