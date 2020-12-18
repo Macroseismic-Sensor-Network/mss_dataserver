@@ -48,6 +48,7 @@ class Detection(object):
         self.stations = stations
 
         # The max. PGV values of the detection timespan.
+        # A dictionary of {station.snl_string: PGV values}.
         self.max_pgv = max_pgv
 
         # The agency_uri of the creator.
@@ -108,7 +109,16 @@ class Detection(object):
         if self.channel is None:
             return None
         else:
-            return (self.channel.scnl[0], self.channel.scnl[2], self.channel.scnl[3])
+            return (self.channel.scnl[0],
+                    self.channel.scnl[2],
+                    self.channel.scnl[3])
+
+
+    @property
+    def absolute_max_pgv(self):
+        ''' The absolute maximum PGV value.
+        '''
+        return max(self.max_pgv.values())
 
 
     def update(self, start_time = None, end_time = None,
