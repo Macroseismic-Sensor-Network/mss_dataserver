@@ -47,6 +47,7 @@ import sqlalchemy.ext.declarative
 import sqlalchemy.orm
 
 import mss_dataserver.core.project
+import mss_dataserver.core.util as util
 import mss_dataserver.geometry.inventory_parser as inventory_parser
 import mss_dataserver.monitorclient.monitorclient as monitorclient
 import mss_dataserver.test.util as test_util
@@ -451,7 +452,7 @@ async def serve_pgv(websocket, path, sl_client):
 @click.argument('config')
 @click.pass_context
 def cli(ctx, config):
-    config = load_configuration(config)
+    config = util.load_configuration(config)
     logging.basicConfig(level = config['log']['loglevel'],
                         format = "LOG - %(asctime)s - %(process)d - %(levelname)s - %(name)s: %(message)s")
     logger = logging.getLogger('mss_dataserver')
@@ -461,48 +462,6 @@ def cli(ctx, config):
 
     ctx.obj['project'] = project
     ctx.obj['config'] = config
-
-
-def load_configuration(filename):
-    ''' Load the configuration from a file.
-    '''
-    parser = configparser.ConfigParser()
-    parser.read(filename)
-
-    config = {}
-    config['websocket'] = {}
-    config['websocket']['host'] = parser.get('websocket', 'host').strip()
-    config['websocket']['port'] = int(parser.get('websocket', 'port'))
-    config['seedlink'] = {}
-    config['seedlink']['host'] = parser.get('seedlink', 'host').strip()
-    config['seedlink']['port'] = int(parser.get('seedlink', 'port'))
-    config['output'] = {}
-    config['output']['data_dir'] = parser.get('output', 'data_dir').strip()
-    config['log'] = {}
-    config['log']['loglevel'] = parser.get('log', 'loglevel').strip()
-    config['project'] = {}
-    config['project']['author_uri'] = parser.get('project', 'author_uri').strip()
-    config['project']['agency_uri'] = parser.get('project', 'agency_uri').strip()
-    config['project']['inventory_file'] = parser.get('project', 'inventory_file').strip()
-    config['database'] = {}
-    config['database']['host'] = parser.get('database', 'host').strip()
-    config['database']['username'] = parser.get('database', 'username').strip()
-    config['database']['password'] = parser.get('database', 'password').strip()
-    config['database']['dialect'] = parser.get('database', 'dialect').strip()
-    config['database']['driver'] = parser.get('database', 'driver').strip()
-    config['database']['database_name'] = parser.get('database', 'database_name').strip()
-    config['process'] = {}
-    config['process']['stations'] = json.loads(parser.get('process', 'stations'))
-    config['process']['interval'] = int(parser.get('process', 'interval'))
-    config['process']['pgv_sps'] = int(parser.get('process', 'pgv_sps'))
-    config['process']['trigger_threshold'] = float(parser.get('process', 'trigger_threshold'))
-    config['process']['warn_threshold'] = float(parser.get('process', 'warn_threshold'))
-    config['process']['valid_event_threshold'] = float(parser.get('process', 'valid_event_threshold'))
-    config['process']['pgv_archive_time'] = int(parser.get('process', 'pgv_archive_time'))
-    config['process']['event_archive_size'] = int(parser.get('process', 'event_archive_size'))
-
-    return config
-
 
 @cli.command()
 @click.pass_context
