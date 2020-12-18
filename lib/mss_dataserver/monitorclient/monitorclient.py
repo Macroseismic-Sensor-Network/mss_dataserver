@@ -103,6 +103,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # The length of the archive stream to keep [s].
         self.pgv_archive_time = pgv_archive_time
+        self.vel_archive_time = pgv_archive_time
 
         # The no-data value.
         self.nodata_value = -999999
@@ -178,6 +179,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         self.conn.timeout = 10
 
+        # Load the archived data.
+        self.load_archive_catalogs(days = 2)
+
+
+    def seedlink_connect(self):
+        ''' Connect to the seedlink server.
+        '''
         self.connect()
 
         for cur_mss in self.recorder_map:
@@ -185,8 +193,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                cur_mss[1],
                                cur_mss[2] + cur_mss[3])
 
-        # Load the archived data.
-        self.load_archive_catalogs(days = 2)
 
     def load_archive_catalogs(self, days = 2):
         ''' Load the event catalogs of the specified last days.
@@ -836,7 +842,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         pgv = []
         time = []
-        self.logger.debug("compute_max_pgv:  tri_stream: %s.", tri_stream)
+        self.logger.debug("compute_max_pgv:  tri_stream: %s.", tri_stream.__str__(extended = True))
 
         pgv_strided = []
         time_strided = []
@@ -932,14 +938,14 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     cur_trace.trim(starttime = cur_end_time + cur_trace.stats.delta)
             self.stream_lock.release()
 
-            self.logger.info('process_stream: %s', str(self.process_stream))
+            self.logger.info('process_stream: %s', self.process_stream.__str__(extended = True))
 
             with self.stream_lock:
-                self.logger.info('monitor_stream: %s', str(self.monitor_stream))
+                self.logger.info('monitor_stream: %s', str(self.monitor_stream.__str__(extended = True)))
 
             # Get a stream containing only equal length traces per station.
             el_stream = self.get_equal_length_traces()
-            self.logger.debug('Got el_stream: %s.', el_stream)
+            self.logger.debug('Got el_stream: %s.', el_stream.__str__(extended = True))
 
             # Detrend to remove eventual offset.
             el_stream = el_stream.split()
@@ -1131,7 +1137,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # Merge the current pgv stream.
         self.pgv_stream.merge()
-        self.logger.info('pgv_stream: %s.', self.pgv_stream)
+        self.logger.info('pgv_stream: %s.', self.pgv_stream.__str__(extended = True))
 
         with self.archive_lock:
             self.pgv_archive_stream = self.pgv_archive_stream + self.pgv_stream
@@ -1139,7 +1145,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # Merge the archive stream.
         with self.archive_lock:
             self.pgv_archive_stream.merge(fill_value = self.nodata_value)
-        self.logger.info("pgv_archive_stream: %s", self.pgv_archive_stream)
+        self.logger.info("pgv_archive_stream: %s", self.pgv_archive_stream.__str__(extended = True))
         self.logger.info("Finished compute_pgv.")
 
         #self.pgv_archive_stream.write("/home/stefan/Schreibtisch/pgv_beben_neunkirchen.msd",
