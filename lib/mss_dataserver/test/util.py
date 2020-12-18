@@ -92,7 +92,11 @@ def clear_project_database_tables(project, tables = None):
         tables_to_clear = [table for table in tables_to_clear if str(table) in tables]
     for cur_table in tables_to_clear:
         project.db_engine.execute(cur_table.delete())
-        project.db_engine.execute('alter table {0:s} AUTO_INCREMENT = 1'.format(str(cur_table)))
+        # TODO: Reseting the auto_increment value blocked the execution. Don't
+        # know, why this happens.
+        #cmd = 'alter table {0:s} AUTO_INCREMENT = 1;'.format(str(cur_table))
+        #with project.db_engine.connect() as con:
+        #    con.execute(cmd)
 
 
 def create_db_test_project():
