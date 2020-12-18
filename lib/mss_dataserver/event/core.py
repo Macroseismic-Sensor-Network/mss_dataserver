@@ -113,6 +113,9 @@ class Event(object):
         # The PGV data stream.
         self.pgv_stream = obspy.Stream()
 
+        # The event detection data.
+        self.detection_data = {}
+
 
     @property
     def rid(self):
@@ -140,6 +143,30 @@ class Event(object):
         ''' The length of the event in seconds.
         '''
         return self.end_time - self.start_time
+
+    @property
+    def max_pgv(self):
+        ''' The maximum PGV value of all detections.
+        '''
+        if len(self.detections) > 0:
+            return max([x.absolute_max_pgv for x in self.detections])
+        else:
+            return None
+
+
+    def station_has_triggered(self, station):
+        ''' Check if a detection has been triggered at a station.
+        '''
+        found_detections = []
+        has_triggered = False
+        for cur_detection in self.detections:
+            if station in cur_detection.stations:
+                found_detections.append(cur_detection)
+
+        if len(found_detections) > 0:
+            has_triggered = True
+
+        return has_triggered
 
 
     def add_detection(self, detection):
