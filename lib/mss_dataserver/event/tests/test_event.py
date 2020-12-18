@@ -217,6 +217,7 @@ class EventTestCase(unittest.TestCase):
                              stat2.snl)
             self.assertEqual(cur_event.detections[0].stations[2].snl,
                              stat3.snl)
+            self.assertEqual(cur_event.max_pgv, 0.3)
         finally:
             db_session.close()
 
@@ -300,6 +301,8 @@ class EventTestCase(unittest.TestCase):
                              stat_22.snl)
             self.assertEqual(cur_det.stations[2].snl,
                              stat_23.snl)
+
+            self.assertEqual(cur_event.max_pgv, 0.33)
         finally:
             db_session.close()
 
