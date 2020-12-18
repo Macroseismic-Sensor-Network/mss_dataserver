@@ -1011,6 +1011,15 @@ class RecorderStream(object):
         else:
             return False
 
+    def as_dict(self, style = 'seed'):
+        export_attributes = ['name', 'label', 'serial', 'model', 'producer',
+                             'author_uri', 'agency_uri', 'creation_time']
+
+        d = {}
+        for cur_attr in export_attributes:
+            d[cur_attr] = getattr(self, cur_attr)
+        return d
+
 
     def add_component(self, serial, model, producer, name, start_time, end_time):
         ''' Add a sensor component to the stream.
@@ -2148,6 +2157,24 @@ class Station(object):
         else:
             return False
 
+    def as_dict(self, style = 'seed'):
+        export_attributes = ['name', 'location', 'description',
+                             'x', 'y', 'z', 'coord_system',
+                             'author_uri', 'agency_uri', 'creation_time']
+
+        d = {}
+        if style == 'seed':
+            for cur_attr in export_attributes:
+                d[cur_attr] = getattr(self, cur_attr)
+            d['channels'] = []
+            for cur_channel in self.channels:
+                d['channels'].extend(cur_channel.as_dict(style = style))
+        else:
+            for cur_attr in export_attributes:
+                d[cur_attr] = getattr(self, cur_attr)
+            d['channels'] = [x.as_dict(style = style) for x in self.channels]
+        return d
+
 
     def get_scnl(self):
         scnl = []
@@ -2333,6 +2360,65 @@ class Channel(object):
     @property
     def assigned_recorders(self):
         return list(set([x.item.serial for x in self.streams]))
+
+
+    def as_dict(self, style = 'seed'):
+        export_attributes = ['name', 'description',
+                             'author_uri', 'agency_uri', 'creation_time']
+
+
+        if style == 'seed':
+            d = []
+            for cur_tb in self.streams:
+                cur_stream = cur_tb.item
+                cur_stream_start = cur_tb.start_time
+                cur_stream_end = cur_tb.end_time
+                for cur_comp_tb in cur_stream.components:
+                    cur_comp = cur_comp_tb.item
+                    cur_d = {}
+                    cur_comp_start = cur_comp_tb.start_time
+                    cur_comp_end = cur_comp_tb.end_time
+
+                    if cur_comp_start is None:
+                        cur_chan_start = cur_stream_start
+                    elif cur_comp_start < cur_stream_start:
+                        cur_chan_start = cur_stream_start
+                    else:
+                        cur_chan_start = cur_comp_start
+
+                    if cur_comp_end is None:
+                        cur_chan_end = cur_stream_end
+                    elif cur_comp_end > cur_stream_end:
+                        cur_chan_end = cur_stream_end
+                    else:
+                        cur_chan_end = cur_comp_end
+
+                    cur_d['start_time'] = cur_chan_start
+                    cur_d['end_time'] = cur_chan_end
+                    cur_d['name'] = self.name
+                    cur_d['description'] = self.description
+                    cur_d['stream_name'] = cur_stream.name
+                    cur_d['stream_label'] = cur_stream.label
+                    cur_d['recorder_serial'] = cur_stream.serial
+                    cur_d['recorder_model'] = cur_stream.model
+                    cur_d['recorder_producer'] = cur_stream.producer
+                    cur_d['sensor_serial'] = cur_comp.serial
+                    cur_d['sensor_model'] = cur_comp.model
+                    cur_d['sensor_producer'] = cur_comp.producer
+                    d.append(cur_d)
+        else:
+            d ={}
+            for cur_attr in export_attributes:
+                d[cur_attr] = getattr(self, cur_attr)
+            d['streams'] = []
+            for cur_stream in self.streams:
+                cur_d = {}
+                cur_d['start_time'] = cur_stream.start_time
+                cur_d['end_time'] = cur_stream.end_time
+                cur_d.update(cur_stream.item.as_dict(style = style))
+                d['streams'].append(cur_d)
+        return d
+
 
 
     def add_stream(self, serial, model, producer, name, start_time, end_time):
@@ -2555,6 +2641,15 @@ class Network(object):
             return True
         else:
             return False
+
+    def as_dict(self, style = 'seed'):
+        export_attributes = ['name', 'description', 'type',
+                             'author_uri', 'agency_uri', 'creation_time']
+        d = {}
+        for cur_attr in export_attributes:
+            d[cur_attr] = getattr(self, cur_attr)
+        d['stations'] = [x.as_dict(style = style) for x in self.stations]
+        return d
 
 
 
@@ -2927,3 +3022,12 @@ class TimeBox(object):
         else:
             return self.end_time.isoformat()
 
+    def as_dict(self, style = 'seed'):
+        export_attributes = ['start_time',
+                             'end_time']
+
+        d = {}
+        for cur_attr in export_attributes:
+            d[cur_attr] = getattr(self, cur_attr)
+        d['item'] = self.item.as_dict(style = style)
+        return d
