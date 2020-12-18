@@ -270,7 +270,7 @@ def databaseFactory(base):
             self.stat2_id = stat2_id,
             self.stat3_id = stat3_id,
             self.max_pgv1 = max_pgv1,
-            self.max_pgv2 = max_pgv3,
+            self.max_pgv2 = max_pgv2,
             self.max_pgv3 = max_pgv3,
             self.agency_uri = agency_uri
             self.author_uri = author_uri
