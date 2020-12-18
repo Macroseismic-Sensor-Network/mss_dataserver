@@ -52,7 +52,7 @@ class DetectionTestCase(unittest.TestCase):
 
         cls.project = test_util.create_db_test_project()
         test_util.clear_project_database_tables(cls.project)
-        cls.project.load_inventory()
+        cls.project.load_inventory(update_from_xml = True)
 
     @classmethod
     def tearDownClass(cls):
@@ -113,16 +113,17 @@ class DetectionTestCase(unittest.TestCase):
                                   end_time = end_time,
                                   creation_time = creation_time,
                                   stations = [stat1, stat2, stat3],
-                                  max_pgv = {stat1.snl: 0.1,
-                                             stat2.snl: 0.2,
-                                             stat3.snl: 0.3})
+                                  max_pgv = {stat1.snl_string: 0.1,
+                                             stat2.snl_string: 0.2,
+                                             stat3.snl_string: 0.3})
         self.assertIsInstance(det, detection.Detection)
         self.assertEqual(det.start_time, UTCDateTime(start_time))
         self.assertEqual(det.end_time, UTCDateTime(end_time))
         self.assertIsInstance(det.max_pgv, dict)
-        self.assertEqual(det.max_pgv[stat1.snl], 0.1)
-        self.assertEqual(det.max_pgv[stat2.snl], 0.2)
-        self.assertEqual(det.max_pgv[stat3.snl], 0.3)
+        self.assertEqual(det.max_pgv[stat1.snl_string], 0.1)
+        self.assertEqual(det.max_pgv[stat2.snl_string], 0.2)
+        self.assertEqual(det.max_pgv[stat3.snl_string], 0.3)
+        self.assertEqual(det.absolute_max_pgv, 0.3)
 
 
     def test_update_detection(self):
@@ -143,9 +144,9 @@ class DetectionTestCase(unittest.TestCase):
                                   end_time = end_time,
                                   creation_time = creation_time,
                                   stations = [stat1, stat2, stat3],
-                                  max_pgv = {stat1.snl: 0.1,
-                                             stat2.snl: 0.2,
-                                             stat3.snl: 0.3})
+                                  max_pgv = {stat1.snl_string: 0.1,
+                                             stat2.snl_string: 0.2,
+                                             stat3.snl_string: 0.3})
 
         new_start_time = '2020-01-01T00:00:00'
         new_end_time = '2020-01-01T02:00:00'
@@ -174,9 +175,9 @@ class DetectionTestCase(unittest.TestCase):
                                   end_time = end_time,
                                   creation_time = creation_time,
                                   stations = [stat1, stat2, stat3],
-                                  max_pgv = {stat1.snl: 0.1,
-                                             stat2.snl: 0.2,
-                                             stat3.snl: 0.3})
+                                  max_pgv = {stat1.snl_string: 0.1,
+                                             stat2.snl_string: 0.2,
+                                             stat3.snl_string: 0.3})
         det.write_to_database(self.project)
 
         detection_orm = self.project.db_tables['detection']
