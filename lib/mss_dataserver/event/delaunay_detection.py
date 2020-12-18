@@ -194,7 +194,7 @@ class DelaunayDetector(object):
     def prepare_detection_stream(self, stream):
         ''' Prepare the data stream used for the detection run.
         '''
-        self.logger.info("passed stream: %s", stream)
+        self.logger.info("passed stream: %s", stream.__str__(extended = True))
         max_end_time = np.max([x.stats.endtime for x in stream])
         # Assume, that all traces have the same sampling rate.
         sps = stream[0].stats.sampling_rate
@@ -324,20 +324,26 @@ class DelaunayDetector(object):
 
                 if len(cur_pgv) > 0:
                     if np.any(np.isnan(cur_pgv)):
-                        self.logger.warning("There is a NaN value in the cur_pgv.")
+                        self.logger.warning("There is a NaN value in the cur_pgv. Skipping this triangle.")
                         self.logger.debug("cur_pgv: %s.", cur_pgv)
                         # TODO: JSON can't handle NaN values. Ignore them right
                         # now until I find a better solution.
                         continue
 
                     cur_trig = np.nanmin(cur_pgv, axis = 1) >= self.trigger_thr
-                    if np.any(cur_trig):
-                        tmp = {}
-                        tmp['simp_stations'] = cur_simp_stations
-                        tmp['time'] = cur_time
-                        tmp['pgv'] = cur_pgv
-                        tmp['trigger'] = cur_trig
-                        self.trigger_data.append(tmp)
+                    #if np.any(cur_trig):
+                    #    tmp = {}
+                    #    tmp['simp_stations'] = cur_simp_stations
+                    #    tmp['time'] = cur_time
+                    #    tmp['pgv'] = cur_pgv
+                    #    tmp['trigger'] = cur_trig
+                    #    self.trigger_data.append(tmp)
+                    tmp = {}
+                    tmp['simp_stations'] = cur_simp_stations
+                    tmp['time'] = cur_time
+                    tmp['pgv'] = cur_pgv
+                    tmp['trigger'] = cur_trig
+                    self.trigger_data.append(tmp)
         else:
             self.logger.warning("The delaunay triangles are not available.")
 
@@ -379,9 +385,6 @@ class DelaunayDetector(object):
                                              author_uri = self.author_uri,
                                              agency_uri = self.agency_uri)
 
-                # Add the PGV stream data.
-                cur_event.pgv_stream = copy.deepcopy(self.detect_stream)
-
                 # Compute the max. PGV of each triggered station.
                 for cur_data in [x for x in self.trigger_data if np.any(x['trigger'])]:
                     # Create a detection instance.
@@ -411,6 +414,7 @@ class DelaunayDetector(object):
             self.logger.info("Updating an existing event.")
             self.current_event.end_time = trigger_end
             self.current_event.detection_state = 'updated'
+
 
             for cur_data in [x for x in self.trigger_data if np.any(x['trigger'])]:
                 cur_simp_stations = cur_data['simp_stations']
@@ -443,9 +447,14 @@ class DelaunayDetector(object):
         # time.
         if self.event_triggered:
             keep_listening = self.max_time_window
-            self.current_event.pgv_stream += self.detect_stream
-            self.current_event.pgv_stream.merge()
+
             # Add the PGV stream to the event pgv stream.
+            self.current_event.pgv_stream += copy.deepcopy(self.detect_stream)
+            self.current_event.pgv_stream.merge()
+
+            # Add the trigger data to the event.
+            self.current_event.detection_data[self.last_detection_end.isoformat()] = self.trigger_data
+
             if (self.last_detection_end - self.current_event.end_time) > keep_listening:
                 self.logger.info("Closing an event.")
                 self.event_triggered = False
