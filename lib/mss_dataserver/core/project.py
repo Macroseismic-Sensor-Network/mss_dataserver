@@ -33,6 +33,7 @@ import sqlalchemy.ext.declarative
 import sqlalchemy.orm
 
 import mss_dataserver.event as event
+import mss_dataserver.event.core
 import mss_dataserver.geometry as geometry
 import mss_dataserver.core.database_util as db_util
 import mss_dataserver.geometry.inventory_parser as inventory_parser
@@ -52,6 +53,9 @@ class Project(object):
         self.project_config = kwargs['project']
         self.author_uri = self.project_config['author_uri']
         self.agency_uri = self.project_config['agency_uri']
+
+        # The complete configuration content.
+        self.config = kwargs
 
         # The processing configuration.
         self.process_config = kwargs['process']
@@ -233,6 +237,12 @@ class Project(object):
             # Update the database inventory with the loaded XML inventory.
             self.db_inventory.merge(xml_inventory)
             self.db_inventory.commit()
+
+            # Reload to get all ORM objects.
+            # TODO: Check how to get the ORM objects without reloading the
+            # inventory.
+            self.db_inventory = database_inventory.DbInventory(project = self)
+            self.db_inventory.load()
 
             self.logger.info("Updated the database inventory with data read from %s.", inventory_file)
 
