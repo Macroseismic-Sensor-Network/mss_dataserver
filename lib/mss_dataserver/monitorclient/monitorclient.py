@@ -1355,13 +1355,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         '''
         cur_event = {}
         if self.current_event:
-            cur_event['id'] = self.current_event.db_id
-            cur_event['start_time'] = self.current_event.start_time.isoformat()
-            cur_event['end_time'] = self.current_event.end_time.isoformat()
-            cur_event['description'] = self.current_event.description
-            cur_event['comment'] = self.current_event.comment
-            cur_event['max_pgv'] = self.current_event.max_pgv
-            cur_event['state'] = self.current_event.detection_state
+            cur_event = validation.event(id = self.current_event.db_id,
+                                         start_time = self.current_event.start_time.isoformat(),
+                                         end_time = self.current_event.end_time.isoformat(),
+                                         description = self.current_event.description,
+                                         comment = self.current_event.comment,
+                                         max_pgv = self.current_event.max_pgv,
+                                         state = self.current_event.detection_state)
 
             #cur_event['start_time'] = self.current_event.start_time.isoformat()
             #cur_event['end_time'] = self.current_event.end_time.isoformat()
