@@ -42,6 +42,7 @@ import pyproj
 import scipy
 import scipy.spatial
 
+import mss_dataserver.core.validation as validation
 import mss_dataserver.event.core as event_core
 import mss_dataserver.event.detection as event_detection
 import mss_dataserver.event.delaunay_detection as event_ddet
@@ -151,7 +152,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.event_warning_available = asyncio.Event()
 
         # The event trigger state.
-        self.event_data_available = asyncio.Event()
+        self.current_event_available = asyncio.Event()
 
         # The event archive state.
         self.event_archive_changed = asyncio.Event()
@@ -545,7 +546,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
                 # TODO: Add the original waveform data to the event.
 
-                self.event_data_available.set()
+                self.current_event_available.set()
 
                 if self.current_event.detection_state == 'closed':
                     # Get or create the event catalog and add the event to it.
@@ -719,7 +720,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     self.current_event = cur_event
                     self.current_event_obj = cur_event_obj
                     self.event_triggered = True
-                    self.event_data_available.set()
+                    self.current_event_available.set()
                 except Exception as e:
                     logger.exception("Error processing the event trigger.")
                     self.event_triggered = False
@@ -759,7 +760,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                                                  cur_simp_stations[2].snl: pgv_max[2]})
                             self.current_event_obj.add_detection(cur_detection)
 
-                    self.event_data_available.set()
+                    self.current_event_available.set()
                 except Exception as e:
                     logger.exception("Error updating the current event.")
             elif self.event_triggered and event_start is None:
@@ -1354,10 +1355,18 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         '''
         cur_event = {}
         if self.current_event:
+            cur_event['id'] = self.current_event.db_id
             cur_event['start_time'] = self.current_event.start_time.isoformat()
             cur_event['end_time'] = self.current_event.end_time.isoformat()
-            #cur_event['trigger_data'] = self.current_event['trigger_data']
+            cur_event['description'] = self.current_event.description
+            cur_event['comment'] = self.current_event.comment
+            cur_event['max_pgv'] = self.current_event.max_pgv
             cur_event['state'] = self.current_event.detection_state
+
+            #cur_event['start_time'] = self.current_event.start_time.isoformat()
+            #cur_event['end_time'] = self.current_event.end_time.isoformat()
+            #cur_event['trigger_data'] = self.current_event['trigger_data']
+            #cur_event['state'] = self.current_event.detection_state
             #cur_event['overall_trigger_data'] = self.current_event['overall_trigger_data']
             #cur_archive_event['max_station_pgv'] = cur_event['max_station_pgv']
 
@@ -1384,13 +1393,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         cur_archive = []
         if len(events) > 0:
             for cur_event in events:
-                cur_archive_event = {}
-                cur_archive_event['id'] = cur_event.db_id
-                cur_archive_event['start_time'] = cur_event.start_time.isoformat()
-                cur_archive_event['end_time'] = cur_event.end_time.isoformat()
-                cur_archive_event['description'] = cur_event.description
-                cur_archive_event['comment'] = cur_event.comment
-                cur_archive_event['max_pgv'] = cur_event.max_pgv
+                cur_archive_event = validation.Event(id = cur_event.db_id,
+                                                     start_time = cur_event.start_time.isoformat(),
+                                                     end_time = cur_event.end_time.isoformat(),
+                                                     description = cur_event.description,
+                                                     comment = cur_event.comment,
+                                                     max_pgv = cur_event.max_pgv,
+                                                     state = cur_event.detection_state)
 
                 # TODO: Get the data of the events only on request using
                 # websocket.
@@ -1402,7 +1411,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 #    cur_archive_event['max_station_pgv'] = cur_event['max_station_pgv']
                 #except Exception:
                 #    cur_archive_event['max_station_pgv'] = {}
-                cur_archive.append(cur_archive_event)
+                cur_archive.append(cur_archive_event.dict())
 
         return cur_archive
 
