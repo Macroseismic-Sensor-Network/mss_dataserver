@@ -182,6 +182,8 @@ class MonitorClientTestCase(unittest.TestCase):
         event_list = self.client.get_recent_events()
 
         self.assertEqual(len(event_list), 10)
+        for cur_event in event_list:
+            self.assertIsInstance(cur_event, dict)
 
 
 def suite():
