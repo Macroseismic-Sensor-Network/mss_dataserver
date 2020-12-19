@@ -137,6 +137,20 @@ async def register_pgv_client(websocket, sl_client):
         msg = json.dumps(msg, allow_nan = False)
         await websocket.send(msg)
 
+        # Send the recent events if they exist.
+        payload = sl_client.get_recent_events()
+
+        if payload:
+            msg = {}
+            msg['class'] = msg_class['data']
+            msg['id'] = msg_data_id['event_archive']
+            msg['payload'] = payload
+
+            logging.info("Sending the recent events.")
+            # Send the archived PGV data.
+            msg = json.dumps(msg, allow_nan = False)
+            await websocket.send(msg)
+
         # Send the current event if it exists.
         #payload = sl_client.get_current_event()
 
@@ -151,19 +165,6 @@ async def register_pgv_client(websocket, sl_client):
         #    msg = json.dumps(msg, allow_nan = False)
         #    await websocket.send(msg)
 
-        # Send the event archive if it exists.
-        #payload = sl_client.get_event_archive()
-
-        #if payload:
-        #    msg = {}
-        #    msg['class'] = msg_class['data']
-        #    msg['id'] = msg_data_id['event_archive']
-        #    msg['payload'] = payload
-
-        #    logging.info("Sending the event archive.")
-        #    # Send the archived PGV data.
-        #    msg = json.dumps(msg, allow_nan = False)
-        #    await websocket.send(msg)
 
         # The client has been registered and the archive has been sent,
         # now add the websocket to the known clients.
@@ -319,12 +320,12 @@ async def serve_detection_result(sl_client):
         logging.exception("Error while serving the detection result.")
 
 
-async def serve_event_data(sl_client):
-    ''' Send the event data to all registerd clients.
+async def serve_current_event(sl_client):
+    ''' Send the current event metadata to all registerd clients.
     '''
     try:
         while True:
-            await sl_client.event_data_available.wait()
+            await sl_client.current_event_available.wait()
             payload = sl_client.get_current_event()
 
             msg = {}
@@ -343,7 +344,7 @@ async def serve_event_data(sl_client):
                 except Exception as e:
                     logging.exception("Error sending to client: %s.",
                                       cur_client)
-            sl_client.event_data_available.clear()
+            sl_client.current_event_available.clear()
     except Exception as e:
         logging.exception("Error while serving the event data.")
 
@@ -524,6 +525,7 @@ def start_server(ctx):
                                          valid_event_thr = valid_event_thr,
                                          event_archive_size = event_archive_size)
 
+    client.seedlink_connect()
     client_thread = threading.Thread(target = client.run)
     client_thread.start()
 
@@ -552,10 +554,15 @@ def start_server(ctx):
     logging.info('Starting WS server.')
     loop.run_until_complete(start_ws_server)
     loop.create_task(client.task_timer(client.process_monitor_stream))
-    loop.create_task(serve_keydata(client))
+
+    # Serve the station PGV data.
     loop.create_task(serve_data(client))
+
+    # Serve the currently processed event metadata.
+    loop.create_task(serve_current_event(client))
+
+    #loop.create_task(serve_keydata(client))
     #loop.create_task(serve_detection_result(client))
-    #loop.create_task(serve_event_data(client))
     #loop.create_task(serve_event_archive(client))
     #loop.create_task(serve_event_warning(client))
     loop.run_forever()
