@@ -180,7 +180,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.conn.timeout = 10
 
         # Load the archived data.
-        self.load_archive_catalogs(days = 2)
+        self.load_archive_catalogs(hours = 48)
 
 
     def seedlink_connect(self):
@@ -194,16 +194,22 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                cur_mss[2] + cur_mss[3])
 
 
-    def load_archive_catalogs(self, days = 2):
+    def load_archive_catalogs(self, hours = 48):
         ''' Load the event catalogs of the specified last days.
         '''
         print("load_archive_catalogs")
         now = utcdatetime.UTCDateTime()
-        for k in range(days):
+        start_time = now - hours * 3600
+        start_day = utcdatetime.UTCDateTime(year = start_time.year,
+                                            julday = start_time.julday)
+        n_days = np.ceil((now - start_day) / 86400)
+        n_days = int(n_days)
+        for k in range(n_days):
             cur_cat_date = now - k * 86400
             cur_name = "{0:04d}-{1:02d}-{2:02d}".format(cur_cat_date.year,
                                                         cur_cat_date.month,
                                                         cur_cat_date.day)
+            self.logger.info("Requesting catalog %s.", cur_name)
             cur_cat = self.project.load_event_catalog(name = cur_name,
                                                       load_events = True)
             if cur_cat:
