@@ -180,7 +180,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.conn.timeout = 10
 
         # Load the archived data.
-        self.load_archive_catalogs(hours = 48)
+        self.event_archive_timespan = 48
+        self.load_archive_catalogs(hours = self.event_archive_timespan)
 
 
     def seedlink_connect(self):
@@ -1378,7 +1379,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         '''
         now = utcdatetime.UTCDateTime()
         today = utcdatetime.UTCDateTime(now.timestamp // 86400 * 86400)
-        request_start = today - 86400 * 2
+        request_start = today - self.event_archive_timespan * 3600
         events = self.project.get_events(start_time = request_start)
         cur_archive = []
         if len(events) > 0:
