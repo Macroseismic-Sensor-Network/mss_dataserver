@@ -28,16 +28,20 @@ from pydantic import (
     PositiveInt,
     PositiveFloat,
     confloat,
-    constr
+    constr,
 )
-from typing import Optional
+
+from typing import (
+    Optional,
+    Union,
+)
 
 
 class Event(pydantic.BaseModel):
-    id: PositiveInt
+    id: Union[None, PositiveInt]
     start_time: constr(min_length=19, max_length=26)
     end_time: constr(min_length=19, max_length=26)
-    description: Optional[constr(max_length=255)] = ''
-    comment: Optional[constr(max_length=255)] = ''
     max_pgv: PositiveFloat
+    description: Optional[constr(max_length=255)] = None
+    comment: Optional[constr(max_length=255)] = None
     state: Optional[constr(max_length=20)] = None
