@@ -176,10 +176,12 @@ class MonitorClientTestCase(unittest.TestCase):
         cat = self.project.event_library.catalogs[self.test_cat.name]
         self.assertEqual(len(cat.events), len(self.test_cat.events))
 
-    def test_get_event_archive(self):
+    def test_get_recent_events(self):
         ''' Test the request for the event archive list.
         '''
-        pass
+        event_list = self.client.get_recent_events()
+
+        self.assertEqual(len(event_list), 10)
 
 
 def suite():
