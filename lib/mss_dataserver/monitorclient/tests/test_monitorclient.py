@@ -124,7 +124,6 @@ class MonitorClientTestCase(unittest.TestCase):
         start_time.minute = 0
         start_time.second = 0
         start_time.microsecond = 0
-        creation_time = UTCDateTime()
 
         cat = self.project.create_event_catalog(name = "{0:4d}-{1:02d}-{2:02d}".format(start_time.year,
                                                                                        start_time.month,
@@ -140,11 +139,11 @@ class MonitorClientTestCase(unittest.TestCase):
 
             det = detection.Detection(start_time = cur_start_time,
                                       end_time = cur_end_time,
-                                      creation_time = creation_time,
+                                      creation_time = cur_creation_time,
                                       stations = [stat1, stat2, stat3],
-                                      max_pgv = {stat1.snl_string: 0.1,
-                                                 stat2.snl_string: 0.2,
-                                                 stat3.snl_string: 0.3})
+                                      max_pgv = {stat1.snl_string: 0.1 + 0.01 * k,
+                                                 stat2.snl_string: 0.2 + 0.01 * k,
+                                                 stat3.snl_string: 0.3 + 0.01 * k})
 
             # Write the detection to the database. Only detections in a
             # database can be associated with the event in the database.
@@ -162,12 +161,25 @@ class MonitorClientTestCase(unittest.TestCase):
 
         self.project.event_library.clear()
 
+        # Store the created catalog for later use in the tests.
+        self.test_cat = cat
+
 
     def test_event_catalog(self):
         ''' Test the event catalog.
         '''
         self.logger.info("Available catalogs: %s.",
                          list(self.project.event_library.catalogs.keys()))
+        self.assertEqual(len(self.project.event_library.catalogs), 1)
+        self.assertEqual(list(self.project.event_library.catalogs.keys())[0],
+                         self.test_cat.name)
+        cat = self.project.event_library.catalogs[self.test_cat.name]
+        self.assertEqual(len(cat.events), len(self.test_cat.events))
+
+    def test_get_event_archive(self):
+        ''' Test the request for the event archive list.
+        '''
+        pass
 
 
 def suite():
