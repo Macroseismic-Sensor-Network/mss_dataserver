@@ -1271,6 +1271,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     def get_triggered_event_stations(self):
         ''' Get the stations which have triggered during the last event.
         '''
+        # TODO: Fix the method to work with the new event objects.
         now = utcdatetime.UTCDateTime()
         window = 300
         triggered_stations = {}
@@ -1355,18 +1356,17 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         '''
         cur_event = {}
         if self.current_event:
-            cur_event = validation.event(id = self.current_event.db_id,
+            cur_event = validation.Event(id = self.current_event.db_id,
                                          start_time = self.current_event.start_time.isoformat(),
                                          end_time = self.current_event.end_time.isoformat(),
                                          description = self.current_event.description,
                                          comment = self.current_event.comment,
                                          max_pgv = self.current_event.max_pgv,
                                          state = self.current_event.detection_state)
+            cur_event = cur_event.dict()
 
-            #cur_event['start_time'] = self.current_event.start_time.isoformat()
-            #cur_event['end_time'] = self.current_event.end_time.isoformat()
+            # TODO: Serve the detailed event data only on request.
             #cur_event['trigger_data'] = self.current_event['trigger_data']
-            #cur_event['state'] = self.current_event.detection_state
             #cur_event['overall_trigger_data'] = self.current_event['overall_trigger_data']
             #cur_archive_event['max_station_pgv'] = cur_event['max_station_pgv']
 
