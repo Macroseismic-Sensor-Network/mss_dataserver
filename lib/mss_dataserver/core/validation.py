@@ -35,8 +35,8 @@ from typing import Optional
 
 class Event(pydantic.BaseModel):
     id: PositiveInt
-    start_time: constr(min_length=19, max_length=19)
-    end_time: constr(min_length=19, max_length=19)
+    start_time: constr(min_length=19, max_length=26)
+    end_time: constr(min_length=19, max_length=26)
     description: Optional[constr(max_length=255)] = ''
     comment: Optional[constr(max_length=255)] = ''
     max_pgv: PositiveFloat
