@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import pdb
 ##############################################################################
  # LICENSE
  #
@@ -167,7 +166,6 @@ class MonitorClientTestCase(unittest.TestCase):
     def test_event_catalog(self):
         ''' Test the event catalog.
         '''
-        pdb.set_trace() ############################## Breakpoint ##############################
         self.logger.info("Available catalogs: %s.",
                          list(self.project.event_library.catalogs.keys()))
 
