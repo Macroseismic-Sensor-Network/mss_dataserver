@@ -431,10 +431,14 @@ async def handle_ws_connection(websocket, path, sl_client):
 
 
 @click.group()
-@click.argument('config')
+@click.argument('config_file')
 @click.pass_context
-def cli(ctx, config):
-    config = util.load_configuration(config)
+def cli(ctx, config_file):
+    if not os.path.exists(config_file):
+        logging.error('Configuration file not found: %s.', config_file)
+        raise click.Abort()
+
+    config = util.load_configuration(config_file)
     logging.basicConfig(level = config['log']['loglevel'],
                         format = "LOG - %(asctime)s - %(process)d - %(levelname)s - %(name)s: %(message)s")
     logger = logging.getLogger('mss_dataserver')
