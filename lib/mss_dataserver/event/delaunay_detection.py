@@ -46,8 +46,8 @@ class DelaunayDetector(object):
                  p_vel = 3500,
                  min_trigger_window = 2,
                  max_edge_length = 40000,
-                 author_uri = '',
-                 agency_uri = ''):
+                 author_uri = None,
+                 agency_uri = None):
         ''' Initialization of the instance.
         '''
         logger_name = __name__ + "." + self.__class__.__name__
