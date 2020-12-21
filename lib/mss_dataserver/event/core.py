@@ -63,8 +63,6 @@ class Event(object):
         # The unique database id.
         self.db_id = db_id
 
-        # The unique public id.
-        self.public_id = public_id
 
         # The start time of the event.
         self.start_time = utcdatetime.UTCDateTime(start_time)
@@ -115,6 +113,22 @@ class Event(object):
 
         # The event detection data.
         self.detection_data = {}
+
+        # The unique public id.
+        if public_id is None:
+            prefix = ''
+            if agency_uri is not None:
+                prefix += agency_uri + '_'
+
+            if author_uri is not None:
+                prefix += author_uri + '_'
+
+            if len(prefix) > 0:
+                self.public_id = prefix + self.start_time.isoformat().replace(':', '').replace('.', '')
+            else:
+                self.public_id = self.start_time.isoformat().replace(':', '').replace('.', '')
+        else:
+            self.public_id = public_id
 
 
     @property
