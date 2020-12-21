@@ -61,7 +61,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     A custom SeedLink client
     """
     def __init__(self, project, server_url, stations,
-                 monitor_stream, stream_lock, data_dir,
+                 monitor_stream, stream_lock, data_dir, event_dir,
                  process_interval, stop_event, asyncio_loop,
                  pgv_sps = 1, autoconnect = False, pgv_archive_time = 1800,
                  trigger_thr = 0.01e-3, warn_thr = 0.01e-3,
@@ -112,7 +112,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.stream_lock = stream_lock
         self.archive_lock = threading.Lock()
 
+        # The common data output directory.
         self.data_dir = data_dir
+
+        # The event data output directory.
+        self.event_dir = event_dir
 
         # The time interval [s] used to process the received data.
         self.process_interval = process_interval
@@ -569,14 +573,26 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     # separately. Adding the detection to the event and then
                     # writing the event to the database doesn't write the
                     # detections to the database.
+                    # TODO: An error occured, because the detection already had
+                    # a database id assigned, and the write_to_database method
+                    # tried to update the existing detection. This part of the
+                    # method is not yet working, thus an error was thrown. This
+                    # should not happen, because only fresh detections with no
+                    # database id should be available at this point!!!!!
                     for cur_detection in self.current_event.detections:
                         cur_detection.write_to_database(self.project)
                     # Write the event to the database.
                     self.current_event.write_to_database(self.project)
+                    # TODO: Write the event related data (e.g. waveform, pgv,
+                    # detection data) to a file in a folder structure.
+                    self.export_current_event_data()
                     # Clear the event instance.
                     self.current_event = None
                     # Clear the detector flag.
                     self.detector.new_event_available = False
+
+                    # TODO: Trigger a thread to compute the event results (e.g.
+                    # localization, geojson layers, ...).
         else:
             self.logger.warning("Failed to initialize the detection run.")
 
@@ -1306,6 +1322,31 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.vel_archive_stream.trim(starttime = crop_start_time)
                 self.logger.debug("Trimmed the velocity archive stream to %s.",
                                   crop_start_time)
+
+    def export_current_event_data(self):
+        ''' Write the data of the current event to a directory structure.
+        '''
+        # Build the output directory.
+        date_dir = "{0:04d}_{1:02d}_{2:02d}".format(self.current_event.start_time.year,
+                                                    self.current_event.start_time.month,
+                                                    self.current_event.start_time.day)
+        output_dir = os.path.join(self.event_dir,
+                                  date_dir,
+                                  self.current_event.public_id)
+
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        # Write the PGV data to the event directory.
+        if self.data.pgv_stream:
+            filename = self.current_event.public_id + '_' + self.current_event.db_id + '_pgv.msd'
+            filepath = os.path.join(output_dir, filename)
+            self.data.pgv_stream.write(filepath,
+                                       format = 'MINISEED',
+                                       blocksize = 512)
+
+        # TODO: Export the original seismograms.
+        # TODO: Export the max. PGV data of each available station.
 
     def get_pgv_data(self):
         ''' Get the latest PGV data.
