@@ -247,17 +247,27 @@ async def serve_data(sl_client):
     try:
         while True:
             await sl_client.pgv_data_available.wait()
+
+            # Get the registered clients.
+            with clients_lock:
+                clients_copy = copy.copy(clients)
+
+            # Check if any clients are registered.
+            if len(clients_copy) == 0:
+                return
+
+            # Request the PGV data.
             payload = sl_client.get_pgv_data()
 
+            # Prepare the message.
             msg = {}
             msg['class'] = msg_class['data']
             msg['id'] = msg_data_id['pgv']
             msg['payload'] = payload
             msg = json.dumps(msg, allow_nan = False)
 
+            # Send the data to the registered clients.
             logging.info("Serving the data.")
-            with clients_lock:
-                clients_copy = copy.copy(clients)
             for cur_client in clients_copy:
                 logging.info("Sending to client %s.", cur_client)
                 try:
@@ -265,6 +275,8 @@ async def serve_data(sl_client):
                 except Exception as e:
                     logging.exception("Error sending to client: %s.",
                                       cur_client)
+
+            # Reset the PGV data flag.
             sl_client.pgv_data_available.clear()
     except Exception as e:
         logging.exception("Error while serving the data.")
@@ -278,6 +290,10 @@ async def serve_detection_result(sl_client):
     try:
         while True:
             await sl_client.event_detection_result_available.wait()
+
+            # Get the registered clients.
+            with clients_lock:
+                clients_copy = copy.copy(clients)
             payload = sl_client.last_detection_result
 
             msg = {}
@@ -287,8 +303,6 @@ async def serve_detection_result(sl_client):
             msg = json.dumps(msg, allow_nan = False)
 
             logging.info("Serving the detection result.")
-            with clients_lock:
-                clients_copy = copy.copy(clients)
             for cur_client in clients_copy:
                 logging.info("Sending to client %s.", cur_client)
                 try:
@@ -307,17 +321,27 @@ async def serve_current_event(sl_client):
     try:
         while True:
             await sl_client.current_event_available.wait()
+
+            # Get the registered clients.
+            with clients_lock:
+                clients_copy = copy.copy(clients)
+
+            # Check if any clients are registered.
+            if len(clients_copy) == 0:
+                return
+
+            # Request the data of the current event.
             payload = sl_client.get_current_event()
 
+            # Prepare the message.
             msg = {}
             msg['class'] = msg_class['data']
             msg['id'] = msg_data_id['event_data']
             msg['payload'] = payload
             msg = json.dumps(msg, allow_nan = False)
 
+            # Send the data to the registered clients.
             logging.info("Serving the event data.")
-            with clients_lock:
-                clients_copy = copy.copy(clients)
             for cur_client in clients_copy:
                 logging.info("Sending to client %s.", cur_client)
                 try:
@@ -325,6 +349,8 @@ async def serve_current_event(sl_client):
                 except Exception as e:
                     logging.exception("Error sending to client: %s.",
                                       cur_client)
+
+            # Reset the flag.
             sl_client.current_event_available.clear()
     except Exception as e:
         logging.exception("Error while serving the event data.")
