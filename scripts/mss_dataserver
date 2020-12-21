@@ -64,25 +64,6 @@ clients = set()
 clients_keydata_lock = threading.Lock()
 clients_keydata = set()
 
-class Producer(object):
-    def __init__(self):
-        self.data = 0
-
-    async def rand_value(self):
-        await asyncio.sleep(1)
-        self.data += 1
-        return self.data
-
-#async def serve_pgv(websocket, path, producer):
-#    while True:
-#        product = await producer.rand_value()
-#        data = {}
-#        data['time'] = datetime.datetime.utcnow().isoformat() + 'Z'
-#        data['pgv'] = product
-#        msg = json.dumps(data)
-#        await websocket.send(msg)
-
-
 msg_class = {}
 msg_class['control'] = 'control'
 msg_class['soh'] = 'soh'
@@ -412,7 +393,7 @@ async def serve_event_warning(sl_client):
         logging.exception("Error while serving the event warning.")
 
 
-async def serve_pgv(websocket, path, sl_client):
+async def handle_ws_connection(websocket, path, sl_client):
     mode = None
     try:
         async for msg in websocket:
@@ -539,8 +520,7 @@ def start_server(ctx):
     #                                  args = (client.process_monitor_stream, ))
     #process_thread.start()
 
-    prod = Producer()
-    bound_handler = functools.partial(serve_pgv,
+    bound_handler = functools.partial(handle_ws_connection,
                                       sl_client = client)
 
     header = {'Access-Control-Allow-Origin': '*:*'}
