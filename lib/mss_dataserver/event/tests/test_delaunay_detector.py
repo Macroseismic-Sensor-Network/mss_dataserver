@@ -390,7 +390,9 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         detector = delaunay_detection.DelaunayDetector(network_stations = all_stations,
                                                        window_length = window_length,
                                                        safety_time = safety_time,
-                                                       p_vel = 3500)
+                                                       p_vel = 3500,
+                                                       author_uri = self.project.author_uri,
+                                                       agency_uri = self.project.agency_uri)
 
         # Test with a stream containing no event. Use a sliced part of the test
         # data for initialization, otherwise, the whole data of the stream
@@ -474,6 +476,12 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         expected_end = start_time + event_start + event_length + time_window - 2 / sps
         self.assertEqual(detector.current_event.start_time, expected_start)
         self.assertEqual(detector.current_event.end_time, expected_end)
+
+        # Test the public id.
+        self.assertEqual(detector.current_event.public_id,
+                         "{0:s}_{1:s}_{2:s}".format(self.project.agency_uri,
+                                                    self.project.author_uri,
+                                                    expected_start.isoformat().replace(':', '').replace('.', '')))
 
         # Test with the next data chunk containing no event. The current event
         # should be closed.
