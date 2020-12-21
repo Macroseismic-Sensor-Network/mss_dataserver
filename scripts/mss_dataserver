@@ -407,7 +407,7 @@ async def handle_ws_connection(websocket, path, sl_client):
                         mode = 'pgv'
                     elif msg['payload'] == 'keydata':
                         await register_keydata_client(websocket = websocket,
-                                                  sl_client = sl_client)
+                                                      sl_client = sl_client)
                         mode = 'keydata'
                 else:
                     logging.warning('Unexpected message id.', msg['id'])
