@@ -26,6 +26,7 @@
 '''
 @author: Stefan Mertl
 '''
+import copy
 import unittest
 import logging
 import threading
@@ -61,6 +62,7 @@ class MonitorClientTestCase(unittest.TestCase):
         port = cls.project.config['seedlink']['port']
         stations = cls.project.config['process']['stations']
         data_dir = cls.project.config['output']['data_dir']
+        event_dir = cls.project.config['output']['event_dir']
         process_interval = cls.project.config['process']['interval']
         pgv_sps = cls.project.config['process']['pgv_sps']
         pgv_archive_time = cls.project.config['process']['pgv_archive_time']
@@ -86,6 +88,7 @@ class MonitorClientTestCase(unittest.TestCase):
                                                  monitor_stream = monitor_stream,
                                                  stream_lock = stream_lock,
                                                  data_dir = data_dir,
+                                                 event_dir = event_dir,
                                                  process_interval = process_interval,
                                                  pgv_sps = pgv_sps,
                                                  stop_event = stop_event,
@@ -176,6 +179,7 @@ class MonitorClientTestCase(unittest.TestCase):
         cat = self.project.event_library.catalogs[self.test_cat.name]
         self.assertEqual(len(cat.events), len(self.test_cat.events))
 
+
     def test_get_recent_events(self):
         ''' Test the request for the event archive list.
         '''
@@ -184,6 +188,33 @@ class MonitorClientTestCase(unittest.TestCase):
         self.assertEqual(len(event_list), 10)
         for cur_event in event_list:
             self.assertIsInstance(cur_event, dict)
+
+
+    def test_process_monitor_stream(self):
+        ''' Test the processing of a data stream.
+        '''
+        # Load and prepare the input data.
+        filename = './data/earthquake_20190614T1234_neunkirchen.mseed'
+        input_stream = obspy.read(filename)
+        # Remove the DUBAM data from the stream.
+        mss_stream = obspy.Stream()
+        for cur_trace in input_stream:
+            if cur_trace.stats.station != 'DUBAM':
+                mss_stream.append(cur_trace)
+
+        mss_stream.merge()
+        mss_stream.sort()
+        mss_stream.trim(starttime = obspy.UTCDateTime('2019-06-14T12:33:50'),
+                        endtime = obspy.UTCDateTime('2019-06-14T12:36:00'))
+
+        # Feed the stream in 10 second intervals.
+        for win_st in mss_stream.slide(window_length = 10.0,
+                                       step = 10.0):
+            for cur_trace in copy.deepcopy(win_st):
+                self.client.on_data(cur_trace)
+
+            # Process the monitor stream.
+            self.client.process_monitor_stream()
 
 
 def suite():
