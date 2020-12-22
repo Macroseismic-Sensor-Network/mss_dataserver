@@ -108,6 +108,7 @@ def create_db_test_project():
     # Update the configuration filepaths.
     config['project']['inventory_file'] = os.path.join(base_dir, 'test', 'data', config['project']['inventory_file'])
     config['output']['data_dir'] = os.path.join(base_dir, 'test', 'output', config['output']['data_dir'])
+    config['output']['event_dir'] = os.path.join(base_dir, 'test', 'output', config['output']['event_dir'])
     project = mss_dataserver.core.project.Project(**config)
     try:
         drop_project_database_tables(project)
