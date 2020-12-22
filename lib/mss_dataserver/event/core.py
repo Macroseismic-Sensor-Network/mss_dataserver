@@ -115,20 +115,7 @@ class Event(object):
         self.detection_data = {}
 
         # The unique public id.
-        if public_id is None:
-            prefix = ''
-            if agency_uri is not None:
-                prefix += agency_uri + '_'
-
-            if author_uri is not None:
-                prefix += author_uri + '_'
-
-            if len(prefix) > 0:
-                self.public_id = prefix + self.start_time.isoformat().replace(':', '').replace('.', '')
-            else:
-                self.public_id = self.start_time.isoformat().replace(':', '').replace('.', '')
-        else:
-            self.public_id = public_id
+        self._public_id = public_id
 
 
     @property
@@ -137,6 +124,29 @@ class Event(object):
         '''
         return '/event/' + str(self.db_id)
 
+    @property
+    def public_id(self):
+        ''' The public ID of the event.
+        '''
+        if self._public_id is None:
+            prefix = ''
+            if self.agency_uri is not None:
+                prefix += self.agency_uri + '_'
+
+            if self.author_uri is not None:
+                prefix += self.author_uri + '_'
+
+            strftime_format = '%Y-%m-%dT%H%M%S'
+            start_time_string = self.start_time.strftime(strftime_format)
+            start_time_string += '{0:06d}'.format(self.start_time.microsecond)
+            if len(prefix) > 0:
+                public_id = prefix + start_time_string
+            else:
+                public_id = start_time_string
+
+            return public_id
+        else:
+            return self._public_id
 
     @property
     def start_time_string(self):
@@ -160,12 +170,27 @@ class Event(object):
 
     @property
     def max_pgv(self):
-        ''' The maximum PGV value of all detections.
+        ''' The maximum PGV of all detections.
         '''
         if len(self.detections) > 0:
             return max([x.absolute_max_pgv for x in self.detections])
         else:
             return None
+
+
+    def get_max_pgv_per_station(self):
+        ''' Compute the maximum PGV of the individual stations that have
+            been associated to a detection.
+        '''
+        max_pgv = {}
+        for cur_detection in self.detections:
+            for cur_key, cur_pgv in cur_detection.max_pgv.items():
+                if cur_key not in max_pgv:
+                    max_pgv[cur_key] = float(cur_pgv)
+                elif cur_pgv > max_pgv[cur_key]:
+                    max_pgv[cur_key] = float(cur_pgv)
+
+        return max_pgv
 
 
     def station_has_triggered(self, station):
