@@ -285,7 +285,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
 
     def get_recorder_mappings(self, station_nsl = None):
-        ''' Get the mappings of the seedlink SCNL to the MSS SCNL.
+        ''' Get the mappings of the requested NSLC.
+
+        Return the matching NSLC codes of the MSS units relating their
+        serial numbers to the actual station locations.
         '''
         recorder_map = {}
         if station_nsl is None:
@@ -304,7 +307,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 station_list.append(cur_station)
 
         for station in station_list:
-
             for cur_channel in station.channels:
                 stream_tb = cur_channel.get_stream(start_time = obspy.UTCDateTime())
                 cur_loc = stream_tb[0].item.name.split(':')[0]
@@ -314,7 +316,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                            stream_tb[0].item.serial,
                            cur_loc,
                            cur_chan)
-                recorder_map[cur_key] = cur_channel.scnl
+                recorder_map[cur_key] = cur_channel.nslc
 
         self.logger.debug(recorder_map)
         return recorder_map
@@ -336,11 +338,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         #self.logger.debug(str(trace))
         #self.logger.debug("on_data trace data: %s", trace.data)
         self.stream_lock.acquire()
-        cur_scnl = self.recorder_map[tuple(trace.id.split('.'))]
-        trace.stats.network = cur_scnl[2]
-        trace.stats.station = cur_scnl[0]
-        trace.stats.location = cur_scnl[3]
-        trace.stats.channel = cur_scnl[1]
+        cur_nslc = self.recorder_map[tuple(trace.id.split('.'))]
+        trace.stats.network = cur_nslc[0]
+        trace.stats.station = cur_nslc[1]
+        trace.stats.location = cur_nslc[2]
+        trace.stats.channel = cur_nslc[3]
         self.monitor_stream.append(trace)
         #self.monitor_stream.merge(method = 1, fill_value = 'interpolate')
         #self.logger.debug(self.monitor_stream)
@@ -648,7 +650,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             if cur_station:
                 detect_stations.append(cur_station[0])
         self.last_detection_result['computation_time'] = now.isoformat()
-        self.last_detection_result['used_stations'] = [x.snl for x in detect_stations]
+        self.last_detection_result['used_stations'] = [x.nsl for x in detect_stations]
 
         logger.debug("number of detect_stream traces: %d.", len(detect_stream))
         logger.debug("number of detect_stations: %d.", len(detect_stations))
@@ -732,9 +734,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                         cur_detection = event_detection.Detection(start_time = cur_data['time'][0],
                                                                   end_time = cur_data['time'][-1],
                                                                   stations = cur_simp_stations,
-                                                                  pgv_max = {cur_simp_stations[0].snl: pgv_max[0],
-                                                                             cur_simp_stations[1].snl: pgv_max[1],
-                                                                             cur_simp_stations[2].snl: pgv_max[2]})
+                                                                  pgv_max = {cur_simp_stations[0].nsl: pgv_max[0],
+                                                                             cur_simp_stations[1].nsl: pgv_max[1],
+                                                                             cur_simp_stations[2].nsl: pgv_max[2]})
                         cur_event_obj.add_detection(cur_detection)
 
                     self.current_event = cur_event
@@ -767,17 +769,17 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                             else:
                                 logger.error("Expected exactly one detection. Got: %s.", cur_detection)
                             cur_detection.update(end_time = cur_data['time'][-1],
-                                                 pgv_max = {cur_simp_stations[0].snl: pgv_max[0],
-                                                            cur_simp_stations[1].snl: pgv_max[1],
-                                                            cur_simp_stations[2].snl: pgv_max[2]})
+                                                 pgv_max = {cur_simp_stations[0].nsl: pgv_max[0],
+                                                            cur_simp_stations[1].nsl: pgv_max[1],
+                                                            cur_simp_stations[2].nsl: pgv_max[2]})
                         else:
                             # Add the detection.
                             cur_detection = event_detection.Detection(start_time = cur_data['time'][0],
                                                                       end_time = cur_data['time'][-1],
                                                                       stations = cur_simp_stations,
-                                                                      pgv_max = {cur_simp_stations[0].snl: pgv_max[0],
-                                                                                 cur_simp_stations[1].snl: pgv_max[1],
-                                                                                 cur_simp_stations[2].snl: pgv_max[2]})
+                                                                      pgv_max = {cur_simp_stations[0].nsl: pgv_max[0],
+                                                                                 cur_simp_stations[1].nsl: pgv_max[1],
+                                                                                 cur_simp_stations[2].nsl: pgv_max[2]})
                             self.current_event_obj.add_detection(cur_detection)
 
                     self.current_event_available.set()
@@ -1062,19 +1064,19 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
             # Check if all required channels are present:
             missing_data = False
-            required_scnl = [x for x in self.recorder_map.values()
+            required_nslc = [x for x in self.recorder_map.values()
                              if x[0] == cur_station[1]]
-            available_scnl = [(x.stats.station,
-                               x.stats.channel,
-                               x.stats.network,
-                               x.stats.location) for x in cur_stream]
-            self.logger.debug('available_scnl: %s', available_scnl)
-            self.logger.debug('required_scnl: %s', required_scnl)
+            available_nslc = [(x.stats.network,
+                               x.stats.station,
+                               x.stats.location,
+                               x.stats.channel) for x in cur_stream]
+            self.logger.debug('available_nslc: %s', available_nslc)
+            self.logger.debug('required_nslc: %s', required_nslc)
 
-            for cur_required_scnl in required_scnl:
-                if cur_required_scnl not in available_scnl:
+            for cur_required_nslc in required_nslc:
+                if cur_required_nslc not in available_nslc:
                     self.logger.debug('Data for channel %s is missing.',
-                                      cur_required_scnl)
+                                      cur_required_nslc)
                     missing_data = True
                     break
 
@@ -1374,10 +1376,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                       endtime = self.current_event.end_time)
         max_network_pgv = {}
         for cur_trace in pgv_stream:
-            cur_snl = '{0:s}:{1:s}:{2:s}'.format(cur_trace.stats.station,
-                                                  cur_trace.stats.network,
-                                                  cur_trace.stats.location)
-            max_network_pgv[cur_snl] = float(np.max(cur_trace.data))
+            cur_nsl = '{0:s}:{1:s}:{2:s}'.format(cur_trace.stats.network,
+                                                 cur_trace.stats.station,
+                                                 cur_trace.stats.location)
+            max_network_pgv[cur_nsl] = float(np.max(cur_trace.data))
 
         max_event_pgv = self.current_event.get_max_pgv_per_station()
 

@@ -48,7 +48,7 @@ class Detection(object):
         self.stations = stations
 
         # The max. PGV values of the detection timespan.
-        # A dictionary of {station.snl_string: PGV values}.
+        # A dictionary of {station.nsl_string: PGV values}.
         self.max_pgv = max_pgv
 
         # The agency_uri of the creator.
@@ -93,25 +93,25 @@ class Detection(object):
         return self.end_time - self.start_time
 
     @property
-    def scnl(self):
-        ''' The SCNL code of the related channel.
+    def nslc(self):
+        ''' The NSLC code of the related channel.
         '''
         if self.channel is None:
             return None
         else:
-            return self.channel.scnl
+            return self.channel.nslc
 
 
     @property
-    def snl(self):
-        ''' The SCNL code of the related channel.
+    def nsl(self):
+        ''' The NSLC code of the related channel.
         '''
         if self.channel is None:
             return None
         else:
-            return (self.channel.scnl[0],
-                    self.channel.scnl[2],
-                    self.channel.scnl[3])
+            return (self.channel.nslc[0],
+                    self.channel.nslc[1],
+                    self.channel.nslc[2])
 
 
     @property
@@ -168,9 +168,9 @@ class Detection(object):
                                             stat1_id = self.stations[0].id,
                                             stat2_id = self.stations[1].id,
                                             stat3_id = self.stations[2].id,
-                                            max_pgv1 = float(self.max_pgv[self.stations[0].snl_string]),
-                                            max_pgv2 = float(self.max_pgv[self.stations[1].snl_string]),
-                                            max_pgv3 = float(self.max_pgv[self.stations[2].snl_string]),
+                                            max_pgv1 = float(self.max_pgv[self.stations[0].nsl_string]),
+                                            max_pgv2 = float(self.max_pgv[self.stations[1].nsl_string]),
+                                            max_pgv3 = float(self.max_pgv[self.stations[2].nsl_string]),
                                             agency_uri = self.agency_uri,
                                             author_uri = self.author_uri,
                                             creation_time = creation_time)
@@ -190,7 +190,6 @@ class Detection(object):
                     db_detection.catalog_id = self.parent.db_id
                 else:
                     db_detection.catalog_id = None
-                db_detection.rec_stream_id = self.rec_stream_id
                 db_detection.start_time = self.start_time.timestamp
                 db_detection.end_time = self.end_time.timestamp
                 db_detection.method = self.method
@@ -221,13 +220,12 @@ class Detection(object):
         else:
             catalog_id = None
 
-        labels = ['catalog_id', 'rec_stream_id',
+        labels = ['catalog_id',
                   'start_time', 'end_time',
                   'method', 'agency_uri',
                   'author_uri', 'creation_time']
         db_dict = dict(list(zip(labels,
                            (catalog_id,
-                            self.rec_stream_id,
                             self.start_time.timestamp,
                             self.end_time.timestamp,
                             self.method,
@@ -255,9 +253,9 @@ class Detection(object):
                         db_id = detection_orm.id,
                         catalog_id = detection_orm.catalog_id,
                         stations = [stat1, stat2, stat3],
-                        max_pgv = {stat1.snl_string: detection_orm.max_pgv1,
-                                   stat2.snl_string: detection_orm.max_pgv2,
-                                   stat3.snl_string: detection_orm.max_pgv3},
+                        max_pgv = {stat1.nsl_string: detection_orm.max_pgv1,
+                                   stat2.nsl_string: detection_orm.max_pgv2,
+                                   stat3.nsl_string: detection_orm.max_pgv3},
                         agency_uri = detection_orm.agency_uri,
                         author_uri = detection_orm.author_uri,
                         creation_time = detection_orm.creation_time)
@@ -356,12 +354,13 @@ class Catalog(object):
             If True, select only those detection with an end time
             inside the search window.
 
-        scnl : tuple of Strings
-            The scnl code of the channel (e.g. ('GILA, 'HHZ', 'XX', '00')).
+        nslc : tuple of Strings
+            The NSLC code (network, station, location, channel) of
+            the channel (e.g. ('XX', 'GILA', '00', 'HHZ')).
         '''
         ret_detections = self.detections
 
-        valid_keys = ['scnl']
+        valid_keys = ['nslc']
 
         for cur_key, cur_value in kwargs.items():
             if cur_key in valid_keys:

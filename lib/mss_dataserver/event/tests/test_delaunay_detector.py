@@ -212,7 +212,7 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         keys = []
         for cur_simp in tri.simplices:
             cur_stations = [stations[x] for x in cur_simp]
-            keys.append(tuple(sorted([x.snl_string for x in cur_stations])))
+            keys.append(tuple(sorted([x.nsl_string for x in cur_stations])))
         self.assertEqual(sorted(edge_length.keys()),
                          sorted(keys))
 
@@ -225,7 +225,7 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         keys = []
         for cur_simp in tri.simplices:
             cur_stations = [stations[x] for x in cur_simp]
-            keys.append(tuple(sorted([x.snl_string for x in cur_stations])))
+            keys.append(tuple(sorted([x.nsl_string for x in cur_stations])))
         self.assertEqual(sorted(edge_length.keys()),
                          sorted(keys))
         max_edge_length = np.max(list(edge_length.values()))
@@ -262,10 +262,10 @@ class DelaunayDetectorTestCase(unittest.TestCase):
         time, pgv, simp_stations = detector.compute_triangle_max_pgv(desired_triangle)
 
         # Check the correct stations of the used triangle.
-        simp_stat_snl = [x.snl for x in simp_stations]
+        simp_stat_nsl = [x.nsl for x in simp_stations]
         expected_stations = [stations[x] for x in desired_triangle]
-        expected_snl = [x.snl for x in expected_stations]
-        self.assertEqual(simp_stat_snl, expected_snl)
+        expected_nsl = [x.nsl for x in expected_stations]
+        self.assertEqual(simp_stat_nsl, expected_nsl)
 
         # The PGV values for three stations should have been computed.
         self.assertEqual(pgv.shape[1], 3)
@@ -284,7 +284,7 @@ class DelaunayDetectorTestCase(unittest.TestCase):
                          start_time + detector.max_time_window + expected_length / sps - 1 / sps)
 
         # Check the correct time of the event pgv value.
-        key = tuple(sorted([x.snl_string for x in simp_stations]))
+        key = tuple(sorted([x.nsl_string for x in simp_stations]))
         edge_length = detector.edge_length[key]
         time_window = np.ceil(edge_length / detector.p_vel)
         for k, cur_stat in enumerate(simp_stations):

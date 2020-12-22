@@ -304,8 +304,9 @@ class Project(object):
         end_time : :class:`~obspy.core.utcdatetime.UTCDateTime`
             The maximum end_time of the detections.
 
-        scnl : tuple of Strings
-            The scnl code of the channel (e.g. ('GILA, 'HHZ', 'XX', '00')).
+        nslc : tuple of Strings
+            The NSLC (network, station, location, channel)code
+            of the channel (e.g. ('XX', 'GILA', '00', 'HHZ')).
         '''
         ret_events = self.event_library.get_events(catalog_names = catalog_names,
                                                    start_time = start_time,

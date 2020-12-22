@@ -174,7 +174,7 @@ class DelaunayDetector(object):
         if tri is not None:
             for cur_simp in tri.simplices:
                 cur_stations = [stations[k] for k in cur_simp]
-                cur_key = tuple(sorted([stat.snl_string for stat in cur_stations]))
+                cur_key = tuple(sorted([stat.nsl_string for stat in cur_stations]))
                 cur_vert = coords[cur_simp]
                 cur_dist = [np.linalg.norm(a - b) for a in cur_vert for b in cur_vert]
                 cur_max_edge = np.max(cur_dist)
@@ -232,7 +232,7 @@ class DelaunayDetector(object):
         ''' Compute the maximal PGV values of a delaunay triangle.
         '''
         offset = self.max_time_window
-        simp_keys = tuple(sorted([self.detect_stations[x].snl_string for x in simp]))
+        simp_keys = tuple(sorted([self.detect_stations[x].nsl_string for x in simp]))
         simp_edge_length = self.edge_length[simp_keys]
 
         # Compute the length of the search time window using a default velocity
@@ -393,9 +393,9 @@ class DelaunayDetector(object):
                     cur_detection = event_detection.Detection(start_time = cur_data['time'][0],
                                                               end_time = cur_data['time'][-1],
                                                               stations = cur_simp_stations,
-                                                              max_pgv = {cur_simp_stations[0].snl_string: max_pgv[0],
-                                                                         cur_simp_stations[1].snl_string: max_pgv[1],
-                                                                         cur_simp_stations[2].snl_string: max_pgv[2]},
+                                                              max_pgv = {cur_simp_stations[0].nsl_string: max_pgv[0],
+                                                                         cur_simp_stations[1].nsl_string: max_pgv[1],
+                                                                         cur_simp_stations[2].nsl_string: max_pgv[2]},
                                                               author_uri = self.author_uri,
                                                               agency_uri = self.agency_uri)
                     cur_event.add_detection(cur_detection)
@@ -425,9 +425,9 @@ class DelaunayDetector(object):
                     if len(cur_detection) == 1:
                         cur_detection = cur_detection[0]
                         cur_detection.update(end_time = cur_data['time'][-1],
-                                             max_pgv = {cur_simp_stations[0].snl_string: max_pgv[0],
-                                                        cur_simp_stations[1].snl_string: max_pgv[1],
-                                                        cur_simp_stations[2].snl_string: max_pgv[2]})
+                                             max_pgv = {cur_simp_stations[0].nsl_string: max_pgv[0],
+                                                        cur_simp_stations[1].nsl_string: max_pgv[1],
+                                                        cur_simp_stations[2].nsl_string: max_pgv[2]})
                     else:
                         self.logger.error("Expected exactly one detection. Got: %s.", cur_detection)
                 else:
@@ -435,9 +435,9 @@ class DelaunayDetector(object):
                     cur_detection = event_detection.Detection(start_time = cur_data['time'][0],
                                                               end_time = cur_data['time'][-1],
                                                               stations = cur_simp_stations,
-                                                              max_pgv = {cur_simp_stations[0].snl_string: max_pgv[0],
-                                                                         cur_simp_stations[1].snl_string: max_pgv[1],
-                                                                         cur_simp_stations[2].snl_string: max_pgv[2]},
+                                                              max_pgv = {cur_simp_stations[0].nsl_string: max_pgv[0],
+                                                                         cur_simp_stations[1].nsl_string: max_pgv[1],
+                                                                         cur_simp_stations[2].nsl_string: max_pgv[2]},
                                                               author_uri = self.author_uri,
                                                               agency_uri = self.agency_uri)
                     self.current_event.add_detection(cur_detection)

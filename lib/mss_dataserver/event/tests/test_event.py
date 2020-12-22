@@ -117,9 +117,9 @@ class EventTestCase(unittest.TestCase):
                                   end_time = end_time,
                                   creation_time = creation_time,
                                   stations = [stat1, stat2, stat3],
-                                  max_pgv = {stat1.snl_string: 0.1,
-                                             stat2.snl_string: 0.2,
-                                             stat3.snl_string: 0.3})
+                                  max_pgv = {stat1.nsl_string: 0.1,
+                                             stat2.nsl_string: 0.2,
+                                             stat3.nsl_string: 0.3})
 
         # Create an event.
         start_time = '2000-01-01T00:00:00'
@@ -180,9 +180,9 @@ class EventTestCase(unittest.TestCase):
                                   end_time = end_time,
                                   creation_time = creation_time,
                                   stations = [stat1, stat2, stat3],
-                                  max_pgv = {stat1.snl_string: 0.1,
-                                             stat2.snl_string: 0.2,
-                                             stat3.snl_string: 0.3})
+                                  max_pgv = {stat1.nsl_string: 0.1,
+                                             stat2.nsl_string: 0.2,
+                                             stat3.nsl_string: 0.3})
         # Write the detection to the database. Only detections in a database
         # can be associated with the event in the database.
         det.write_to_database(self.project)
@@ -211,12 +211,12 @@ class EventTestCase(unittest.TestCase):
             self.assertEqual(cur_event.detections[0].start_time, det.start_time)
             self.assertEqual(cur_event.detections[0].end_time, det.end_time)
             self.assertEqual(len(cur_event.detections[0].stations), 3)
-            self.assertEqual(cur_event.detections[0].stations[0].snl,
-                             stat1.snl)
-            self.assertEqual(cur_event.detections[0].stations[1].snl,
-                             stat2.snl)
-            self.assertEqual(cur_event.detections[0].stations[2].snl,
-                             stat3.snl)
+            self.assertEqual(cur_event.detections[0].stations[0].nsl,
+                             stat1.nsl)
+            self.assertEqual(cur_event.detections[0].stations[1].nsl,
+                             stat2.nsl)
+            self.assertEqual(cur_event.detections[0].stations[2].nsl,
+                             stat3.nsl)
             self.assertEqual(cur_event.max_pgv, 0.3)
         finally:
             db_session.close()
@@ -240,9 +240,9 @@ class EventTestCase(unittest.TestCase):
                                    end_time = end_time,
                                    creation_time = creation_time,
                                    stations = [stat_11, stat_12, stat_13],
-                                   max_pgv = {stat_11.snl_string: 0.1,
-                                              stat_12.snl_string: 0.2,
-                                              stat_13.snl_string: 0.3})
+                                   max_pgv = {stat_11.nsl_string: 0.1,
+                                              stat_12.nsl_string: 0.2,
+                                              stat_13.nsl_string: 0.3})
         det1.write_to_database(self.project)
 
         stat_21 = inventory.get_station(name = 'HOWA')[0]
@@ -253,9 +253,9 @@ class EventTestCase(unittest.TestCase):
                                    end_time = end_time,
                                    creation_time = creation_time,
                                    stations = [stat_21, stat_22, stat_23],
-                                   max_pgv = {stat_21.snl_string: 0.11,
-                                              stat_22.snl_string: 0.22,
-                                              stat_23.snl_string: 0.33})
+                                   max_pgv = {stat_21.nsl_string: 0.11,
+                                              stat_22.nsl_string: 0.22,
+                                              stat_23.nsl_string: 0.33})
         det2.write_to_database(self.project)
 
         # Create an event.
@@ -284,23 +284,23 @@ class EventTestCase(unittest.TestCase):
             self.assertEqual(cur_det.start_time, det1.start_time)
             self.assertEqual(cur_det.end_time, det1.end_time)
             self.assertEqual(len(cur_det.stations), 3)
-            self.assertEqual(cur_det.stations[0].snl,
-                             stat_11.snl)
-            self.assertEqual(cur_det.stations[1].snl,
-                             stat_12.snl)
-            self.assertEqual(cur_det.stations[2].snl,
-                             stat_13.snl)
+            self.assertEqual(cur_det.stations[0].nsl,
+                             stat_11.nsl)
+            self.assertEqual(cur_det.stations[1].nsl,
+                             stat_12.nsl)
+            self.assertEqual(cur_det.stations[2].nsl,
+                             stat_13.nsl)
 
             cur_det = cur_event.detections[1]
             self.assertEqual(cur_det.start_time, det1.start_time)
             self.assertEqual(cur_det.end_time, det1.end_time)
             self.assertEqual(len(cur_det.stations), 3)
-            self.assertEqual(cur_det.stations[0].snl,
-                             stat_21.snl)
-            self.assertEqual(cur_det.stations[1].snl,
-                             stat_22.snl)
-            self.assertEqual(cur_det.stations[2].snl,
-                             stat_23.snl)
+            self.assertEqual(cur_det.stations[0].nsl,
+                             stat_21.nsl)
+            self.assertEqual(cur_det.stations[1].nsl,
+                             stat_22.nsl)
+            self.assertEqual(cur_det.stations[2].nsl,
+                             stat_23.nsl)
 
             self.assertEqual(cur_event.max_pgv, 0.33)
         finally:

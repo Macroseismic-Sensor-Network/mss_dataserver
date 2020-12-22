@@ -144,9 +144,9 @@ class MonitorClientTestCase(unittest.TestCase):
                                       end_time = cur_end_time,
                                       creation_time = cur_creation_time,
                                       stations = [stat1, stat2, stat3],
-                                      max_pgv = {stat1.snl_string: 0.1 + 0.01 * k,
-                                                 stat2.snl_string: 0.2 + 0.01 * k,
-                                                 stat3.snl_string: 0.3 + 0.01 * k})
+                                      max_pgv = {stat1.nsl_string: 0.1 + 0.01 * k,
+                                                 stat2.nsl_string: 0.2 + 0.01 * k,
+                                                 stat3.nsl_string: 0.3 + 0.01 * k})
 
             # Write the detection to the database. Only detections in a
             # database can be associated with the event in the database.

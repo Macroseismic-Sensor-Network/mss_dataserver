@@ -179,24 +179,25 @@ class Inventory(object):
 
 
 
-    def remove_station(self, snl):
+    def remove_station(self, nsl):
         ''' Remove a station from the inventory.
 
         Parameters
         ----------
-        scnl : tuple (String, String, String)
-            The SNL code of the station to remove from the inventory.
+        nsl : tuple (String, String, String)
+            The NSL (network, station, location) code of the station to remove
+            from the inventory.
         '''
         removed_station = None
 
-        cur_net = self.get_network(name = snl[1])
+        cur_net = self.get_network(name = nsl[0])
 
         if cur_net:
             if len(cur_net) == 1:
                 cur_net = cur_net[0]
-                removed_station = cur_net.remove_station(name = snl[0], location = snl[2])
+                removed_station = cur_net.remove_station(name = nsl[1], location = nsl[2])
             else:
-                self.logger.error('More than one networks with name %s where found in the inventory.', snl[1])
+                self.logger.error('More than one networks with name %s where found in the inventory.', nsl[0])
         return removed_station
 
 
@@ -2069,12 +2070,12 @@ class Station(object):
             return None
 
     @property
-    def snl(self):
-        return (self.name, self.network, self.location)
+    def nsl(self):
+        return (self.network, self.name, self.location)
 
     @property
-    def snl_string(self):
-        return str.join(':', self.snl)
+    def nsl_string(self):
+        return str.join(':', self.nsl)
 
     @property
     def parent_inventory(self):
@@ -2176,14 +2177,15 @@ class Station(object):
         return d
 
 
-    def get_scnl(self):
-        scnl = []
+    def get_nslc(self):
+        nslc = []
         for cur_sensor, start_time, end_time in self.sensors:
-            cur_scnl = (self.name, cur_sensor.channel_name, self.network, self.location)
-            if cur_scnl not in scnl:
-                scnl.append(cur_scnl)
+            cur_nslc = (self.network, self.station,
+                        self.location, cur_sensor.channel_name)
+            if cur_nslc not in nslc:
+                nslc.append(cur_nslc)
 
-        return scnl
+        return nslc
 
 
     def get_lon_lat(self):
@@ -2344,18 +2346,18 @@ class Channel(object):
             return None
 
     @property
-    def scnl(self):
+    def nslc(self):
         if self.parent_station is not None:
-            return (self.parent_station.name,
-                    self.name,
-                    self.parent_station.network,
-                    self.parent_station.location)
+            return (self.parent_station.network,
+                    self.parent_station.name,
+                    self.parent_station.location,
+                    self.name)
         else:
             return None
 
     @property
-    def scnl_string(self):
-        return str.join(':', self.scnl)
+    def nslc_string(self):
+        return str.join(':', self.nslc)
 
     @property
     def assigned_recorders(self):
@@ -2723,15 +2725,15 @@ class Network(object):
         id : Integer
             The database id of the station.
 
-        snl : Tuple (station, network, location)
-            The SNL tuple of the station.
+        nsl : Tuple (network, station, location)
+            The NSL tuple of the station.
 
-        snl_string : String
-            The SNL string in the format 'station:network:location'.
+        nsl_string : String
+            The NSL string in the format 'network:station:location'.
         '''
         ret_station = self.stations
 
-        valid_keys = ['name', 'network', 'location', 'id', 'snl', 'snl_string']
+        valid_keys = ['name', 'network', 'location', 'id', 'nsl', 'nsl_string']
 
         for cur_key, cur_value in kwargs.items():
             if cur_key in valid_keys:
@@ -2850,7 +2852,7 @@ class Array(object):
         except:
             end_time = None
 
-        if self.get_station(snl = station.snl):
+        if self.get_station(nsl = station.nsl):
                 # The station is already assigned to the array for this
                 # time-span.
                 if start_time is not None:
@@ -2863,7 +2865,7 @@ class Array(object):
                 else:
                     end_string = 'running'
 
-                self.logger.error('The station %s is already deployed during the specified timespan from %s to %s.', station.snl_string, start_string, end_string)
+                self.logger.error('The station %s is already deployed during the specified timespan from %s to %s.', station.nsl_string, start_string, end_string)
         else:
             self.stations.append(TimeBox(item = station,
                                          start_time = start_time,
@@ -2922,15 +2924,15 @@ class Array(object):
         id : Integer
             The database id of the station.
 
-        snl : Tuple (station, network, location)
-            The SNL tuple of the station.
+        nsl : Tuple (network, station, location)
+            The NSL tuple of the station.
 
-        snl_string : String
-            The SNL string in the format 'station:network:location'.
+        nsl_string : String
+            The NSL string in the format 'station:network:location'.
         '''
         ret_station = self.stations
 
-        valid_keys = ['name', 'network', 'location', 'id', 'snl', 'snl_string']
+        valid_keys = ['name', 'network', 'location', 'id', 'nsl', 'nsl_string']
 
         for cur_key, cur_value in kwargs.items():
             if cur_key in valid_keys:
