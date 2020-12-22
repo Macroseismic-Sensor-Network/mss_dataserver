@@ -500,6 +500,7 @@ def start_server(ctx):
     port = config['seedlink']['port']
     stations = config['process']['stations']
     data_dir = config['output']['data_dir']
+    event_dir = config['output']['event_dir']
     process_interval = config['process']['interval']
     pgv_sps = config['process']['pgv_sps']
     pgv_archive_time = config['process']['pgv_archive_time']
@@ -527,6 +528,7 @@ def start_server(ctx):
                                          monitor_stream = monitor_stream,
                                          stream_lock = stream_lock,
                                          data_dir = data_dir,
+                                         event_dir = event_dir,
                                          process_interval = process_interval,
                                          pgv_sps = pgv_sps,
                                          stop_event = stop_event,
