@@ -110,6 +110,7 @@ class Project(object):
         config['seedlink']['port'] = int(parser.get('seedlink', 'port'))
         config['output'] = {}
         config['output']['data_dir'] = parser.get('output', 'data_dir').strip()
+        config['output']['event_dir'] = parser.get('output', 'event_dir').strip()
         config['log'] = {}
         config['log']['loglevel'] = parser.get('log', 'loglevel').strip()
         config['project'] = {}
