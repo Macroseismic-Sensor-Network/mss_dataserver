@@ -135,7 +135,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # The most recent detected event.
         self.event_triggered = False
-        self.current_event = {}
+        self.current_event = None
 
         # The last detected events.
         self.event_archive_size = event_archive_size
@@ -570,8 +570,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                         #export_event_thread.join()
                         self.logger.info("Continue the program execution.")
                     finally:
-                        # Clear the event instance.
-                        self.current_event = None
                         # Clear the detector flag.
                         self.detector.new_event_available = False
         else:
