@@ -111,6 +111,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         self.stream_lock = stream_lock
         self.archive_lock = threading.Lock()
+        self.project_lock = threading.Lock()
 
         # The common data output directory.
         self.data_dir = data_dir
@@ -216,11 +217,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                         cur_cat_date.month,
                                                         cur_cat_date.day)
             self.logger.info("Requesting catalog %s.", cur_name)
-            cur_cat = self.project.load_event_catalog(name = cur_name,
-                                                      load_events = True)
-            if cur_cat:
-                self.logger.info("events in catalog: %s", cur_cat.events)
-            self.logger.info("Catalog keys: %s", self.project.event_library.catalogs.keys())
+            with self.project_lock:
+                cur_cat = self.project.load_event_catalog(name = cur_name,
+                                                          load_events = True)
+                if cur_cat:
+                    self.logger.info("events in catalog: %s", cur_cat.events)
+                self.logger.info("Catalog keys: %s", self.project.event_library.catalogs.keys())
 
 
     def load_archive_file(self):
@@ -556,44 +558,17 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
                 if self.current_event.detection_state == 'closed':
                     try:
-                        # Get or create the event catalog and add the event to it.
-                        cat_name = "{0:04d}-{1:02d}-{2:02d}".format(self.current_event.start_time.year,
-                                                                    self.current_event.start_time.month,
-                                                                    self.current_event.start_time.day)
-                        cur_cat = self.project.get_event_catalog(cat_name)
-                        cur_cat.add_events([self.current_event, ])
 
-                        # Get or create the detection catalog and add the event
-                        # detections to it.
-                        det_catalogs = self.project.get_detection_catalog_names()
-                        if cat_name not in det_catalogs:
-                            cur_det_cat = self.project.create_detection_catalog(name = cat_name)
-                        else:
-                            cur_det_cat = self.project.load_detection_catalog(name = cat_name)
-                        cur_det_cat.add_detections(self.current_event.detections)
-
-                        # Write the detections to the database. This has to be done
-                        # separately. Adding the detection to the event and then
-                        # writing the event to the database doesn't write the
-                        # detections to the database.
-                        # TODO: An error occured, because the detection already had
-                        # a database id assigned, and the write_to_database method
-                        # tried to update the existing detection. This part of the
-                        # method is not yet working, thus an error was thrown. This
-                        # should not happen, because only fresh detections with no
-                        # database id should be available at this point!!!!!
-                        for cur_detection in self.current_event.detections:
-                            cur_detection.write_to_database(self.project)
-
-                        # Write the event to the database.
-                        self.current_event.write_to_database(self.project)
-
-                        # TODO: Write the event related data (e.g. waveform, pgv,
-                        # detection data) to a file in a folder structure.
-                        self.export_current_event_data()
-
-                        # TODO: Trigger a thread to compute the event results (e.g.
-                        # localization, geojson layers, ...).
+                        # Save the event and its metadata in a thread to
+                        # prevent blocking the data acquisition.
+                        export_event = self.current_event
+                        export_event_thread = threading.Thread(name = 'export_event',
+                                                               target = self.export_event,
+                                                               args = (export_event, ))
+                        self.logger.info("Starting the export_event_thread.")
+                        export_event_thread.start()
+                        #export_event_thread.join()
+                        self.logger.info("Continue the program execution.")
                     finally:
                         # Clear the event instance.
                         self.current_event = None
@@ -1135,6 +1110,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     cur_x = cur_x_trace.data
                     cur_y = cur_y_trace.data
 
+                    # Handle masked arrays.
+                    if isinstance(cur_x, np.ma.MaskedArray):
+                        cur_x = cur_x.data
+                    if isinstance(cur_y, np.ma.MaskedArray):
+                        cur_y = cur_y.data
+
                     if len(cur_x) != len(cur_y):
                         self.logger.error("The x and y data lenght dont't match. Can't compute the res. PGV for this trace.")
                         continue
@@ -1145,21 +1126,21 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     #cur_pgv_time = cur_x_trace.stats.starttime + \
                     #               (cur_x_trace.stats.endtime - cur_x_trace.stats.starttime) / 2
                     cur_pgv_time = cur_win_start + samp_interval / 2
-                    cur_pgv_value = np.max(np.sqrt(cur_x**2 + cur_y**2))
+                    cur_pgv_value = np.nanmax(np.sqrt(cur_x**2 + cur_y**2))
                     cur_pgv.append([cur_pgv_time, cur_pgv_value])
 
             if cur_pgv:
                 cur_pgv = np.array(cur_pgv)
                 #self.logger.debug('cur_x: %s', cur_x)
                 #self.logger.debug('cur_y: %s', cur_y)
-                self.logger.debug('cur_pgv: %s', cur_pgv)
+                self.logger.info('cur_pgv: %s', cur_pgv)
                 cur_stats = {'network': cur_x_trace.stats.network,
                              'station': cur_x_trace.stats.station,
                              'location': cur_x_trace.stats.location,
                              'channel': 'pgv',
                              'sampling_rate': self.pgv_sps,
                              'starttime': cur_pgv[0, 0]}
-                self.logger.debug('data type: %s.', cur_pgv[:, 1].dtype)
+                self.logger.info('data type: %s.', cur_pgv[:, 1].dtype)
                 cur_pgv_trace = obspy.core.Trace(data = cur_pgv[:, 1].astype(np.float32),
                                                  header = cur_stats)
                 # Write the data to the current pgv stream.
@@ -1167,15 +1148,15 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # Merge the current pgv stream.
         self.pgv_stream.merge()
-        self.logger.info('pgv_stream: %s.', self.pgv_stream.__str__(extended = True))
+        self.logger.debug('pgv_stream: %s.', self.pgv_stream.__str__(extended = True))
 
         with self.archive_lock:
             self.pgv_archive_stream = self.pgv_archive_stream + self.pgv_stream
 
         # Merge the archive stream.
         with self.archive_lock:
-            self.pgv_archive_stream.merge(fill_value = self.nodata_value)
-        self.logger.info("pgv_archive_stream: %s", self.pgv_archive_stream.__str__(extended = True))
+            self.pgv_archive_stream.merge()
+        self.logger.debug("pgv_archive_stream: %s", self.pgv_archive_stream.__str__(extended = True))
         self.logger.info("Finished compute_pgv.")
 
         #self.pgv_archive_stream.write("/home/stefan/Schreibtisch/pgv_beben_neunkirchen.msd",
@@ -1329,30 +1310,78 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.logger.debug("Trimmed the velocity archive stream to %s.",
                                   crop_start_time)
 
-    def export_current_event_data(self):
-        ''' Write the data of the current event to a directory structure.
+
+    def export_event(self, export_event):
+        ''' Save the event.
+        '''
+        # Get or create the event catalog and add the event to it.
+        cat_name = "{0:04d}-{1:02d}-{2:02d}".format(export_event.start_time.year,
+                                                    export_event.start_time.month,
+                                                    export_event.start_time.day)
+
+        with self.project_lock:
+            cur_cat = self.project.get_event_catalog(cat_name)
+            cur_cat.add_events([export_event, ])
+
+            # Get or create the detection catalog and add the event
+            # detections to it.
+            det_catalogs = self.project.get_detection_catalog_names()
+            if cat_name not in det_catalogs:
+                cur_det_cat = self.project.create_detection_catalog(name = cat_name)
+            else:
+                cur_det_cat = self.project.load_detection_catalog(name = cat_name)
+            cur_det_cat.add_detections(export_event.detections)
+
+            # Write the detections to the database. This has to be done
+            # separately. Adding the detection to the event and then
+            # writing the event to the database doesn't write the
+            # detections to the database.
+            # TODO: An error occured, because the detection already had
+            # a database id assigned, and the write_to_database method
+            # tried to update the existing detection. This part of the
+            # method is not yet working, thus an error was thrown. This
+            # should not happen, because only fresh detections with no
+            # database id should be available at this point!!!!!
+            for cur_detection in export_event.detections:
+                cur_detection.write_to_database(self.project)
+
+            # Write the event to the database.
+            self.logger.info("Writing the event to the database.")
+            export_event.write_to_database(self.project)
+
+        # Export the event data to disk files.
+        self.logger.info("Exporting the event data.")
+        self.export_event_data(export_event)
+
+        # TODO: Trigger a thread to compute the event results (e.g.
+        # localization, geojson layers, ...).
+
+
+    def export_event_data(self, export_event):
+        ''' Write the data of the passed event to a directory structure.
         '''
         # Build the output directory.
-        date_dir = "{0:04d}_{1:02d}_{2:02d}".format(self.current_event.start_time.year,
-                                                    self.current_event.start_time.month,
-                                                    self.current_event.start_time.day)
+        date_dir = "{0:04d}_{1:02d}_{2:02d}".format(export_event.start_time.year,
+                                                    export_event.start_time.month,
+                                                    export_event.start_time.day)
         output_dir = os.path.join(self.event_dir,
                                   date_dir,
-                                  self.current_event.public_id)
+                                  export_event.public_id)
 
         self.logger.info("Exporting the event data to folder %s.", output_dir)
 
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        export_start_time = self.current_event.start_time - 30
-        export_end_time = self.current_event.end_time + 30
+        export_start_time = export_event.start_time - 20
+        export_end_time = export_event.end_time + 20
 
         # Write the PGV data to the event directory.
-        pgv_stream = self.pgv_archive_stream.slice(starttime = export_start_time,
-                                                   endtime = export_end_time)
-        filename = "{0:s}_{1:d}_pgv.msd".format(self.current_event.public_id,
-                                                self.current_event.db_id)
+        with self.archive_lock:
+            pgv_stream = self.pgv_archive_stream.slice(starttime = export_start_time,
+                                                       endtime = export_end_time)
+        filename = "{0:s}_{1:d}_pgv.msd".format(export_event.public_id,
+                                                export_event.db_id)
         filepath = os.path.join(output_dir, filename)
         self.logger.info("Writing the PGV data to file %s.", filepath)
         pgv_stream.write(filepath,
@@ -1360,10 +1389,14 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                          blocksize = 512)
 
         # Write the velocity data to the event directory.
-        vel_stream = self.vel_archive_stream.slice(starttime = export_start_time,
-                                                   endtime = export_end_time)
-        filename = "{0:s}_{1:d}_vel.msd".format(self.current_event.public_id,
-                                                self.current_event.db_id)
+        with self.archive_lock:
+            vel_stream = self.vel_archive_stream.slice(starttime = export_start_time,
+                                                       endtime = export_end_time)
+        vel_stream.merge()
+        vel_stream = vel_stream.split()
+        self.logger.info("vel_stream: %s", vel_stream.__str__(extended = True))
+        filename = "{0:s}_{1:d}_vel.msd".format(export_event.public_id,
+                                                export_event.db_id)
         filepath = os.path.join(output_dir, filename)
         self.logger.info("Writing the velocity data to file %s.", filepath)
         vel_stream.write(filepath,
@@ -1372,16 +1405,16 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
 
         # Collect the event metadata.
-        pgv_stream = pgv_stream.slice(starttime = self.current_event.start_time,
-                                      endtime = self.current_event.end_time)
+        pgv_stream = pgv_stream.slice(starttime = export_event.start_time,
+                                      endtime = export_event.end_time)
         max_network_pgv = {}
         for cur_trace in pgv_stream:
             cur_nsl = '{0:s}:{1:s}:{2:s}'.format(cur_trace.stats.network,
                                                  cur_trace.stats.station,
                                                  cur_trace.stats.location)
-            max_network_pgv[cur_nsl] = float(np.max(cur_trace.data))
+            max_network_pgv[cur_nsl] = float(np.nanmax(cur_trace.data))
 
-        max_event_pgv = self.current_event.get_max_pgv_per_station()
+        max_event_pgv = export_event.get_max_pgv_per_station()
 
         event_meta = {}
         event_meta['max_network_pgv'] = max_network_pgv
@@ -1390,8 +1423,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # Write the event metadata to a json file.
         try:
-            filename = "{0:s}_{1:d}_detection_data.json".format(self.current_event.public_id,
-                                                                self.current_event.db_id)
+            filename = "{0:s}_{1:d}_detection_data.json".format(export_event.public_id,
+                                                                export_event.db_id)
             filepath = os.path.join(output_dir, filename)
             self.logger.info("Writing the detection data to file %s.",
                              filepath)
@@ -1488,7 +1521,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         now = utcdatetime.UTCDateTime()
         today = utcdatetime.UTCDateTime(now.timestamp // 86400 * 86400)
         request_start = today - self.event_archive_timespan * 3600
-        events = self.project.get_events(start_time = request_start)
+        with self.project_lock:
+            events = self.project.get_events(start_time = request_start)
         cur_archive = []
         if len(events) > 0:
             for cur_event in events:
