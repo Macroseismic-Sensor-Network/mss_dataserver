@@ -1133,14 +1133,14 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 cur_pgv = np.array(cur_pgv)
                 #self.logger.debug('cur_x: %s', cur_x)
                 #self.logger.debug('cur_y: %s', cur_y)
-                self.logger.info('cur_pgv: %s', cur_pgv)
+                self.logger.debug('cur_pgv: %s', cur_pgv)
                 cur_stats = {'network': cur_x_trace.stats.network,
                              'station': cur_x_trace.stats.station,
                              'location': cur_x_trace.stats.location,
                              'channel': 'pgv',
                              'sampling_rate': self.pgv_sps,
                              'starttime': cur_pgv[0, 0]}
-                self.logger.info('data type: %s.', cur_pgv[:, 1].dtype)
+                self.logger.debug('data type: %s.', cur_pgv[:, 1].dtype)
                 cur_pgv_trace = obspy.core.Trace(data = cur_pgv[:, 1].astype(np.float32),
                                                  header = cur_stats)
                 # Write the data to the current pgv stream.
