@@ -552,8 +552,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             if self.detector.new_event_available:
                 self.current_event = self.detector.get_event()
 
-                # TODO: Add the original waveform data to the event.
-
                 self.current_event_available.set()
 
                 if self.current_event.detection_state == 'closed':
