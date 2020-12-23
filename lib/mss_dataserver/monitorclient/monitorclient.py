@@ -1037,13 +1037,17 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         with self.archive_lock:
             pgv_stream = self.pgv_archive_stream.slice(starttime = export_start_time,
                                                        endtime = export_end_time)
+
+        # Split the pgv stream to ensure a propper export to miniseed file.
+        split_pgv_stream = pgv_stream.split()
+
         filename = "{0:s}_{1:d}_pgv.msd".format(export_event.public_id,
                                                 export_event.db_id)
         filepath = os.path.join(output_dir, filename)
         self.logger.info("Writing the PGV data to file %s.", filepath)
-        pgv_stream.write(filepath,
-                         format = 'MSEED',
-                         blocksize = 512)
+        split_pgv_stream.write(filepath,
+                               format = 'MSEED',
+                               blocksize = 512)
 
         # Write the velocity data to the event directory.
         with self.archive_lock:
@@ -1204,6 +1208,24 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 cur_archive.append(cur_archive_event.dict())
 
         return cur_archive
+
+    def get_event_details(self, ev_id = None, public_id = None):
+        ''' Get the detailed data of an event.
+        '''
+        if ev_id is None and public_id is None:
+            self.logger.error("Either the id or the public_id of the event have to be specified.")
+            return
+
+        with self.project_lock:
+            event_list = self.project.get_events(db_id = ev_id,
+                                                 public_id = public_id)
+
+        # TODO: Load the event data from the event data files. Add Parameters
+        # to select the type of data to load (seismograms, PGV, json
+        # metadata, ...).
+        for cur_event in event_list:
+            self.logger.info("public_id: %s", cur_event.public_id)
+
 
     def get_keydata(self):
         ''' Return the keydata.
