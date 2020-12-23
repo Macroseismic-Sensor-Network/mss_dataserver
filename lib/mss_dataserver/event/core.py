@@ -500,6 +500,8 @@ class Catalog(object):
         valid_keys = ['db_id', 'public_id', 'event_type', 'changed']
 
         for cur_key, cur_value in kwargs.items():
+            if cur_value is None:
+                continue
             if cur_key in valid_keys:
                 ret_events = [x for x in ret_events if getattr(x, cur_key) == cur_value]
             else:
@@ -829,3 +831,7 @@ class Library(object):
                                                      end_time = end_time,
                                                      **kwargs))
         return ret_events
+
+
+    #TODO: Add a function to load an event from the database using the id
+    # or the public id.
