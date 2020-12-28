@@ -1008,14 +1008,14 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # Export the event data to disk files.
         self.logger.info("Exporting the event data.")
-        self.export_event_data(export_event)
+        self.save_event_supplement(export_event)
 
         # TODO: Trigger a thread to compute the event results (e.g.
         # localization, geojson layers, ...).
 
 
-    def export_event_data(self, export_event):
-        ''' Write the data of the passed event to a directory structure.
+    def save_event_supplement(self, export_event):
+        ''' Save the supplement data of the event.
         '''
         # Build the output directory.
         date_dir = "{0:04d}_{1:02d}_{2:02d}".format(export_event.start_time.year,
@@ -1030,34 +1030,68 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        export_start_time = export_event.start_time - 20
-        export_end_time = export_event.end_time + 20
+        # The timespan to add in front or at the back of the event limits
+        # when exporting waveform data.
+        pre_win = 20
+        post_win = 20
 
-        # Write the PGV data to the event directory.
+        pgv_stream = self.save_supplement_pgv(event = export_event,
+                                              pre_win = pre_win,
+                                              post_win = post_win,
+                                              output_dir = output_dir)
+
+        self.save_supplement_vel(event = export_event,
+                                 pre_win = pre_win,
+                                 post_win = post_win,
+                                 output_dir = output_dir)
+
+        self.save_supplement_metadata(event = export_event,
+                                      pgv_stream = pgv_stream,
+                                      output_dir = output_dir)
+
+
+
+    def save_supplement_pgv(self, event, pre_win, post_win, output_dir):
+        ''' Save the PGV data supplement.
+        '''
+        start_time = event.start_time - pre_win
+        end_time = event.end_time + post_win
+        # Get the PGV data from the archive stream.
         with self.archive_lock:
-            pgv_stream = self.pgv_archive_stream.slice(starttime = export_start_time,
-                                                       endtime = export_end_time)
+            pgv_stream = self.pgv_archive_stream.slice(starttime = start_time,
+                                                       endtime = end_time)
 
         # Split the pgv stream to ensure a propper export to miniseed file.
         split_pgv_stream = pgv_stream.split()
 
-        filename = "{0:s}_{1:d}_pgv.msd".format(export_event.public_id,
-                                                export_event.db_id)
+        supplement_name = 'pgv'
+        filename = "{0:s}_{1:d}_{2:s}.msd".format(event.public_id,
+                                                  event.db_id,
+                                                  supplement_name)
         filepath = os.path.join(output_dir, filename)
         self.logger.info("Writing the PGV data to file %s.", filepath)
         split_pgv_stream.write(filepath,
                                format = 'MSEED',
                                blocksize = 512)
+        return pgv_stream
 
-        # Write the velocity data to the event directory.
+
+    def save_supplement_vel(self, event, pre_win, post_win, output_dir):
+        ''' Save the velocity data supplement.
+        '''
+        start_time = event.start_time - pre_win
+        end_time = event.end_time + post_win
+        # Get the velocity data from the archive.
         with self.archive_lock:
-            vel_stream = self.vel_archive_stream.slice(starttime = export_start_time,
-                                                       endtime = export_end_time)
+            vel_stream = self.vel_archive_stream.slice(starttime = start_time,
+                                                       endtime = end_time)
         vel_stream.merge()
         vel_stream = vel_stream.split()
         self.logger.info("vel_stream: %s", vel_stream.__str__(extended = True))
-        filename = "{0:s}_{1:d}_vel.msd".format(export_event.public_id,
-                                                export_event.db_id)
+        supplement_name = 'velocity'
+        filename = "{0:s}_{1:d}_{2:s}.msd".format(event.public_id,
+                                                  event.db_id,
+                                                  supplement_name)
         filepath = os.path.join(output_dir, filename)
         self.logger.info("Writing the velocity data to file %s.", filepath)
         vel_stream.write(filepath,
@@ -1065,27 +1099,39 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                          blocksize = 512)
 
 
-        # Collect the event metadata.
-        pgv_stream = pgv_stream.slice(starttime = export_event.start_time,
-                                      endtime = export_event.end_time)
+    def save_supplement_metadata(self, event, pgv_stream, output_dir):
+        ''' Save the supplement metadata to a json file.
+        '''
+        pgv_stream = pgv_stream.slice(starttime = event.start_time,
+                                      endtime = event.end_time)
+
+        # Compute the maximum PGV values of all stations in the network.
         max_network_pgv = {}
         for cur_trace in pgv_stream:
             cur_nsl = '{0:s}:{1:s}:{2:s}'.format(cur_trace.stats.network,
                                                  cur_trace.stats.station,
                                                  cur_trace.stats.location)
-            max_network_pgv[cur_nsl] = float(np.nanmax(cur_trace.data))
 
-        max_event_pgv = export_event.get_max_pgv_per_station()
+            # Handle eventually masked trace data.
+            if isinstance(cur_trace.data, np.ma.MaskedArray):
+                max_pgv = float(np.nanmax(cur_trace.data.data))
+            else:
+                max_pgv = float(np.nanmax(cur_trace.data))
+
+            max_network_pgv[cur_nsl] = max_pgv
+        # Compute the maximum PGV values which have been used as a detection.
+        max_event_pgv = event.get_max_pgv_per_station()
 
         event_meta = {}
         event_meta['max_network_pgv'] = max_network_pgv
         event_meta['max_event_pgv'] = max_event_pgv
 
-
         # Write the event metadata to a json file.
         try:
-            filename = "{0:s}_{1:d}_detection_data.json".format(export_event.public_id,
-                                                                export_event.db_id)
+            supplement_name = 'metadata'
+            filename = "{0:s}_{1:d}_{2:s}.json".format(event.public_id,
+                                                       event.db_id,
+                                                       supplement_name)
             filepath = os.path.join(output_dir, filename)
             self.logger.info("Writing the detection data to file %s.",
                              filepath)
@@ -1096,9 +1142,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                  sort_keys = True)
         except Exception as e:
             self.logger.exception("Error saving the detection data to json file.")
-
-        # TODO: Export the original seismograms.
-        # TODO: Export the max. PGV data of each available station.
 
     def get_pgv_data(self):
         ''' Get the latest PGV data.
