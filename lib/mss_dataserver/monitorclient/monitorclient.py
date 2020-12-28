@@ -1209,6 +1209,20 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         return cur_archive
 
+
+    def get_event_by_id(self, ev_id = None, public_id = None):
+        ''' Get an event by event id or public id.
+        '''
+        if ev_id is None and public_id is None:
+            self.logger.error("Either the id or the public_id of the event have to be specified.")
+            return
+
+        with self.project_lock:
+            event = self.project.load_event_by_id(ev_id = ev_id,
+                                                  public_id = public_id)
+        return event
+
+
     def get_event_details(self, ev_id = None, public_id = None):
         ''' Get the detailed data of an event.
         '''
@@ -1225,6 +1239,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # metadata, ...).
         for cur_event in event_list:
             self.logger.info("public_id: %s", cur_event.public_id)
+
 
 
     def get_keydata(self):
