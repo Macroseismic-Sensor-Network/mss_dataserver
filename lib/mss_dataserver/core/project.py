@@ -292,6 +292,16 @@ class Project(object):
 
         return cat
 
+
+    def load_event_by_id(self, ev_id = None, public_id = None):
+        ''' Get an event by event id or public id.
+        '''
+        event = self.event_library.load_event_by_id(project = self,
+                                                    ev_id = ev_id,
+                                                    public_id = public_id)
+        return event
+
+
     def get_events(self, catalog_names = None,
                    start_time = None, end_time = None, **kwargs):
         ''' Get events using search criteria passed as keywords.
