@@ -30,6 +30,7 @@ import copy
 import unittest
 import logging
 import threading
+import time
 
 import obspy.core
 from obspy.core.utcdatetime import UTCDateTime
@@ -215,6 +216,15 @@ class MonitorClientTestCase(unittest.TestCase):
 
             # Process the monitor stream.
             self.client.process_monitor_stream()
+
+            # Wait a little bit to simulate the realtime processing and add
+            # time for threads to finish in time.
+            time.sleep(1)
+
+
+        # Try to load the event details.
+        public_id = 'mss_mss-ds_2019-06-14T123410500000'
+        event_details = self.client.get_event_details(public_id = public_id)
 
 
 def suite():
