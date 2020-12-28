@@ -483,6 +483,8 @@ class Catalog(object):
     def get_events(self, start_time = None, end_time = None, **kwargs):
         ''' Get events using search criteria passed as keywords.
 
+        Only events already loaded from the database are searched.
+
         Parameters
         ----------
         start_time : :class:`~obspy.core.utcdatetime.UTCDateTime`
@@ -700,6 +702,9 @@ class Library(object):
     def __init__(self, name):
         ''' Initialize the instance.
         '''
+        # The logging logger instance.
+        logger_name = __name__ + "." + self.__class__.__name__
+        self.logger = logging.getLogger(logger_name)
 
         # The name of the library.
         self.name = name
@@ -802,6 +807,50 @@ class Library(object):
             db_session.close()
 
 
+    def load_event_from_db(self, project, ev_id = None, public_id = None):
+        ''' Load an event from the database by database id or the
+        public id.
+
+        Parameters
+        ----------
+        project : :class:`psysmon.core.project.Project`
+            The project managing the database.
+
+        ev_id : Integer
+            The unique database id of the event.
+
+        public_id : String
+            The unique public id of the event.
+        '''
+        if ev_id is None and public_id is None:
+            raise RuntimeError(("You have to specify at least one of the two "
+                                "parameters ev_id and public_id."))
+
+        found_events = []
+        db_session = project.get_db_session()
+        try:
+            events_table = project.db_tables['event']
+            query = db_session.query(events_table)
+
+            if ev_id is not None:
+                query = query.filter(events_table.id == ev_id)
+
+            if public_id is not None:
+                query = query.filter(events_table.public_id.like(public_id))
+
+            for cur_orm in query:
+                try:
+                    cur_event = Event.from_orm(db_event = cur_orm,
+                                               inventory = project.db_inventory)
+                    found_events.append(cur_event)
+                except:
+                    self.logger.exception("Error when creating an event object from database values for event %d. Skipping this event.", cur_orm.id)
+        finally:
+            db_session.close()
+
+        return found_events
+
+
     def get_events(self, catalog_names = None, start_time = None, end_time = None, **kwargs):
         ''' Get events using search criteria passed as keywords.
 
@@ -833,5 +882,37 @@ class Library(object):
         return ret_events
 
 
-    #TODO: Add a function to load an event from the database using the id
-    # or the public id.
+    def load_event_by_id(self, project, ev_id = None, public_id = None):
+        ''' Get an event by the database id or the public id.
+
+        Parameters
+        ----------
+        ev_id : Integer
+            The unique database id of the event.
+
+        public_id : String
+            The unique public id of the event.
+
+        '''
+        if ev_id is None and public_id is None:
+            raise RuntimeError(("You have to specify at least one of the two "
+                                "parameters ev_id and public_id."))
+
+        event = None
+        # Check if the event is available in the existing catalogs.
+        event_list = self.get_events(db_id = ev_id,
+                                     public_id = public_id)
+
+        if len(event_list) == 0:
+            # Load the event directly from the database.
+            event_list = self.load_event_from_db(project = project,
+                                                 ev_id = ev_id,
+                                                 public_id = public_id)
+
+        if len(event_list) == 1:
+            event = event_list[0]
+        elif len(event_list) > 1:
+            raise RuntimeError(("More than one events found, "
+                                "this shouldn't happen for unique ids."))
+
+        return event
