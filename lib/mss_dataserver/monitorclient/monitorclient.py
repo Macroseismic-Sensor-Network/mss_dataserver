@@ -580,26 +580,28 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         '''
         self.logger.info('Processing the monitor_stream.')
         self.logger.info('# gc.get_objects: %d', len(gc.get_objects()))
-        self.stream_lock.acquire()
-        monitor_stream_length = len(self.monitor_stream)
-        self.monitor_stream.merge()
-        self.stream_lock.release()
+        with self.stream_lock:
+            monitor_stream_length = len(self.monitor_stream)
+            self.monitor_stream.merge()
+            self.monitor_stream.sort(keys = ['station'])
+            self.logger.debug('monitor_stream before selecting process stream: %s', str(self.monitor_stream.__str__(extended = True)))
+
         if monitor_stream_length > 0:
             #now = obspy.UTCDateTime()
             #process_end_time = now - now.timestamp % self.process_interval
             #logger.debug('Trimming to end time: %s.', process_end_time)
-            self.stream_lock.acquire()
-            for cur_trace in self.monitor_stream:
-                sec_remain = cur_trace.stats.endtime.timestamp % self.process_interval
-                cur_end_time = obspy.UTCDateTime(round(cur_trace.stats.endtime.timestamp - sec_remain))
-                cur_end_time = cur_end_time - cur_trace.stats.delta
-                self.logger.debug('Trimming %s to end time: %f.', cur_trace.id, cur_end_time.timestamp)
-                cur_slice_trace = cur_trace.slice(endtime = cur_end_time)
-                if len(cur_slice_trace) > 0:
-                    self.process_stream.append(cur_slice_trace)
-                    cur_trace.trim(starttime = cur_end_time + cur_trace.stats.delta)
-            self.stream_lock.release()
+            with self.stream_lock:
+                for cur_trace in self.monitor_stream:
+                    sec_remain = cur_trace.stats.endtime.timestamp % self.process_interval
+                    cur_end_time = obspy.UTCDateTime(round(cur_trace.stats.endtime.timestamp - sec_remain))
+                    cur_end_time = cur_end_time - cur_trace.stats.delta
+                    self.logger.debug('Trimming %s to end time: %s.', cur_trace.id, cur_end_time.isoformat())
+                    cur_slice_trace = cur_trace.slice(endtime = cur_end_time)
+                    if len(cur_slice_trace) > 0:
+                        self.process_stream.append(cur_slice_trace)
+                        cur_trace.trim(starttime = cur_end_time + cur_trace.stats.delta)
 
+            self.process_stream.sort()
             self.logger.info('process_stream: %s', self.process_stream.__str__(extended = True))
 
             with self.stream_lock:
@@ -608,6 +610,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             # Get a stream containing only equal length traces per station.
             el_stream = self.get_equal_length_traces()
             self.logger.debug('Got el_stream: %s.', el_stream.__str__(extended = True))
+
+            # TODO: Handle the data in the process stream that has not been
+            # used to create the el_stream.
+            self.logger.debug('Data not used for el_stream: %s.', self.process_stream.__str__(extended = True))
 
             # Detrend to remove eventual offset.
             el_stream = el_stream.split()
@@ -637,10 +643,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.pgv_data_available.set()
 
             # Start the event detection.
-            try:
-                self.detect_event()
-            except Exception as e:
-                self.logger.exception("Error computing the event detection.")
+            #try:
+            #    self.detect_event()
+            #except Exception as e:
+            #    self.logger.exception("Error computing the event detection.")
 
             # Set the flag to mark another SOH state available.
             self.event_keydata_available.set()
@@ -679,8 +685,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     def get_equal_length_traces(self):
         ''' Get a stream containing traces with equal length per station.
         '''
+        self.logger.debug('Computing equal length traces.')
         unique_stations = [(x.stats.network, x.stats.station, x.stats.location) for x in self.process_stream]
         unique_stations = list(set(unique_stations))
+        unique_stations = sorted(unique_stations)
         el_stream = obspy.core.Stream()
         for cur_station in unique_stations:
             self.logger.debug('Getting stream for %s.', cur_station)
@@ -697,7 +705,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             # Check if all required channels are present:
             missing_data = False
             required_nslc = [x for x in self.recorder_map.values()
-                             if x[0] == cur_station[1]]
+                             if x[1] == cur_station[1]]
             available_nslc = [(x.stats.network,
                                x.stats.station,
                                x.stats.location,
@@ -717,13 +725,21 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.process_stream.extend(cur_stream)
                 continue
 
-            # Select a timespan with equal end time.
+            # Select a timespan with equal end time. Re-insert the remaining
+            # stream into the process_stream.
             min_end = np.min([x.stats.endtime for x in cur_stream])
             cur_el_stream = cur_stream.slice(endtime = min_end)
             cur_rem_stream = cur_stream.trim(starttime = min_end + cur_el_stream[0].stats.delta)
             self.process_stream.extend(cur_rem_stream)
+            self.logger.debug('Remaining stream added back to the process stream: %s', cur_rem_stream)
+
+            # In case of non-equal start times, drop the data before the common
+            # start time.
+            max_start = np.max([x.stats.starttime for x in cur_el_stream])
+            cur_rem_stream = cur_el_stream.slice(endtime = max_start - cur_el_stream[0].stats.delta)
+            cur_el_stream = cur_el_stream.slice(starttime = max_start)
+            self.logger.debug('Stream dropped because the start time was not equal: %s', cur_rem_stream)
             self.logger.debug('el_stream: %s', cur_el_stream)
-            self.logger.debug('rem_stream: %s', cur_rem_stream)
             el_stream.extend(cur_el_stream)
 
         return el_stream
@@ -956,16 +972,18 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.logger.debug("max_end_time: %s.", max_end_time)
                 crop_start_time = max_end_time - self.pgv_archive_time
                 self.pgv_archive_stream.trim(starttime = crop_start_time)
-                self.logger.debug("Trimmed the pgv archive stream to %s.",
+                self.logger.debug("Trimmed the pgv archive stream start time to %s.",
                                   crop_start_time)
+                self.logger.debug("pgv_archive_stream: %s", self.pgv_archive_stream)
 
             if len(self.vel_archive_stream) > 0:
                 max_end_time = np.max([x.stats.endtime for x in self.vel_archive_stream if x])
                 self.logger.debug("max_end_time: %s.", max_end_time)
                 crop_start_time = max_end_time - self.vel_archive_time
                 self.vel_archive_stream.trim(starttime = crop_start_time)
-                self.logger.debug("Trimmed the velocity archive stream to %s.",
+                self.logger.debug("Trimmed the velocity archive stream start time to %s.",
                                   crop_start_time)
+                self.logger.debug("vel_archive_stream: %s", self.vel_archive_stream)
 
 
     def export_event(self, export_event):
