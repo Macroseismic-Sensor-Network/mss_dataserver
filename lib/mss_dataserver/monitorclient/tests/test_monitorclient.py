@@ -222,8 +222,37 @@ class MonitorClientTestCase(unittest.TestCase):
             time.sleep(1)
 
 
-        # Try to load the event details.
+        # Try to load the event instance using a public id.
         public_id = 'mss_mss-ds_2019-06-14T123410500000'
+
+        # Get the event instance from an already loaded event in the library.
+        event = self.client.get_event_by_id(public_id = public_id)
+        self.assertIsInstance(event, Event)
+        self.assertEqual(event.public_id, public_id)
+
+        # Try to load the event instance using a database id.
+        db_id = event.db_id
+
+        # Get the event instance from an already loaded event in the library.
+        event = self.client.get_event_by_id(ev_id = db_id)
+        self.assertIsInstance(event, Event)
+        self.assertEqual(event.db_id, db_id)
+        self.assertEqual(event.public_id, public_id)
+
+        # Remove the event from the catalog and request it again to test
+        # the loading from the database.
+        event.parent.clear_events()
+        event = self.client.get_event_by_id(public_id = public_id)
+        self.assertIsInstance(event, Event)
+        self.assertEqual(event.public_id, public_id)
+
+        event = self.client.get_event_by_id(ev_id = db_id)
+        self.assertIsInstance(event, Event)
+        self.assertEqual(event.db_id, db_id)
+        self.assertEqual(event.public_id, public_id)
+
+
+        # Load the additional data of the event from the filesystem.
         event_details = self.client.get_event_details(public_id = public_id)
 
 
