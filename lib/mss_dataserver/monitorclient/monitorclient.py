@@ -76,7 +76,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.logger = logging.getLogger(logger_name)
 
         # Set the logging level of obspy module.
-        logging.getLogger('obspy.clients.seedlink').setLevel(logging.INFO)
+        logging.getLogger('obspy.clients.seedlink').setLevel(logging.WARNING)
 
         # The project instance.
         self.project = project
@@ -449,11 +449,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     async def task_timer(self, callback):
         ''' A timer executing a task at regular intervals.
         '''
-        self.logger.debug('Starting the timer.')
+        self.logger.info('Starting the timer.')
         interval = int(self.process_interval)
         now = obspy.UTCDateTime()
         delay_to_next_interval = interval - (now.timestamp % interval)
-        self.logger.debug('Sleeping for %f seconds.', delay_to_next_interval)
+        self.logger.info('Sleeping for %f seconds.', delay_to_next_interval)
         time.sleep(delay_to_next_interval)
 
         while not self.stop_event.is_set():
