@@ -197,9 +197,12 @@ class DelaunayDetector(object):
         self.logger.info("passed stream: %s", stream.__str__(extended = True))
         max_end_time = np.max([x.stats.endtime for x in stream])
         # Assume, that all traces have the same sampling rate.
+        # TODO: Add a check to validate that the sampling rate of all traces is
+        # the same.
         sps = stream[0].stats.sampling_rate
         if self.last_detection_end is None:
-            detect_win_start = np.min([x.stats.starttime for x in stream])
+            #detect_win_start = np.min([x.stats.starttime for x in stream])
+            detect_win_start = np.max([x.stats.starttime for x in stream]) + self.max_time_window
         else:
             detect_win_start = self.last_detection_end + 1 / sps
 
