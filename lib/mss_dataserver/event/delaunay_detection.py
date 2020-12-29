@@ -272,10 +272,12 @@ class DelaunayDetector(object):
         for cur_station in simp_stations:
             tri_stream = tri_stream + self.detect_stream.select(station = cur_station.name)
 
+        self.logger.debug("tri_stream: %s", tri_stream)
+
         pgv = []
         time = []
         for cur_trace in tri_stream:
-            self.logger.debug("cur_trace.id: %s", cur_trace.id)
+            self.logger.debug("cur_trace: %s", cur_trace)
             self.logger.debug("time_window: %s", time_window)
             cur_win_length = int(np.floor(time_window * cur_trace.stats.sampling_rate))
             cur_offset = int(np.floor(offset * cur_trace.stats.sampling_rate))
