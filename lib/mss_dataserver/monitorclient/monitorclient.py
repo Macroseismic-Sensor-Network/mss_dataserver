@@ -75,6 +75,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         logger_name = __name__ + "." + self.__class__.__name__
         self.logger = logging.getLogger(logger_name)
 
+        # Set the logging level of obspy module.
+        logging.getLogger('obspy.clients.seedlink').setLevel(logging.INFO)
+
         # The project instance.
         self.project = project
 
@@ -174,7 +177,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.detector = event_ddet.DelaunayDetector(network_stations = all_stations,
                                                     trigger_thr = self.trigger_thr,
                                                     window_length = 10,
-                                                    safety_time = 10,
+                                                    safety_time = 20,
                                                     p_vel = 3500,
                                                     min_trigger_window = 3,
                                                     max_edge_length = 40000,
@@ -532,10 +535,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         ''' Run the Voronoi event detection.
         '''
         self.logger.info('Running the event detection.')
-        detect_win_length = 10
-        safety_win = 10
-        trigger_thr = self.trigger_thr
-        min_trigger_window = 3
+        #detect_win_length = 10
+        #safety_win = 10
+        #trigger_thr = self.trigger_thr
+        #min_trigger_window = 3
 
         now = obspy.UTCDateTime()
         with self.archive_lock:
@@ -586,6 +589,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.monitor_stream.sort(keys = ['station'])
             self.logger.debug('monitor_stream before selecting process stream: %s', str(self.monitor_stream.__str__(extended = True)))
 
+        # The minimum length of a trace to be added to the process stream [s].
+        process_min_length = 10
+
         if monitor_stream_length > 0:
             #now = obspy.UTCDateTime()
             #process_end_time = now - now.timestamp % self.process_interval
@@ -595,7 +601,18 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     sec_remain = cur_trace.stats.endtime.timestamp % self.process_interval
                     cur_end_time = obspy.UTCDateTime(round(cur_trace.stats.endtime.timestamp - sec_remain))
                     cur_end_time = cur_end_time - cur_trace.stats.delta
-                    self.logger.debug('Trimming %s to end time: %s.', cur_trace.id, cur_end_time.isoformat())
+
+                    self.logger.debug("Computed end_time: %s.",
+                                      cur_end_time.isoformat())
+                    # Check if the trace length is larger xx seconds.
+                    if (cur_end_time - cur_trace.stats.starttime) < process_min_length - cur_trace.stats.delta:
+                        self.logger.debug("The process trace of %s with length %f would be smaller than %f seconds.",
+                                          cur_trace.id,
+                                          cur_end_time - cur_trace.stats.starttime,
+                                          process_min_length)
+                        continue
+
+                    self.logger.debug('Extracting process trace for %s.', cur_trace.id)
                     cur_slice_trace = cur_trace.slice(endtime = cur_end_time)
                     if len(cur_slice_trace) > 0:
                         self.process_stream.append(cur_slice_trace)
@@ -643,10 +660,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.pgv_data_available.set()
 
             # Start the event detection.
-            #try:
-            #    self.detect_event()
-            #except Exception as e:
-            #    self.logger.exception("Error computing the event detection.")
+            try:
+                self.detect_event()
+            except Exception as e:
+                self.logger.exception("Error computing the event detection.")
 
             # Set the flag to mark another SOH state available.
             self.event_keydata_available.set()
