@@ -210,8 +210,11 @@ class DelaunayDetector(object):
         self.logger.info("detect_win_start: %s", detect_win_start)
         self.logger.info("detect_win_end: %s", detect_win_end)
 
-        if (detect_win_end - detect_win_start) <  (self.window_length - 1/sps):
-            self.logger.warning("The length of the available data is smaller than the detection window length. Skipping the preparation of the detection stream.")
+        if detect_win_end <= detect_win_start:
+            self.logger.warning("The detection window end is smaller than the detection window start. Skipping the preparation of the detection stream.")
+            self.detect_stream = None
+        elif (detect_win_end - detect_win_start) < (self.window_length - 1/sps):
+            self.logger.warning("The length of the available data is smaller than the detection window length %f. Skipping the preparation of the detection stream.", (self.window_length - 1/sps))
             self.detect_stream = None
         else:
             self.detect_stream = stream.slice(starttime = detect_win_start - self.max_time_window,
