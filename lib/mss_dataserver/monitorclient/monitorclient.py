@@ -42,6 +42,7 @@ import pyproj
 import scipy
 import scipy.spatial
 
+import mss_dataserver.core.json_util as json_util
 import mss_dataserver.core.validation as validation
 import mss_dataserver.event.core as event_core
 import mss_dataserver.event.detection as event_detection
@@ -1084,6 +1085,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                       pgv_stream = pgv_stream,
                                       output_dir = output_dir)
 
+        self.save_supplement_detection_data(event = export_event,
+                                            output_dir = output_dir)
 
 
     def save_supplement_pgv(self, event, pre_win, post_win, output_dir):
@@ -1168,11 +1171,40 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                        event.db_id,
                                                        supplement_name)
             filepath = os.path.join(output_dir, filename)
-            self.logger.info("Writing the detection data to file %s.",
+            self.logger.info("Writing the event metadata data to file %s.",
                              filepath)
             with open(filepath, 'w') as json_file:
                 pref = json.dump(event_meta,
                                  json_file,
+                                 indent = 4,
+                                 sort_keys = True)
+        except Exception as e:
+            self.logger.exception("Error saving the event metadata data to json file.")
+
+
+    def save_supplement_detection_data(self, event, output_dir):
+        ''' Save the detection data of the event.
+        '''
+        # Convert the time array UTCDateTime instances to timestamps to reduce
+        # the size of the json file.
+        for cur_key, cur_item in event.detection_data.items():
+            for cur_data in cur_item['trigger_data']:
+                cur_data['time'] = [x.timestamp for x in cur_data['time']]
+
+        # Write the event detection data to a json file.
+        try:
+            supplement_name = 'detectiondata'
+            filename = "{0:s}_{1:d}_{2:s}.json".format(event.public_id,
+                                                       event.db_id,
+                                                       supplement_name)
+            filepath = os.path.join(output_dir, filename)
+            self.logger.info("Writing the detection data to file %s.",
+                             filepath)
+            with open(filepath, 'w') as json_file:
+                file_container = json_util.FileContainer(event.detection_data)
+                pref = json.dump(file_container,
+                                 fp = json_file,
+                                 cls = json_util.SupplementDetectionDataEncoder,
                                  indent = 4,
                                  sort_keys = True)
         except Exception as e:
