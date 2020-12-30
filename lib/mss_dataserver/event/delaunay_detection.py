@@ -100,6 +100,7 @@ class DelaunayDetector(object):
         self.edge_length = {}
 
         # The time of the last data used for detection.
+        self.last_detection_start = None
         self.last_detection_end = None
 
         # The current trigger data.
@@ -223,8 +224,9 @@ class DelaunayDetector(object):
             self.detect_stream = stream.slice(starttime = detect_win_start - self.max_time_window,
                                               endtime = detect_win_end,
                                               nearest_sample = False)
-            self.logger.info("detect_stream: %s", self.detect_stream)
+            self.logger.info("detect_stream: %s", self.detect_stream.__str__(extended = True))
             # Set the last detection end time.
+            self.last_detection_start = detect_win_start
             self.last_detection_end = detect_win_end
 
             self.detect_stations = []
@@ -283,7 +285,7 @@ class DelaunayDetector(object):
         pgv = []
         time = []
         for cur_trace in tri_stream:
-            self.logger.debug("cur_trace: %s", cur_trace)
+            self.logger.info("cur_trace: %s", cur_trace)
             self.logger.debug("time_window: %s", time_window)
             cur_win_length = int(np.floor(time_window * cur_trace.stats.sampling_rate))
             cur_offset = int(np.floor(offset * cur_trace.stats.sampling_rate))
@@ -295,6 +297,7 @@ class DelaunayDetector(object):
                 continue
             # Create overlapping windows with the computed length with 1 sample
             # step size.
+            # TODO: Handle masked trace data.
             cur_data = strided_app(cur_trace.data, cur_win_length, 1)
             self.logger.debug("cur_data: %s", cur_data)
             cur_max_pgv = np.max(cur_data, axis = 1)
@@ -341,13 +344,13 @@ class DelaunayDetector(object):
                     cur_trig = np.nanmin(cur_pgv, axis = 1) >= self.trigger_thr
                     #if np.any(cur_trig):
                     #    tmp = {}
-                    #    tmp['simp_stations'] = cur_simp_stations
+                    #    tmp['simplices_stations'] = cur_simp_stations
                     #    tmp['time'] = cur_time
                     #    tmp['pgv'] = cur_pgv
                     #    tmp['trigger'] = cur_trig
                     #    self.trigger_data.append(tmp)
                     tmp = {}
-                    tmp['simp_stations'] = cur_simp_stations
+                    tmp['simplices_stations'] = cur_simp_stations
                     tmp['time'] = cur_time
                     tmp['pgv'] = cur_pgv
                     tmp['trigger'] = cur_trig
@@ -397,7 +400,7 @@ class DelaunayDetector(object):
                 for cur_data in [x for x in self.trigger_data if np.any(x['trigger'])]:
                     # Create a detection instance.
                     max_pgv = np.max(cur_data['pgv'], axis = 0)
-                    cur_simp_stations = cur_data['simp_stations']
+                    cur_simp_stations = cur_data['simplices_stations']
                     cur_detection = event_detection.Detection(start_time = cur_data['time'][0],
                                                               end_time = cur_data['time'][-1],
                                                               stations = cur_simp_stations,
@@ -425,7 +428,7 @@ class DelaunayDetector(object):
 
 
             for cur_data in [x for x in self.trigger_data if np.any(x['trigger'])]:
-                cur_simp_stations = cur_data['simp_stations']
+                cur_simp_stations = cur_data['simplices_stations']
                 max_pgv = np.max(cur_data['pgv'], axis = 0)
                 if self.current_event.has_detection(cur_simp_stations):
                     # Update the detection.
@@ -461,7 +464,11 @@ class DelaunayDetector(object):
             self.current_event.pgv_stream.merge()
 
             # Add the trigger data to the event.
-            self.current_event.detection_data[self.last_detection_end.isoformat()] = self.trigger_data
+            cur_key = self.last_detection_end.isoformat()
+            self.current_event.detection_data[cur_key] = {}
+            self.current_event.detection_data[cur_key]['detection_start'] = self.last_detection_start
+            self.current_event.detection_data[cur_key]['detection_end'] = self.last_detection_end
+            self.current_event.detection_data[cur_key]['trigger_data'] = self.trigger_data
 
             if (self.last_detection_end - self.current_event.end_time) > keep_listening:
                 self.logger.info("Closing an event.")
