@@ -25,11 +25,14 @@
 
 import configparser
 import json
+import os
 
 
 def load_configuration(filename):
     ''' Load the configuration from a file.
     '''
+    if not os.path.exists(filename):
+        raise RuntimeError("The configuration filename {filename} doesn't exist.".format(filename = filename))
     parser = configparser.ConfigParser()
     parser.read(filename)
 
@@ -67,3 +70,96 @@ def load_configuration(filename):
     config['process']['event_archive_size'] = int(parser.get('process', 'event_archive_size'))
 
     return config
+
+
+class Version(object):
+    ''' A version String representation.
+    '''
+
+    def __init__(self, version = '0.0.1'):
+        ''' Initialize the instance.
+
+        Parameters
+        ----------
+        version:String
+            The version as a point-seperated string.
+
+        '''
+        self.version = self.string_to_tuple(version)
+
+
+    def __str__(self):
+        ''' The string representation.
+        '''
+        return '.'.join([str(x) for x in self.version])
+
+
+    def __eq__(self, c):
+        ''' Test for equality.
+        '''
+        for k, cur_n in enumerate(self.version):
+            if cur_n != c.version[k]:
+                return False
+
+        return True
+
+    def __ne__(self, c):
+        ''' Test for inequality.
+        '''
+        return not self.__eq__(c)
+
+
+    def __gt__(self, c):
+        ''' Test for greater than.
+        '''
+        for k, cur_n in enumerate(self.version):
+            if cur_n > c.version[k]:
+                return True
+            elif cur_n != c.version[k]:
+                return False
+
+        return False
+
+
+    def __lt__(self, c):
+        ''' Test for less than.
+        '''
+        for k, cur_n in enumerate(self.version):
+            if cur_n < c.version[k]:
+                return True
+            elif cur_n != c.version[k]:
+                return False
+
+        return False
+
+
+    def __ge__(self, c):
+        ''' Test for greater or equal.
+        '''
+        return self.__eq__(c) or self.__gt__(c)
+
+    def __le__(self, c):
+        ''' Test for less or equal.
+        '''
+        return self.__eq__(c) or self.__lt__(c)
+
+
+
+
+    def string_to_tuple(self, vs):
+        ''' Convert a version string to a tuple.
+        '''
+        nn = vs.split('.')
+        for k,x in enumerate(nn):
+            if x.isdigit():
+                nn[k] = int(x)
+            else:
+                tmp = re.split('[A-Za-z]', x)
+                tmp = [x for x in tmp if x.isdigit()]
+                if len(tmp) > 0:
+                    nn[k] = int(tmp[0])
+                else:
+                    nn[k] = 0
+
+        return tuple(nn)
+
