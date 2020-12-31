@@ -118,6 +118,24 @@ class DelaunayDetector(object):
         self.compute_max_time_window()
 
 
+    def reset(self):
+        ''' Reset the detector to an initial state.
+        '''
+        self.max_time_window = None
+        self.current_event = None
+        self.detect_stations = []
+        self.detect_stream = None
+        self.tri = None
+        self.edge_length = {}
+        self.last_detection_start = None
+        self.last_detection_end = None
+        self.trigger_data = []
+        self.detection_run_initialized = False
+        self.event_triggered = False
+        self.new_event_available = False
+        self.compute_max_time_window()
+
+
     def init_detection_run(self, stream):
         ''' Initialize a new detection run.
         '''
