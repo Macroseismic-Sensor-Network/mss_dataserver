@@ -193,6 +193,22 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.event_archive_timespan = 48
         self.load_archive_catalogs(hours = self.event_archive_timespan)
 
+    def reset(self):
+        ''' Reset the monitorclient to an initial state.
+        '''
+        self.monitor_stream.clear()
+        self.process_stream.clear()
+        self.pgv_stream.clear()
+        self.pgv_archive_stream.clear()
+        self.vel_archive_stream.clear()
+
+        self.event_triggered = False
+        self.current_event = None
+
+        self.project.event_library.clear()
+        self.load_archive_catalogs(hours = self.event_archive_timespan)
+        self.detector.reset()
+
 
     def seedlink_connect(self):
         ''' Connect to the seedlink server.
@@ -569,7 +585,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                                args = (export_event, ))
                         self.logger.info("Starting the export_event_thread.")
                         export_event_thread.start()
-                        #export_event_thread.join()
+                        # TODO: Add some kind of event signaling to track the
+                        # execution of the export thread.
+                        self.export_event_thread = export_event_thread
                         self.logger.info("Continue the program execution.")
                     finally:
                         # Clear the detector flag.
@@ -1103,9 +1121,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         split_pgv_stream = pgv_stream.split()
 
         supplement_name = 'pgv'
-        filename = "{0:s}_{1:d}_{2:s}.msd".format(event.public_id,
-                                                  event.db_id,
-                                                  supplement_name)
+        filename = "{public_id}_{name}.msd".format(public_id = event.public_id,
+                                                   name = supplement_name)
         filepath = os.path.join(output_dir, filename)
         self.logger.info("Writing the PGV data to file %s.", filepath)
         split_pgv_stream.write(filepath,
@@ -1127,9 +1144,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         vel_stream = vel_stream.split()
         self.logger.info("vel_stream: %s", vel_stream.__str__(extended = True))
         supplement_name = 'velocity'
-        filename = "{0:s}_{1:d}_{2:s}.msd".format(event.public_id,
-                                                  event.db_id,
-                                                  supplement_name)
+        filename = "{public_id}_{name}.msd".format(public_id = event.public_id,
+                                                   name = supplement_name)
         filepath = os.path.join(output_dir, filename)
         self.logger.info("Writing the velocity data to file %s.", filepath)
         vel_stream.write(filepath,
@@ -1161,15 +1177,15 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         max_event_pgv = event.get_max_pgv_per_station()
 
         event_meta = {}
+        event_meta['db_id'] = event.db_id
         event_meta['max_network_pgv'] = max_network_pgv
         event_meta['max_event_pgv'] = max_event_pgv
 
         # Write the event metadata to a json file.
         try:
             supplement_name = 'metadata'
-            filename = "{0:s}_{1:d}_{2:s}.json".format(event.public_id,
-                                                       event.db_id,
-                                                       supplement_name)
+            filename = "{public_id}_{name}.json".format(public_id = event.public_id,
+                                                        name = supplement_name)
             filepath = os.path.join(output_dir, filename)
             self.logger.info("Writing the event metadata data to file %s.",
                              filepath)
@@ -1194,9 +1210,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # Write the event detection data to a json file.
         try:
             supplement_name = 'detectiondata'
-            filename = "{0:s}_{1:d}_{2:s}.json".format(event.public_id,
-                                                       event.db_id,
-                                                       supplement_name)
+            filename = "{public_id}_{name}.json".format(public_id = event.public_id,
+                                                        name = supplement_name)
             filepath = os.path.join(output_dir, filename)
             self.logger.info("Writing the detection data to file %s.",
                              filepath)
