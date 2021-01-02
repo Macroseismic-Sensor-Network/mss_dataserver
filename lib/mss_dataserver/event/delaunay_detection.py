@@ -354,19 +354,13 @@ class DelaunayDetector(object):
                 if len(cur_pgv) > 0:
                     if np.any(np.isnan(cur_pgv)):
                         self.logger.warning("There is a NaN value in the cur_pgv. Skipping this triangle.")
-                        self.logger.debug("cur_pgv: %s.", cur_pgv)
+                        self.logger.info("cur_pgv: %s.", cur_pgv)
                         # TODO: JSON can't handle NaN values. Ignore them right
                         # now until I find a better solution.
-                        continue
+                        #continue
 
-                    cur_trig = np.nanmin(cur_pgv, axis = 1) >= self.trigger_thr
-                    #if np.any(cur_trig):
-                    #    tmp = {}
-                    #    tmp['simplices_stations'] = cur_simp_stations
-                    #    tmp['time'] = cur_time
-                    #    tmp['pgv'] = cur_pgv
-                    #    tmp['trigger'] = cur_trig
-                    #    self.trigger_data.append(tmp)
+                    cur_trig = np.min(cur_pgv, axis = 1) >= self.trigger_thr
+
                     tmp = {}
                     tmp['simplices_stations'] = cur_simp_stations
                     tmp['time'] = cur_time
@@ -417,7 +411,8 @@ class DelaunayDetector(object):
                 # Compute the max. PGV of each triggered station.
                 for cur_data in [x for x in self.trigger_data if np.any(x['trigger'])]:
                     # Create a detection instance.
-                    max_pgv = np.max(cur_data['pgv'], axis = 0)
+                    cur_mask = cur_data['trigger']
+                    max_pgv = np.max(cur_data['pgv'][cur_mask], axis = 0)
                     cur_simp_stations = cur_data['simplices_stations']
                     cur_detection = event_detection.Detection(start_time = cur_data['time'][0],
                                                               end_time = cur_data['time'][-1],
@@ -447,7 +442,8 @@ class DelaunayDetector(object):
 
             for cur_data in [x for x in self.trigger_data if np.any(x['trigger'])]:
                 cur_simp_stations = cur_data['simplices_stations']
-                max_pgv = np.max(cur_data['pgv'], axis = 0)
+                cur_mask = cur_data['trigger']
+                max_pgv = np.max(cur_data['pgv'][cur_mask], axis = 0)
                 if self.current_event.has_detection(cur_simp_stations):
                     # Update the detection.
                     cur_detection = self.current_event.get_detection(cur_simp_stations)
