@@ -1189,9 +1189,15 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             filepath = os.path.join(output_dir, filename)
             self.logger.info("Writing the event metadata data to file %s.",
                              filepath)
+
+            # Prepare the file container for exporting to json file.
+            container_data = {}
+            container_data['metadata'] = event_meta
+            file_container = json_util.FileContainer(container_data)
             with open(filepath, 'w') as json_file:
-                pref = json.dump(event_meta,
-                                 json_file,
+                pref = json.dump(file_container,
+                                 fp = json_file,
+                                 cls = json_util.GeneralFileEncoder,
                                  indent = 4,
                                  sort_keys = True)
         except Exception as e:
@@ -1215,8 +1221,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             filepath = os.path.join(output_dir, filename)
             self.logger.info("Writing the detection data to file %s.",
                              filepath)
+
+            # Prepare the file container for exporting to json file.
+            container_data = {}
+            container_data['detection_data'] = event.detection_data
+            file_container = json_util.FileContainer(container_data)
             with open(filepath, 'w') as json_file:
-                file_container = json_util.FileContainer(event.detection_data)
                 pref = json.dump(file_container,
                                  fp = json_file,
                                  cls = json_util.SupplementDetectionDataEncoder,
