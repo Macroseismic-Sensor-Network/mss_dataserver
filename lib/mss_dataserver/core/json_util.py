@@ -30,6 +30,7 @@ import numpy as np
 import obspy
 
 import mss_dataserver.core.util as util
+import mss_dataserver.geometry as geom
 
 
 def object_to_dict(obj, attr):
@@ -200,7 +201,10 @@ class SupplementDetectionDataEncoder(json.JSONEncoder):
         return {'data': obj.tolist()}
 
     def convert_station(self, obj):
-        attr = ['name', 'location', 'network']
+        attr = ['name', 'location', 'network',
+                'x', 'y', 'z', 'coord_system',
+                'description', 'author_uri', 'agency_uri',
+                'creation_time']
         d = object_to_dict(obj, attr)
         return d
 
@@ -226,6 +230,8 @@ class SupplementDetectionDataDecoder(json.JSONDecoder):
                 inst = self.convert_utcdatetime(d)
             elif class_name == 'ndarray':
                 inst = self.convert_np_array(d)
+            elif 'Station' in base_class:
+                inst = self.convert_station(d)
             else:
                 inst = {'ERROR': 'MISSING CONVERTER'}
 
@@ -257,6 +263,20 @@ class SupplementDetectionDataDecoder(json.JSONDecoder):
 
     def convert_np_array(self, d):
         inst = np.array(d['data'])
+        return inst
+
+
+    def convert_station(self, d):
+        inst = geom.inventory.Station(name = d['name'],
+                                      location = d['location'],
+                                      x = d['x'],
+                                      y = d['y'],
+                                      z = d['z'],
+                                      coord_system = d['coord_system'],
+                                      description = d['description'],
+                                      author_uri = d['author_uri'],
+                                      agency_uri = d['agency_uri'],
+                                      creation_time = d['creation_time'])
         return inst
 
 
