@@ -90,6 +90,9 @@ class DelaunayDetector(object):
         # The stations used for the event detection.
         self.detect_stations = []
 
+        # The stations not used for the event detection.
+        self.unused_stations = []
+
         # The seismogram stream used for the event detection.
         self.detect_stream = None
 
@@ -124,6 +127,7 @@ class DelaunayDetector(object):
         self.max_time_window = None
         self.current_event = None
         self.detect_stations = []
+        self.unused_stations = []
         self.detect_stream = None
         self.tri = None
         self.edge_length = {}
@@ -248,10 +252,12 @@ class DelaunayDetector(object):
             self.last_detection_end = detect_win_end
 
             self.detect_stations = []
+            self.unused_stations = []
             for cur_trace in self.detect_stream:
                 cur_station = [x for x in self.network_stations if x.name == cur_trace.stats.station]
                 if cur_station:
                     self.detect_stations.append(cur_station[0])
+            self.unused_stations = [x for x in self.network_stations if x not in self.detect_stations]
 
 
     def compute_triangle_max_pgv(self, simp):
@@ -483,6 +489,8 @@ class DelaunayDetector(object):
             self.current_event.detection_data[cur_key]['detection_start'] = self.last_detection_start
             self.current_event.detection_data[cur_key]['detection_end'] = self.last_detection_end
             self.current_event.detection_data[cur_key]['trigger_data'] = self.trigger_data
+            self.current_event.detection_data[cur_key]['detect_stations'] = self.detect_stations
+            self.current_event.detection_data[cur_key]['unused_stations'] = self.unused_stations
 
             if (self.last_detection_end - self.current_event.end_time) > keep_listening:
                 self.logger.info("Closing an event.")
