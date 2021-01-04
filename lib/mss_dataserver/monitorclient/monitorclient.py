@@ -579,6 +579,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
                         # Save the event and its metadata in a thread to
                         # prevent blocking the data acquisition.
+                        # TODO: Copy the event before exporting it. Deepcopy
+                        # throws an error "TypeError: can't pickle
+                        # _thread.RLock objects".
                         export_event = self.current_event
                         export_event_thread = threading.Thread(name = 'export_event',
                                                                target = self.export_event,
