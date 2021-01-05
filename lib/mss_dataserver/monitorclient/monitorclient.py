@@ -1075,10 +1075,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         ''' Save the supplement data of the event.
         '''
         # Build the output directory.
-        date_dir = "{0:04d}_{1:02d}_{2:02d}".format(export_event.start_time.year,
-                                                    export_event.start_time.month,
-                                                    export_event.start_time.day)
+        year_dir = "{year:04d}".format(year = export_event.start_time.year)
+        date_dir = "{year:04d}_{month:02d}_{day:02d}".format(year = export_event.start_time.year,
+                                                             month = export_event.start_time.month,
+                                                             day = export_event.start_time.day)
         output_dir = os.path.join(self.event_dir,
+                                  str(export_event.start_time.year),
                                   date_dir,
                                   export_event.public_id)
 
