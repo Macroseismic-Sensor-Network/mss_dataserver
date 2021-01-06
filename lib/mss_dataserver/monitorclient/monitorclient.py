@@ -760,7 +760,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     break
 
             if missing_data:
-                self.logger.debug('Skipping station because of missing channel data.')
+                self.logger.debug('Skipping station because of missing channel data. Re-inserting the data into the process stream.')
                 self.process_stream.extend(cur_stream)
                 continue
 
@@ -829,16 +829,24 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                         cur_y = cur_y.data
 
                     if len(cur_x) != len(cur_y):
-                        self.logger.error("The x and y data lenght dont't match. Can't compute the res. PGV for this trace.")
+                        self.logger.error("The x and y data lenght dont't match. Can't compute the res. PGV for station %s and windowed stream: %s.", cur_station, win_st)
+                        continue
+
+                    # Check for nan values.
+                    if np.any(np.isnan(cur_x)) or np.any(np.isnan(cur_y)):
+                        nan_mask = np.isnan(cur_x) | np.isnan(cur_y)
+                        cur_x = cur_x[~nan_mask]
+                        cur_y = cur_y[~nan_mask]
+
+                    # Check if there are enough data values available.
+                    if len(cur_x) < len(cur_x_trace.data) / 2:
+                        self.logger.error("There are not enough non-nan data values available. Skipping this window. win_st: %s.", win_st)
                         continue
 
                     cur_sec_remain = cur_x_trace.stats.starttime.timestamp % samp_interval
                     cur_win_start = cur_x_trace.stats.starttime - cur_sec_remain
-                    #cur_win_end = cur_win_start + self.process_interval - cur_x_trace.stats.delta
-                    #cur_pgv_time = cur_x_trace.stats.starttime + \
-                    #               (cur_x_trace.stats.endtime - cur_x_trace.stats.starttime) / 2
                     cur_pgv_time = cur_win_start + samp_interval / 2
-                    cur_pgv_value = np.nanmax(np.sqrt(cur_x**2 + cur_y**2))
+                    cur_pgv_value = np.max(np.sqrt(cur_x**2 + cur_y**2))
                     cur_pgv.append([cur_pgv_time, cur_pgv_value])
 
             if cur_pgv:
