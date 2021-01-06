@@ -131,6 +131,60 @@ class GeneralFileEncoder(json.JSONEncoder):
 
 
 
+class GeneralFileDecoder(json.JSONDecoder):
+    version = util.Version('1.0.0')
+
+    def __init__(self, **kwarg):
+        json.JSONDecoder.__init__(self, object_hook = self.convert_dict)
+
+
+    def convert_dict(self, d):
+
+        if '__class__' in d:
+            class_name = d.pop('__class__')
+            module_name = d.pop('__module__')
+            base_class = d.pop('__baseclass__')
+
+            if class_name == 'Version':
+                inst = self.convert_version(d)
+            elif class_name == 'UTCDateTime':
+                inst = self.convert_utcdatetime(d)
+            elif class_name == 'ndarray':
+                inst = self.convert_np_array(d)
+            else:
+                inst = {'ERROR': 'MISSING CONVERTER'}
+
+        else:
+            inst = d
+
+        return inst
+
+
+    def decode_hinted_tuple(self, item):
+        if isinstance(item, dict):
+            if '__tuple__' in item:
+                return tuple(item['items'])
+        elif isinstance(item, list):
+                return [self.decode_hinted_tuple(x) for x in item]
+        else:
+            return item
+
+
+    def convert_version(self, d):
+        inst = util.Version(d['version'])
+        return inst
+
+
+    def convert_utcdatetime(self, d):
+        inst = obspy.UTCDateTime(d['utcdatetime'])
+        return inst
+
+
+    def convert_np_array(self, d):
+        inst = np.array(d['data'])
+        return inst
+
+
 
 class SupplementDetectionDataEncoder(json.JSONEncoder):
     ''' A JSON encoder for the event supplement detection data.
