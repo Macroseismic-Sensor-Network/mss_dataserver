@@ -1191,6 +1191,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         event_meta = {}
         event_meta['db_id'] = event.db_id
+        event_meta['start_time'] = event.start_time
+        event_meta['end_time'] = event.end_time
         event_meta['max_network_pgv'] = max_network_pgv
         event_meta['max_event_pgv'] = max_event_pgv
 
