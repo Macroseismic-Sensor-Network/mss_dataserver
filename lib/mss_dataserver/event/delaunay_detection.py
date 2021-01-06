@@ -224,8 +224,8 @@ class DelaunayDetector(object):
         # the same.
         sps = stream[0].stats.sampling_rate
         if self.last_detection_end is None:
-            #detect_win_start = np.min([x.stats.starttime for x in stream])
-            detect_win_start = np.max([x.stats.starttime for x in stream]) + self.max_time_window
+            detect_win_start = np.min([x.stats.starttime for x in stream]) + self.max_time_window
+            #detect_win_start = np.max([x.stats.starttime for x in stream]) + self.max_time_window
         else:
             detect_win_start = self.last_detection_end + 1 / sps
 
@@ -263,9 +263,12 @@ class DelaunayDetector(object):
     def compute_triangle_max_pgv(self, simp):
         ''' Compute the maximal PGV values of a delaunay triangle.
         '''
+        self.logger.info("Computing the triangle max pgv.")
         offset = self.max_time_window
         simp_keys = tuple(sorted([self.detect_stations[x].nsl_string for x in simp]))
         simp_edge_length = self.edge_length[simp_keys]
+
+        self.logger.info("Stations involved: %s.", simp_keys)
 
         # Compute the length of the search time window using a default velocity
         # of 3500 m/s.
@@ -304,6 +307,14 @@ class DelaunayDetector(object):
         for cur_station in simp_stations:
             tri_stream = tri_stream + self.detect_stream.select(station = cur_station.name)
 
+        # Trim the stream to equal lengths padding too short streams.
+        min_start = np.min([x.stats.starttime for x in tri_stream])
+        max_end = np.min([x.stats.endtime for x in tri_stream])
+        tri_stream.trim(starttime = min_start,
+                        endtime = max_end,
+                        pad = True,
+                        fill_value = None)
+
         self.logger.debug("tri_stream: %s", tri_stream)
 
         pgv = []
@@ -321,8 +332,11 @@ class DelaunayDetector(object):
                 continue
             # Create overlapping windows with the computed length with 1 sample
             # step size.
-            # TODO: Handle masked trace data.
-            cur_data = strided_app(cur_trace.data, cur_win_length, 1)
+            # Handle masked trace data.
+            cur_tr_data = cur_trace.data
+            if isinstance(cur_tr_data, np.ma.MaskedArray):
+                cur_tr_data = cur_tr_data.data
+            cur_data = strided_app(cur_tr_data, cur_win_length, 1)
             self.logger.debug("cur_data: %s", cur_data)
             cur_max_pgv = np.max(cur_data, axis = 1)
             self.logger.debug("cur_max_pgv: %s", cur_max_pgv)
@@ -358,12 +372,9 @@ class DelaunayDetector(object):
                 cur_time, cur_pgv, cur_simp_stations = self.compute_triangle_max_pgv(cur_simp)
 
                 if len(cur_pgv) > 0:
-                    if np.any(np.isnan(cur_pgv)):
-                        self.logger.warning("There is a NaN value in the cur_pgv. Skipping this triangle.")
-                        self.logger.info("cur_pgv: %s.", cur_pgv)
-                        # TODO: JSON can't handle NaN values. Ignore them right
-                        # now until I find a better solution.
-                        #continue
+                    #if np.any(np.isnan(cur_pgv)):
+                    #    self.logger.warning("There is a NaN value in the cur_pgv. Skipping this triangle.")
+                    #    self.logger.info("cur_pgv: %s.", cur_pgv)
 
                     cur_trig = np.min(cur_pgv, axis = 1) >= self.trigger_thr
 
