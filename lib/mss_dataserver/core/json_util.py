@@ -53,8 +53,10 @@ def object_to_dict(obj, attr):
 
 class FileContainer(object):
 
-    def __init__(self, data = {}):
+    def __init__(self, data, agency_uri = None, author_uri = None):
         self.data = data
+        self.agency_uri = agency_uri
+        self.author_uri = author_uri
 
 
 class GeneralFileEncoder(json.JSONEncoder):
@@ -113,7 +115,9 @@ class GeneralFileEncoder(json.JSONEncoder):
     def convert_filecontainer(self, obj):
         d = obj.data
         file_meta = {'file_version': self.version,
-                     'save_date': obspy.UTCDateTime()}
+                     'save_date': obspy.UTCDateTime(),
+                     'agency_uri': obj.agency_uri,
+                     'author_uri': obj.author_uri}
         d['file_meta'] = file_meta
         return d
 
@@ -241,7 +245,9 @@ class SupplementDetectionDataEncoder(json.JSONEncoder):
     def convert_filecontainer(self, obj):
         d = obj.data
         file_meta = {'file_version': self.version,
-                     'save_date': obspy.UTCDateTime()}
+                     'save_date': obspy.UTCDateTime(),
+                     'agency_uri': obj.agency_uri,
+                     'author_uri': obj.author_uri}
         d['file_meta'] = file_meta
         return d
 
