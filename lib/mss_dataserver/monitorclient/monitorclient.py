@@ -82,6 +82,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # The project instance.
         self.project = project
 
+        # The URI of the agency.
+        self.agency_uri = project.agency_uri
+
+        # The URI of the author.
+        self.author_uri = project.author_uri
+
         # The asyncio event loop. Used to stop the loop if an error occures.
         self.asyncio_loop = asyncio_loop
 
@@ -182,8 +188,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                     p_vel = 3500,
                                                     min_trigger_window = 3,
                                                     max_edge_length = 40000,
-                                                    author_uri = self.project.project_config['author_uri'],
-                                                    agency_uri = self.project.project_config['agency_uri'])
+                                                    author_uri = self.author_uri,
+                                                    agency_uri = self.agency_uri)
 
         self.recorder_map = self.get_recorder_mappings(station_nsl = self.stations)
 
@@ -1090,7 +1096,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         output_dir = os.path.join(self.event_dir,
                                   str(export_event.start_time.year),
                                   date_dir,
-                                  export_event.public_id)
+                                  export_event.public_id,
+                                  'detectiondata')
 
         self.logger.info("Exporting the event data to folder %s.", output_dir)
 
@@ -1111,6 +1118,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                  pre_win = pre_win,
                                  post_win = post_win,
                                  output_dir = output_dir)
+
+        self.save_supplement_inventory(event = export_event,
+                                       output_dir = output_dir)
 
         self.save_supplement_metadata(event = export_event,
                                       pgv_stream = pgv_stream,
@@ -1166,6 +1176,36 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                          blocksize = 512)
 
 
+    def save_supplement_inventory(self, event, output_dir):
+        ''' Save the supplement inventory data to a json file.
+        '''
+        # Write the inventory to a json file.
+        try:
+            supplement_name = 'geometryinventory'
+            filename = "{public_id}_{name}.json".format(public_id = event.public_id,
+                                                        name = supplement_name)
+            filepath = os.path.join(output_dir, filename)
+            self.logger.info("Writing the geometry inventory data to file %s.",
+                             filepath)
+
+            # Prepare the file container for exporting to json file.
+            container_data = {}
+            container_data['metadata'] = {'db_id': event.db_id,
+                                          'public_id': event.public_id}
+            container_data['inventory'] = self.inventory.as_dict()
+            file_container = json_util.FileContainer(data = container_data,
+                                                     agency_uri = self.agency_uri,
+                                                     author_uri = self.author_uri)
+            with open(filepath, 'w') as json_file:
+                pref = json.dump(file_container,
+                                 fp = json_file,
+                                 cls = json_util.GeneralFileEncoder,
+                                 indent = 4,
+                                 sort_keys = True)
+        except Exception as e:
+            self.logger.exception("Error saving the geometry inventory data to json file.")
+
+
     def save_supplement_metadata(self, event, pgv_stream, output_dir):
         ''' Save the supplement metadata to a json file.
         '''
@@ -1191,6 +1231,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         event_meta = {}
         event_meta['db_id'] = event.db_id
+        event_meta['public_id'] = event.public_id
         event_meta['start_time'] = event.start_time
         event_meta['end_time'] = event.end_time
         event_meta['max_network_pgv'] = max_network_pgv
@@ -1208,7 +1249,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             # Prepare the file container for exporting to json file.
             container_data = {}
             container_data['metadata'] = event_meta
-            file_container = json_util.FileContainer(container_data)
+            file_container = json_util.FileContainer(data = container_data,
+                                                     agency_uri = self.agency_uri,
+                                                     author_uri = self.author_uri)
             with open(filepath, 'w') as json_file:
                 pref = json.dump(file_container,
                                  fp = json_file,
@@ -1239,8 +1282,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
             # Prepare the file container for exporting to json file.
             container_data = {}
+            container_data['metadata'] = {'db_id': event.db_id,
+                                          'public_id': event.public_id}
             container_data['detection_data'] = event.detection_data
-            file_container = json_util.FileContainer(container_data)
+            file_container = json_util.FileContainer(data = container_data,
+                                                     agency_uri = self.agency_uri,
+                                                     author_uri = self.author_uri)
             with open(filepath, 'w') as json_file:
                 pref = json.dump(file_container,
                                  fp = json_file,
