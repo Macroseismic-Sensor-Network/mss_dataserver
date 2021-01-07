@@ -122,6 +122,17 @@ class Inventory(object):
         self.recorders = []
         self.sensors = []
 
+    def as_dict(self, style = None):
+        ''' Convert the inventory to a dictionary.
+        '''
+        export_attributes = ['name', 'type']
+        d = {}
+        for cur_attr in export_attributes:
+            d[cur_attr] = getattr(self, cur_attr)
+        d['networks'] = [x.as_dict(style = style) for x in self.networks]
+        return d
+
+
 
     def add_recorder(self, recorder):
         ''' Add a recorder to the inventory.
@@ -1012,7 +1023,7 @@ class RecorderStream(object):
         else:
             return False
 
-    def as_dict(self, style = 'seed'):
+    def as_dict(self, style = None):
         export_attributes = ['name', 'label', 'serial', 'model', 'producer',
                              'author_uri', 'agency_uri', 'creation_time']
 
@@ -2158,7 +2169,7 @@ class Station(object):
         else:
             return False
 
-    def as_dict(self, style = 'seed'):
+    def as_dict(self, style = None):
         export_attributes = ['name', 'location', 'description',
                              'x', 'y', 'z', 'coord_system',
                              'author_uri', 'agency_uri', 'creation_time']
@@ -2364,7 +2375,7 @@ class Channel(object):
         return list(set([x.item.serial for x in self.streams]))
 
 
-    def as_dict(self, style = 'seed'):
+    def as_dict(self, style = None):
         export_attributes = ['name', 'description',
                              'author_uri', 'agency_uri', 'creation_time']
 
@@ -2409,7 +2420,7 @@ class Channel(object):
                     cur_d['sensor_producer'] = cur_comp.producer
                     d.append(cur_d)
         else:
-            d ={}
+            d = {}
             for cur_attr in export_attributes:
                 d[cur_attr] = getattr(self, cur_attr)
             d['streams'] = []
@@ -2644,7 +2655,7 @@ class Network(object):
         else:
             return False
 
-    def as_dict(self, style = 'seed'):
+    def as_dict(self, style = None):
         export_attributes = ['name', 'description', 'type',
                              'author_uri', 'agency_uri', 'creation_time']
         d = {}
@@ -3024,7 +3035,7 @@ class TimeBox(object):
         else:
             return self.end_time.isoformat()
 
-    def as_dict(self, style = 'seed'):
+    def as_dict(self, style = None):
         export_attributes = ['start_time',
                              'end_time']
 
