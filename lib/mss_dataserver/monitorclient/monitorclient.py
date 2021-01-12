@@ -1226,8 +1226,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 max_pgv = float(np.nanmax(cur_trace.data))
 
             max_network_pgv[cur_nsl] = max_pgv
+
         # Compute the maximum PGV values which have been used as a detection.
         max_event_pgv = event.get_max_pgv_per_station()
+
+        # Compute the detection limits per station.
+        detection_limits = event.get_detection_limits_per_station()
 
         event_meta = {}
         event_meta['db_id'] = event.db_id
@@ -1236,6 +1240,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         event_meta['end_time'] = event.end_time
         event_meta['max_network_pgv'] = max_network_pgv
         event_meta['max_event_pgv'] = max_event_pgv
+        event_meta['detection_limits'] = detection_limits
 
         # Write the event metadata to a json file.
         try:
