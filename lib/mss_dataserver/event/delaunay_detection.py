@@ -398,8 +398,12 @@ class DelaunayDetector(object):
                 cur_mask = cur_trigger_data['trigger']
                 cur_trigger_start = np.array(cur_trigger_data['time'])[cur_mask][0]
                 cur_trigger_end = np.array(cur_trigger_data['time'])[cur_mask][-1]
-                trigger_times.append([obspy.UTCDateTime(cur_trigger_start),
-                                      obspy.UTCDateTime(cur_trigger_end)])
+                cur_trigger_limits = [obspy.UTCDateTime(cur_trigger_start),
+                                      obspy.UTCDateTime(cur_trigger_end)]
+                # Add the trigger limits to the trigger data for later use.
+                cur_trigger_data['trigger_limits'] = cur_trigger_limits
+                trigger_times.append(cur_trigger_limits)
+
         trigger_times = np.array(trigger_times)
         if len(trigger_times) > 0:
             self.logger.debug("trigger_times: %s", trigger_times)
@@ -431,8 +435,8 @@ class DelaunayDetector(object):
                     cur_mask = cur_data['trigger']
                     max_pgv = np.max(cur_data['pgv'][cur_mask], axis = 0)
                     cur_simp_stations = cur_data['simplices_stations']
-                    cur_detection = event_detection.Detection(start_time = cur_data['time'][0],
-                                                              end_time = cur_data['time'][-1],
+                    cur_detection = event_detection.Detection(start_time = cur_data['trigger_limits'][0],
+                                                              end_time = cur_data['trigger_limits'][1],
                                                               stations = cur_simp_stations,
                                                               max_pgv = {cur_simp_stations[0].nsl_string: max_pgv[0],
                                                                          cur_simp_stations[1].nsl_string: max_pgv[1],
@@ -466,7 +470,7 @@ class DelaunayDetector(object):
                     cur_detection = self.current_event.get_detection(cur_simp_stations)
                     if len(cur_detection) == 1:
                         cur_detection = cur_detection[0]
-                        cur_detection.update(end_time = cur_data['time'][-1],
+                        cur_detection.update(end_time = cur_data['trigger_limits'][1],
                                              max_pgv = {cur_simp_stations[0].nsl_string: max_pgv[0],
                                                         cur_simp_stations[1].nsl_string: max_pgv[1],
                                                         cur_simp_stations[2].nsl_string: max_pgv[2]})
@@ -474,8 +478,8 @@ class DelaunayDetector(object):
                         self.logger.error("Expected exactly one detection. Got: %s.", cur_detection)
                 else:
                     # Add the detection.
-                    cur_detection = event_detection.Detection(start_time = cur_data['time'][0],
-                                                              end_time = cur_data['time'][-1],
+                    cur_detection = event_detection.Detection(start_time = cur_data['trigger_limits'][0],
+                                                              end_time = cur_data['trigger_limits'][1],
                                                               stations = cur_simp_stations,
                                                               max_pgv = {cur_simp_stations[0].nsl_string: max_pgv[0],
                                                                          cur_simp_stations[1].nsl_string: max_pgv[1],
