@@ -558,7 +558,7 @@ class Inventory(object):
         '''
         ret_station = list(itertools.chain.from_iterable([x.stations for x in self.networks]))
 
-        valid_keys = ['id', 'name', 'network', 'location']
+        valid_keys = ['id', 'name', 'network', 'location', 'nsl', 'nsl_string']
 
         for cur_key, cur_value in kwargs.items():
             if cur_key in valid_keys:
