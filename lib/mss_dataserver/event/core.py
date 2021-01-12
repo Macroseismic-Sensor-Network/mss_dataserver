@@ -192,6 +192,23 @@ class Event(object):
 
         return max_pgv
 
+    def get_detection_limits_per_station(self):
+        ''' Compute the detection start and end times for each station.
+        '''
+        detection_limits = {}
+        for cur_detection in self.detections:
+            cur_start = cur_detection.start_time
+            cur_end = cur_detection.end_time
+            for cur_station in cur_detection.stations:
+                if cur_station.nsl_string not in detection_limits.keys():
+                    detection_limits[cur_station.nsl_string] = [cur_start, cur_end]
+                elif cur_start < detection_limits[cur_station.nsl_string][0]:
+                    detection_limits[cur_station.nsl_string][0] = cur_start
+                elif cur_end > detection_limits[cur_station.nsl_string][1]:
+                    detection_limits[cur_station.nsl_string][1] = cur_end
+
+        return detection_limits
+
 
     def station_has_triggered(self, station):
         ''' Check if a detection has been triggered at a station.
