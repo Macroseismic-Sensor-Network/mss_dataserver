@@ -52,11 +52,6 @@ import mss_dataserver.geometry.inventory_parser as inventory_parser
 import mss_dataserver.monitorclient.monitorclient as monitorclient
 import mss_dataserver.test.util as test_util
 
-
-logger = logging.getLogger('mss_dataserver')
-logger.setLevel(logging.DEBUG)
-
-
 # The clients connected to the server.
 clients_lock = threading.Lock()
 clients = set()
@@ -86,9 +81,15 @@ msg_data_id['event_warning'] = 'event_warning'
 msg_data_id['keydata'] = 'keydata'
 
 
+
+
 async def register_pgv_client(websocket, sl_client):
     ''' Register a connected websocket client.
     '''
+    # Get the logging instance.
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+
     # Prepare the welcome message.
     msg = {}
     msg['class'] = msg_class['soh']
@@ -100,7 +101,7 @@ async def register_pgv_client(websocket, sl_client):
     msg['payload'] = payload
 
     try:
-        logging.info("Registering the client.")
+        logger.info("Registering the client.")
         # Send the welcome message.
         msg = json.dumps(msg, allow_nan = False)
         await websocket.send(msg)
@@ -113,7 +114,7 @@ async def register_pgv_client(websocket, sl_client):
         payload = sl_client.get_pgv_archive()
         msg['payload'] = payload
 
-        logging.info("Sending pgv archive.")
+        logger.info("Sending pgv archive.")
         # Send the archived PGV data.
         msg = json.dumps(msg, allow_nan = False)
         await websocket.send(msg)
@@ -127,7 +128,7 @@ async def register_pgv_client(websocket, sl_client):
             msg['id'] = msg_data_id['event_archive']
             msg['payload'] = payload
 
-            logging.info("Sending the recent events.")
+            logger.info("Sending the recent events.")
             # Send the archived PGV data.
             msg = json.dumps(msg, allow_nan = False)
             await websocket.send(msg)
@@ -141,7 +142,7 @@ async def register_pgv_client(websocket, sl_client):
         #    msg['id'] = msg_data_id['event_data']
         #    msg['payload'] = payload
 
-        #    logging.info("Sending the current event.")
+        #    logger.info("Sending the current event.")
         #    # Send the archived PGV data.
         #    msg = json.dumps(msg, allow_nan = False)
         #    await websocket.send(msg)
@@ -151,14 +152,18 @@ async def register_pgv_client(websocket, sl_client):
         # now add the websocket to the known clients.
         with clients_lock:
             clients.add(websocket)
-        logging.info("Client registered.")
+        logger.info("Client registered.")
     except Exception as e:
-        logging.exception("Error registering the client.")
+        logger.exception("Error registering the client.")
 
 
 async def register_keydata_client(websocket, sl_client):
     ''' Register a connected websocket client for sending keydata messages.
     '''
+    # Get the logging instance.
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+
     # Prepare the welcome message.
     msg = {}
     msg['class'] = msg_class['soh']
@@ -170,7 +175,7 @@ async def register_keydata_client(websocket, sl_client):
     msg['payload'] = payload
 
     try:
-        logging.info("Registering the client.")
+        logger.info("Registering the client.")
         # Send the welcome message.
         msg = json.dumps(msg, allow_nan = False)
         await websocket.send(msg)
@@ -178,7 +183,7 @@ async def register_keydata_client(websocket, sl_client):
         # Send the initial keydata to the new client.
         payload = sl_client.get_keydata()
         if payload:
-            logging.info("Sending the initial keydata.")
+            logger.info("Sending the initial keydata.")
             msg = {}
             msg['class'] = msg_class['data']
             msg['id'] = msg_data_id['keydata']
@@ -190,10 +195,10 @@ async def register_keydata_client(websocket, sl_client):
         # now add the websocket to the known clients.
         with clients_keydata_lock:
             clients_keydata.add(websocket)
-        logging.info("Client registered.")
+        logger.info("Client registered.")
 
     except Exception as e:
-        logging.exception("Error registering the client.")
+        logger.exception("Error registering the client.")
 
 
 async def unregister_client(websocket):
@@ -213,6 +218,10 @@ async def unregister_keydata_client(websocket):
 async def serve_keydata(sl_client):
     ''' Send the server keydata to all registered clients.
     '''
+    # Get the logging instance.
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+
     try:
         while True:
             await sl_client.event_keydata_available.wait()
@@ -224,19 +233,19 @@ async def serve_keydata(sl_client):
             msg['payload'] = payload
             msg = json.dumps(msg, allow_nan = False)
 
-            logging.info("Serving the keydata.")
+            logger.info("Serving the keydata.")
             with clients_keydata_lock:
                 clients_copy = copy.copy(clients_keydata)
             for cur_client in clients_copy:
-                logging.info("Sending to client %s.", cur_client)
+                logger.info("Sending to client %s.", cur_client)
                 try:
                     await cur_client.send(msg)
                 except Exception as e:
-                    logging.exception("Error sending to client: %s.",
+                    logger.exception("Error sending to client: %s.",
                                       cur_client)
             sl_client.event_keydata_available.clear()
     except Exception as e:
-        logging.exception("Error while serving the keydata.")
+        logger.exception("Error while serving the keydata.")
         #TODO: What happens with the task if an exception occured.
         # Is it automatically restarted or do I have to take care of this?
 
@@ -244,6 +253,10 @@ async def serve_keydata(sl_client):
 async def serve_data(sl_client):
     ''' Send the data to all registered clients.
     '''
+    # Get the logging instance.
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+
     try:
         while True:
             await sl_client.pgv_data_available.wait()
@@ -267,19 +280,19 @@ async def serve_data(sl_client):
             msg = json.dumps(msg, allow_nan = False)
 
             # Send the data to the registered clients.
-            logging.info("Serving the data.")
+            logger.info("Serving the data.")
             for cur_client in clients_copy:
-                logging.info("Sending to client %s.", cur_client)
+                logger.info("Sending to client %s.", cur_client)
                 try:
                     await cur_client.send(msg)
                 except Exception as e:
-                    logging.exception("Error sending to client: %s.",
+                    logger.exception("Error sending to client: %s.",
                                       cur_client)
 
             # Reset the PGV data flag.
             sl_client.pgv_data_available.clear()
     except Exception as e:
-        logging.exception("Error while serving the data.")
+        logger.exception("Error while serving the data.")
         #TODO: What happens with the task if an exception occured.
         # Is it automatically restarted or do I have to take care of this?
 
@@ -287,6 +300,10 @@ async def serve_data(sl_client):
 async def serve_detection_result(sl_client):
     ''' Send the event detectionresult to all registerd clients.
     '''
+    # Get the logging instance.
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+
     try:
         while True:
             await sl_client.event_detection_result_available.wait()
@@ -302,22 +319,26 @@ async def serve_detection_result(sl_client):
             msg['payload'] = payload
             msg = json.dumps(msg, allow_nan = False)
 
-            logging.info("Serving the detection result.")
+            logger.info("Serving the detection result.")
             for cur_client in clients_copy:
-                logging.info("Sending to client %s.", cur_client)
+                logger.info("Sending to client %s.", cur_client)
                 try:
                     await cur_client.send(msg)
                 except Exception as e:
-                    logging.exception("Error sending to client: %s.",
+                    logger.exception("Error sending to client: %s.",
                                       cur_client)
             sl_client.event_detection_result_available.clear()
     except Exception as e:
-        logging.exception("Error while serving the detection result.")
+        logger.exception("Error while serving the detection result.")
 
 
 async def serve_current_event(sl_client):
     ''' Send the current event metadata to all registerd clients.
     '''
+    # Get the logging instance.
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+
     try:
         while True:
             await sl_client.current_event_available.wait()
@@ -341,24 +362,28 @@ async def serve_current_event(sl_client):
             msg = json.dumps(msg, allow_nan = False)
 
             # Send the data to the registered clients.
-            logging.info("Serving the event data.")
+            logger.info("Serving the event data.")
             for cur_client in clients_copy:
-                logging.info("Sending to client %s.", cur_client)
+                logger.info("Sending to client %s.", cur_client)
                 try:
                     await cur_client.send(msg)
                 except Exception as e:
-                    logging.exception("Error sending to client: %s.",
+                    logger.exception("Error sending to client: %s.",
                                       cur_client)
 
             # Reset the flag.
             sl_client.current_event_available.clear()
     except Exception as e:
-        logging.exception("Error while serving the event data.")
+        logger.exception("Error while serving the event data.")
 
 
 async def serve_event_archive(sl_client):
     ''' Send the event archive to all registerd clients.
     '''
+    # Get the logging instance.
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+
     try:
         while True:
             await sl_client.event_archive_changed.wait()
@@ -375,24 +400,28 @@ async def serve_event_archive(sl_client):
             msg['payload'] = payload
             msg = json.dumps(msg, allow_nan = False)
 
-            logging.info("Serving the event archive.")
+            logger.info("Serving the event archive.")
             with clients_lock:
                 clients_copy = copy.copy(clients)
             for cur_client in clients_copy:
-                logging.info("Sending to client %s.", cur_client)
+                logger.info("Sending to client %s.", cur_client)
                 try:
                     await cur_client.send(msg)
                 except Exception as e:
-                    logging.exception("Error sending to client: %s.",
+                    logger.exception("Error sending to client: %s.",
                                       cur_client)
             sl_client.event_archive_changed.clear()
     except Exception as e:
-        logging.exception("Error while serving the event archive.")
+        logger.exception("Error while serving the event archive.")
 
 
 async def serve_event_warning(sl_client):
     ''' Send the event warning to all registerd clients.
     '''
+    # Get the logging instance.
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+
     try:
         while True:
             await sl_client.event_warning_available.wait()
@@ -404,27 +433,31 @@ async def serve_event_warning(sl_client):
             msg['payload'] = payload
             msg = json.dumps(msg, allow_nan = False)
 
-            logging.info("Serving the event warning.")
+            logger.info("Serving the event warning.")
             with clients_lock:
                 clients_copy = copy.copy(clients)
             for cur_client in clients_copy:
-                logging.info("Sending to client %s.", cur_client)
+                logger.info("Sending to client %s.", cur_client)
                 try:
                     await cur_client.send(msg)
                 except Exception as e:
-                    logging.exception("Error sending to client: %s.",
+                    logger.exception("Error sending to client: %s.",
                                       cur_client)
             sl_client.event_warning_available.clear()
     except Exception as e:
-        logging.exception("Error while serving the event warning.")
+        logger.exception("Error while serving the event warning.")
 
 
 async def handle_ws_connection(websocket, path, sl_client):
+    # Get the logging instance.
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+
     mode = None
     try:
         async for msg in websocket:
             msg = json.loads(msg)
-            logging.info("Message: %s.", msg)
+            logger.info("Message: %s.", msg)
             if msg['class'] == 'control':
                 if msg['id'] == 'mode':
                     if msg['payload'] == 'pgv':
@@ -436,23 +469,23 @@ async def handle_ws_connection(websocket, path, sl_client):
                                                       sl_client = sl_client)
                         mode = 'keydata'
                 else:
-                    logging.warning('Unexpected message id.', msg['id'])
+                    logger.warning('Unexpected message id.', msg['id'])
                     return
             else:
-                logging.warning('Unexpected control message.', msg)
+                logger.warning('Unexpected control message.', msg)
                 return
     except Exception as e:
-        logging.warning("Lost connection to client: %s.", websocket)
+        logger.warning("Lost connection to client: %s.", websocket)
     finally:
-        logging.info('Unregistering the client %s.', websocket)
+        logger.info('Unregistering the client %s.', websocket)
         if mode == 'pgv':
             await unregister_client(websocket)
             with clients_lock:
-                logging.info('The registered clients are now: %s.', clients)
+                logger.info('The registered clients are now: %s.', clients)
         elif mode == 'keydata':
             await unregister_keydata_client(websocket)
             with clients_keydata_lock:
-                logging.info('The registered keydata clients are now: %s.',
+                logger.info('The registered keydata clients are now: %s.',
                              clients_keydata)
 
 
@@ -460,16 +493,29 @@ async def handle_ws_connection(websocket, path, sl_client):
 @click.argument('config_file')
 @click.pass_context
 def cli(ctx, config_file):
+    # Load the config file.
     if not os.path.exists(config_file):
-        logging.error('Configuration file not found: %s.', config_file)
+        print('ERROR: Configuration file not found: %s.', config_file)
         raise click.Abort()
-
     config = util.load_configuration(config_file)
-    logging.basicConfig(level = config['log']['loglevel'],
-                        format = "LOG - %(asctime)s - %(process)d - %(levelname)s - %(name)s: %(message)s")
-    logger = logging.getLogger('mss_dataserver')
-    logger.setLevel(config['log']['loglevel'])
 
+    # Create the logging instance.
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(config['log']['loglevel'])
+    log_dir = config['log']['log_dir']
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    log_filepath = os.path.join(log_dir, 'mss_dataserver.log')
+    handler = util.get_logger_rotating_file_handler(filename = log_filepath,
+                                                    log_level = config['log']['loglevel'],
+                                                    max_bytes = config['log']['max_bytes'],
+                                                    backup_count = config['log']['backup_count'])
+    logger.addHandler(handler)
+
+    #logging.basicConfig(level = config['log']['loglevel'],
+    #                    format = "LOG - %(asctime)s - %(process)d - %(levelname)s - %(name)s: %(message)s")
+    logger.info("Creating the project.")
     project = mss_dataserver.core.project.Project(**config)
 
     ctx.obj['project'] = project
@@ -480,7 +526,11 @@ def cli(ctx, config_file):
 def start_server(ctx):
     ''' Start the websocket data server.
     '''
-    logging.info('Starting the server.')
+    # Get the logging instance.
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+
+    logger.info('Starting the server.')
     project = ctx.obj['project']
     config = ctx.obj['config']
 
@@ -488,7 +538,7 @@ def start_server(ctx):
     project.load_inventory()
 
     if project.inventory is None:
-        logging.error("No inventory found in the project. Quitting.")
+        logger.error("No inventory found in the project. Quitting.")
         return
 
     # Create the monitor stream attributes
@@ -513,7 +563,7 @@ def start_server(ctx):
         stations = None
 
     # Start the seedlink monitor client thread.
-    logging.info('Creating the Seedlink client.')
+    logger.info('Creating the Seedlink client.')
     server_url = host + ':' + str(port)
     stop_event = threading.Event()
     loop = asyncio.get_event_loop()
@@ -543,10 +593,10 @@ def start_server(ctx):
     client_thread.start()
 
     #with concurrent.futures.ThreadPoolExecutor() as pool:
-    #    logging.info('Starting the monitorclient thread.')
+    #    logger.info('Starting the monitorclient thread.')
     #    result = await loop.run_in_executor(pool,
     #                                        client.run)
-    #logging.info('Creating the process thread.')
+    #logger.info('Creating the process thread.')
     #process_thread = threading.Thread(name = 'process_timer',
     #                                  target = client.task_timer,
     #                                  args = (client.process_monitor_stream, ))
@@ -563,7 +613,7 @@ def start_server(ctx):
                                        ws_port,
                                        extra_headers = header)
 
-    logging.info('Starting WS server.')
+    logger.info('Starting WS server.')
     loop.run_until_complete(start_ws_server)
     loop.create_task(client.task_timer(client.process_monitor_stream))
 
@@ -585,7 +635,11 @@ def start_server(ctx):
 def create_db(ctx):
     ''' Create or update the database.
     '''
-    logging.info('Creating the database tables.')
+    # Get the logging instance.
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+
+    logger.info('Creating the database tables.')
     project = ctx.obj['project']
     project.connect_to_db()
 
@@ -597,7 +651,11 @@ def create_db(ctx):
 def load_geometry(ctx):
     ''' Load the geometry inventory file into the database.
     '''
-    logging.info('Updateing the database inventory with the XML inventory.')
+    # Get the logging instance.
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+
+    logger.info('Updating the database inventory with the XML inventory.')
     project = ctx.obj['project']
     project.connect_to_db()
     project.load_inventory(update_from_xml = True)
@@ -608,14 +666,18 @@ def load_geometry(ctx):
 def clear_db_tables(ctx):
     ''' Clear the project database tables.
     '''
-    logging.info('Clearing the project database tables.')
+    # Get the logging instance.
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+
+    logger.info('Confirm to clear the project database tables....')
     project = ctx.obj['project']
     confirm_delete = click.confirm('Clearing the database tables is irreversible. Do you really want to clear the database tables?')
     if confirm_delete:
-        logging.info('Clearing the database tables.')
+        logger.info('Clearing the database tables.')
         test_util.clear_project_database_tables(project)
     else:
-        logging.info('Relax...everthing stays as it was.')
+        logger.info('Aborting...everthing stays as it was.')
 
 
 if __name__ == '__main__':
