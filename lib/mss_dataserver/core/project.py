@@ -69,6 +69,13 @@ class Project(object):
         self.db_driver = db_config['driver']
         self.db_database_name = db_config['database_name']
 
+        # Check and create the output directories.
+        output_dirs = [self.config['output']['data_dir'],
+                       self.config['output']['event_dir']]
+        for cur_dir in output_dirs:
+            if not os.path.exists(cur_dir):
+                os.makedirs(cur_dir)
+
         # The database connection state.
         self.db_engine = None
         self.db_metadata = None
