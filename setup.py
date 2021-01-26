@@ -82,9 +82,12 @@ setuptools.setup(name = 'mss_dataserver',
                                       'mss_dataserver.geometry',
                                       'mss_dataserver.monitorclient'],
                  install_requires  = ['asyncio',
+                                      'click',
                                       'lxml',
                                       'numpy',
                                       'obspy',
+                                      'pydantic',
+                                      'pymysql',
                                       'pyproj==2.2.0',
                                       'websockets'])
 
