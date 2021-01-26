@@ -47,7 +47,10 @@ def load_configuration(filename):
     config['output']['data_dir'] = parser.get('output', 'data_dir').strip()
     config['output']['event_dir'] = parser.get('output', 'event_dir').strip()
     config['log'] = {}
+    config['log']['log_dir'] = parser.get('log', 'log_dir').strip()
     config['log']['loglevel'] = parser.get('log', 'loglevel').strip()
+    config['log']['max_bytes'] = int(parser.get('log', 'max_bytes'))
+    config['log']['backup_count'] = int(parser.get('log', 'backup_count'))
     config['project'] = {}
     config['project']['author_uri'] = parser.get('project', 'author_uri').strip()
     config['project']['agency_uri'] = parser.get('project', 'agency_uri').strip()
