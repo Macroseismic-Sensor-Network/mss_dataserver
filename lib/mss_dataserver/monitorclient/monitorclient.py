@@ -230,7 +230,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     def load_archive_catalogs(self, hours = 48):
         ''' Load the event catalogs of the specified last days.
         '''
-        print("load_archive_catalogs")
+        self.logger.info("Loading archive catalogs for the last %d hours.", hours)
         now = utcdatetime.UTCDateTime()
         start_time = now - hours * 3600
         start_day = utcdatetime.UTCDateTime(year = start_time.year,
