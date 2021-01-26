@@ -25,6 +25,8 @@
 
 import configparser
 import json
+import logging
+import logging.handlers
 import os
 
 
@@ -73,6 +75,22 @@ def load_configuration(filename):
     config['process']['event_archive_size'] = int(parser.get('process', 'event_archive_size'))
 
     return config
+
+
+def get_logger_rotating_file_handler(filename = None,
+                                     log_level = 'INFO',
+                                     max_bytes = 1000,
+                                     backup_count = 3):
+    if not filename:
+        return
+
+    ch = logging.handlers.RotatingFileHandler(filename = filename,
+                                              maxBytes = max_bytes,
+                                              backupCount = backup_count)
+    ch.setLevel(log_level)
+    formatter = logging.Formatter("#LOG# - %(asctime)s - %(process)d - %(levelname)s - %(name)s: %(message)s")
+    ch.setFormatter(formatter)
+    return ch
 
 
 class Version(object):
