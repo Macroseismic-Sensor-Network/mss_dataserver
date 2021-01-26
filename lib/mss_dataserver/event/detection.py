@@ -22,8 +22,6 @@ class Detection(object):
         # Check the event limits.
         if end_time < start_time:
             raise ValueError("The end_time %s is smaller than the start_time %s.", end_time, start_time)
-        elif end_time == start_time:
-            raise ValueError("The end_time %s is equal to the start_time %s.", end_time, start_time)
 
         # The parent object holding this event. Most likely this is a detection
         # Catalog instance or an event instance.
