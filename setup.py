@@ -59,7 +59,8 @@ for line in open('lib/mss_dataserver/__init__.py').readlines():
         exec(line.strip())
 
 # Define the scripts to be processed.
-scripts = ['scripts/mss_dataserver',]
+scripts = ['scripts/mss_dataserver',
+           'scripts/mssds_postprocess']
 
 # Get the version from the git repository and write it to the version file.
 version_file = 'lib/mss_dataserver/version.py'
