@@ -26,9 +26,11 @@
 import copy
 import datetime
 import gc
+import gzip
 import json
 import logging
 import os
+import shutil
 import threading
 import time
 
@@ -1151,6 +1153,17 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         split_pgv_stream.write(filepath,
                                format = 'MSEED',
                                blocksize = 512)
+
+        # The miniseed file is not compressed, because it is using float
+        # values. Compress it using gzip.
+        zip_filepath = filepath + '.gz'
+        with open(filepath, 'rb') as in_file:
+            with gzip.open(zip_filepath, 'wb') as out_file:
+                shutil.copyfileobj(in_file, out_file)
+
+        # Remove the uncompressed file.
+        os.remove(filepath)
+
         return pgv_stream
 
 
@@ -1174,6 +1187,16 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         vel_stream.write(filepath,
                          format = 'MSEED',
                          blocksize = 512)
+        # The miniseed file is not compressed, because it is using float
+        # values. Compress it using gzip.
+        zip_filepath = filepath + '.gz'
+        with open(filepath, 'rb') as in_file:
+            with gzip.open(zip_filepath, 'wb') as out_file:
+                shutil.copyfileobj(in_file, out_file)
+
+        # Remove the uncompressed file.
+        os.remove(filepath)
+
 
 
     def save_supplement_inventory(self, event, output_dir):
@@ -1182,8 +1205,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # Write the inventory to a json file.
         try:
             supplement_name = 'geometryinventory'
-            filename = "{public_id}_{name}.json".format(public_id = event.public_id,
-                                                        name = supplement_name)
+            filename = "{public_id}_{name}.json.gz".format(public_id = event.public_id,
+                                                           name = supplement_name)
             filepath = os.path.join(output_dir, filename)
             self.logger.info("Writing the geometry inventory data to file %s.",
                              filepath)
@@ -1196,7 +1219,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             file_container = json_util.FileContainer(data = container_data,
                                                      agency_uri = self.agency_uri,
                                                      author_uri = self.author_uri)
-            with open(filepath, 'w') as json_file:
+            with gzip.open(filepath, 'wt', encoding = 'UTF-8') as json_file:
                 pref = json.dump(file_container,
                                  fp = json_file,
                                  cls = json_util.GeneralFileEncoder,
@@ -1245,8 +1268,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # Write the event metadata to a json file.
         try:
             supplement_name = 'metadata'
-            filename = "{public_id}_{name}.json".format(public_id = event.public_id,
-                                                        name = supplement_name)
+            filename = "{public_id}_{name}.json.gz".format(public_id = event.public_id,
+                                                           name = supplement_name)
             filepath = os.path.join(output_dir, filename)
             self.logger.info("Writing the event metadata data to file %s.",
                              filepath)
@@ -1257,7 +1280,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             file_container = json_util.FileContainer(data = container_data,
                                                      agency_uri = self.agency_uri,
                                                      author_uri = self.author_uri)
-            with open(filepath, 'w') as json_file:
+            with gzip.open(filepath, 'wt', encoding = 'UTF-8') as json_file:
                 pref = json.dump(file_container,
                                  fp = json_file,
                                  cls = json_util.GeneralFileEncoder,
@@ -1279,8 +1302,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # Write the event detection data to a json file.
         try:
             supplement_name = 'detectiondata'
-            filename = "{public_id}_{name}.json".format(public_id = event.public_id,
-                                                        name = supplement_name)
+            filename = "{public_id}_{name}.json.gz".format(public_id = event.public_id,
+                                                           name = supplement_name)
             filepath = os.path.join(output_dir, filename)
             self.logger.info("Writing the detection data to file %s.",
                              filepath)
@@ -1293,7 +1316,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             file_container = json_util.FileContainer(data = container_data,
                                                      agency_uri = self.agency_uri,
                                                      author_uri = self.author_uri)
-            with open(filepath, 'w') as json_file:
+            with gzip.open(filepath, 'wt', encoding = 'UTF-8') as json_file:
                 pref = json.dump(file_container,
                                  fp = json_file,
                                  cls = json_util.SupplementDetectionDataEncoder,
@@ -1389,7 +1412,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         cur_archive = []
         if len(events) > 0:
             for cur_event in events:
-                cur_archive_event = validation.Event(id = cur_event.db_id,
+                self.logger.info('public_id: %s', cur_event.public_id)
+                cur_archive_event = validation.Event(db_id = cur_event.db_id,
+                                                     public_id = cur_event.public_id,
                                                      start_time = cur_event.start_time.isoformat(),
                                                      end_time = cur_event.end_time.isoformat(),
                                                      description = cur_event.description,
