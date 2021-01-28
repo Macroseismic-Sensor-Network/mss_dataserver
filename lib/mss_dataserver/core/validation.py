@@ -38,7 +38,8 @@ from typing import (
 
 
 class Event(pydantic.BaseModel):
-    id: Union[None, PositiveInt]
+    db_id: Union[None, PositiveInt]
+    public_id: constr(regex=r'^\w+_\w+_\d{4}-\d{2}-\d{2}T\d{6,12}')
     start_time: constr(min_length=19, max_length=26)
     end_time: constr(min_length=19, max_length=26)
     max_pgv: PositiveFloat
