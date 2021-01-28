@@ -73,6 +73,11 @@ def load_configuration(filename):
     config['process']['valid_event_threshold'] = float(parser.get('process', 'valid_event_threshold'))
     config['process']['pgv_archive_time'] = int(parser.get('process', 'pgv_archive_time'))
     config['process']['event_archive_size'] = int(parser.get('process', 'event_archive_size'))
+    config['postprocess'] = {}
+    config['postprocess']['data_dir'] = parser.get('postprocess', 'data_dir').strip()
+    config['postprocess']['map_dir'] = parser.get('postprocess', 'map_dir').strip()
+    config['postprocess']['boundary_filename'] = parser.get('postprocess', 'boundary_filename').strip()
+    config['postprocess']['station_amplification_filename'] = parser.get('postprocess', 'station_amplification_filename').strip()
 
     return config
 
