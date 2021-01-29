@@ -26,6 +26,7 @@
 
 import logging
 import os
+import sys
 
 import click
 
@@ -77,12 +78,25 @@ def process_event(ctx, public_id):
     logger.info('Processing the event with public_id {public_id}.'.format(public_id = public_id))
 
     project = ctx.obj['project']
-    project.connect_to_db()
-    project.load_inventory()
+    try:
+        project.connect_to_db()
+    except Exception:
+        logger.exception('Error connecting to the database.')
+        sys.exit(-1)
+
+    try:
+        project.load_inventory()
+    except Exception:
+        logger.exception('Error loading the inventory from the database.')
+        sys.exit(-1)
 
     # Create the PostProcessor.
-    pp = pp_event.EventPostProcessor(project = project)
-    pp.set_event(public_id = public_id)
+    try:
+        pp = pp_event.EventPostProcessor(project = project)
+        pp.set_event(public_id = public_id)
+    except Exception:
+        logger.exception('Error initializing the EventPostProcessor.')
+        sys.exit(-1)
 
     if pp.event is not None:
         logger.info('Loaded event: %s.', pp.event.public_id)
@@ -90,11 +104,14 @@ def process_event(ctx, public_id):
         logger.info('No event loaded.')
 
     # Compute the metadata supplement.
+    logger.info('Computing the meta supplement.')
     pp.compute_event_metadata_supplement()
 
     # Compute the pgv sequence supplement.
     pp.compute_pgv_sequence_supplement()
 
+    # Compute the detection sequence supplement.
+    pp.compute_detection_sequence_supplement()
 
 
 if __name__ == '__main__':
