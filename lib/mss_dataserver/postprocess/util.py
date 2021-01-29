@@ -87,7 +87,7 @@ def get_supplement_data(public_id, category, name, directory):
                                   event_dir,
                                   supp_data['subdir'])
 
-    cur_filename = public_id + '_' + supp_data['name']
+    cur_filename = public_id + '_' + category + '_' + supp_data['name']
     if supp_data['format'] == 'json':
         cur_filename += '.json.gz'
         cur_filepath = os.path.join(supplement_dir,
