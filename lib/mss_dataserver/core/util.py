@@ -39,6 +39,7 @@ def load_configuration(filename):
     parser.read(filename)
 
     config = {}
+    config['config_filepath'] = filename
     config['websocket'] = {}
     config['websocket']['host'] = parser.get('websocket', 'host').strip()
     config['websocket']['port'] = int(parser.get('websocket', 'port'))
