@@ -25,10 +25,12 @@
 
 import csv
 import logging
+import math
 import os
 
 import geopandas as gpd
 import numpy as np
+import obspy
 import shapely
 
 import mss_dataserver.postprocess.util as util
@@ -73,11 +75,32 @@ class EventPostProcessor(object):
         self.station_amp = self.load_station_amplification()
         self.sup_map = util.get_supplement_map()
 
+        # The event detection supplement data.
+        self._meta = None
+        self._pgv_stream = None
+        self._detection_data = None
+
+    @property
+    def meta(self):
+        ''' Load the metadata supplement.
+        '''
+        if self._meta is None:
+            # Load the event metadata from the supplement file.
+            self._meta = util.get_supplement_data(self.event.public_id,
+                                                  category = 'detectiondata',
+                                                  name = 'metadata',
+                                                  directory = self.supplement_dir)
+        return self._meta['metadata']
 
     def set_event(self, public_id):
         ''' Set the event to process.
         '''
         self.event = self.project.load_event_by_id(public_id = public_id)
+        self._meta = None
+        self._pgv_stream = None
+        self._detection_data = None
+
+
 
     def load_network_boundary(self):
         ''' Load the boundary of the MSS network.
@@ -172,15 +195,46 @@ class EventPostProcessor(object):
         return df
 
 
+    def compute_detection_data_df(self, trigger_data):
+        ''' Compute the detection frames for a common time.
+        '''
+        df = None
+
+        for cur_data in trigger_data:
+            cur_coord = [(x.x, x.y) for x in cur_data['simplices_stations']]
+            cur_simp_poly = shapely.geometry.Polygon(cur_coord)
+            cur_time = [obspy.UTCDateTime(x).isoformat() for x in cur_data['time']]
+            cur_added_to_event = np.zeros(len(cur_time), dtype = bool)
+            tmp = np.where(cur_data['trigger'])[0]
+            if len(tmp) > 0:
+                cur_first_trigger = int(tmp[0])
+                cur_added_to_event[cur_first_trigger:] = True
+            cur_df = gpd.GeoDataFrame({'geom_simp': [cur_simp_poly] * len(cur_data['time']),
+                                       'time': cur_time,
+                                       'pgv': map(lambda a: [x if not math.isnan(x) else None for x in a], cur_data['pgv'].tolist()),
+                                       'pgv_min': np.nanmin(cur_data['pgv'], axis = 1),
+                                       'pgv_max': np.nanmax(cur_data['pgv'], axis = 1),
+                                       'triggered': cur_data['trigger'],
+                                       'added_to_event': cur_added_to_event},
+                                      crs = "epsg:4326",
+                                      geometry = 'geom_simp')
+
+            if df is None:
+                df = cur_df
+            else:
+                df = df.append(cur_df,
+                               ignore_index = True)
+
+        df = df.sort_values('time',
+                            ignore_index = True)
+        return df
+
+
     def compute_event_metadata_supplement(self):
         ''' Compute the supplement data based on the event metadata.
         '''
         # Load the event metadata from the supplement file.
-        meta = util.get_supplement_data(self.event.public_id,
-                                        category = 'detectiondata',
-                                        name = 'metadata',
-                                        directory = self.supplement_dir)
-        meta = meta['metadata']
+        meta = self.meta
 
         # Compute a PGV geodataframe using the event metadata.
         pgv_df = self.compute_pgv_df(meta)
@@ -206,18 +260,25 @@ class EventPostProcessor(object):
                                            name = self.sup_map['eventpgv']['pgvstation']['name'],
                                            subdir = self.sup_map['eventpgv']['pgvstation']['subdir'],
                                            props = props)
-        self.logger.info('Saved station pgv to file %s.', filepath)
+        self.logger.info('Saved station pgv points to file %s.', filepath)
+
+        pgv_df = pgv_df.set_geometry('geom_vor')
+        filepath = util.save_df_to_geojson(self.event.public_id,
+                                           pgv_df.loc[:, ['geom_vor', 'nsl',
+                                                          'pgv', 'sa', 'triggered']],
+                                           output_dir = self.supplement_dir,
+                                           name = self.sup_map['eventpgv']['pgvvoronoi']['name'],
+                                           subdir = self.sup_map['eventpgv']['pgvvoronoi']['subdir'],
+                                           props = props)
+        self.logger.info('Saved station pgv voronoi cells to file %s.',
+                         filepath)
 
 
     def compute_pgv_sequence_supplement(self):
         ''' Compute the supplement data representing the PGV sequence.
         '''
         # Load the event metadata from the supplement file.
-        meta = util.get_supplement_data(self.event.public_id,
-                                        category = 'detectiondata',
-                                        name = 'metadata',
-                                        directory = self.supplement_dir)
-        meta = meta['metadata']
+        meta = self.meta
 
         # Load the PGV data stream.
         pgv_stream = util.get_supplement_data(self.event.public_id,
@@ -338,4 +399,59 @@ class EventPostProcessor(object):
                                            name = self.sup_map['pgvsequence']['pgvstation']['name'],
                                            subdir = self.sup_map['pgvsequence']['pgvstation']['subdir'],
                                            props = props)
-        self.logger.info('Saved pgv station marker sequence to file %s.', filepath)
+        self.logger.info('Saved pgv station marker sequence to file %s.',
+                         filepath)
+
+
+    def compute_detection_sequence_supplement(self):
+        ''' Compute the supplement data representing the detection sequence triangles.
+        '''
+        # Load the event detection data from the supplement file.
+        detection_data = util.get_supplement_data(self.event.public_id,
+                                                  category = 'detectiondata',
+                                                  name = 'detectiondata',
+                                                  directory = self.supplement_dir)
+        detection_data = detection_data['detection_data']
+
+        # Load the event metadata from the supplement file.
+        meta = self.meta
+
+        # Compute the dataframe using the trigger data.
+        sequence_df = None
+        for cur_pw_key, cur_process_window in detection_data.items():
+            trigger_data = cur_process_window['trigger_data']
+            cur_df = self.compute_detection_data_df(trigger_data)
+            if sequence_df is None:
+                sequence_df = cur_df
+            else:
+                sequence_df = sequence_df.append(cur_df,
+                                                 ignore_index = True)
+
+        # Limit the data to the event timespan.
+        pre_window = 6
+        end_window = 6
+        win_start = meta['start_time'] - pre_window
+        win_end = meta['end_time'] + end_window
+        mask = (sequence_df.time >= win_start.isoformat()) & (sequence_df.time <= win_end.isoformat())
+        sequence_df = sequence_df.loc[mask, :]
+
+        # Get some event properties to add to the properties of the feature collections.
+        props = {'db_id': meta['db_id'],
+                 'event_start': meta['start_time'].isoformat(),
+                 'event_end': meta['end_time'].isoformat(),
+                 'sequence_start': min(sequence_df.time),
+                 'sequence_end': max(sequence_df.time),
+                 'author_uri': self.project.author_uri,
+                 'agency_uri': self.project.agency_uri}
+
+        # Write the sequence dataframe to a geojson file.
+        filepath = util.save_df_to_geojson(self.event.public_id,
+                                           sequence_df.loc[:, ['geom_simp', 'time', 'pgv',
+                                                               'pgv_min', 'pgv_max', 'triggered',
+                                                               'added_to_event']],
+                                           output_dir = self.supplement_dir,
+                                           name = self.sup_map['detectionsequence']['simplices']['name'],
+                                           subdir = self.sup_map['detectionsequence']['simplices']['subdir'],
+                                           props = props)
+        self.logger.info('Saved detectioin sequence simplices to file %s.',
+                         filepath)
