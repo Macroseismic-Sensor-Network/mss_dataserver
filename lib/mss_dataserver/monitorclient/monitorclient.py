@@ -31,6 +31,7 @@ import json
 import logging
 import os
 import shutil
+import subprocess
 import threading
 import time
 
@@ -1050,6 +1051,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                     export_event.start_time.day)
 
         with self.project_lock:
+            config_filepath = self.project.config['config_filepath']
             cur_cat = self.project.get_event_catalog(cat_name)
             cur_cat.add_events([export_event, ])
 
@@ -1083,8 +1085,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.logger.info("Exporting the event data.")
         self.save_event_supplement(export_event)
 
-        # TODO: Trigger a thread to compute the event results (e.g.
-        # localization, geojson layers, ...).
+        # Compute the geojson supplement data.
+        proc_result = subprocess.run(['mssds_postprocess',
+                                      config_filepath,
+                                      'process-event',
+                                      '--public_id',
+                                      export_event.public_id])
+
 
 
     def save_event_supplement(self, export_event):
@@ -1146,8 +1153,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         split_pgv_stream = pgv_stream.split()
 
         supplement_name = 'pgv'
-        filename = "{public_id}_{name}.msd".format(public_id = event.public_id,
-                                                   name = supplement_name)
+        supplement_category = 'detectiondata'
+        filename = "{public_id}_{category}_{name}.msd".format(public_id = event.public_id,
+                                                              category = supplement_category,
+                                                              name = supplement_name)
         filepath = os.path.join(output_dir, filename)
         self.logger.info("Writing the PGV data to file %s.", filepath)
         split_pgv_stream.write(filepath,
@@ -1180,8 +1189,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         vel_stream = vel_stream.split()
         self.logger.info("vel_stream: %s", vel_stream.__str__(extended = True))
         supplement_name = 'velocity'
-        filename = "{public_id}_{name}.msd".format(public_id = event.public_id,
-                                                   name = supplement_name)
+        supplement_category = 'detectiondata'
+        filename = "{public_id}_{category}_{name}.msd".format(public_id = event.public_id,
+                                                              category = supplement_category,
+                                                              name = supplement_name)
         filepath = os.path.join(output_dir, filename)
         self.logger.info("Writing the velocity data to file %s.", filepath)
         vel_stream.write(filepath,
@@ -1205,8 +1216,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # Write the inventory to a json file.
         try:
             supplement_name = 'geometryinventory'
-            filename = "{public_id}_{name}.json.gz".format(public_id = event.public_id,
-                                                           name = supplement_name)
+            category = 'detectiondata'
+            filename = "{public_id}_{category}_{name}.json.gz".format(public_id = event.public_id,
+                                                                      category = category,
+                                                                      name = supplement_name)
             filepath = os.path.join(output_dir, filename)
             self.logger.info("Writing the geometry inventory data to file %s.",
                              filepath)
@@ -1268,8 +1281,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # Write the event metadata to a json file.
         try:
             supplement_name = 'metadata'
-            filename = "{public_id}_{name}.json.gz".format(public_id = event.public_id,
-                                                           name = supplement_name)
+            category = 'detectiondata'
+            filename = "{public_id}_{category}_{name}.json.gz".format(public_id = event.public_id,
+                                                                      category = category,
+                                                                      name = supplement_name)
             filepath = os.path.join(output_dir, filename)
             self.logger.info("Writing the event metadata data to file %s.",
                              filepath)
@@ -1302,8 +1317,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # Write the event detection data to a json file.
         try:
             supplement_name = 'detectiondata'
-            filename = "{public_id}_{name}.json.gz".format(public_id = event.public_id,
-                                                           name = supplement_name)
+            category = 'detectiondata'
+            filename = "{public_id}_{category}_{name}.json.gz".format(public_id = event.public_id,
+                                                                      category = category,
+                                                                      name = supplement_name)
             filepath = os.path.join(output_dir, filename)
             self.logger.info("Writing the detection data to file %s.",
                              filepath)
