@@ -36,6 +36,7 @@ import logging
 import os
 import random
 import threading
+import zlib
 
 import asyncio
 import click
@@ -81,6 +82,12 @@ msg_data_id['event_warning'] = 'event_warning'
 msg_data_id['keydata'] = 'keydata'
 
 
+def compress_json(json_string):
+    ''' Compress a json string using zlib.
+    '''
+    encoded = json_string.encode('utf-8')
+    compressed = zlib.compress(encoded)
+    return compressed
 
 
 async def register_pgv_client(websocket, sl_client):
@@ -101,7 +108,7 @@ async def register_pgv_client(websocket, sl_client):
     msg['payload'] = payload
 
     try:
-        logger.info("Registering the client.")
+        logger.info("Registering the PGV client.")
         # Send the welcome message.
         msg = json.dumps(msg, allow_nan = False)
         await websocket.send(msg)
@@ -117,6 +124,7 @@ async def register_pgv_client(websocket, sl_client):
         logger.info("Sending pgv archive.")
         # Send the archived PGV data.
         msg = json.dumps(msg, allow_nan = False)
+        msg = compress_json(msg)
         await websocket.send(msg)
 
         # Send the recent events if they exist.
@@ -258,37 +266,36 @@ async def serve_data(sl_client):
     logger = logging.getLogger(logger_name)
 
     try:
+        logger.info('Starting the serve_data infinite loop.')
         while True:
             await sl_client.pgv_data_available.wait()
+            logger.info('Running serve_data cycle.')
 
             # Get the registered clients.
             with clients_lock:
                 clients_copy = copy.copy(clients)
 
             # Check if any clients are registered.
-            if len(clients_copy) == 0:
-                return
+            if len(clients_copy) > 0:
+                # Request the PGV data.
+                payload = sl_client.get_pgv_data()
 
-            # Request the PGV data.
-            payload = sl_client.get_pgv_data()
+                # Prepare the message.
+                msg = {}
+                msg['class'] = msg_class['data']
+                msg['id'] = msg_data_id['pgv']
+                msg['payload'] = payload
+                msg = json.dumps(msg, allow_nan = False)
 
-            # Prepare the message.
-            msg = {}
-            msg['class'] = msg_class['data']
-            msg['id'] = msg_data_id['pgv']
-            msg['payload'] = payload
-            msg = json.dumps(msg, allow_nan = False)
-
-            # Send the data to the registered clients.
-            logger.info("Serving the data.")
-            for cur_client in clients_copy:
-                logger.info("Sending to client %s.", cur_client)
-                try:
-                    await cur_client.send(msg)
-                except Exception as e:
-                    logger.exception("Error sending to client: %s.",
-                                      cur_client)
-
+                # Send the data to the registered clients.
+                logger.info("Serving the data.")
+                for cur_client in clients_copy:
+                    logger.info("Sending to client %s.", cur_client)
+                    try:
+                        await cur_client.send(msg)
+                    except Exception as e:
+                        logger.exception("Error sending to client: %s.",
+                                          cur_client)
             # Reset the PGV data flag.
             sl_client.pgv_data_available.clear()
     except Exception as e:
@@ -475,7 +482,7 @@ async def handle_ws_connection(websocket, path, sl_client):
                 logger.warning('Unexpected control message.', msg)
                 return
     except Exception as e:
-        logger.warning("Lost connection to client: %s.", websocket)
+        logger.exception("Lost connection to client: %s.", websocket)
     finally:
         logger.info('Unregistering the client %s.', websocket)
         if mode == 'pgv':
