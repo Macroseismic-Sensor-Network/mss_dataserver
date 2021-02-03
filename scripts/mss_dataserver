@@ -60,26 +60,24 @@ clients = set()
 clients_keydata_lock = threading.Lock()
 clients_keydata = set()
 
-msg_class = {}
-msg_class['control'] = 'control'
-msg_class['soh'] = 'soh'
-msg_class['data'] = 'data'
+msg_class_dict = {}
+msg_class_dict['control'] = 'control'
+msg_class_dict['soh'] = 'soh'
+msg_class_dict['data'] = 'data'
 
-msg_control_id = {}
-msg_control_id['mode'] = 'mode'
+msg_id_dict = {}
+msg_id_dict['control'] = {'mode': 'mode'}
 
-msg_soh_id = {}
-msg_soh_id['connection'] = 'connection'
-msg_soh_id['server_state'] = 'server_state'
+msg_id_dict['soh'] = {'connection': 'connection',
+                      'server_state': 'server_state'}
 
-msg_data_id = {}
-msg_data_id['pgv'] = 'pgv'
-msg_data_id['pgv_archive'] = 'pgv_archive'
-msg_data_id['detection_result'] = 'detection_result'
-msg_data_id['event_data'] = 'event_data'
-msg_data_id['event_archive'] = 'event_archive'
-msg_data_id['event_warning'] = 'event_warning'
-msg_data_id['keydata'] = 'keydata'
+msg_id_dict['data'] = {'pgv': 'pgv',
+                       'pgv_archive': 'pgv_archive',
+                       'detection_result': 'detection_result',
+                       'event_data': 'event_data',
+                       'event_archive': 'event_archive',
+                       'event_warning': 'event_warning',
+                       'key_data': 'key_data'}
 
 
 def compress_json(json_string):
@@ -98,6 +96,21 @@ def dict_to_compressed_json(msg):
     return msg
 
 
+def build_message(msg_class, msg_id, payload = None):
+    ''' Create a websocket message.
+    '''
+    msg = {}
+    msg['class'] = msg_class_dict[msg_class]
+    msg['id'] = msg_id_dict[msg_class][msg_id]
+    msg['server_time'] = obspy.UTCDateTime().isoformat()
+
+    if payload is not None:
+        msg['payload'] = payload
+
+    msg = dict_to_compressed_json(msg)
+    return msg
+
+
 async def register_pgv_client(websocket, sl_client):
     ''' Register a connected websocket client.
     '''
@@ -106,46 +119,36 @@ async def register_pgv_client(websocket, sl_client):
     logger = logging.getLogger(logger_name)
 
     # Prepare the welcome message.
-    msg = {}
-    msg['class'] = msg_class['soh']
-    msg['id'] = msg_soh_id['connection']
-
     payload = {}
     payload['state'] = 'registered'
     payload['server_id'] = 'mss data server'
-    msg['payload'] = payload
+    msg = build_message(msg_class = 'soh',
+                        msg_id = 'connection',
+                        payload = payload)
 
     try:
         logger.info("Registering the PGV client.")
         # Send the welcome message.
-        msg = dict_to_compressed_json(msg)
         await websocket.send(msg)
 
         # Prepare the archived PGV data message.
-        msg = {}
-        msg['class'] = msg_class['data']
-        msg['id'] = msg_data_id['pgv_archive']
-
-        payload = sl_client.get_pgv_archive()
-        msg['payload'] = payload
+        msg = build_message(msg_class = 'data',
+                            msg_id = 'pgv_archive',
+                            payload = sl_client.get_pgv_archive())
 
         logger.info("Sending pgv archive.")
-        # Send the archived PGV data.
-        msg = dict_to_compressed_json(msg)
         await websocket.send(msg)
 
         # Send the recent events if they exist.
         payload = sl_client.get_recent_events()
 
         if payload:
-            msg = {}
-            msg['class'] = msg_class['data']
-            msg['id'] = msg_data_id['event_archive']
-            msg['payload'] = payload
+            msg = build_message(msg_class = 'data',
+                                msg_id = 'event_archive',
+                                payload = payload)
 
-            logger.info("Sending the recent events.")
             # Send the archived PGV data.
-            msg = dict_to_compressed_json(msg)
+            logger.info("Sending the recent events.")
             await websocket.send(msg)
         else:
             logger.debug("No recent events available.")
@@ -182,30 +185,25 @@ async def register_keydata_client(websocket, sl_client):
     logger = logging.getLogger(logger_name)
 
     # Prepare the welcome message.
-    msg = {}
-    msg['class'] = msg_class['soh']
-    msg['id'] = msg_soh_id['connection']
-
     payload = {}
     payload['state'] = 'registered'
     payload['server_id'] = 'mss data server'
-    msg['payload'] = payload
+    msg = build_message(msg_class = 'soh',
+                        msg_id = 'connection',
+                        payload = payload)
 
     try:
         logger.info("Registering the client.")
         # Send the welcome message.
-        msg = dict_to_compressed_json(msg)
         await websocket.send(msg)
 
         # Send the initial keydata to the new client.
         payload = sl_client.get_keydata()
         if payload:
             logger.info("Sending the initial keydata.")
-            msg = {}
-            msg['class'] = msg_class['data']
-            msg['id'] = msg_data_id['keydata']
-            msg['payload'] = payload
-            msg = dict_to_compressed_json(msg)
+            msg = build_message(msg_class = 'data',
+                                msg_id = 'keydata',
+                                payload = payload)
             await websocket.send(msg)
 
         # The client has been registered and the keydata has been sent,
@@ -243,12 +241,9 @@ async def serve_keydata(sl_client):
         while True:
             await sl_client.event_keydata_available.wait()
             payload = sl_client.get_keydata()
-
-            msg = {}
-            msg['class'] = msg_class['data']
-            msg['id'] = msg_data_id['keydata']
-            msg['payload'] = payload
-            msg = dict_to_compressed_json(msg)
+            msg = build_message(msg_class = 'data',
+                                msg_id = 'keydata',
+                                payload = payload)
 
             logger.info("Serving the keydata.")
             with clients_keydata_lock:
@@ -290,11 +285,9 @@ async def serve_data(sl_client):
                 payload = sl_client.get_pgv_data()
 
                 # Prepare the message.
-                msg = {}
-                msg['class'] = msg_class['data']
-                msg['id'] = msg_data_id['pgv']
-                msg['payload'] = payload
-                msg = dict_to_compressed_json(msg)
+                msg = build_message(msg_class = 'data',
+                                    msg_id = 'pgv',
+                                    payload = payload)
 
                 # Send the data to the registered clients.
                 logger.info("Serving the data.")
@@ -328,12 +321,9 @@ async def serve_detection_result(sl_client):
             with clients_lock:
                 clients_copy = copy.copy(clients)
             payload = sl_client.last_detection_result
-
-            msg = {}
-            msg['class'] = msg_class['data']
-            msg['id'] = msg_data_id['detection_result']
-            msg['payload'] = payload
-            msg = dict_to_compressed_json(msg)
+            msg = build_message(msg_class = 'data',
+                                msg_id = 'detection_result',
+                                payload = payload)
 
             logger.info("Serving the detection result.")
             for cur_client in clients_copy:
@@ -371,11 +361,9 @@ async def serve_current_event(sl_client):
             payload = sl_client.get_current_event()
 
             # Prepare the message.
-            msg = {}
-            msg['class'] = msg_class['data']
-            msg['id'] = msg_data_id['event_data']
-            msg['payload'] = payload
-            msg = dict_to_compressed_json(msg)
+            msg = build_message(msg_class = 'data',
+                                msg_id = 'event_data',
+                                payload = payload)
 
             # Send the data to the registered clients.
             logger.info("Serving the event data.")
@@ -409,12 +397,9 @@ async def serve_event_archive(sl_client):
             # doesn't make sense. All data is already at the Client. Move the
             # update of the archive completely to the server. Send the archive
             # only at first connection with the client.
-
-            msg = {}
-            msg['class'] = msg_class['data']
-            msg['id'] = msg_data_id['event_archive']
-            msg['payload'] = payload
-            msg = dict_to_compressed_json(msg)
+            msg = build_message(msg_class = 'data',
+                                msg_id = 'event_archive',
+                                payload = payload)
 
             logger.info("Serving the event archive.")
             with clients_lock:
@@ -443,11 +428,9 @@ async def serve_event_warning(sl_client):
             await sl_client.event_warning_available.wait()
             payload = sl_client.get_event_warning()
 
-            msg = {}
-            msg['class'] = msg_class['data']
-            msg['id'] = msg_data_id['event_warning']
-            msg['payload'] = payload
-            msg = dict_to_compressed_json(msg)
+            msg = build_message(msg_class = 'data',
+                                msg_id = 'event_warning',
+                                payload = payload)
 
             logger.info("Serving the event warning.")
             with clients_lock:
