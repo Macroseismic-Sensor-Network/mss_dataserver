@@ -1354,7 +1354,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 # figure out where they came from. Make sure to replace them
                 # with the nodata value before creating the pgv data.
                 cur_trace.data[np.isnan(cur_trace.data)] = self.nodata_value
-                tmp['time'] = [x.isoformat() for (x, y) in zip(cur_trace.times(type = "utcdatetime"), cur_trace.data.tolist()) if y != self.nodata_value]
+                tmp['time'] = [x.timestamp for (x, y) in zip(cur_trace.times(type = "utcdatetime"), cur_trace.data.tolist()) if y != self.nodata_value]
                 tmp['data'] = [x for x in cur_trace.data.tolist() if x != self.nodata_value]
             except Exception as e:
                 self.logger.exception("Error getting the PGV data.")
@@ -1371,6 +1371,14 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         with self.archive_lock:
             working_stream = self.pgv_archive_stream.copy()
 
+        # The time in seconds to send to the server.
+        display_time = 600
+        now = utcdatetime.UTCDateTime()
+        now.milliseconds = 0
+        now.second = 0
+        start_time = now - 600
+        working_stream.trim(starttime = start_time)
+
         for cur_trace in working_stream:
             try:
                 # There have been some NaN values in the data. I couldn't
@@ -1378,7 +1386,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 # with the nodata value before creating the pgv data.
                 cur_trace.data[np.isnan(cur_trace.data)] = self.nodata_value
                 tmp = {}
-                tmp['time'] = [x.isoformat() for (x, y) in zip(cur_trace.times(type = "utcdatetime"), cur_trace.data.tolist()) if y != self.nodata_value]
+                tmp['time'] = [x.timestamp for (x, y) in zip(cur_trace.times(type = "utcdatetime"), cur_trace.data.tolist()) if y != self.nodata_value]
                 tmp['data'] = [x for x in cur_trace.data.tolist() if x != self.nodata_value]
                 pgv_data[cur_trace.get_id()] = tmp
             except Exception as e:
@@ -1426,7 +1434,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         request_start = today - self.event_archive_timespan * 3600
         with self.project_lock:
             events = self.project.get_events(start_time = request_start)
-        cur_archive = []
+        cur_archive = {}
         if len(events) > 0:
             for cur_event in events:
                 self.logger.info('public_id: %s', cur_event.public_id)
@@ -1449,7 +1457,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 #    cur_archive_event['max_station_pgv'] = cur_event['max_station_pgv']
                 #except Exception:
                 #    cur_archive_event['max_station_pgv'] = {}
-                cur_archive.append(cur_archive_event.dict())
+                cur_archive[cur_event.public_id] = cur_archive_event.dict()
 
         return cur_archive
 
