@@ -1373,13 +1373,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 if np.any(cur_mask):
                     cur_hist_pgv = float(np.nanmax(cur_data))
                     cur_latest_pgv = float(cur_data[cur_mask][-1])
-                    cur_latest_time = cur_time[cur_mask][-1].isoformat()
+                    cur_latest_time = float(cur_time[cur_mask][-1].timestamp)
                 else:
                     cur_latest_pgv = None
                     cur_latest_time = None
                     cur_hist_pgv = None
 
-                tmp = {'history_pgv': cur_hist_pgv,
+                tmp = {'pgv_history': cur_hist_pgv,
                        'latest_pgv': cur_latest_pgv,
                        'latest_time': cur_latest_time}
                 pgv_data[cur_trace.get_id()] = tmp
