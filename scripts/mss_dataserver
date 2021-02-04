@@ -30,6 +30,8 @@
 import configparser
 import copy
 import datetime
+import dateutil
+import dateutil.tz
 import functools
 import json
 import logging
@@ -119,10 +121,19 @@ async def register_pgv_client(websocket, sl_client):
     logger_name = 'mss_dataserver'
     logger = logging.getLogger(logger_name)
 
+    # Compute the UTC offset for timezone conversion.
+    from_zone = dateutil.tz.gettz('UTC')
+    to_zone = dateutil.tz.gettz('CET')
+    now_utc = obspy.UTCDateTime()
+    now_utc = now_utc.datetime.replace(tzinfo = from_zone)
+    now_cet = now_utc.astimezone(to_zone)
+    utc_offset = now_cet.utcoffset().total_seconds()
+
     # Prepare the welcome message.
     payload = {}
     payload['state'] = 'registered'
     payload['server_id'] = 'mss data server'
+    payload['utc_offset'] = utc_offset
     msg = build_message(msg_class = 'soh',
                         msg_id = 'connection',
                         payload = payload)
