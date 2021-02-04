@@ -71,7 +71,8 @@ msg_id_dict['control'] = {'mode': 'mode'}
 msg_id_dict['soh'] = {'connection': 'connection',
                       'server_state': 'server_state'}
 
-msg_id_dict['data'] = {'pgv': 'pgv',
+msg_id_dict['data'] = {'current_pgv': 'current_pgv',
+                       'pgv': 'pgv',
                        'pgv_archive': 'pgv_archive',
                        'detection_result': 'detection_result',
                        'event_data': 'event_data',
@@ -131,27 +132,36 @@ async def register_pgv_client(websocket, sl_client):
         # Send the welcome message.
         await websocket.send(msg)
 
-        # Prepare the archived PGV data message.
+        # Send the PGV data message.
         msg = build_message(msg_class = 'data',
-                            msg_id = 'pgv_archive',
-                            payload = sl_client.get_pgv_archive())
+                            msg_id = 'current_pgv',
+                            payload = sl_client.get_current_pgv())
 
         logger.info("Sending pgv archive.")
         await websocket.send(msg)
 
+
+        # Prepare the archived PGV data message.
+        #msg = build_message(msg_class = 'data',
+        #                    msg_id = 'pgv_archive',
+        #                    payload = sl_client.get_pgv_archive())
+
+        #logger.info("Sending pgv archive.")
+        #await websocket.send(msg)
+
         # Send the recent events if they exist.
-        payload = sl_client.get_recent_events()
+        #payload = sl_client.get_recent_events()
 
-        if payload:
-            msg = build_message(msg_class = 'data',
-                                msg_id = 'event_archive',
-                                payload = payload)
+        #if payload:
+        #    msg = build_message(msg_class = 'data',
+        #                        msg_id = 'event_archive',
+        #                        payload = payload)
 
-            # Send the archived PGV data.
-            logger.info("Sending the recent events.")
-            await websocket.send(msg)
-        else:
-            logger.debug("No recent events available.")
+        #    # Send the archived PGV data.
+        #    logger.info("Sending the recent events.")
+        #    await websocket.send(msg)
+        #else:
+        #    logger.debug("No recent events available.")
 
         # Send the current event if it exists.
         #payload = sl_client.get_current_event()
@@ -282,11 +292,11 @@ async def serve_data(sl_client):
             # Check if any clients are registered.
             if len(clients_copy) > 0:
                 # Request the PGV data.
-                payload = sl_client.get_pgv_data()
+                payload = sl_client.get_current_pgv()
 
                 # Prepare the message.
                 msg = build_message(msg_class = 'data',
-                                    msg_id = 'pgv',
+                                    msg_id = 'current_pgv',
                                     payload = payload)
 
                 # Send the data to the registered clients.
