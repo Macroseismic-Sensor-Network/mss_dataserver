@@ -70,6 +70,8 @@ msg_class_dict['data'] = 'data'
 msg_id_dict = {}
 msg_id_dict['control'] = {'mode': 'mode'}
 
+msg_id_dict['request'] = {'event_supplement': 'event_supplement'}
+
 msg_id_dict['soh'] = {'connection': 'connection',
                       'server_state': 'server_state'}
 
@@ -152,6 +154,21 @@ async def register_pgv_client(websocket, sl_client):
         await websocket.send(msg)
 
 
+        # Send the recent events if they exist.
+        payload = sl_client.get_recent_events()
+
+        if payload:
+            msg = build_message(msg_class = 'data',
+                                msg_id = 'event_archive',
+                                payload = payload)
+
+            # Send the archived PGV data.
+            logger.info("Sending the recent events.")
+            await websocket.send(msg)
+        else:
+            logger.debug("No recent events available.")
+
+
         # Prepare the archived PGV data message.
         #msg = build_message(msg_class = 'data',
         #                    msg_id = 'pgv_archive',
@@ -160,19 +177,6 @@ async def register_pgv_client(websocket, sl_client):
         #logger.info("Sending pgv archive.")
         #await websocket.send(msg)
 
-        # Send the recent events if they exist.
-        #payload = sl_client.get_recent_events()
-
-        #if payload:
-        #    msg = build_message(msg_class = 'data',
-        #                        msg_id = 'event_archive',
-        #                        payload = payload)
-
-        #    # Send the archived PGV data.
-        #    logger.info("Sending the recent events.")
-        #    await websocket.send(msg)
-        #else:
-        #    logger.debug("No recent events available.")
 
         # Send the current event if it exists.
         #payload = sl_client.get_current_event()
@@ -489,11 +493,21 @@ async def handle_ws_connection(websocket, path, sl_client):
                                                       sl_client = sl_client)
                         mode = 'keydata'
                 else:
-                    logger.warning('Unexpected message id.', msg['id'])
-                    return
+                    logger.warning('Unexpected message class: %s, id: %s.',
+                                   msg['class'],
+                                   msg['id'])
+            elif msg['class'] == 'request':
+                if msg['id'] == 'event_supplement':
+                    payload = msg['payload']
+                    cur_public_id = payload['public_id']
+                    logger.info('Requested event supplement for event id: %s.',
+                                cur_public_id)
+                else:
+                    logger.warning('Unexpected message class: %s, id: %s.',
+                                   msg['class'],
+                                   msg['id'])
             else:
-                logger.warning('Unexpected control message.', msg)
-                return
+                logger.warning('Unexpected message: %s.', msg)
     except Exception as e:
         logger.exception("Lost connection to client: %s.", websocket)
     finally:
