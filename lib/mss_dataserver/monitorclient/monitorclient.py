@@ -1342,8 +1342,58 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         except Exception as e:
             self.logger.exception("Error saving the detection data to json file.")
 
-    def get_pgv_data(self):
-        ''' Get the latest PGV data.
+
+    def get_current_pgv(self):
+        ''' Get the current PGV data.
+        '''
+        data_dict = {}
+        pgv_data = {}
+        with self.archive_lock:
+            working_stream = self.pgv_archive_stream.copy()
+
+        # The time to use for the history pgv [s].
+        history_period = 60
+
+        # Trim the stream to the selected timespan.
+        now = utcdatetime.UTCDateTime()
+        now.milliseconds = 0
+        now.second = 0
+        start_time = now - 600
+        working_stream = working_stream.slice(starttime = start_time)
+
+        for cur_trace in working_stream:
+            try:
+                if isinstance(cur_trace.data, np.ma.MaskedArray):
+                    cur_data = cur_trace.data.data
+                else:
+                    cur_data = cur_trace.data
+
+                cur_time = cur_trace.times(type = 'utcdatetime')
+                cur_mask = ~np.isnan(cur_data)
+                if np.any(cur_mask):
+                    cur_hist_pgv = float(np.nanmax(cur_data))
+                    cur_latest_pgv = float(cur_data[cur_mask][-1])
+                    cur_latest_time = cur_time[cur_mask][-1].isoformat()
+                else:
+                    cur_latest_pgv = None
+                    cur_latest_time = None
+                    cur_hist_pgv = None
+
+                tmp = {'history_pgv': cur_hist_pgv,
+                       'latest_pgv': cur_latest_pgv,
+                       'latest_time': cur_latest_time}
+                pgv_data[cur_trace.get_id()] = tmp
+            except Exception as e:
+                self.logger.exception("Error while preparing the pgv archive.")
+
+        data_dict['history_period'] = history_period
+        data_dict['computation_time'] = now.isoformat()
+        data_dict['pgv_data'] = pgv_data
+        return data_dict
+
+
+    def get_pgv_timeseries(self):
+        ''' Get the latest PGV timeseries data.
         '''
         pgv_data = {}
         for cur_trace in self.pgv_stream:
@@ -1364,8 +1414,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.pgv_stream.clear()
         return pgv_data
 
-    def get_pgv_archive(self):
-        ''' Get the archived PGV data.
+    def get_pgv_timeseries_archive(self):
+        ''' Get the archived PGV timeseries data.
         '''
         pgv_data = {}
         with self.archive_lock:
