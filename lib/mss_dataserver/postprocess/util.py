@@ -1,5 +1,6 @@
 import gzip
 import json
+import logging
 import os
 
 import geojson
@@ -131,7 +132,7 @@ def read_geojson(filepath):
     return df
 
 
-def write_geojson_file(geojson_instance, name, output_dir,
+def write_geojson_file(geojson_instance, category, name, output_dir,
                        prefix = None, postfix = None):
     ''' Write a geojson data file. '''
     # Write the feature collection to a geojson file.  
@@ -145,9 +146,10 @@ def write_geojson_file(geojson_instance, name, output_dir,
     else:
         postfix = '_' + postfix
 
-    filename = '{prefix}{name}{postfix}.geojson.gz'.format(prefix = prefix,
-                                                           name = name,
-                                                           postfix = postfix)
+    filename = '{prefix}{category}_{name}{postfix}.geojson.gz'.format(prefix = prefix,
+                                                                      category = category,
+                                                                      name = name,
+                                                                      postfix = postfix)
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -161,14 +163,21 @@ def write_geojson_file(geojson_instance, name, output_dir,
     return filepath
 
 
-def save_df_to_geojson(public_id, df, output_dir,
-                       name, subdir, props = None):
+def save_supplement(public_id, df, output_dir,
+                    category, name, props = None):
     ''' Save a geopandas dataframe to geojson file.
     '''
-    feature_name = name
+    logger_name = __name__
+    logger = logging.getLogger(logger_name)
     event_dir = event_dir_from_publicid(public_id)
 
-    supplement_sub_dir = subdir
+    supp_map = get_supplement_map()
+    if category not in supp_map.keys():
+        logger.error('The category %s was not found in the available categories.', category)
+        return
+
+    supplement_sub_dir = supp_map[category][name]['subdir']
+    supplement_name = supp_map[category][name]['name']
     output_dir = os.path.join(output_dir,
                               event_dir,
                               supplement_sub_dir)
@@ -176,7 +185,7 @@ def save_df_to_geojson(public_id, df, output_dir,
     fc = geojson.loads(df.to_json())
 
     # Add foreign members to the feature collection.
-    fc.name = feature_name
+    fc.name = supplement_name
     fc.properties = {
         'public_id': public_id,
         'computation_time': obspy.UTCDateTime().isoformat()
@@ -186,7 +195,8 @@ def save_df_to_geojson(public_id, df, output_dir,
         fc.properties.update(props)
 
     filepath = write_geojson_file(fc,
-                                  name = feature_name,
+                                  category = category,
+                                  name = supplement_name,
                                   prefix = public_id,
                                   output_dir = output_dir)
 
