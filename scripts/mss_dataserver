@@ -82,7 +82,8 @@ msg_id_dict['data'] = {'current_pgv': 'current_pgv',
                        'event_data': 'event_data',
                        'event_archive': 'event_archive',
                        'event_warning': 'event_warning',
-                       'key_data': 'key_data'}
+                       'key_data': 'key_data',
+                       'supplement': 'supplement'}
 
 
 def compress_json(json_string):
@@ -480,6 +481,7 @@ async def handle_ws_connection(websocket, path, sl_client):
     mode = None
     try:
         async for msg in websocket:
+            # TODO: Add pydantic validation for the received messages.
             msg = json.loads(msg)
             logger.info("Message: %s.", msg)
             if msg['class'] == 'control':
@@ -498,10 +500,19 @@ async def handle_ws_connection(websocket, path, sl_client):
                                    msg['id'])
             elif msg['class'] == 'request':
                 if msg['id'] == 'event_supplement':
-                    payload = msg['payload']
-                    cur_public_id = payload['public_id']
+                    rcv_payload = msg['payload']
+                    cur_public_id = rcv_payload['public_id']
                     logger.info('Requested event supplement for event id: %s.',
                                 cur_public_id)
+
+                    # Get the requested supplement data.
+                    supp_data = sl_client.get_event_supplement(public_id = cur_public_id)
+
+                    # Send the data.
+                    msg = build_message(msg_class = 'data',
+                                        msg_id = 'supplement',
+                                        payload = supp_data)
+                    await websocket.send(msg)
                 else:
                     logger.warning('Unexpected message class: %s, id: %s.',
                                    msg['class'],
@@ -520,7 +531,7 @@ async def handle_ws_connection(websocket, path, sl_client):
             await unregister_keydata_client(websocket)
             with clients_keydata_lock:
                 logger.info('The registered keydata clients are now: %s.',
-                             clients_keydata)
+                            clients_keydata)
 
 
 @click.group()
