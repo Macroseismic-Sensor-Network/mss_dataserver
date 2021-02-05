@@ -50,6 +50,7 @@ import mss_dataserver.core.validation as validation
 import mss_dataserver.event.core as event_core
 import mss_dataserver.event.detection as event_detection
 import mss_dataserver.event.delaunay_detection as event_ddet
+import mss_dataserver.postprocess.util as pp_util
 
 
 class EasySeedLinkClientException(Exception):
@@ -130,7 +131,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.data_dir = data_dir
 
         # The event data output directory.
-        self.event_dir = event_dir
+        self.supplement_dir = event_dir
 
         # The time interval [s] used to process the received data.
         self.process_interval = process_interval
@@ -1093,20 +1094,30 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                       export_event.public_id])
 
 
+    def get_event_supplement_dir(self, public_id, category = None):
+        ''' Get the supplement directory of an event.
+        '''
+        event_dir = pp_util.event_dir_from_publicid(public_id)
+        output_dir = os.path.join(self.supplement_dir,
+                                  event_dir)
+
+        if category is not None:
+            sup_map = pp_util.get_supplement_map()
+            if category in sup_map.keys():
+                output_dir = os.path.join(output_dir,
+                                          category)
+            else:
+                logger.error('The category %s was not found in the available supllement data categories.', category)
+
+        return output_dir
+
 
     def save_event_supplement(self, export_event):
         ''' Save the supplement data of the event.
         '''
         # Build the output directory.
-        year_dir = "{year:04d}".format(year = export_event.start_time.year)
-        date_dir = "{year:04d}_{month:02d}_{day:02d}".format(year = export_event.start_time.year,
-                                                             month = export_event.start_time.month,
-                                                             day = export_event.start_time.day)
-        output_dir = os.path.join(self.event_dir,
-                                  str(export_event.start_time.year),
-                                  date_dir,
-                                  export_event.public_id,
-                                  'detectiondata')
+        output_dir = self.get_event_supplement_dir(public_id = export_event.public_id,
+                                                   category = 'detectiondata')
 
         self.logger.info("Exporting the event data to folder %s.", output_dir)
 
@@ -1525,23 +1536,45 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         return event
 
 
-    def get_event_details(self, ev_id = None, public_id = None):
+    def get_event_supplement(self, public_id):
         ''' Get the detailed data of an event.
         '''
-        if ev_id is None and public_id is None:
-            self.logger.error("Either the id or the public_id of the event have to be specified.")
-            return
+        event_supplement = {}
+        event_supplement['public_id'] = public_id
+        #event = self.get_event_by_id(ev_id = ev_id,
+        #                             public_id = public_id)
 
-        with self.project_lock:
-            event_list = self.project.get_events(db_id = ev_id,
-                                                 public_id = public_id)
+        supp_dir = self.get_event_supplement_dir(public_id = public_id)
 
-        # TODO: Load the event data from the event data files. Add Parameters
-        # to select the type of data to load (seismograms, PGV, json
-        # metadata, ...).
-        for cur_event in event_list:
-            self.logger.info("public_id: %s", cur_event.public_id)
+        # Check, if the supplement directory exists.
+        if not os.path.exists(supp_dir):
+            self.logger.error("The event supplement data directory % doesn't exist.",
+                              supp_dir)
+            return event_supplement
 
+        # TODO: Check the available supplement data.
+
+        # Load the supplement data.
+        pgvstation = pp_util.get_supplement_data(public_id = public_id,
+                                                 category = 'eventpgv',
+                                                 name = 'pgvstation',
+                                                 directory = self.supplement_dir)
+
+        pgvvoronoi = pp_util.get_supplement_data(public_id = public_id,
+                                                 category = 'eventpgv',
+                                                 name = 'pgvvoronoi',
+                                                 directory = self.supplement_dir)
+
+
+
+        # Build the return dictionary.
+        # Convert the dataframe to json and revert it back to a dictionary to
+        # ensure, that the data can be serialized when sendig it over the 
+        # websocket.
+        event_supplement['pgvstation'] = json.loads(pgvstation.to_json())
+        event_supplement['pgvvoronoi'] = json.loads(pgvvoronoi.to_json())
+
+        return event_supplement
 
 
     def get_keydata(self):
