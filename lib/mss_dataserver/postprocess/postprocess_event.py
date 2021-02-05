@@ -253,23 +253,23 @@ class EventPostProcessor(object):
                  'author_uri': self.project.author_uri,
                  'agency_uri': self.project.agency_uri}
 
-        filepath = util.save_df_to_geojson(self.event.public_id,
-                                           pgv_df.loc[:, ['geom_stat', 'nsl',
-                                                          'pgv', 'sa', 'triggered']],
-                                           output_dir = self.supplement_dir,
-                                           name = self.sup_map['eventpgv']['pgvstation']['name'],
-                                           subdir = self.sup_map['eventpgv']['pgvstation']['subdir'],
-                                           props = props)
+        filepath = util.save_supplement(self.event.public_id,
+                                        pgv_df.loc[:, ['geom_stat', 'nsl',
+                                                       'pgv', 'sa', 'triggered']],
+                                        output_dir = self.supplement_dir,
+                                        category = 'eventpgv',
+                                        name = 'pgvstation',
+                                        props = props)
         self.logger.info('Saved station pgv points to file %s.', filepath)
 
         pgv_df = pgv_df.set_geometry('geom_vor')
-        filepath = util.save_df_to_geojson(self.event.public_id,
-                                           pgv_df.loc[:, ['geom_vor', 'nsl',
-                                                          'pgv', 'sa', 'triggered']],
-                                           output_dir = self.supplement_dir,
-                                           name = self.sup_map['eventpgv']['pgvvoronoi']['name'],
-                                           subdir = self.sup_map['eventpgv']['pgvvoronoi']['subdir'],
-                                           props = props)
+        filepath = util.save_supplement(self.event.public_id,
+                                        pgv_df.loc[:, ['geom_vor', 'nsl',
+                                                       'pgv', 'sa', 'triggered']],
+                                        output_dir = self.supplement_dir,
+                                        category = 'eventpgv',
+                                        name = 'pgvvoronoi',
+                                        props = props)
         self.logger.info('Saved station pgv voronoi cells to file %s.',
                          filepath)
 
@@ -382,23 +382,23 @@ class EventPostProcessor(object):
 
         # Write the voronoi dataframe to a geojson file.
         sequence_df = sequence_df.set_geometry('geom_vor')
-        filepath = util.save_df_to_geojson(self.event.public_id,
-                                           sequence_df.loc[:, ['geom_vor', 'time', 'nsl',
-                                                               'pgv', 'sa', 'triggered']],
-                                           output_dir = self.supplement_dir,
-                                           name = self.sup_map['pgvsequence']['pgvvoronoi']['name'],
-                                           subdir = self.sup_map['pgvsequence']['pgvvoronoi']['subdir'],
-                                           props = props)
+        filepath = util.save_supplement(self.event.public_id,
+                                        sequence_df.loc[:, ['geom_vor', 'time', 'nsl',
+                                                            'pgv', 'sa', 'triggered']],
+                                        output_dir = self.supplement_dir,
+                                        category = 'pgvsequence',
+                                        name = 'pgvvoronoi',
+                                        props = props)
         self.logger.info('Saved pgv voronoi sequence to file %s.', filepath)
 
         sequence_df = sequence_df.set_geometry('geom_stat')
-        filepath = util.save_df_to_geojson(self.event.public_id,
-                                           sequence_df.loc[:, ['geom_stat', 'time', 'nsl',
-                                                               'pgv', 'sa', 'triggered']],
-                                           output_dir = self.supplement_dir,
-                                           name = self.sup_map['pgvsequence']['pgvstation']['name'],
-                                           subdir = self.sup_map['pgvsequence']['pgvstation']['subdir'],
-                                           props = props)
+        filepath = util.save_supplement(self.event.public_id,
+                                        sequence_df.loc[:, ['geom_stat', 'time', 'nsl',
+                                                            'pgv', 'sa', 'triggered']],
+                                        output_dir = self.supplement_dir,
+                                        category = 'pgvsequence',
+                                        name = 'pgvstation',
+                                        props = props)
         self.logger.info('Saved pgv station marker sequence to file %s.',
                          filepath)
 
@@ -445,13 +445,13 @@ class EventPostProcessor(object):
                  'agency_uri': self.project.agency_uri}
 
         # Write the sequence dataframe to a geojson file.
-        filepath = util.save_df_to_geojson(self.event.public_id,
-                                           sequence_df.loc[:, ['geom_simp', 'time', 'pgv',
-                                                               'pgv_min', 'pgv_max', 'triggered',
-                                                               'added_to_event']],
-                                           output_dir = self.supplement_dir,
-                                           name = self.sup_map['detectionsequence']['simplices']['name'],
-                                           subdir = self.sup_map['detectionsequence']['simplices']['subdir'],
-                                           props = props)
+        filepath = util.save_supplement(self.event.public_id,
+                                        sequence_df.loc[:, ['geom_simp', 'time', 'pgv',
+                                                            'pgv_min', 'pgv_max', 'triggered',
+                                                            'added_to_event']],
+                                        output_dir = self.supplement_dir,
+                                        category = 'detectionsequence',
+                                        name = 'simplices',
+                                        props = props)
         self.logger.info('Saved detectioin sequence simplices to file %s.',
                          filepath)
