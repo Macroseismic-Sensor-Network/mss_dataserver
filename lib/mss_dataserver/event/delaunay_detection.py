@@ -217,7 +217,7 @@ class DelaunayDetector(object):
     def prepare_detection_stream(self, stream):
         ''' Prepare the data stream used for the detection run.
         '''
-        self.logger.info("passed stream: %s", stream.__str__(extended = True))
+        self.logger.debug("passed stream: %s", stream.__str__(extended = True))
         max_end_time = np.max([x.stats.endtime for x in stream])
         # Assume, that all traces have the same sampling rate.
         # TODO: Add a check to validate that the sampling rate of all traces is
@@ -232,9 +232,9 @@ class DelaunayDetector(object):
         min_delta = np.min([x.stats.delta for x in stream])
         detect_win_end = ((max_end_time.timestamp + min_delta) - self.safety_time) // self.window_length * self.window_length
         detect_win_end = obspy.UTCDateTime(detect_win_end) - min_delta
-        self.logger.info("max_time_window: %s", self.max_time_window)
-        self.logger.info("detect_win_start: %s", detect_win_start)
-        self.logger.info("detect_win_end: %s", detect_win_end)
+        self.logger.debug("max_time_window: %s", self.max_time_window)
+        self.logger.debug("detect_win_start: %s", detect_win_start)
+        self.logger.debug("detect_win_end: %s", detect_win_end)
 
         if detect_win_end <= detect_win_start:
             self.logger.warning("The detection window end is smaller than the detection window start. Skipping the preparation of the detection stream.")
@@ -246,7 +246,7 @@ class DelaunayDetector(object):
             self.detect_stream = stream.slice(starttime = detect_win_start - self.max_time_window,
                                               endtime = detect_win_end,
                                               nearest_sample = False)
-            self.logger.info("detect_stream: %s", self.detect_stream.__str__(extended = True))
+            self.logger.debug("detect_stream: %s", self.detect_stream.__str__(extended = True))
             # Set the last detection end time.
             self.last_detection_start = detect_win_start
             self.last_detection_end = detect_win_end
@@ -263,12 +263,12 @@ class DelaunayDetector(object):
     def compute_triangle_max_pgv(self, simp):
         ''' Compute the maximal PGV values of a delaunay triangle.
         '''
-        self.logger.info("Computing the triangle max pgv.")
+        self.logger.debug("Computing the triangle max pgv.")
         offset = self.max_time_window
         simp_keys = tuple(sorted([self.detect_stations[x].nsl_string for x in simp]))
         simp_edge_length = self.edge_length[simp_keys]
 
-        self.logger.info("Stations involved: %s.", simp_keys)
+        self.logger.debug("Stations involved: %s.", simp_keys)
 
         # Compute the length of the search time window using a default velocity
         # of 3500 m/s.
@@ -320,7 +320,7 @@ class DelaunayDetector(object):
         pgv = []
         time = []
         for cur_trace in tri_stream:
-            self.logger.info("cur_trace: %s", cur_trace)
+            self.logger.debug("cur_trace: %s", cur_trace)
             self.logger.debug("time_window: %s", time_window)
             cur_win_length = int(np.floor(time_window * cur_trace.stats.sampling_rate))
             cur_offset = int(np.floor(offset * cur_trace.stats.sampling_rate))
