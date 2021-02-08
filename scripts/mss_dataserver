@@ -417,12 +417,8 @@ async def serve_event_archive(sl_client):
     try:
         while True:
             await sl_client.event_archive_changed.wait()
-            payload = sl_client.get_event_archive()
+            payload = sl_client.get_recent_events()
 
-            # TODO: Sending the archive each time an event has been added
-            # doesn't make sense. All data is already at the Client. Move the
-            # update of the archive completely to the server. Send the archive
-            # only at first connection with the client.
             msg = build_message(msg_class = 'data',
                                 msg_id = 'event_archive',
                                 payload = payload)
@@ -436,7 +432,7 @@ async def serve_event_archive(sl_client):
                     await cur_client.send(msg)
                 except Exception as e:
                     logger.exception("Error sending to client: %s.",
-                                      cur_client)
+                                     cur_client)
             sl_client.event_archive_changed.clear()
     except Exception as e:
         logger.exception("Error while serving the event archive.")
@@ -507,6 +503,9 @@ async def handle_ws_connection(websocket, path, sl_client):
 
                     # Get the requested supplement data.
                     supp_data = sl_client.get_event_supplement(public_id = cur_public_id)
+                    #supp_data = {'public_id': cur_public_id,
+                    #             'pgvstation': {},
+                    #             'pgvvoronoi': {}}
 
                     # Send the data.
                     msg = build_message(msg_class = 'data',
@@ -668,9 +667,11 @@ def start_server(ctx):
     # Serve the currently processed event metadata.
     loop.create_task(serve_current_event(client))
 
+    # Serve the updated event archive.
+    loop.create_task(serve_event_archive(client))
+
     #loop.create_task(serve_keydata(client))
     #loop.create_task(serve_detection_result(client))
-    #loop.create_task(serve_event_archive(client))
     #loop.create_task(serve_event_warning(client))
     loop.run_forever()
 

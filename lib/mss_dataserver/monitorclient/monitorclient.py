@@ -200,7 +200,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.conn.timeout = 10
 
         # Load the archived data.
-        self.event_archive_timespan = 48
+        # The timespan to load in hours.
+        self.event_archive_timespan = 336
         self.load_archive_catalogs(hours = self.event_archive_timespan)
 
     def reset(self):
@@ -486,7 +487,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         while not self.stop_event.is_set():
             try:
                 self.logger.info('task_timer: Executing callback.')
-                callback()
+                await callback()
             except Exception as e:
                 self.logger.exception(e)
                 self.stop()
@@ -570,7 +571,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         now = obspy.UTCDateTime()
         with self.archive_lock:
             working_stream = self.pgv_archive_stream.copy()
-        self.logger.info("event detection working_stream: %s", working_stream)
+        self.logger.debug("event detection working_stream: %s", working_stream)
 
         # Run the Delaunay detection.
         self.detector.init_detection_run(stream = working_stream)
@@ -609,7 +610,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.logger.warning("Failed to initialize the detection run.")
 
 
-    def process_monitor_stream(self):
+    async def process_monitor_stream(self):
         ''' Process the data in the monitor stream.
 
         '''
@@ -651,10 +652,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                         cur_trace.trim(starttime = cur_end_time + cur_trace.stats.delta)
 
             self.process_stream.sort()
-            self.logger.info('process_stream: %s', self.process_stream.__str__(extended = True))
+            self.logger.debug('process_stream: %s', self.process_stream.__str__(extended = True))
 
             with self.stream_lock:
-                self.logger.info('monitor_stream: %s', str(self.monitor_stream.__str__(extended = True)))
+                self.logger.debug('monitor_stream: %s', str(self.monitor_stream.__str__(extended = True)))
 
             # Get a stream containing only equal length traces per station.
             el_stream = self.get_equal_length_traces()
@@ -677,7 +678,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.vel_archive_stream = self.vel_archive_stream + el_stream
 
             # Compute the PGV values.
-            self.compute_pgv(el_stream)
+            # TODO: Computing the PGV is CPU intensive and could block the
+            # websocket server. Try to find a solution to move the computation to a
+            # separate process.
+            await self.compute_pgv(el_stream)
 
             # Trim the archive stream.
             self.trim_archive()
@@ -693,6 +697,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
             # Start the event detection.
             try:
+                # TODO. Detecting the event is CPU intensive. Try to find a way
+                # to move the detection to another process.
                 self.detect_event()
             except Exception as e:
                 self.logger.exception("Error computing the event detection.")
@@ -793,7 +799,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         return el_stream
 
-    def compute_pgv(self, stream):
+    async def compute_pgv(self, stream):
         ''' Compute the PGV values of the stream.
         '''
         self.logger.info('Computing the PGV.')
@@ -889,9 +895,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.logger.debug("pgv_archive_stream: %s", self.pgv_archive_stream.__str__(extended = True))
         self.logger.info("Finished compute_pgv.")
 
-        #self.pgv_archive_stream.write("/home/stefan/Schreibtisch/pgv_beben_neunkirchen.msd",
-        #                             format = "MSEED",
-        #                             reclen = 512)
 
     def convert_to_physical_units(self, stream):
         ''' Convert the counts to physical units.
@@ -1086,6 +1089,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.logger.info("Exporting the event data.")
         self.save_event_supplement(export_event)
 
+        # Set the event to notify that the archive has changes.
+        self.event_archive_changed.set()
+
         # Compute the geojson supplement data.
         proc_result = subprocess.run(['mssds_postprocess',
                                       config_filepath,
@@ -1198,7 +1204,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                        endtime = end_time)
         vel_stream.merge()
         vel_stream = vel_stream.split()
-        self.logger.info("vel_stream: %s", vel_stream.__str__(extended = True))
+        self.logger.debug("vel_stream: %s", vel_stream.__str__(extended = True))
         supplement_name = 'velocity'
         supplement_category = 'detectiondata'
         filename = "{public_id}_{category}_{name}.msd".format(public_id = event.public_id,
@@ -1461,6 +1467,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         cur_event = {}
         if self.current_event:
             cur_event = validation.Event(id = self.current_event.db_id,
+                                         public_id = self.current_event.public_id,
                                          start_time = self.current_event.start_time.isoformat(),
                                          end_time = self.current_event.end_time.isoformat(),
                                          description = self.current_event.description,
@@ -1488,11 +1495,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         return cur_warning
 
     def get_recent_events(self):
-        ''' Return the current event archive in serializable form.
+        ''' Return the recent events in serializable form.
         '''
+        recent_event_timespan = 48
         now = utcdatetime.UTCDateTime()
         today = utcdatetime.UTCDateTime(now.timestamp // 86400 * 86400)
-        request_start = today - self.event_archive_timespan * 3600
+        request_start = today - recent_event_timespan * 3600
         with self.project_lock:
             events = self.project.get_events(start_time = request_start)
         cur_archive = {}
@@ -1508,16 +1516,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                      max_pgv = cur_event.max_pgv,
                                                      state = cur_event.detection_state)
 
-                # TODO: Get the data of the events only on request using
-                # websocket.
-                #
-                #cur_archive_event['trigger_data'] = cur_event['trigger_data']
-                #cur_archive_event['state'] = cur_event.state
-                #cur_archive_event['overall_trigger_data'] = cur_event['overall_trigger_data']
-                #try:
-                #    cur_archive_event['max_station_pgv'] = cur_event['max_station_pgv']
-                #except Exception:
-                #    cur_archive_event['max_station_pgv'] = {}
                 cur_archive[cur_event.public_id] = cur_archive_event.dict()
 
         return cur_archive
@@ -1588,3 +1586,4 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         keydata['triggered_event_stations'] = self.get_triggered_event_stations()
 
         return keydata
+
