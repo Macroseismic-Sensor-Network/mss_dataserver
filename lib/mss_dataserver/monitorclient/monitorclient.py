@@ -1470,10 +1470,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                          public_id = self.current_event.public_id,
                                          start_time = self.current_event.start_time.isoformat(),
                                          end_time = self.current_event.end_time.isoformat(),
+                                         length = self.current_event.length,
                                          description = self.current_event.description,
                                          comment = self.current_event.comment,
                                          max_pgv = self.current_event.max_pgv,
-                                         state = self.current_event.detection_state)
+                                         state = self.current_event.detection_state,
+                                         num_detections = len(self.current_event.detections),
+                                         triggered_stations = self.current_event.triggered_stations)
             cur_event = cur_event.dict()
 
             # TODO: Serve the detailed event data only on request.
@@ -1507,14 +1510,18 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         if len(events) > 0:
             for cur_event in events:
                 self.logger.info('public_id: %s', cur_event.public_id)
+                self.logger.info('triggered_stations: %s', cur_event.triggered_stations)
                 cur_archive_event = validation.Event(db_id = cur_event.db_id,
                                                      public_id = cur_event.public_id,
                                                      start_time = cur_event.start_time.isoformat(),
                                                      end_time = cur_event.end_time.isoformat(),
+                                                     length = cur_event.length,
                                                      description = cur_event.description,
                                                      comment = cur_event.comment,
                                                      max_pgv = cur_event.max_pgv,
-                                                     state = cur_event.detection_state)
+                                                     state = cur_event.detection_state,
+                                                     num_detections = len(cur_event.detections),
+                                                     triggered_stations = cur_event.triggered_stations)
 
                 cur_archive[cur_event.public_id] = cur_archive_event.dict()
 
