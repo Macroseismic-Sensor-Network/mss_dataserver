@@ -175,6 +175,17 @@ class Event(object):
         else:
             return None
 
+    @property
+    def triggered_stations(self):
+        ''' The nsl codes of the stations that contributed to a detection.
+        '''
+        nsl = []
+        for cur_detection in self.detections:
+            for cur_key in cur_detection.max_pgv.keys():
+                if cur_key not in nsl:
+                    nsl.append(cur_key)
+
+        return sorted(nsl)
 
     def get_max_pgv_per_station(self):
         ''' Compute the maximum PGV of the individual stations that have
@@ -867,7 +878,7 @@ class Library(object):
 
 
     def get_events(self, catalog_names = None, start_time = None, end_time = None, **kwargs):
-        ''' Get events using search criteria passed as keywords.
+        ''' Get events using from search criteria passed as keywords.
 
         Parameters
         ----------
@@ -931,3 +942,4 @@ class Library(object):
                                 "this shouldn't happen for unique ids."))
 
         return event
+
