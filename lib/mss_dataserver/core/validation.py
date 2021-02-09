@@ -32,6 +32,7 @@ from pydantic import (
 )
 
 from typing import (
+    List,
     Optional,
     Union,
 )
@@ -42,7 +43,10 @@ class Event(pydantic.BaseModel):
     public_id: constr(regex=r'^\w+_\w+_\d{4}-\d{2}-\d{2}T\d{6,12}')
     start_time: constr(min_length=19, max_length=26)
     end_time: constr(min_length=19, max_length=26)
+    length: confloat(ge=0)
     max_pgv: PositiveFloat
+    num_detections: PositiveInt
+    triggered_stations: List[constr(regex=r'^\w{1,10}:\w{1,10}:\w{1,4}')]
     description: Optional[constr(max_length=255)] = None
     comment: Optional[constr(max_length=255)] = None
     state: Optional[constr(max_length=20)] = None
