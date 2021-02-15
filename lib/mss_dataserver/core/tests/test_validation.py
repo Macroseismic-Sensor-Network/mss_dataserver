@@ -94,7 +94,46 @@ class ValidationTestCase(unittest.TestCase):
                                  state = None)
 
         self.assertIsInstance(event.dict(), dict)
-        print(event.dict())
+
+
+    def test_ws_message_validation(self):
+        ''' Test the validation of websocket messages.
+        '''
+        server_time = UTCDateTime('2020-01-01T01:00:00').isoformat()
+        msg_header = validation.WSMessageHeader(msg_class = 'control',
+                                                msg_id = 'mode',
+                                                server_time = server_time)
+        self.assertEqual(msg_header.msg_class, 'control')
+        self.assertEqual(msg_header.msg_id, 'mode')
+        self.assertIsInstance(msg_header.dict(), dict)
+
+        msg_header = validation.WSMessageHeader(msg_class = 'soh',
+                                                msg_id = 'connection',
+                                                server_time = server_time)
+        self.assertEqual(msg_header.msg_class, 'soh')
+        self.assertEqual(msg_header.msg_id, 'connection')
+        self.assertIsInstance(msg_header.dict(), dict)
+
+        msg_header = validation.WSMessageHeader(msg_class = 'soh',
+                                                msg_id = 'server_state',
+                                                server_time = server_time)
+        self.assertEqual(msg_header.msg_class, 'soh')
+        self.assertEqual(msg_header.msg_id, 'server_state')
+        self.assertIsInstance(msg_header.dict(), dict)
+
+        msg_header = validation.WSMessageHeader(msg_class = 'data',
+                                                msg_id = 'current_pgv',
+                                                server_time = server_time)
+        self.assertEqual(msg_header.msg_class, 'data')
+        self.assertEqual(msg_header.msg_id, 'current_pgv')
+        self.assertIsInstance(msg_header.dict(), dict)
+
+
+        msg_header = validation.WSMessageHeader(msg_class = 'control',
+                                                msg_id = 'mode',
+                                                server_time = server_time)
+        msg = validation. WSMessage(header = msg_header,
+                                    payload = {})
 
 def suite():
     return unittest.makeSuite(ValidationTestCase, 'test')
