@@ -51,6 +51,7 @@ import sqlalchemy.orm
 
 import mss_dataserver.core.project
 import mss_dataserver.core.util as util
+import mss_dataserver.core.validation as validation
 import mss_dataserver.geometry.inventory_parser as inventory_parser
 import mss_dataserver.monitorclient.monitorclient as monitorclient
 import mss_dataserver.test.util as test_util
@@ -105,15 +106,14 @@ def dict_to_compressed_json(msg):
 def build_message(msg_class, msg_id, payload = None):
     ''' Create a websocket message.
     '''
-    msg = {}
-    msg['class'] = msg_class_dict[msg_class]
-    msg['id'] = msg_id_dict[msg_class][msg_id]
-    msg['server_time'] = obspy.UTCDateTime().isoformat()
+    server_time = obspy.UTCDateTime().isoformat()
+    header = validation.WSMessageHeader(msg_class = msg_class,
+                                        msg_id = msg_id,
+                                        server_time = server_time)
+    msg = validation.WSMessage(header = header,
+                               payload = payload)
 
-    if payload is not None:
-        msg['payload'] = payload
-
-    msg = dict_to_compressed_json(msg)
+    msg = compress_json(msg.json())
     return msg
 
 
