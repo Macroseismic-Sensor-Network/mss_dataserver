@@ -917,8 +917,7 @@ class RecorderStream(object):
         ''' Initialization of the instance.
         '''
         # The logging logger instance.
-        logger_prefix = 'mss_data_server'
-        loggerName = logger_prefix + "." + __name__ + "." + self.__class__.__name__
+        loggerName = __name__ + "." + self.__class__.__name__
         self.logger = logging.getLogger(loggerName)
 
         # The name of the stream.
@@ -1284,16 +1283,47 @@ class RecorderStream(object):
         self.label = merge_stream.label
 
         # Replace existing parameters with the new ones.
-        for cur_parameter in [x for x in self.parameters]:
-            self.logger.debug('Removing parameter %d.', cur_parameter.id)
+        #for cur_parameter in [x for x in self.parameters]:
+        #    self.logger.info('Removing parameter %d.', cur_parameter.id)
+        #    self.remove_parameter_by_instance(cur_parameter)
+
+        updated_parameters = []
+        parameters_to_add = []
+        for cur_parameter in merge_stream.parameters:
+            cur_exist_parameter = self.get_parameter(start_time = cur_parameter.start_time,
+                                                     end_time = cur_parameter.end_time)
+            if len(cur_exist_parameter) == 1:
+                cur_exist_parameter = cur_exist_parameter[0]
+                cur_key = (cur_exist_parameter.rec_stream_id,
+                           cur_exist_parameter.start_time,
+                           cur_exist_parameter.end_time)
+                self.logger.info('Updating existing parameter %s.', cur_key)
+                cur_exist_parameter.gain = cur_parameter.gain
+                cur_exist_parameter.bitweight = cur_parameter.bitweight
+                cur_exist_parameter.author_uri = cur_parameter.author_uri
+                cur_exist_parameter.agency_uri = cur_parameter.agency_uri
+                updated_parameters.append(cur_exist_parameter)
+            elif len(cur_exist_parameter) == 0:
+                parameters_to_add.append(cur_parameter)
+            else:
+                self.logger.error('More than one parameter returned.')
+
+        # Remove the parameters, that have not been updated.
+        parameters_to_remove = [x for x in self.parameters if x not in updated_parameters]
+        for cur_parameter in parameters_to_remove:
+            cur_key = (cur_parameter.rec_stream_id,
+                       cur_parameter.start_time,
+                       cur_parameter.end_time)
+            self.logger.info('Removing parameter %s.', cur_key)
             self.remove_parameter_by_instance(cur_parameter)
 
-        for cur_parameter in merge_stream.parameters:
-            self.logger.debug('Adding parameter %s - %s.',
-                              cur_parameter.start_time_string,
-                              cur_parameter.end_time_string)
+        # Add all new parameters.
+        for cur_parameter in parameters_to_add:
+            cur_key = (cur_parameter.rec_stream_id,
+                       cur_parameter.start_time,
+                       cur_parameter.end_time)
+            self.logger.info('Adding new parameter %s.', cur_key)
             self.add_parameter(cur_parameter)
-
 
         # Replace existing components with the new ones.
         for cur_component in [x for x in self.components]:
@@ -1370,6 +1400,13 @@ class RecorderStreamParameter(object):
         if self.parent_recorder_stream is not None:
             return self.parent_recorder_stream.parent_inventory
         else:
+            return None
+
+    @property
+    def rec_stream_id(self):
+        try:
+            return self.parent_recorder_stream.id
+        except Exception:
             return None
 
 
