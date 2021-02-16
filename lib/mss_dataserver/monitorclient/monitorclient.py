@@ -1399,7 +1399,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 tmp = {'pgv_history': cur_hist_pgv,
                        'latest_pgv': cur_latest_pgv,
                        'latest_time': cur_latest_time}
-                pgv_data[cur_trace.get_id()] = tmp
+                cur_nsl = ':'.join([cur_trace.stats.network,
+                                    cur_trace.stats.station,
+                                    cur_trace.stats.location])
+                pgv_data[cur_nsl] = tmp
             except Exception as e:
                 self.logger.exception("Error while preparing the pgv archive.")
 
@@ -1593,4 +1596,24 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         keydata['triggered_event_stations'] = self.get_triggered_event_stations()
 
         return keydata
+
+
+    def get_station_metadata(self):
+        ''' Get the metadata of the available stations.
+        '''
+        stations = {}
+        for cur_station in self.inventory.get_station():
+            tmp = {'name': cur_station.name,
+                   'network': cur_station.network,
+                   'location': cur_station.location,
+                   'lon': cur_station.x,
+                   'lat': cur_station.y,
+                   'height': cur_station.z,
+                   'description': cur_station.description}
+            stations[cur_station.nsl_string] = tmp
+
+        return stations
+
+
+
 
