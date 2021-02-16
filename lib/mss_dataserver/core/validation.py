@@ -68,6 +68,7 @@ class MsgControlIdEnum(str, enum.Enum):
 
 class MsgRequestIdEnum(str, enum.Enum):
     event_supplement = 'event_supplement'
+    pgv_timeseries = 'pgv_timeseries'
 
 
 class MsgSohIdEnum(str, enum.Enum):
@@ -85,6 +86,8 @@ class MsgDataIdEnum(str, enum.Enum):
     event_warning = 'event_warning'
     key_data = 'key_data'
     event_supplement = 'event_supplement'
+    station_metadata = 'station_metadata'
+
 
 # The general message header.
 class WSMessageHeader(pydantic.BaseModel):
@@ -135,3 +138,8 @@ class MsgControlModePayload(pydantic.BaseModel):
 # The event_supplement request message payload.
 class MsgRequestEventSupplementPayload(pydantic.BaseModel):
     public_id: constr(regex=r'^\w+_\w+_\d{4}-\d{2}-\d{2}T\d{6,12}')
+
+
+# The pgv_timeseries request message payload.
+class MsgRequestPgvTimeseriesPayload(pydantic.BaseModel):
+    nsl_code: constr(regex=r'^\w{1,10}:\w{1,10}:\w{1,4}')
