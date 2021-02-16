@@ -63,29 +63,6 @@ clients = set()
 clients_keydata_lock = threading.Lock()
 clients_keydata = set()
 
-msg_class_dict = {}
-msg_class_dict['control'] = 'control'
-msg_class_dict['soh'] = 'soh'
-msg_class_dict['data'] = 'data'
-
-msg_id_dict = {}
-msg_id_dict['control'] = {'mode': 'mode'}
-
-msg_id_dict['request'] = {'event_supplement': 'event_supplement'}
-
-msg_id_dict['soh'] = {'connection': 'connection',
-                      'server_state': 'server_state'}
-
-msg_id_dict['data'] = {'current_pgv': 'current_pgv',
-                       'pgv': 'pgv',
-                       'pgv_archive': 'pgv_archive',
-                       'detection_result': 'detection_result',
-                       'event_data': 'event_data',
-                       'event_archive': 'event_archive',
-                       'event_warning': 'event_warning',
-                       'key_data': 'key_data',
-                       'supplement': 'supplement'}
-
 
 def compress_json(json_string):
     ''' Compress a json string using zlib.
@@ -153,7 +130,6 @@ async def register_pgv_client(websocket, sl_client):
 
         logger.info("Sending pgv archive.")
         await websocket.send(msg)
-
 
         # Send the recent events if they exist.
         payload = sl_client.get_recent_events()
@@ -477,56 +453,73 @@ async def handle_ws_connection(websocket, path, sl_client):
     mode = None
     try:
         async for msg in websocket:
-            # TODO: Add pydantic validation for the received messages.
             msg = json.loads(msg)
-            logger.info("Message: %s.", msg)
-            if msg['class'] == 'control':
-                if msg['id'] == 'mode':
-                    if msg['payload'] == 'pgv':
+            try:
+                msg_header = validation.WSMessageHeader(**msg['header'])
+            except Exception:
+                logger.exception('Invalid message header.')
+                continue
+
+            if msg_header.msg_class == validation.MsgClassEnum.control:
+                if msg_header.msg_id == validation.MsgControlIdEnum.mode:
+                    try:
+                        msg_payload = validation.MsgControlModePayload(**msg['payload'])
+                    except Exception:
+                        logger.exception('Invalid message payload.')
+                        continue
+
+                    if msg_payload.data_mode == validation.MsgControlModeDataModeEnum.pgv:
                         await register_pgv_client(websocket = websocket,
                                                   sl_client = sl_client)
-                        mode = 'pgv'
-                    elif msg['payload'] == 'keydata':
+                        mode = validation.MsgControlModeDataModeEnum.pgv
+                    elif msg_payload.data_mode == validation.MsgControlModeDataModeEnum.keydata:
                         await register_keydata_client(websocket = websocket,
                                                       sl_client = sl_client)
-                        mode = 'keydata'
+                        mode = validation.MsgControlModeDataModeEnum.keydata
                 else:
-                    logger.warning('Unexpected message class: %s, id: %s.',
-                                   msg['class'],
-                                   msg['id'])
-            elif msg['class'] == 'request':
-                if msg['id'] == 'event_supplement':
-                    rcv_payload = msg['payload']
-                    cur_public_id = rcv_payload['public_id']
+                    logger.warning('Unexpected message class: %s.', msg_header)
+            elif msg_header.msg_class == validation.MsgClassEnum.request:
+                if msg_header.msg_id == validation.MsgDataIdEnum.event_supplement:
+                    try:
+                        msg_payload = validation.MsgRequestEventSupplementPayload(**msg['payload'])
+                    except Exception:
+                        logger.exception('Invalid message payload.')
+                        continue
                     logger.info('Requested event supplement for event id: %s.',
-                                cur_public_id)
+                                msg_payload.public_id)
 
                     # Get the requested supplement data.
-                    supp_data = sl_client.get_event_supplement(public_id = cur_public_id)
-                    #supp_data = {'public_id': cur_public_id,
-                    #             'pgvstation': {},
-                    #             'pgvvoronoi': {}}
+                    try:
+                        supp_data = sl_client.get_event_supplement(public_id = msg_payload.public_id)
+                    except Exception:
+                        logger.exception('Error getting the event supplement data.')
+                        supp_data = {}
+
+                    try:
+                        snd_msg = build_message(msg_class = 'data',
+                                                msg_id = 'event_supplement',
+                                                payload = supp_data)
+                    except Exception:
+                        logger.exception('Error building the message.')
+                        snd_msg = None
 
                     # Send the data.
-                    msg = build_message(msg_class = 'data',
-                                        msg_id = 'supplement',
-                                        payload = supp_data)
-                    await websocket.send(msg)
+                    if snd_msg is not None:
+                        await websocket.send(snd_msg)
                 else:
-                    logger.warning('Unexpected message class: %s, id: %s.',
-                                   msg['class'],
-                                   msg['id'])
+                    logger.warning('Unexpected message class: %s.', msg_header)
             else:
-                logger.warning('Unexpected message: %s.', msg)
+                logger.warning('Received an unexpected message: %s.',
+                               msg_header)
     except Exception as e:
         logger.exception("Lost connection to client: %s.", websocket)
     finally:
         logger.info('Unregistering the client %s.', websocket)
-        if mode == 'pgv':
+        if mode == validation.MsgControlModeDataModeEnum.pgv:
             await unregister_client(websocket)
             with clients_lock:
                 logger.info('The registered clients are now: %s.', clients)
-        elif mode == 'keydata':
+        elif mode == validation.MsgControlModeDataModeEnum.keydata:
             await unregister_keydata_client(websocket)
             with clients_keydata_lock:
                 logger.info('The registered keydata clients are now: %s.',
