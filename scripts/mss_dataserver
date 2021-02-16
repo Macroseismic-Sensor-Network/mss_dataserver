@@ -119,7 +119,8 @@ async def register_pgv_client(websocket, sl_client):
                         payload = payload)
 
     try:
-        logger.info("Registering the PGV client.")
+        logger.info("Registering the PGV client at %s.",
+                    websocket.remote_address)
         # Send the welcome message.
         await websocket.send(msg)
 
@@ -174,9 +175,12 @@ async def register_pgv_client(websocket, sl_client):
         # now add the websocket to the known clients.
         with clients_lock:
             clients.add(websocket)
-        logger.info("Client registered.")
+        logger.info("Client %s at %s registered successfully.",
+                    id(websocket),
+                    websocket.remote_address)
     except Exception as e:
-        logger.exception("Error registering the client.")
+        logger.exception("Error registering the client from %s.",
+                         websocket.remote_address)
 
 
 async def register_keydata_client(websocket, sl_client):
@@ -251,12 +255,12 @@ async def serve_keydata(sl_client):
             with clients_keydata_lock:
                 clients_copy = copy.copy(clients_keydata)
             for cur_client in clients_copy:
-                logger.info("Sending to client %s.", cur_client)
+                logger.info("Sending to client %s.", cur_client.remote_address)
                 try:
                     await cur_client.send(msg)
                 except Exception as e:
                     logger.exception("Error sending to client: %s.",
-                                      cur_client)
+                                     cur_client.remote_address)
             sl_client.event_keydata_available.clear()
     except Exception as e:
         logger.exception("Error while serving the keydata.")
@@ -294,12 +298,15 @@ async def serve_data(sl_client):
                 # Send the data to the registered clients.
                 logger.info("Serving the data.")
                 for cur_client in clients_copy:
-                    logger.info("Sending to client %s.", cur_client)
+                    logger.info("Sending to client %s at %s.",
+                                id(cur_client),
+                                cur_client.remote_address)
                     try:
                         await cur_client.send(msg)
                     except Exception as e:
-                        logger.exception("Error sending to client: %s.",
-                                         cur_client)
+                        logger.exception("Error sending to client %s at %s.",
+                                         id(cur_client),
+                                         cur_client.remote_address)
             # Reset the PGV data flag.
             sl_client.pgv_data_available.clear()
     except Exception as e:
@@ -329,12 +336,13 @@ async def serve_detection_result(sl_client):
 
             logger.info("Serving the detection result.")
             for cur_client in clients_copy:
-                logger.info("Sending to client %s.", cur_client)
+                logger.info("Sending to client %s.",
+                            cur_client.remote_address)
                 try:
                     await cur_client.send(msg)
                 except Exception as e:
                     logger.exception("Error sending to client: %s.",
-                                      cur_client)
+                                     cur_client.remote_address)
             sl_client.event_detection_result_available.clear()
     except Exception as e:
         logger.exception("Error while serving the detection result.")
@@ -370,12 +378,13 @@ async def serve_current_event(sl_client):
             # Send the data to the registered clients.
             logger.info("Serving the event data.")
             for cur_client in clients_copy:
-                logger.info("Sending to client %s.", cur_client)
+                logger.info("Sending to client %s.",
+                            cur_client.remote_address)
                 try:
                     await cur_client.send(msg)
                 except Exception as e:
                     logger.exception("Error sending to client: %s.",
-                                      cur_client)
+                                     cur_client.remote_address)
 
             # Reset the flag.
             sl_client.current_event_available.clear()
@@ -403,12 +412,13 @@ async def serve_event_archive(sl_client):
             with clients_lock:
                 clients_copy = copy.copy(clients)
             for cur_client in clients_copy:
-                logger.info("Sending to client %s.", cur_client)
+                logger.info("Sending to client %s.",
+                            cur_client.remote_address)
                 try:
                     await cur_client.send(msg)
                 except Exception as e:
                     logger.exception("Error sending to client: %s.",
-                                     cur_client)
+                                     cur_client.remote_address)
             sl_client.event_archive_changed.clear()
     except Exception as e:
         logger.exception("Error while serving the event archive.")
@@ -434,12 +444,13 @@ async def serve_event_warning(sl_client):
             with clients_lock:
                 clients_copy = copy.copy(clients)
             for cur_client in clients_copy:
-                logger.info("Sending to client %s.", cur_client)
+                logger.info("Sending to client %s.",
+                            cur_client.remote_address)
                 try:
                     await cur_client.send(msg)
                 except Exception as e:
                     logger.exception("Error sending to client: %s.",
-                                      cur_client)
+                                     cur_client.remote_address)
             sl_client.event_warning_available.clear()
     except Exception as e:
         logger.exception("Error while serving the event warning.")
@@ -449,16 +460,23 @@ async def handle_ws_connection(websocket, path, sl_client):
     # Get the logging instance.
     logger_name = 'mss_dataserver'
     logger = logging.getLogger(logger_name)
+    logger.info('Connection request from %s.', websocket.remote_address)
 
     mode = None
     try:
         async for msg in websocket:
+            logger.info('Handling incoming message from %s.',
+                        websocket.remote_address)
             msg = json.loads(msg)
             try:
                 msg_header = validation.WSMessageHeader(**msg['header'])
             except Exception:
                 logger.exception('Invalid message header.')
                 continue
+
+            logger.info('Accepted incoming message from %s: %s.',
+                        websocket.remote_address,
+                        msg_header.json())
 
             if msg_header.msg_class == validation.MsgClassEnum.control:
                 if msg_header.msg_id == validation.MsgControlIdEnum.mode:
@@ -697,7 +715,11 @@ def load_geometry(ctx):
     logger.info('Updating the database inventory with the XML inventory.')
     project = ctx.obj['project']
     project.connect_to_db()
-    project.load_inventory(update_from_xml = True)
+    try:
+        project.load_inventory(update_from_xml = True)
+    except Exception:
+        logger.exception("Error updating the geometry database.")
+        click.echo("Error updating the geometry database. See the log file for details.")
 
 
 @cli.command()
