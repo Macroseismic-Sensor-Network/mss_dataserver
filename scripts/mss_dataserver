@@ -124,6 +124,13 @@ async def register_pgv_client(websocket, sl_client):
         # Send the welcome message.
         await websocket.send(msg)
 
+        # Send the available stations.
+        msg = build_message(msg_class = 'data',
+                            msg_id = 'station_metadata',
+                            payload = sl_client.get_station_metadata())
+        logger.info("Sending the station metadata.")
+        await websocket.send(msg)
+
         # Send the PGV data message.
         msg = build_message(msg_class = 'data',
                             msg_id = 'current_pgv',
@@ -462,6 +469,11 @@ async def handle_ws_connection(websocket, path, sl_client):
     logger = logging.getLogger(logger_name)
     logger.info('Connection request from %s.', websocket.remote_address)
 
+    # Initialize some state arguments of the websocket.
+    # A list of nsl codes of the stations for which the pgv timeseries data
+    # should be served.
+    websocket.pgv_timeseries = []
+
     mode = None
     try:
         async for msg in websocket:
@@ -497,7 +509,7 @@ async def handle_ws_connection(websocket, path, sl_client):
                 else:
                     logger.warning('Unexpected message class: %s.', msg_header)
             elif msg_header.msg_class == validation.MsgClassEnum.request:
-                if msg_header.msg_id == validation.MsgDataIdEnum.event_supplement:
+                if msg_header.msg_id == validation.MsgRequestIdEnum.event_supplement:
                     try:
                         msg_payload = validation.MsgRequestEventSupplementPayload(**msg['payload'])
                     except Exception:
@@ -524,6 +536,19 @@ async def handle_ws_connection(websocket, path, sl_client):
                     # Send the data.
                     if snd_msg is not None:
                         await websocket.send(snd_msg)
+
+                elif msg_header.msg_id == validation.MsgRequestIdEnum.pgv_timeseries:
+                    try:
+                        msg_payload = validation.MsgRequestPgvTimeseriesPayload(**msg['payload'])
+                    except Exception:
+                        logger.exception('Invalid message payload.')
+                        continue
+                    logger.info('Requested pgv timeseries for station %s.',
+                                msg_payload.nsl_code)
+                    try:
+                        websocket.pgv_timeseries.append(msg_payload.nsl_code)
+                    except Exception:
+                        logger.exception('Error adding the station nsl code to the websocket state.')
                 else:
                     logger.warning('Unexpected message class: %s.', msg_header)
             else:
