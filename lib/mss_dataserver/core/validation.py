@@ -57,8 +57,9 @@ class Event(pydantic.BaseModel):
 
 class MsgClassEnum(str, enum.Enum):
     control = 'control'
-    soh = 'soh'
     data = 'data'
+    soh = 'soh'
+    request = 'request'
 
 
 class MsgControlIdEnum(str, enum.Enum):
@@ -83,16 +84,16 @@ class MsgDataIdEnum(str, enum.Enum):
     event_archive = 'event_archive'
     event_warning = 'event_warning'
     key_data = 'key_data'
-    supplement = 'supplement'
+    event_supplement = 'event_supplement'
 
-
+# The general message header.
 class WSMessageHeader(pydantic.BaseModel):
     msg_class: MsgClassEnum
     msg_id: Union[MsgControlIdEnum,
                   MsgDataIdEnum,
                   MsgSohIdEnum,
                   MsgRequestIdEnum]
-    server_time: constr(regex=r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{6})?')
+    server_time: Optional[constr(regex=r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{6})?')] = None
 
     @validator('msg_id')
     def check_msg_id(cls, v, values):
@@ -107,12 +108,30 @@ class WSMessageHeader(pydantic.BaseModel):
             class_enum = MsgSohIdEnum
         elif msg_class is MsgClassEnum.data:
             class_enum = MsgDataIdEnum
+        elif msg_class is MsgClassEnum.request:
+            class_enum = MsgRequestIdEnum
 
         if v not in class_enum.__members__.values():
             raise ValueError('The msg_id "{msg_id}" is not allowed.'.format(msg_id = v))
         return v
 
 
+# The general message model.
 class WSMessage(pydantic.BaseModel):
     header: WSMessageHeader
     payload: dict
+
+
+# The mode control message payload.
+class MsgControlModeDataModeEnum(str, enum.Enum):
+    pgv = 'pgv'
+    keydata = 'keydata'
+
+
+class MsgControlModePayload(pydantic.BaseModel):
+    data_mode: MsgControlModeDataModeEnum
+
+
+# The event_supplement request message payload.
+class MsgRequestEventSupplementPayload(pydantic.BaseModel):
+    public_id: constr(regex=r'^\w+_\w+_\d{4}-\d{2}-\d{2}T\d{6,12}')
