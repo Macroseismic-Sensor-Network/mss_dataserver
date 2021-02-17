@@ -60,6 +60,7 @@ class MsgClassEnum(str, enum.Enum):
     data = 'data'
     soh = 'soh'
     request = 'request'
+    cancel = 'cancel'
 
 
 class MsgControlIdEnum(str, enum.Enum):
@@ -71,6 +72,10 @@ class MsgRequestIdEnum(str, enum.Enum):
     pgv_timeseries = 'pgv_timeseries'
 
 
+class MsgCancelIdEnum(str, enum.Enum):
+    pgv_timeseries = 'pgv_timeseries'
+
+
 class MsgSohIdEnum(str, enum.Enum):
     connection = 'connection'
     server_state = 'server_state'
@@ -78,7 +83,7 @@ class MsgSohIdEnum(str, enum.Enum):
 
 class MsgDataIdEnum(str, enum.Enum):
     current_pgv = 'current_pgv'
-    pgv = 'pgv'
+    pgv_timeseries = 'pgv_timeseries'
     pgv_archive = 'pgv_archive'
     detection_result = 'detection_result'
     event_data = 'event_data'
@@ -113,6 +118,8 @@ class WSMessageHeader(pydantic.BaseModel):
             class_enum = MsgDataIdEnum
         elif msg_class is MsgClassEnum.request:
             class_enum = MsgRequestIdEnum
+        elif msg_class is MsgClassEnum.cancel:
+            class_enum = MsgCancelIdEnum
 
         if v not in class_enum.__members__.values():
             raise ValueError('The msg_id "{msg_id}" is not allowed.'.format(msg_id = v))
@@ -142,4 +149,9 @@ class MsgRequestEventSupplementPayload(pydantic.BaseModel):
 
 # The pgv_timeseries request message payload.
 class MsgRequestPgvTimeseriesPayload(pydantic.BaseModel):
+    nsl_code: constr(regex=r'^\w{1,10}:\w{1,10}:\w{1,4}')
+
+
+# The pgv_timeseries cancel message payload.
+class MsgCancelPgvTimeseriesPayload(pydantic.BaseModel):
     nsl_code: constr(regex=r'^\w{1,10}:\w{1,10}:\w{1,4}')
