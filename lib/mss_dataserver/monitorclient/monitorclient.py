@@ -884,7 +884,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # Merge the current pgv stream.
         self.pgv_stream.merge()
-        self.logger.debug('pgv_stream: %s.', self.pgv_stream.__str__(extended = True))
+        self.logger.info('pgv_stream: %s.', self.pgv_stream.__str__(extended = True))
 
         with self.archive_lock:
             self.pgv_archive_stream = self.pgv_archive_stream + self.pgv_stream
@@ -1375,7 +1375,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         now = utcdatetime.UTCDateTime()
         now.milliseconds = 0
         now.second = 0
-        start_time = now - 600
+        start_time = now - history_period
         working_stream = working_stream.slice(starttime = start_time)
 
         for cur_trace in working_stream:
@@ -1428,7 +1428,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 tmp['data'] = [x for x in cur_trace.data.tolist() if x != self.nodata_value]
             except Exception as e:
                 self.logger.exception("Error getting the PGV data.")
-            pgv_data[cur_trace.get_id()] = tmp
+
+            cur_nsl = ':'.join([cur_trace.stats.network,
+                                cur_trace.stats.station,
+                                cur_trace.stats.location])
+            pgv_data[cur_nsl] = tmp
 
         # Clear the pgv stream.
         self.pgv_stream.clear()
