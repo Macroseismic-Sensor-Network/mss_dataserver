@@ -84,7 +84,7 @@ class MsgSohIdEnum(str, enum.Enum):
 class MsgDataIdEnum(str, enum.Enum):
     current_pgv = 'current_pgv'
     pgv_timeseries = 'pgv_timeseries'
-    pgv_archive = 'pgv_archive'
+    pgv_archive = 'pgv_timeseries_archive'
     detection_result = 'detection_result'
     event_data = 'event_data'
     event_archive = 'event_archive'

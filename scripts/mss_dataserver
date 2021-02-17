@@ -587,7 +587,7 @@ async def handle_ws_connection(websocket, path, sl_client):
 
                     if pgv_ts is not None:
                         msg = build_message(msg_class = 'data',
-                                            msg_id = 'pgv_timeseries',
+                                            msg_id = 'pgv_timeseries_archive',
                                             payload = pgv_ts)
                         logger.info('Sending the pgv timeseries archive for station %s to client %s at %s.',
                                     list(pgv_ts.keys()),
