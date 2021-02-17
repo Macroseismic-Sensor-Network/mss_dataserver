@@ -1438,19 +1438,29 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.pgv_stream.clear()
         return pgv_data
 
-    def get_pgv_timeseries_archive(self):
+    def get_pgv_timeseries_archive(self, nsl_code = None):
         ''' Get the archived PGV timeseries data.
         '''
         pgv_data = {}
         with self.archive_lock:
             working_stream = self.pgv_archive_stream.copy()
 
+        # If provided select the required stations.
+        if nsl_code is not None:
+            tmp_stream = obspy.Stream()
+            for cur_nsl in nsl_code:
+                cur_parts = cur_nsl.split(':')
+                tmp_stream += working_stream.select(network = cur_parts[0],
+                                                    station = cur_parts[1],
+                                                    location = cur_parts[2])
+            working_stream = tmp_stream
+
         # The time in seconds to send to the server.
         display_time = 600
         now = utcdatetime.UTCDateTime()
         now.milliseconds = 0
         now.second = 0
-        start_time = now - 600
+        start_time = now - display_time
         working_stream.trim(starttime = start_time)
 
         for cur_trace in working_stream:
@@ -1462,7 +1472,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 tmp = {}
                 tmp['time'] = [x.timestamp for (x, y) in zip(cur_trace.times(type = "utcdatetime"), cur_trace.data.tolist()) if y != self.nodata_value]
                 tmp['data'] = [x for x in cur_trace.data.tolist() if x != self.nodata_value]
-                pgv_data[cur_trace.get_id()] = tmp
+                cur_nsl = ':'.join([cur_trace.stats.network,
+                                    cur_trace.stats.station,
+                                    cur_trace.stats.location])
+                pgv_data[cur_nsl] = tmp
             except Exception as e:
                 self.logger.exception("Error while preparing the pgv archive.")
 

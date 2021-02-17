@@ -577,6 +577,28 @@ async def handle_ws_connection(websocket, path, sl_client):
                         websocket.pgv_timeseries.append(msg_payload.nsl_code)
                     except Exception:
                         logger.exception('Error adding the station nsl code to the websocket state.')
+
+                    # Send the pgv_timeseries archive to the client.
+                    try:
+                        pgv_ts = sl_client.get_pgv_timeseries_archive(nsl_code = [msg_payload.nsl_code])
+                    except Exception:
+                        logger.exception('Error getting the pgv timeseries archive.')
+                        pgv_ts = None
+
+                    if pgv_ts is not None:
+                        msg = build_message(msg_class = 'data',
+                                            msg_id = 'pgv_timeseries',
+                                            payload = pgv_ts)
+                        logger.info('Sending the pgv timeseries archive for station %s to client %s at %s.',
+                                    list(pgv_ts.keys()),
+                                    id(websocket),
+                                    websocket.remote_address)
+                        try:
+                            await websocket.send(msg)
+                        except Exception as e:
+                            logger.exception("Error sending to client %s at %s.",
+                                             id(websocket),
+                                             websocket.remote_address)
                 else:
                     logger.warning('Unexpected message class: %s.', msg_header)
             elif msg_header.msg_class == validation.MsgClassEnum.cancel:
