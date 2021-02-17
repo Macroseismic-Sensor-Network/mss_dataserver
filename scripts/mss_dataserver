@@ -305,7 +305,7 @@ async def serve_data(sl_client):
                 # Send the data to the registered clients.
                 logger.info("Serving the data.")
                 for cur_client in clients_copy:
-                    logger.info("Sending to client %s at %s.",
+                    logger.info("Sending the current pgv to client %s at %s.",
                                 id(cur_client),
                                 cur_client.remote_address)
                     try:
@@ -314,6 +314,34 @@ async def serve_data(sl_client):
                         logger.exception("Error sending to client %s at %s.",
                                          id(cur_client),
                                          cur_client.remote_address)
+
+
+                # Request the timeseries data.
+                pgv_ts = sl_client.get_pgv_timeseries()
+
+                for cur_client in clients_copy:
+                    if len(cur_client.pgv_timeseries) > 0:
+                        logger.info("Sending pgv timeseries for stations %s to client %s at %s.",
+                                    cur_client.pgv_timeseries,
+                                    id(cur_client),
+                                    cur_client.remote_address)
+                        payload = {}
+                        for cur_nsl in cur_client.pgv_timeseries:
+                            if cur_nsl in pgv_ts.keys():
+                                payload[cur_nsl] = pgv_ts[cur_nsl]
+
+                        # Prepare the message.
+                        msg = build_message(msg_class = 'data',
+                                            msg_id = 'pgv_timeseries',
+                                            payload = payload)
+
+                        try:
+                            await cur_client.send(msg)
+                        except Exception as e:
+                            logger.exception("Error sending to client %s at %s.",
+                                             id(cur_client),
+                                             cur_client.remote_address)
+
             # Reset the PGV data flag.
             sl_client.pgv_data_available.clear()
     except Exception as e:
@@ -551,6 +579,20 @@ async def handle_ws_connection(websocket, path, sl_client):
                         logger.exception('Error adding the station nsl code to the websocket state.')
                 else:
                     logger.warning('Unexpected message class: %s.', msg_header)
+            elif msg_header.msg_class == validation.MsgClassEnum.cancel:
+                if msg_header.msg_id == validation.MsgCancelIdEnum.pgv_timeseries:
+                    try:
+                        msg_payload = validation.MsgCancelPgvTimeseriesPayload(**msg['payload'])
+                    except Exception:
+                        logger.exception('Invalid message payload.')
+                        continue
+                    logger.info('Cancel pgv timeseries for station %s.',
+                                msg_payload.nsl_code)
+                    try:
+                        websocket.pgv_timeseries.remove(msg_payload.nsl_code)
+                    except Exception:
+                        logger.exception('Error removing the station nsl code to the websocket state.')
+
             else:
                 logger.warning('Received an unexpected message: %s.',
                                msg_header)
