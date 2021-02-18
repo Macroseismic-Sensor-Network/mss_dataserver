@@ -543,12 +543,14 @@ async def handle_ws_connection(websocket, path, sl_client):
                     except Exception:
                         logger.exception('Invalid message payload.')
                         continue
-                    logger.info('Requested event supplement for event id: %s.',
+                    logger.info('Requested event supplements %s for event id: %s.',
+                                msg_payload.selection,
                                 msg_payload.public_id)
 
                     # Get the requested supplement data.
                     try:
-                        supp_data = sl_client.get_event_supplement(public_id = msg_payload.public_id)
+                        supp_data = sl_client.get_event_supplement(public_id = msg_payload.public_id,
+                                                                   selection = msg_payload.selection)
                     except Exception:
                         logger.exception('Error getting the event supplement data.')
                         supp_data = {}

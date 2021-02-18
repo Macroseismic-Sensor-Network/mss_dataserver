@@ -1561,11 +1561,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         return event
 
 
-    def get_event_supplement(self, public_id):
+    def get_event_supplement(self, public_id, selection):
         ''' Get the detailed data of an event.
         '''
         event_supplement = {}
         event_supplement['public_id'] = public_id
+        event_supplement['data'] = {}
         #event = self.get_event_by_id(ev_id = ev_id,
         #                             public_id = public_id)
 
@@ -1580,24 +1581,22 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # TODO: Check the available supplement data.
 
         # Load the supplement data.
-        pgvstation = pp_util.get_supplement_data(public_id = public_id,
-                                                 category = 'eventpgv',
-                                                 name = 'pgvstation',
-                                                 directory = self.supplement_dir)
+        for cur_selection in selection:
+            cur_category = cur_selection['category']
+            cur_name = cur_selection['name']
+            cur_data = pp_util.get_supplement_data(public_id = public_id,
+                                                   category = cur_category,
+                                                   name = cur_name,
+                                                   directory = self.supplement_dir)
+            # Convert the dataframe to json and revert it back to a dictionary to
+            # ensure, that the data can be serialized when sendig it over the 
+            # websocket.
+            cur_data = json.loads(cur_data.to_json())
 
-        pgvvoronoi = pp_util.get_supplement_data(public_id = public_id,
-                                                 category = 'eventpgv',
-                                                 name = 'pgvvoronoi',
-                                                 directory = self.supplement_dir)
+            if cur_category not in event_supplement['data'].keys():
+                event_supplement['data'][cur_category] = {}
 
-
-
-        # Build the return dictionary.
-        # Convert the dataframe to json and revert it back to a dictionary to
-        # ensure, that the data can be serialized when sendig it over the 
-        # websocket.
-        event_supplement['pgvstation'] = json.loads(pgvstation.to_json())
-        event_supplement['pgvvoronoi'] = json.loads(pgvvoronoi.to_json())
+            event_supplement['data'][cur_category][cur_name] = cur_data
 
         return event_supplement
 
