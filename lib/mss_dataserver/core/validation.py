@@ -35,6 +35,7 @@ from pydantic import (
 )
 
 from typing import (
+    Dict,
     List,
     Optional,
     Union,
@@ -143,8 +144,32 @@ class MsgControlModePayload(pydantic.BaseModel):
 
 
 # The event_supplement request message payload.
+class MsgRequestEventSupplementNameEnum(str, enum.Enum):
+    pgvstation = 'pgvstation'
+    pgvvoronoi = 'pgvvoronoi'
+    simplices = 'simplices'
+
+
+class MsgRequestEventSupplementCategoryEnum(str, enum.Enum):
+    eventpgv = 'eventpgv'
+    pgvsequence = 'pgvsequence'
+    detectionsequence = 'detectionsequence'
+
+
 class MsgRequestEventSupplementPayload(pydantic.BaseModel):
     public_id: constr(regex=r'^\w+_\w+_\d{4}-\d{2}-\d{2}T\d{6,12}')
+    selection: List[Dict[str, str]]
+
+    @validator('selection')
+    def check_selection(cls, v, values):
+        ''' Check if the dictionary contains valid category and name entries.
+        '''
+        for cur_supp_name in v:
+            keys = list(cur_supp_name.keys())
+            if sorted(keys) != ['category', 'name']:
+                raise ValueError('Wrong dictionary keys for the supplement name.')
+
+        return v
 
 
 # The pgv_timeseries request message payload.
