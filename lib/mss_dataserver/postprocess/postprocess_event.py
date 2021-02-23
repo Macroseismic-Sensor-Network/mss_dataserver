@@ -432,7 +432,7 @@ class EventPostProcessor(object):
         end_window = 6
         win_start = meta['start_time'] - pre_window
         win_end = meta['end_time'] + end_window
-        df_utctime = [obspy.UTCDateTime(x) for x in sequence_df.time]
+        df_utctime = np.array([obspy.UTCDateTime(x) for x in sequence_df.time])
         mask = (df_utctime >= win_start) & (df_utctime <= win_end)
         sequence_df = sequence_df.loc[mask, :]
 
