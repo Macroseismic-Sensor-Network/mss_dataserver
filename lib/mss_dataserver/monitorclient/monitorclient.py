@@ -1625,13 +1625,22 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         '''
         stations = {}
         for cur_station in self.inventory.get_station():
+            active_streams = []
+            for cur_channel in cur_station.channels:
+                cur_streams = cur_channel.get_stream(start_time = obspy.UTCDateTime())
+                if (len(cur_streams) > 0):
+                    active_streams.extend([x.item for x in cur_streams])
+
+            unique_recorder_serials = list(set([x.serial for x in active_streams]))
+
             tmp = {'name': cur_station.name,
                    'network': cur_station.network,
                    'location': cur_station.location,
                    'lon': cur_station.x,
                    'lat': cur_station.y,
                    'height': cur_station.z,
-                   'description': cur_station.description}
+                   'description': cur_station.description,
+                   'recorder_serials': ','.join(unique_recorder_serials)}
             stations[cur_station.nsl_string] = tmp
 
         return stations
