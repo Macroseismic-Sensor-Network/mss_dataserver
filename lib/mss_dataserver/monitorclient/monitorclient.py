@@ -71,7 +71,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                  pgv_sps = 1, autoconnect = False, pgv_archive_time = 1800,
                  trigger_thr = 0.01e-3, warn_thr = 0.01e-3,
                  valid_event_thr = 0.1e-3, felt_thr = 0.1e-3,
-                 event_archive_size = 5):
+                 event_archive_timespan = 48):
         ''' Initialize the instance.
         '''
         easyseedlink.EasySeedLinkClient.__init__(self,
@@ -152,7 +152,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.current_event = None
 
         # The last detected events.
-        self.event_archive_size = event_archive_size
         self.event_archive = []
 
         # The event warning.
@@ -201,7 +200,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # Load the archived data.
         # The timespan to load in hours.
-        self.event_archive_timespan = 336
+        self.event_archive_timespan = 168
         self.load_archive_catalogs(hours = self.event_archive_timespan)
 
     def reset(self):
@@ -1520,7 +1519,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     def get_recent_events(self):
         ''' Return the recent events in serializable form.
         '''
-        recent_event_timespan = 48
+        recent_event_timespan = self.event_archive_timespan
         now = utcdatetime.UTCDateTime()
         today = utcdatetime.UTCDateTime(now.timestamp // 86400 * 86400)
         request_start = today - recent_event_timespan * 3600

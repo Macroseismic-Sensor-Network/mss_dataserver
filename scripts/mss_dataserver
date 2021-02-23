@@ -703,7 +703,7 @@ def start_server(ctx):
     trigger_thr = config['process']['trigger_threshold']
     warn_thr = config['process']['warn_threshold']
     valid_event_thr = config['process']['valid_event_threshold']
-    event_archive_size = config['process']['event_archive_size']
+    event_archive_timespan = config['process']['event_archive_timespan']
 
     if len(stations) == 0:
         stations = None
@@ -732,7 +732,7 @@ def start_server(ctx):
                                          trigger_thr = trigger_thr,
                                          warn_thr = warn_thr,
                                          valid_event_thr = valid_event_thr,
-                                         event_archive_size = event_archive_size)
+                                         event_archive_timespan = event_archive_timespan)
 
     client.seedlink_connect()
     client_thread = threading.Thread(target = client.run)
