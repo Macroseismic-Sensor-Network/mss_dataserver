@@ -71,7 +71,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                  pgv_sps = 1, autoconnect = False, pgv_archive_time = 1800,
                  trigger_thr = 0.01e-3, warn_thr = 0.01e-3,
                  valid_event_thr = 0.1e-3, felt_thr = 0.1e-3,
-                 event_archive_timespan = 48):
+                 event_archive_timespan = 48, min_event_length = 2,
+                 min_event_detections = 2):
         ''' Initialize the instance.
         '''
         easyseedlink.EasySeedLinkClient.__init__(self,
@@ -197,6 +198,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.recorder_map = self.get_recorder_mappings(station_nsl = self.stations)
 
         self.conn.timeout = 10
+
+        # The required limits of an event to be saved in the archive.
+        self.min_event_length = min_event_length
+        self.min_event_detections = min_event_detections
 
         # Load the archived data.
         # The timespan to load in hours.
@@ -586,22 +591,24 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
                 if self.current_event.detection_state == 'closed':
                     try:
-
-                        # Save the event and its metadata in a thread to
-                        # prevent blocking the data acquisition.
-                        # TODO: Copy the event before exporting it. Deepcopy
-                        # throws an error "TypeError: can't pickle
-                        # _thread.RLock objects".
-                        export_event = self.current_event
-                        export_event_thread = threading.Thread(name = 'export_event',
-                                                               target = self.export_event,
-                                                               args = (export_event, ))
-                        self.logger.info("Starting the export_event_thread.")
-                        export_event_thread.start()
-                        # TODO: Add some kind of event signaling to track the
-                        # execution of the export thread.
-                        self.export_event_thread = export_event_thread
-                        self.logger.info("Continue the program execution.")
+                        if (self.current_event.length >= self.min_event_length) and (len(self.current_event.detections) >= self.min_event_detections):
+                            # Save the event and its metadata in a thread to
+                            # prevent blocking the data acquisition.
+                            # TODO: Copy the event before exporting it. Deepcopy
+                            # throws an error "TypeError: can't pickle
+                            # _thread.RLock objects".
+                            export_event = self.current_event
+                            export_event_thread = threading.Thread(name = 'export_event',
+                                                                   target = self.export_event,
+                                                                   args = (export_event, ))
+                            self.logger.info("Starting the export_event_thread.")
+                            export_event_thread.start()
+                            # TODO: Add some kind of event signaling to track the
+                            # execution of the export thread.
+                            self.export_event_thread = export_event_thread
+                            self.logger.info("Continue the program execution.")
+                        else:
+                            self.logger.info("Rejected the event because it didn't fit the required parameters.")
                     finally:
                         # Clear the detector flag.
                         self.detector.new_event_available = False
