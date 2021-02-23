@@ -144,7 +144,7 @@ async def register_pgv_client(websocket, sl_client):
 
         if payload:
             msg = build_message(msg_class = 'data',
-                                msg_id = 'event_archive',
+                                msg_id = 'recent_events',
                                 payload = payload)
 
             # Send the archived PGV data.

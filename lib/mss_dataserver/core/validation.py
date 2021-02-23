@@ -88,6 +88,7 @@ class MsgDataIdEnum(str, enum.Enum):
     pgv_archive = 'pgv_timeseries_archive'
     detection_result = 'detection_result'
     event_data = 'event_data'
+    recent_events = 'recent_events'
     event_archive = 'event_archive'
     event_warning = 'event_warning'
     key_data = 'key_data'
