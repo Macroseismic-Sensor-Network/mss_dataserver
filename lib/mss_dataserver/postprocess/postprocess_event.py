@@ -203,7 +203,7 @@ class EventPostProcessor(object):
         for cur_data in trigger_data:
             cur_coord = [(x.x, x.y) for x in cur_data['simplices_stations']]
             cur_simp_poly = shapely.geometry.Polygon(cur_coord)
-            cur_time = [obspy.UTCDateTime(x).isoformat() for x in cur_data['time']]
+            cur_time = [util.isoformat_tz(obspy.UTCDateTime(x)) for x in cur_data['time']]
             cur_added_to_event = np.zeros(len(cur_time), dtype = bool)
             tmp = np.where(cur_data['trigger'])[0]
             if len(tmp) > 0:
@@ -248,8 +248,8 @@ class EventPostProcessor(object):
 
         # Get some event properties to add to the properties of the feature collections.
         props = {'db_id': meta['db_id'],
-                 'event_start': meta['start_time'].isoformat(),
-                 'event_end': meta['end_time'].isoformat(),
+                 'event_start': util.isoformat_tz(meta['start_time']),
+                 'event_end': util.isoformat_tz(meta['end_time']),
                  'author_uri': self.project.author_uri,
                  'agency_uri': self.project.agency_uri}
 
@@ -324,7 +324,7 @@ class EventPostProcessor(object):
             cur_points = [shapely.geometry.Point(x.x, x.y) for x in stations]
             cur_df = gpd.GeoDataFrame({'geom_vor': [shapely.geometry.Polygon([])] * len(stations),
                                        'geom_stat': cur_points,
-                                       'time': [cur_time.isoformat()] * len(stations),
+                                       'time': [util.isoformat_tz(cur_time)] * len(stations),
                                        'nsl': [x.nsl_string for x in stations],
                                        'x': [x.x for x in stations],
                                        'y': [x.y for x in stations],
@@ -348,7 +348,7 @@ class EventPostProcessor(object):
             cur_nd_points = [shapely.geometry.Point(x.x, x.y) for x in no_data_stations]
             cur_nd_df = gpd.GeoDataFrame({'geom_vor': [shapely.geometry.Polygon([])] * len(no_data_stations),
                                           'geom_stat': cur_nd_points,
-                                          'time': [cur_time.isoformat()] * len(no_data_stations),
+                                          'time': [util.isoformat_tz(cur_time)] * len(no_data_stations),
                                           'nsl': [x.nsl_string for x in no_data_stations],
                                           'x': [x.x for x in no_data_stations],
                                           'y': [x.y for x in no_data_stations],
@@ -373,12 +373,12 @@ class EventPostProcessor(object):
 
         # Get some event properties to add to the properties of the feature collections.
         props = {'db_id': meta['db_id'],
-                     'event_start': meta['start_time'].isoformat(),
-                     'event_end': meta['end_time'].isoformat(),
-                     'sequence_start': min(sequence_df.time),
-                     'sequence_end': max(sequence_df.time),
-                     'author_uri': self.project.author_uri,
-                     'agency_uri': self.project.agency_uri}
+                 'event_start': util.isoformat_tz(meta['start_time']),
+                 'event_end': util.isoformat_tz(meta['end_time']),
+                 'sequence_start': min(sequence_df.time),
+                 'sequence_end': max(sequence_df.time),
+                 'author_uri': self.project.author_uri,
+                 'agency_uri': self.project.agency_uri}
 
         # Write the voronoi dataframe to a geojson file.
         sequence_df = sequence_df.set_geometry('geom_vor')
@@ -432,13 +432,14 @@ class EventPostProcessor(object):
         end_window = 6
         win_start = meta['start_time'] - pre_window
         win_end = meta['end_time'] + end_window
-        mask = (sequence_df.time >= win_start.isoformat()) & (sequence_df.time <= win_end.isoformat())
+        df_utctime = [obspy.UTCDateTime(x) for x in sequence_df.time]
+        mask = (df_utctime >= win_start) & (df_utctime <= win_end)
         sequence_df = sequence_df.loc[mask, :]
 
         # Get some event properties to add to the properties of the feature collections.
         props = {'db_id': meta['db_id'],
-                 'event_start': meta['start_time'].isoformat(),
-                 'event_end': meta['end_time'].isoformat(),
+                 'event_start': util.isoformat_tz(meta['start_time']),
+                 'event_end': util.isoformat_tz(meta['end_time']),
                  'sequence_start': min(sequence_df.time),
                  'sequence_end': max(sequence_df.time),
                  'author_uri': self.project.author_uri,

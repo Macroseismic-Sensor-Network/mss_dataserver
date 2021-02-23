@@ -1,3 +1,4 @@
+import datetime
 import gzip
 import json
 import logging
@@ -188,7 +189,7 @@ def save_supplement(public_id, df, output_dir,
     fc.name = supplement_name
     fc.properties = {
         'public_id': public_id,
-        'computation_time': obspy.UTCDateTime().isoformat()
+        'computation_time': isoformat_tz(obspy.UTCDateTime())
     }
 
     if props is not None:
@@ -201,3 +202,10 @@ def save_supplement(public_id, df, output_dir,
                                   output_dir = output_dir)
 
     return filepath
+
+
+def isoformat_tz(utcdatetime):
+    ''' Convert a obspy UTCDateTime instance to a isoformat string
+    including the UTC Timezone specifier +00:00.
+    '''
+    return utcdatetime.datetime.replace(tzinfo=datetime.timezone.utc).isoformat()
