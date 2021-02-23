@@ -427,8 +427,8 @@ async def serve_current_event(sl_client):
         logger.exception("Error while serving the event data.")
 
 
-async def serve_event_archive(sl_client):
-    ''' Send the event archive to all registerd clients.
+async def serve_recent_events(sl_client):
+    ''' Send the current recent events to all registerd clients.
     '''
     # Get the logging instance.
     logger_name = 'mss_dataserver'
@@ -440,10 +440,10 @@ async def serve_event_archive(sl_client):
             payload = sl_client.get_recent_events()
 
             msg = build_message(msg_class = 'data',
-                                msg_id = 'event_archive',
+                                msg_id = 'recent_events',
                                 payload = payload)
 
-            logger.info("Serving the event archive.")
+            logger.info("Serving the updated recent events.")
             with clients_lock:
                 clients_copy = copy.copy(clients)
             for cur_client in clients_copy:
@@ -774,7 +774,7 @@ def start_server(ctx):
     loop.create_task(serve_current_event(client))
 
     # Serve the updated event archive.
-    loop.create_task(serve_event_archive(client))
+    loop.create_task(serve_recent_events(client))
 
     #loop.create_task(serve_keydata(client))
     #loop.create_task(serve_detection_result(client))
