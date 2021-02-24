@@ -262,11 +262,14 @@ async def serve_keydata(sl_client):
             with clients_keydata_lock:
                 clients_copy = copy.copy(clients_keydata)
             for cur_client in clients_copy:
-                logger.info("Sending to client %s.", cur_client.remote_address)
+                logger.info("Sending the current pgv to client %s at %s.",
+                            id(cur_client),
+                            cur_client.remote_address)
                 try:
                     await cur_client.send(msg)
                 except Exception as e:
-                    logger.exception("Error sending to client: %s.",
+                    logger.exception("Error sending to client %s at %s.",
+                                     id(cur_client),
                                      cur_client.remote_address)
             sl_client.event_keydata_available.clear()
     except Exception as e:
