@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+##############################################################################
+# LICENSE
+#
+# This file is part of mss_dataserver.
+# 
+# If you use mss_dataserver in any program or publication, please inform and
+# acknowledge its authors.
+# 
+# mss_dataserver is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# mss_dataserver is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with mss_dataserver. If not, see <http://www.gnu.org/licenses/>.
+#
+# Copyright 2019 Stefan Mertl
+##############################################################################
+
+import logging
+import os
+import sys
+
+import click
+
+import mss_dataserver.core.project
+import mss_dataserver.core.util as util
+import mss_dataserver.postprocess.postprocess_event as pp_event
+
+
+@click.group()
+@click.argument('config_file')
+@click.pass_context
+def cli(ctx, config_file):
+    # Load the config file.
+    if not os.path.exists(config_file):
+        print('ERROR: Configuration file not found: %s.', config_file)
+        raise click.Abort()
+    config = util.load_configuration(config_file)
+
+    # Create the logging instance.
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(config['log']['loglevel'])
+    log_dir = config['log']['log_dir']
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    log_filepath = os.path.join(log_dir, 'mssds_postprocess.log')
+    handler = util.get_logger_rotating_file_handler(filename = log_filepath,
+                                                    log_level = config['log']['loglevel'],
+                                                    max_bytes = config['log']['max_bytes'],
+                                                    backup_count = config['log']['backup_count'])
+    logger.addHandler(handler)
+
+    #logging.basicConfig(level = config['log']['loglevel'],
+    #                    format = "LOG - %(asctime)s - %(process)d - %(levelname)s - %(name)s: %(message)s")
+    logger.info("Creating the project.")
+    project = mss_dataserver.core.project.Project(**config)
+
+    ctx.obj['project'] = project
+    ctx.obj['config'] = config
+
+@cli.command()
+@click.pass_context
+@click.option('--public_id', help = 'The public ID of the event to process.')
+def process_event(ctx, public_id):
+    ''' Process an event. '''
+
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+    logger.info('Processing the event with public_id {public_id}.'.format(public_id = public_id))
+
+    project = ctx.obj['project']
+    try:
+        project.connect_to_db()
+    except Exception:
+        logger.exception('Error connecting to the database.')
+        sys.exit(-1)
+
+    try:
+        project.load_inventory()
+    except Exception:
+        logger.exception('Error loading the inventory from the database.')
+        sys.exit(-1)
+
+    # Create the PostProcessor.
+    try:
+        pp = pp_event.EventPostProcessor(project = project)
+        pp.set_event(public_id = public_id)
+    except Exception:
+        logger.exception('Error initializing the EventPostProcessor.')
+        sys.exit(-1)
+
+    if pp.event is not None:
+        logger.info('Loaded event: %s.', pp.event.public_id)
+    else:
+        logger.info('No event loaded.')
+
+    # Compute the metadata supplement.
+    logger.info('Computing the meta supplement.')
+    pp.compute_event_metadata_supplement()
+
+    # Compute the pgv sequence supplement.
+    pp.compute_pgv_sequence_supplement()
+
+    # Compute the detection sequence supplement.
+    pp.compute_detection_sequence_supplement()
+
+
+if __name__ == '__main__':
+    cli(obj = {})

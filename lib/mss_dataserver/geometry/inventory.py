@@ -1,31 +1,30 @@
-# LICENSE
-#
-# This file is part of pSysmon.
-#
-# If you use pSysmon in any program or publication, please inform and
-# acknowledge its author Stefan Mertl (stefan@mertl-research.at).
-#
-# pSysmon is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# -*- coding: utf-8 -*-
+##############################################################################
+ # LICENSE
+ #
+ # This file is part of mss_dataserver.
+ # 
+ # If you use mss_dataserver in any program or publication, please inform and
+ # acknowledge its authors.
+ # 
+ # mss_dataserver is free software: you can redistribute it and/or modify
+ # it under the terms of the GNU General Public License as published by
+ # the Free Software Foundation, either version 3 of the License, or
+ # (at your option) any later version.
+ # 
+ # mss_dataserver is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ # GNU General Public License for more details.
+ # 
+ # You should have received a copy of the GNU General Public License
+ # along with mss_dataserver. If not, see <http://www.gnu.org/licenses/>.
+ #
+ # Copyright 2019 Stefan Mertl
+##############################################################################
+
 '''
 The inventory module.
-
-:copyright:
-    Stefan Mertl
-
-:license:
-    GNU General Public License, Version 3 
-    http://www.gnu.org/licenses/gpl-3.0.html
 
 This module contains the classed needed to build a pSysmon geometry 
 inventory.
@@ -123,6 +122,17 @@ class Inventory(object):
         self.recorders = []
         self.sensors = []
 
+    def as_dict(self, style = None):
+        ''' Convert the inventory to a dictionary.
+        '''
+        export_attributes = ['name', 'type']
+        d = {}
+        for cur_attr in export_attributes:
+            d[cur_attr] = getattr(self, cur_attr)
+        d['networks'] = [x.as_dict(style = style) for x in self.networks]
+        return d
+
+
 
     def add_recorder(self, recorder):
         ''' Add a recorder to the inventory.
@@ -180,24 +190,25 @@ class Inventory(object):
 
 
 
-    def remove_station(self, snl):
+    def remove_station(self, nsl):
         ''' Remove a station from the inventory.
 
         Parameters
         ----------
-        scnl : tuple (String, String, String)
-            The SNL code of the station to remove from the inventory.
+        nsl : tuple (String, String, String)
+            The NSL (network, station, location) code of the station to remove
+            from the inventory.
         '''
         removed_station = None
 
-        cur_net = self.get_network(name = snl[1])
+        cur_net = self.get_network(name = nsl[0])
 
         if cur_net:
             if len(cur_net) == 1:
                 cur_net = cur_net[0]
-                removed_station = cur_net.remove_station(name = snl[0], location = snl[2])
+                removed_station = cur_net.remove_station(name = nsl[1], location = nsl[2])
             else:
-                self.logger.error('More than one networks with name %s where found in the inventory.', snl[1])
+                self.logger.error('More than one networks with name %s where found in the inventory.', nsl[0])
         return removed_station
 
 
@@ -547,7 +558,7 @@ class Inventory(object):
         '''
         ret_station = list(itertools.chain.from_iterable([x.stations for x in self.networks]))
 
-        valid_keys = ['name', 'network', 'location']
+        valid_keys = ['id', 'name', 'network', 'location', 'nsl', 'nsl_string']
 
         for cur_key, cur_value in kwargs.items():
             if cur_key in valid_keys:
@@ -666,6 +677,7 @@ class Inventory(object):
             lonLat.extend([stat.get_lon_lat() for stat in curNet.stations])
 
         if len(lonLat) == 0:
+            self.logger.error("Length of lonLat is zero. No stations found in the inventory. Can't compute the UTM zone.")
             return
 
         lonLatMin = np.min(lonLat, 0)
@@ -688,6 +700,16 @@ class Inventory(object):
         epsg_dict = geom_util.get_epsg_dict()
         code = [(c, x) for c, x in epsg_dict.items() if  x == search_dict]
         return code
+
+    def compute_utm_coordinates(self):
+        code = self.get_utm_epsg()
+        proj = pyproj.Proj(init = 'epsg:' + code[0][0])
+
+        for cur_station in self.get_station():
+            x, y = proj(cur_station.get_lon_lat()[0],
+                        cur_station.get_lon_lat()[1])
+            cur_station.x_utm = x
+            cur_station.y_utm = y
 
 
     @classmethod
@@ -895,8 +917,7 @@ class RecorderStream(object):
         ''' Initialization of the instance.
         '''
         # The logging logger instance.
-        logger_prefix = 'mss_data_server'
-        loggerName = logger_prefix + "." + __name__ + "." + self.__class__.__name__
+        loggerName = __name__ + "." + self.__class__.__name__
         self.logger = logging.getLogger(loggerName)
 
         # The name of the stream.
@@ -1000,6 +1021,15 @@ class RecorderStream(object):
             return True
         else:
             return False
+
+    def as_dict(self, style = None):
+        export_attributes = ['name', 'label', 'serial', 'model', 'producer',
+                             'author_uri', 'agency_uri', 'creation_time']
+
+        d = {}
+        for cur_attr in export_attributes:
+            d[cur_attr] = getattr(self, cur_attr)
+        return d
 
 
     def add_component(self, serial, model, producer, name, start_time, end_time):
@@ -1253,16 +1283,47 @@ class RecorderStream(object):
         self.label = merge_stream.label
 
         # Replace existing parameters with the new ones.
-        for cur_parameter in [x for x in self.parameters]:
-            self.logger.debug('Removing parameter %d.', cur_parameter.id)
+        #for cur_parameter in [x for x in self.parameters]:
+        #    self.logger.info('Removing parameter %d.', cur_parameter.id)
+        #    self.remove_parameter_by_instance(cur_parameter)
+
+        updated_parameters = []
+        parameters_to_add = []
+        for cur_parameter in merge_stream.parameters:
+            cur_exist_parameter = self.get_parameter(start_time = cur_parameter.start_time,
+                                                     end_time = cur_parameter.end_time)
+            if len(cur_exist_parameter) == 1:
+                cur_exist_parameter = cur_exist_parameter[0]
+                cur_key = (cur_exist_parameter.rec_stream_id,
+                           cur_exist_parameter.start_time,
+                           cur_exist_parameter.end_time)
+                self.logger.info('Updating existing parameter %s.', cur_key)
+                cur_exist_parameter.gain = cur_parameter.gain
+                cur_exist_parameter.bitweight = cur_parameter.bitweight
+                cur_exist_parameter.author_uri = cur_parameter.author_uri
+                cur_exist_parameter.agency_uri = cur_parameter.agency_uri
+                updated_parameters.append(cur_exist_parameter)
+            elif len(cur_exist_parameter) == 0:
+                parameters_to_add.append(cur_parameter)
+            else:
+                self.logger.error('More than one parameter returned.')
+
+        # Remove the parameters, that have not been updated.
+        parameters_to_remove = [x for x in self.parameters if x not in updated_parameters]
+        for cur_parameter in parameters_to_remove:
+            cur_key = (cur_parameter.rec_stream_id,
+                       cur_parameter.start_time,
+                       cur_parameter.end_time)
+            self.logger.info('Removing parameter %s.', cur_key)
             self.remove_parameter_by_instance(cur_parameter)
 
-        for cur_parameter in merge_stream.parameters:
-            self.logger.debug('Adding parameter %s - %s.',
-                              cur_parameter.start_time_string,
-                              cur_parameter.end_time_string)
+        # Add all new parameters.
+        for cur_parameter in parameters_to_add:
+            cur_key = (cur_parameter.rec_stream_id,
+                       cur_parameter.start_time,
+                       cur_parameter.end_time)
+            self.logger.info('Adding new parameter %s.', cur_key)
             self.add_parameter(cur_parameter)
-
 
         # Replace existing components with the new ones.
         for cur_component in [x for x in self.components]:
@@ -1339,6 +1400,13 @@ class RecorderStreamParameter(object):
         if self.parent_recorder_stream is not None:
             return self.parent_recorder_stream.parent_inventory
         else:
+            return None
+
+    @property
+    def rec_stream_id(self):
+        try:
+            return self.parent_recorder_stream.id
+        except Exception:
             return None
 
 
@@ -2050,12 +2118,12 @@ class Station(object):
             return None
 
     @property
-    def snl(self):
-        return (self.name, self.network, self.location)
+    def nsl(self):
+        return (self.network, self.name, self.location)
 
     @property
-    def snl_string(self):
-        return str.join(':', self.snl)
+    def nsl_string(self):
+        return str.join(':', self.nsl)
 
     @property
     def parent_inventory(self):
@@ -2131,22 +2199,41 @@ class Station(object):
                                   'coord_system', 'channels', 'has_changed']
             for cur_attribute in compare_attributes:
                 if getattr(self, cur_attribute) != getattr(other, cur_attribute):
-                    self.logger.error('Attribute %s not matching %s != %s.', cur_attribute, str(getattr(self, cur_attribute)), str(getattr(other, cur_attribute)))
+                    self.logger.debug('Attribute %s not matching %s != %s.', cur_attribute, str(getattr(self, cur_attribute)), str(getattr(other, cur_attribute)))
                     return False
 
             return True
         else:
             return False
 
+    def as_dict(self, style = None):
+        export_attributes = ['name', 'location', 'description',
+                             'x', 'y', 'z', 'coord_system',
+                             'author_uri', 'agency_uri', 'creation_time']
 
-    def get_scnl(self):
-        scnl = []
+        d = {}
+        if style == 'seed':
+            for cur_attr in export_attributes:
+                d[cur_attr] = getattr(self, cur_attr)
+            d['channels'] = []
+            for cur_channel in self.channels:
+                d['channels'].extend(cur_channel.as_dict(style = style))
+        else:
+            for cur_attr in export_attributes:
+                d[cur_attr] = getattr(self, cur_attr)
+            d['channels'] = [x.as_dict(style = style) for x in self.channels]
+        return d
+
+
+    def get_nslc(self):
+        nslc = []
         for cur_sensor, start_time, end_time in self.sensors:
-            cur_scnl = (self.name, cur_sensor.channel_name, self.network, self.location)
-            if cur_scnl not in scnl:
-                scnl.append(cur_scnl)
+            cur_nslc = (self.network, self.station,
+                        self.location, cur_sensor.channel_name)
+            if cur_nslc not in nslc:
+                nslc.append(cur_nslc)
 
-        return scnl
+        return nslc
 
 
     def get_lon_lat(self):
@@ -2307,22 +2394,81 @@ class Channel(object):
             return None
 
     @property
-    def scnl(self):
+    def nslc(self):
         if self.parent_station is not None:
-            return (self.parent_station.name,
-                    self.name,
-                    self.parent_station.network,
-                    self.parent_station.location)
+            return (self.parent_station.network,
+                    self.parent_station.name,
+                    self.parent_station.location,
+                    self.name)
         else:
             return None
 
     @property
-    def scnl_string(self):
-        return str.join(':', self.scnl)
+    def nslc_string(self):
+        return str.join(':', self.nslc)
 
     @property
     def assigned_recorders(self):
         return list(set([x.item.serial for x in self.streams]))
+
+
+    def as_dict(self, style = None):
+        export_attributes = ['name', 'description',
+                             'author_uri', 'agency_uri', 'creation_time']
+
+
+        if style == 'seed':
+            d = []
+            for cur_tb in self.streams:
+                cur_stream = cur_tb.item
+                cur_stream_start = cur_tb.start_time
+                cur_stream_end = cur_tb.end_time
+                for cur_comp_tb in cur_stream.components:
+                    cur_comp = cur_comp_tb.item
+                    cur_d = {}
+                    cur_comp_start = cur_comp_tb.start_time
+                    cur_comp_end = cur_comp_tb.end_time
+
+                    if cur_comp_start is None:
+                        cur_chan_start = cur_stream_start
+                    elif cur_comp_start < cur_stream_start:
+                        cur_chan_start = cur_stream_start
+                    else:
+                        cur_chan_start = cur_comp_start
+
+                    if cur_comp_end is None:
+                        cur_chan_end = cur_stream_end
+                    elif cur_comp_end > cur_stream_end:
+                        cur_chan_end = cur_stream_end
+                    else:
+                        cur_chan_end = cur_comp_end
+
+                    cur_d['start_time'] = cur_chan_start
+                    cur_d['end_time'] = cur_chan_end
+                    cur_d['name'] = self.name
+                    cur_d['description'] = self.description
+                    cur_d['stream_name'] = cur_stream.name
+                    cur_d['stream_label'] = cur_stream.label
+                    cur_d['recorder_serial'] = cur_stream.serial
+                    cur_d['recorder_model'] = cur_stream.model
+                    cur_d['recorder_producer'] = cur_stream.producer
+                    cur_d['sensor_serial'] = cur_comp.serial
+                    cur_d['sensor_model'] = cur_comp.model
+                    cur_d['sensor_producer'] = cur_comp.producer
+                    d.append(cur_d)
+        else:
+            d = {}
+            for cur_attr in export_attributes:
+                d[cur_attr] = getattr(self, cur_attr)
+            d['streams'] = []
+            for cur_stream in self.streams:
+                cur_d = {}
+                cur_d['start_time'] = cur_stream.start_time
+                cur_d['end_time'] = cur_stream.end_time
+                cur_d.update(cur_stream.item.as_dict(style = style))
+                d['streams'].append(cur_d)
+        return d
+
 
 
     def add_stream(self, serial, model, producer, name, start_time, end_time):
@@ -2546,6 +2692,15 @@ class Network(object):
         else:
             return False
 
+    def as_dict(self, style = None):
+        export_attributes = ['name', 'description', 'type',
+                             'author_uri', 'agency_uri', 'creation_time']
+        d = {}
+        for cur_attr in export_attributes:
+            d[cur_attr] = getattr(self, cur_attr)
+        d['stations'] = [x.as_dict(style = style) for x in self.stations]
+        return d
+
 
 
 
@@ -2618,15 +2773,15 @@ class Network(object):
         id : Integer
             The database id of the station.
 
-        snl : Tuple (station, network, location)
-            The SNL tuple of the station.
+        nsl : Tuple (network, station, location)
+            The NSL tuple of the station.
 
-        snl_string : String
-            The SNL string in the format 'station:network:location'.
+        nsl_string : String
+            The NSL string in the format 'network:station:location'.
         '''
         ret_station = self.stations
 
-        valid_keys = ['name', 'network', 'location', 'id', 'snl', 'snl_string']
+        valid_keys = ['name', 'network', 'location', 'id', 'nsl', 'nsl_string']
 
         for cur_key, cur_value in kwargs.items():
             if cur_key in valid_keys:
@@ -2745,7 +2900,7 @@ class Array(object):
         except:
             end_time = None
 
-        if self.get_station(snl = station.snl):
+        if self.get_station(nsl = station.nsl):
                 # The station is already assigned to the array for this
                 # time-span.
                 if start_time is not None:
@@ -2758,7 +2913,7 @@ class Array(object):
                 else:
                     end_string = 'running'
 
-                self.logger.error('The station %s is already deployed during the specified timespan from %s to %s.', station.snl_string, start_string, end_string)
+                self.logger.error('The station %s is already deployed during the specified timespan from %s to %s.', station.nsl_string, start_string, end_string)
         else:
             self.stations.append(TimeBox(item = station,
                                          start_time = start_time,
@@ -2817,15 +2972,15 @@ class Array(object):
         id : Integer
             The database id of the station.
 
-        snl : Tuple (station, network, location)
-            The SNL tuple of the station.
+        nsl : Tuple (network, station, location)
+            The NSL tuple of the station.
 
-        snl_string : String
-            The SNL string in the format 'station:network:location'.
+        nsl_string : String
+            The NSL string in the format 'station:network:location'.
         '''
         ret_station = self.stations
 
-        valid_keys = ['name', 'network', 'location', 'id', 'snl', 'snl_string']
+        valid_keys = ['name', 'network', 'location', 'id', 'nsl', 'nsl_string']
 
         for cur_key, cur_value in kwargs.items():
             if cur_key in valid_keys:
@@ -2917,3 +3072,12 @@ class TimeBox(object):
         else:
             return self.end_time.isoformat()
 
+    def as_dict(self, style = None):
+        export_attributes = ['start_time',
+                             'end_time']
+
+        d = {}
+        for cur_attr in export_attributes:
+            d[cur_attr] = getattr(self, cur_attr)
+        d['item'] = self.item.as_dict(style = style)
+        return d

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ##############################################################################
  # LICENSE
@@ -22,4 +23,47 @@
  #
  # Copyright 2019 Stefan Mertl
 ##############################################################################
+
+'''
+Remove the database tables of a psysmon project.
+
+:copyright:
+    Stefan Mertl
+
+:license:
+    GNU General Public License, Version 3 
+    (http://www.gnu.org/licenses/gpl-3.0.html)
+'''
+from __future__ import print_function
+
+import sys
+from mss_dataserver.test.util import drop_database_tables
+
+def run():
+    if len(sys.argv) <= 4:
+        print("7 arguments required (db_dialect, db_user, db_host, db_name, db_pwd, db_driver).\n")
+        sys.exit()
+
+    db_dialect = sys.argv[1]
+    db_user = sys.argv[2]
+    db_host = sys.argv[3]
+    db_name = sys.argv[4]
+
+    if len(sys.argv) >= 6:
+        db_pwd = sys.argv[5]
+    else:
+        db_pwd = ''
+
+    if len(sys.argv) == 7:
+        db_driver = sys.argv[6]
+    else:
+        db_driver = 'pymysql'
+
+    drop_database_tables(db_dialect, db_driver, db_user, db_pwd, db_host, db_name) 
+
+if __name__ == '__main__':
+    run()
+
+
+
 

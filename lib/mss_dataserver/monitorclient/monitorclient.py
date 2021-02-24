@@ -1,11 +1,37 @@
-#! /usr/bin/env python3
+# -*- coding: utf-8 -*-
+##############################################################################
+ # LICENSE
+ #
+ # This file is part of mss_dataserver.
+ # 
+ # If you use mss_dataserver in any program or publication, please inform and
+ # acknowledge its authors.
+ # 
+ # mss_dataserver is free software: you can redistribute it and/or modify
+ # it under the terms of the GNU General Public License as published by
+ # the Free Software Foundation, either version 3 of the License, or
+ # (at your option) any later version.
+ # 
+ # mss_dataserver is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ # GNU General Public License for more details.
+ # 
+ # You should have received a copy of the GNU General Public License
+ # along with mss_dataserver. If not, see <http://www.gnu.org/licenses/>.
+ #
+ # Copyright 2019 Stefan Mertl
+##############################################################################
 
 import copy
 import datetime
 import gc
+import gzip
 import json
 import logging
 import os
+import shutil
+import subprocess
 import threading
 import time
 
@@ -18,6 +44,13 @@ from obspy.clients.seedlink.slpacket import SLPacket
 import pyproj
 import scipy
 import scipy.spatial
+
+import mss_dataserver.core.json_util as json_util
+import mss_dataserver.core.validation as validation
+import mss_dataserver.event.core as event_core
+import mss_dataserver.event.detection as event_detection
+import mss_dataserver.event.delaunay_detection as event_ddet
+import mss_dataserver.postprocess.util as pp_util
 
 
 class EasySeedLinkClientException(Exception):
@@ -32,19 +65,33 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     """
     A custom SeedLink client
     """
-    def __init__(self, server_url, stations, inventory,
-                 monitor_stream, stream_lock, data_dir,
+    def __init__(self, project, server_url, stations,
+                 monitor_stream, stream_lock, data_dir, event_dir,
                  process_interval, stop_event, asyncio_loop,
                  pgv_sps = 1, autoconnect = False, pgv_archive_time = 1800,
                  trigger_thr = 0.01e-3, warn_thr = 0.01e-3,
                  valid_event_thr = 0.1e-3, felt_thr = 0.1e-3,
-                 event_archive_size = 5):
+                 event_archive_timespan = 48, min_event_length = 2,
+                 min_event_detections = 2):
         ''' Initialize the instance.
         '''
         easyseedlink.EasySeedLinkClient.__init__(self,
                                                  server_url = server_url,
                                                  autoconnect = autoconnect)
-        self.logger = logging.getLogger('mss_data_server')
+        logger_name = __name__ + "." + self.__class__.__name__
+        self.logger = logging.getLogger(logger_name)
+
+        # Set the logging level of obspy module.
+        logging.getLogger('obspy.clients.seedlink').setLevel(logging.WARNING)
+
+        # The project instance.
+        self.project = project
+
+        # The URI of the agency.
+        self.agency_uri = project.agency_uri
+
+        # The URI of the author.
+        self.author_uri = project.author_uri
 
         # The asyncio event loop. Used to stop the loop if an error occures.
         self.asyncio_loop = asyncio_loop
@@ -66,16 +113,26 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # time.
         self.pgv_archive_stream = obspy.core.Stream()
 
+        # The velocity waveform data archive stream with the same length as the
+        # PGV archive stream.
+        self.vel_archive_stream = obspy.core.Stream()
+
         # The length of the archive stream to keep [s].
         self.pgv_archive_time = pgv_archive_time
+        self.vel_archive_time = pgv_archive_time
 
         # The no-data value.
         self.nodata_value = -999999
 
         self.stream_lock = stream_lock
         self.archive_lock = threading.Lock()
+        self.project_lock = threading.Lock()
 
+        # The common data output directory.
         self.data_dir = data_dir
+
+        # The event data output directory.
+        self.supplement_dir = event_dir
 
         # The time interval [s] used to process the received data.
         self.process_interval = process_interval
@@ -93,10 +150,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # The most recent detected event.
         self.event_triggered = False
-        self.current_event = {}
+        self.current_event = None
 
         # The last detected events.
-        self.event_archive_size = event_archive_size
         self.event_archive = []
 
         # The event warning.
@@ -115,7 +171,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.event_warning_available = asyncio.Event()
 
         # The event trigger state.
-        self.event_data_available = asyncio.Event()
+        self.current_event_available = asyncio.Event()
 
         # The event archive state.
         self.event_archive_changed = asyncio.Event()
@@ -124,13 +180,54 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.event_keydata_available = asyncio.Event()
 
         # The psysmon geometry inventory.
-        self.inventory = inventory
-        self.compute_utm_coordinates(inventory.get_station(), self.inventory)
+        self.inventory = self.project.inventory
+        self.inventory.compute_utm_coordinates()
+
+        # The delaunay detector instance.
+        all_stations = self.inventory.get_station()
+        self.detector = event_ddet.DelaunayDetector(network_stations = all_stations,
+                                                    trigger_thr = self.trigger_thr,
+                                                    window_length = 10,
+                                                    safety_time = 20,
+                                                    p_vel = 3500,
+                                                    min_trigger_window = 3,
+                                                    max_edge_length = 40000,
+                                                    author_uri = self.author_uri,
+                                                    agency_uri = self.agency_uri)
 
         self.recorder_map = self.get_recorder_mappings(station_nsl = self.stations)
 
         self.conn.timeout = 10
 
+        # The required limits of an event to be saved in the archive.
+        self.min_event_length = min_event_length
+        self.min_event_detections = min_event_detections
+
+        # Load the archived data.
+        # The timespan to load in hours.
+        self.event_archive_timespan = 168
+        self.load_archive_catalogs(hours = self.event_archive_timespan)
+
+    def reset(self):
+        ''' Reset the monitorclient to an initial state.
+        '''
+        self.monitor_stream.clear()
+        self.process_stream.clear()
+        self.pgv_stream.clear()
+        self.pgv_archive_stream.clear()
+        self.vel_archive_stream.clear()
+
+        self.event_triggered = False
+        self.current_event = None
+
+        self.project.event_library.clear()
+        self.load_archive_catalogs(hours = self.event_archive_timespan)
+        self.detector.reset()
+
+
+    def seedlink_connect(self):
+        ''' Connect to the seedlink server.
+        '''
         self.connect()
 
         for cur_mss in self.recorder_map:
@@ -138,8 +235,63 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                cur_mss[1],
                                cur_mss[2] + cur_mss[3])
 
-        # Load the archived data.
-        self.load_from_archive()
+
+    def load_archive_catalogs(self, hours = 48):
+        ''' Load the event catalogs of the specified last days.
+        '''
+        self.logger.info("Loading archive catalogs for the last %d hours.", hours)
+        now = utcdatetime.UTCDateTime()
+        start_time = now - hours * 3600
+        start_day = utcdatetime.UTCDateTime(year = start_time.year,
+                                            julday = start_time.julday)
+        n_days = np.ceil((now - start_day) / 86400)
+        n_days = int(n_days)
+        for k in range(n_days):
+            cur_cat_date = now - k * 86400
+            cur_name = "{0:04d}-{1:02d}-{2:02d}".format(cur_cat_date.year,
+                                                        cur_cat_date.month,
+                                                        cur_cat_date.day)
+            self.logger.info("Requesting catalog %s.", cur_name)
+            with self.project_lock:
+                cur_cat = self.project.load_event_catalog(name = cur_name,
+                                                          load_events = True)
+                if cur_cat:
+                    self.logger.info("events in catalog: %s", cur_cat.events)
+                self.logger.info("Catalog keys: %s", self.project.event_library.catalogs.keys())
+
+
+    def trim_archive_catalogs(self, hours = 48):
+        ''' Trim the catalogs in the library to the given timespan.
+        '''
+        self.logger.info('Trimming the event catalogs to %d hours from now.',
+                         hours)
+        self.logger.info("Catalog keys before trim: %s",
+                         self.project.event_library.catalogs.keys())
+        now = utcdatetime.UTCDateTime()
+        start_time = now - hours * 3600
+        start_day = utcdatetime.UTCDateTime(year = start_time.year,
+                                            julday = start_time.julday)
+        n_days = np.ceil((now - start_day) / 86400)
+        n_days = int(n_days)
+        catalogs_to_keep = []
+        for k in range(n_days):
+            cur_cat_date = now - k * 86400
+            cur_name = "{0:04d}-{1:02d}-{2:02d}".format(cur_cat_date.year,
+                                                        cur_cat_date.month,
+                                                        cur_cat_date.day)
+            catalogs_to_keep.append(cur_name)
+
+        available_catalogs = list(self.project.event_library.catalogs.keys())
+        catalogs_to_remove = [x for x in available_catalogs if x not in catalogs_to_keep]
+
+        self.logger.info("Catalog to remove %s", catalogs_to_remove)
+
+        for cur_name in catalogs_to_remove:
+            self.project.event_library.remove_catalog(name = cur_name)
+
+        self.logger.info("Catalog keys after trim: %s",
+                         self.project.event_library.catalogs.keys())
+
 
     def load_archive_file(self):
         ''' Load data from the JSON archive file.
@@ -201,8 +353,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.logger.exception("Error saving the data to the archive. data: %s, archive: %s",
                                   data, archive)
 
+
     def get_recorder_mappings(self, station_nsl = None):
-        ''' Get the mappings of the seedlink SCNL to the MSS SCNL.
+        ''' Get the mappings of the requested NSLC.
+
+        Return the matching NSLC codes of the MSS units relating their
+        serial numbers to the actual station locations.
         '''
         recorder_map = {}
         if station_nsl is None:
@@ -221,7 +377,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 station_list.append(cur_station)
 
         for station in station_list:
-
             for cur_channel in station.channels:
                 stream_tb = cur_channel.get_stream(start_time = obspy.UTCDateTime())
                 cur_loc = stream_tb[0].item.name.split(':')[0]
@@ -231,7 +386,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                            stream_tb[0].item.serial,
                            cur_loc,
                            cur_chan)
-                recorder_map[cur_key] = cur_channel.scnl
+                recorder_map[cur_key] = cur_channel.nslc
 
         self.logger.debug(recorder_map)
         return recorder_map
@@ -253,11 +408,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         #self.logger.debug(str(trace))
         #self.logger.debug("on_data trace data: %s", trace.data)
         self.stream_lock.acquire()
-        cur_scnl = self.recorder_map[tuple(trace.id.split('.'))]
-        trace.stats.network = cur_scnl[2]
-        trace.stats.station = cur_scnl[0]
-        trace.stats.location = cur_scnl[3]
-        trace.stats.channel = cur_scnl[1]
+        cur_nslc = self.recorder_map[tuple(trace.id.split('.'))]
+        trace.stats.network = cur_nslc[0]
+        trace.stats.station = cur_nslc[1]
+        trace.stats.location = cur_nslc[2]
+        trace.stats.channel = cur_nslc[3]
         self.monitor_stream.append(trace)
         #self.monitor_stream.merge(method = 1, fill_value = 'interpolate')
         #self.logger.debug(self.monitor_stream)
@@ -359,17 +514,17 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     async def task_timer(self, callback):
         ''' A timer executing a task at regular intervals.
         '''
-        self.logger.debug('Starting the timer.')
+        self.logger.info('Starting the timer.')
         interval = int(self.process_interval)
         now = obspy.UTCDateTime()
         delay_to_next_interval = interval - (now.timestamp % interval)
-        self.logger.debug('Sleeping for %f seconds.', delay_to_next_interval)
+        self.logger.info('Sleeping for %f seconds.', delay_to_next_interval)
         time.sleep(delay_to_next_interval)
 
         while not self.stop_event.is_set():
             try:
                 self.logger.info('task_timer: Executing callback.')
-                callback()
+                await callback()
             except Exception as e:
                 self.logger.exception(e)
                 self.stop()
@@ -388,8 +543,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         first warning notification of a possible event. The warning has
         has to be confirmed by a detected event.
         '''
-        logger = logging.getLogger('mss_data_server.detect_event_warning')
-        logger.info("Running detect_event_warning.")
+        self.logger.info("Running detect_event_warning.")
         now = obspy.UTCDateTime()
 
         with self.stream_lock:
@@ -432,424 +586,123 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.event_warning['simp_stations'] = simp_stations[mask]
             self.event_warning['trigger_pgv'] = trigger_pgv[mask]
             self.event_warning_available.set()
-            logger.info("Event warning issued.")
-            logger.debug("Event warning data: %s.", self.event_warning)
+            self.logger.info("Event warning issued.")
+            self.logger.debug("Event warning data: %s.", self.event_warning)
         else:
             self.event_warning['time'] = now
             self.event_warning['simp_stations'] = np.array([])
             self.event_warning['trigger_pgv'] = np.array([])
             self.event_warning_available.set()
-            logger.info("No event warning issued.")
-        logger.info("Finished the event warning computation.")
-
+            self.logger.info("No event warning issued.")
+        self.logger.info("Finished the event warning computation.")
 
     def detect_event(self):
-        ''' Run the Voronoi event detections.
+        ''' Run the Voronoi event detection.
         '''
-        logger = logging.getLogger('mss_data_server.detect_event')
-        logger.info('Running the event detection.')
-        detect_win_length = 10
-        safety_win = 10
-        trigger_thr = self.trigger_thr
-        min_trigger_window = 3
+        self.logger.info('Running the event detection.')
+        #detect_win_length = 10
+        #safety_win = 10
+        #trigger_thr = self.trigger_thr
+        #min_trigger_window = 3
 
         now = obspy.UTCDateTime()
         with self.archive_lock:
             working_stream = self.pgv_archive_stream.copy()
+        self.logger.debug("event detection working_stream: %s", working_stream)
 
-        self.logger.info("event detection working_stream: %s", working_stream)
-        max_end_time = np.max([x.stats.endtime for x in working_stream])
-        detect_win_begin = (max_end_time.timestamp - (detect_win_length + safety_win)) // detect_win_length * detect_win_length
-        detect_win_begin = obspy.UTCDateTime(detect_win_begin)
-        detect_win_end = detect_win_begin + 10
-        logger.debug("max_end_time: %s", max_end_time)
-        logger.debug("now: %s", now)
-        logger.debug("detect_win_begin: %s", detect_win_begin)
-        logger.debug("detect_win_end: %s", detect_win_end)
+        # Run the Delaunay detection.
+        self.detector.init_detection_run(stream = working_stream)
+        if self.detector.detection_run_initialized:
+            self.detector.compute_trigger_data()
+            self.detector.evaluate_event_trigger()
 
-        # Compute the maximum possible time window length.
-        tri = self.compute_delaunay(self.inventory.get_station())
-        edge_length = self.compute_edge_length(tri, self.inventory.get_station())
-        # Use only triangles with an edge length smaller than a threshold.
-        if tri:
-            valid_tri = np.argwhere(edge_length < 40000).flatten()
-            logger.debug("valid_tri: %s", valid_tri)
-            edge_length = edge_length[valid_tri]
+            # Evaluate the detection result.
+            if self.detector.new_event_available:
+                self.current_event = self.detector.get_event()
 
-        max_time_window = np.max(edge_length) / 3500
-        max_time_window = np.ceil(max_time_window)
+                self.current_event_available.set()
 
-        logger.debug("max_time_window: %s", max_time_window)
-        detect_stream = working_stream.slice(starttime = detect_win_begin - max_time_window,
-                                             endtime = detect_win_end,
-                                             nearest_sample = False)
-        self.logger.info("event detection detect_stream: %s", detect_stream)
-
-        detect_stations = []
-        for cur_trace in detect_stream:
-            cur_station = self.inventory.get_station(name = cur_trace.stats.station)
-            if cur_station:
-                detect_stations.append(cur_station[0])
-        self.last_detection_result['computation_time'] = now.isoformat()
-        self.last_detection_result['used_stations'] = [x.snl for x in detect_stations]
-
-        logger.debug("number of detect_stream traces: %d.", len(detect_stream))
-        logger.debug("number of detect_stations: %d.", len(detect_stations))
-        #logger.debug("x_utm: %s", [x.x_utm for x in detect_stations])
-
-        trigger_data = []
-        if detect_stations:
-            # Compute the Delaunay triangulation.
-            tri = self.compute_delaunay(detect_stations)
-
-            if tri:
-                # Compute the max. edge lengths of the triangles.
-                edge_length = self.compute_edge_length(tri,
-                                                       detect_stations)
-                valid_tri = np.argwhere(edge_length < 30000).flatten()
-                edge_length = edge_length[valid_tri]
-
-                for k, cur_simp in enumerate(tri.simplices[valid_tri]):
-                    cur_simp_stations = [detect_stations[x] for x in cur_simp]
-                    logger.debug("Computing max PGV for stations: %s.", [x.name for x in cur_simp_stations])
-                    cur_time, cur_pgv = self.compute_max_pgv(stream = detect_stream,
-                                                             stations = cur_simp_stations,
-                                                             edge_lengths = edge_length[k],
-                                                             offset = max_time_window,
-                                                             min_trigger_window = min_trigger_window,
-                                                             compute_interval = 1)
-                    if len(cur_pgv) > 0:
-                        if np.any(np.isnan(cur_pgv)):
-                            logger.warning("There is a NaN value in the cur_pgv.")
-                            logger.debug("cur_pgv: %s.", cur_pgv)
-                            # TODO: JSON can't handle NaN values. Ignore them right
-                            # now until I find a good solution.
-                            continue
-                        cur_trig = np.nanmin(cur_pgv, axis = 1) >= trigger_thr
-                        tmp = {}
-                        tmp['simp_stations'] = [x.snl_string for x in cur_simp_stations]
-                        tmp['time'] = [x.isoformat() for x in cur_time]
-                        tmp['pgv'] = cur_pgv.tolist()
-                        tmp['trigger'] = cur_trig.tolist()
-                        trigger_data.append(tmp)
-
-            # Check if any of the triangles has triggered and get the earliest
-            # time of the triggering.
-            trigger_times = []
-            event_start = None
-            event_end = None
-            for cur_trigger_data in trigger_data:
-                if np.any(cur_trigger_data['trigger']):
-                    cur_mask = cur_trigger_data['trigger']
-                    cur_trigger_start = np.array(cur_trigger_data['time'])[cur_mask][0]
-                    cur_trigger_end = np.array(cur_trigger_data['time'])[cur_mask][-1]
-                    trigger_times.append([obspy.UTCDateTime(cur_trigger_start),
-                                          obspy.UTCDateTime(cur_trigger_end)])
-            trigger_times = np.array(trigger_times)
-            if len(trigger_times) > 0:
-                logger.debug("trigger_times: %s", trigger_times)
-                event_start = np.min(trigger_times[:, 0])
-                event_end = np.max(trigger_times[:, 1])
-
-            # If not in event mode and an event has been declared, set the
-            # event mode.
-            if not self.event_triggered and event_start is not None:
-                logger.info("Event triggered.")
-                try:
-                    cur_event = {}
-                    cur_event['start_time'] = event_start
-                    cur_event['end_time'] = event_end
-                    cur_event['pgv'] = detect_stream.copy()
-                    cur_event['trigger_data'] = {}
-                    cur_event['trigger_data'][detect_win_end.isoformat()] = trigger_data
-                    cur_event['overall_trigger_data'] = [x for x in trigger_data if np.any(x['trigger'])]
-                    cur_event['state'] = 'triggered'
-                    cur_event['max_station_pgv'] = {}
-
-                    # Compute the max. PGV of all used stations.
-                    cur_max_station_pgv_used = {}
-                    for cur_data in trigger_data:
-                        cur_pgv = np.array(cur_data['pgv'])
-                        logger.info("simp_stations: %s", cur_data['simp_stations'])
-                        logger.info("cur_pgv: %s", cur_pgv)
-                        cur_max_pgv = np.max(cur_pgv, axis = 0)
-                        logger.info("cur_max_pgv: %s", cur_max_pgv)
-                        for k, cur_station in enumerate(cur_data['simp_stations']):
-                            cur_station_max = cur_max_pgv[k]
-                            logger.info("cur_station, cur_station_max: %s, %s", cur_station, cur_station_max)
-                            if cur_station not in cur_max_station_pgv_used:
-                                cur_max_station_pgv_used[cur_station] = cur_station_max
-                            elif cur_station_max > cur_max_station_pgv_used[cur_station]:
-                                cur_max_station_pgv_used[cur_station] = cur_station_max
-                    cur_event['max_station_pgv_used'] = cur_max_station_pgv_used
-
-                    # Compute the max. PGV of each triggered station.
-                    cur_max_station_pgv = {}
-                    for cur_data in cur_event['overall_trigger_data']:
-                        cur_pgv = np.array(cur_data['pgv'])
-                        # Use only the triggered data.
-                        cur_pgv = cur_pgv[cur_data['trigger']]
-                        cur_max_pgv = np.max(cur_pgv, axis = 0)
-                        for k, cur_station in enumerate(cur_data['simp_stations']):
-                            cur_station_max = cur_max_pgv[k]
-                            if cur_station not in cur_max_station_pgv:
-                                cur_max_station_pgv[cur_station] = cur_station_max
-                            elif cur_station_max > cur_max_station_pgv[cur_station]:
-                                cur_max_station_pgv[cur_station] = cur_station_max
-
-                    cur_event['max_station_pgv'] = cur_max_station_pgv
-                    self.current_event = cur_event
-                    self.event_triggered = True
-                    self.event_data_available.set()
-                except Exception as e:
-                    logger.exception("Error processing the event trigger.")
-                    self.event_triggered = False
-                    self.current_event = {}
-            elif self.event_triggered and event_start is not None:
-                logger.info("Updating triggered event.")
-                try:
-                    self.current_event['end_time'] = event_end
-                    self.current_event['pgv'] = self.current_event['pgv'] + detect_stream
-                    self.current_event['trigger_data'][detect_win_end.isoformat()] = trigger_data
-                    overall_trigger_data = self.current_event['overall_trigger_data']
-
-                    for cur_trigger_data in [x for x in trigger_data if np.any(x['trigger'])]:
-                        cur_simp_stations = cur_trigger_data['simp_stations']
-                        available_simp_stations = [x['simp_stations'] for x in overall_trigger_data]
-                        if cur_simp_stations not in available_simp_stations:
-                            overall_trigger_data.append(cur_trigger_data)
+                if self.current_event.detection_state == 'closed':
+                    try:
+                        if (self.current_event.length >= self.min_event_length) and (len(self.current_event.detections) >= self.min_event_detections):
+                            # Save the event and its metadata in a thread to
+                            # prevent blocking the data acquisition.
+                            # TODO: Copy the event before exporting it. Deepcopy
+                            # throws an error "TypeError: can't pickle
+                            # _thread.RLock objects".
+                            export_event = self.current_event
+                            export_event_thread = threading.Thread(name = 'export_event',
+                                                                   target = self.export_event,
+                                                                   args = (export_event, ))
+                            self.logger.info("Starting the export_event_thread.")
+                            export_event_thread.start()
+                            # TODO: Add some kind of event signaling to track the
+                            # execution of the export thread.
+                            self.export_event_thread = export_event_thread
+                            self.logger.info("Continue the program execution.")
                         else:
-                            cur_ind = available_simp_stations.index(cur_simp_stations)
-                            overall_trigger_data[cur_ind]['pgv'].extend(cur_trigger_data['pgv'])
-                            overall_trigger_data[cur_ind]['time'].extend(cur_trigger_data['time'])
-                            overall_trigger_data[cur_ind]['trigger'].extend(cur_trigger_data['trigger'])
-
-                    self.current_event['overall_trigger_data'] = overall_trigger_data
-
-                    # Compute the max. PGV of all used stations.
-                    cur_max_station_pgv_used = self.current_event['max_station_pgv_used']
-                    for cur_data in trigger_data:
-                        cur_pgv = np.array(cur_data['pgv'])
-                        logger.info("simp_stations: %s", cur_data['simp_stations'])
-                        logger.info("cur_pgv: %s", cur_pgv)
-                        cur_max_pgv = np.max(cur_pgv, axis = 0)
-                        logger.info("cur_max_pgv: %s", cur_max_pgv)
-                        for k, cur_station in enumerate(cur_data['simp_stations']):
-                            cur_station_max = cur_max_pgv[k]
-                            logger.info("cur_station, cur_station_max: %s, %s", cur_station, cur_station_max)
-                            if cur_station not in cur_max_station_pgv_used:
-                                cur_max_station_pgv_used[cur_station] = cur_station_max
-                            elif cur_station_max > cur_max_station_pgv_used[cur_station]:
-                                cur_max_station_pgv_used[cur_station] = cur_station_max
-                    self.current_event['max_station_pgv_used'] = cur_max_station_pgv_used
-
-                    # Compute the max. PGV of each triggered station.
-                    cur_max_station_pgv = self.current_event['max_station_pgv']
-                    for cur_data in self.current_event['overall_trigger_data']:
-                        cur_pgv = np.array(cur_data['pgv'])
-                        # Use only the triggered data.
-                        cur_pgv = cur_pgv[cur_data['trigger']]
-                        cur_max_pgv = np.max(cur_pgv, axis = 0)
-                        for k, cur_station in enumerate(cur_data['simp_stations']):
-                            cur_station_max = cur_max_pgv[k]
-                            if cur_station not in cur_max_station_pgv:
-                                cur_max_station_pgv[cur_station] = cur_station_max
-                            elif cur_station_max > cur_max_station_pgv[cur_station]:
-                                cur_max_station_pgv[cur_station] = cur_station_max
-                    self.current_event['max_station_pgv'] = cur_max_station_pgv
-                    self.event_data_available.set()
-                except Exception as e:
-                    logger.exception("Error updating the current event.")
-            elif self.event_triggered and event_start is None:
-                logger.info("Event end declared.")
-                try:
-                    self.current_event['pgv'].merge()
-                    self.current_event['state'] = 'closed'
-                    self.event_triggered = False
-                    self.logger.info('overall_trigger_data: %s', self.current_event['overall_trigger_data'])
-                    # Compute the max. PGV of the event.
-                    max_pgv = []
-                    for cur_pgv, cur_trigger in [(x['pgv'], x['trigger']) for x in self.current_event['overall_trigger_data']]:
-                        # Use only the triggered data.
-                        cur_max_pgv = np.array(cur_pgv)[cur_trigger]
-                        max_pgv.append(np.nanmax(cur_max_pgv))
-                    max_pgv = np.nanmax(max_pgv)
-                    self.current_event['max_pgv'] = max_pgv
-                    self.logger.info('max_pgv: %f', self.current_event['max_pgv'])
-                    if max_pgv >= self.valid_event_thr:
-                        self.current_event_to_archive()
-                    self.current_event = {}
-                    self.event_data_available.set()
-                except Exception as e:
-                    logger.exception("Error processing the event end.")
-                    self.current_event = {}
-
-        logger.info("Finished event detection.")
-        logger.debug("Number of trigger_data: %d.", len(trigger_data))
-        self.last_detection_result['trigger_data'] = trigger_data
-
-        # Delete unused instances.
-        del working_stream
-        del detect_stream
-        logger.info('# gc.get_objects: %d', len(gc.get_objects()))
-
-        self.event_detection_result_available.set()
-
-    def compute_delaunay(self, stations):
-        x = [x.x_utm for x in stations]
-        y = [x.y_utm for x in stations]
-        coords = np.array(list(zip(x, y)))
-        try:
-            tri = scipy.spatial.Delaunay(coords)
-        except Exception as e:
-            tri = None
-
-        return tri
-
-    def compute_edge_length(self, tri, stations):
-        x = [x.x_utm for x in stations]
-        y = [x.y_utm for x in stations]
-        coords = np.array(list(zip(x, y)))
-
-        dist = []
-        for cur_simp in tri.simplices:
-            cur_vert = coords[cur_simp]
-            cur_dist = [np.linalg.norm(x - y) for x in cur_vert for y in cur_vert]
-            dist.append(cur_dist)
-        edge_length = np.max(dist, axis=1)
-
-        return np.array(edge_length)
-
-    def compute_utm_coordinates(self, stations, inventory):
-        code = inventory.get_utm_epsg()
-        proj = pyproj.Proj(init = 'epsg:' + code[0][0])
-
-        for cur_station in stations:
-            x, y = proj(cur_station.get_lon_lat()[0],
-                        cur_station.get_lon_lat()[1])
-            cur_station.x_utm = x
-            cur_station.y_utm = y
-
-    def compute_max_pgv(self, stream, stations, edge_lengths, offset,
-                        min_trigger_window = 2, compute_interval = 1):
-        time_window = np.max(edge_lengths) / 3500
-        time_window = np.ceil(time_window)
-
-        if time_window < min_trigger_window:
-            self.logger.debug("Time window too small. Edge lengths: %s.", edge_lengths)
-            time_window = min_trigger_window
-
-        tri_stream = obspy.Stream()
-        for cur_station in stations:
-            tri_stream = tri_stream + stream.select(station = cur_station.name)
-
-        pgv = []
-        time = []
-        self.logger.debug("compute_max_pgv:  tri_stream: %s.", tri_stream)
-
-        pgv_strided = []
-        time_strided = []
-        def strided_app(a, L, S ):  # Window len = L, Stride len/stepsize = S
-            nrows = ((a.size-L)//S)+1
-            n = a.strides[0]
-            return np.lib.stride_tricks.as_strided(a, shape=(nrows,L), strides=(S*n,n))
-        for cur_trace in tri_stream:
-            self.logger.debug("cur_trace.id: %s", cur_trace.id)
-            cur_win_length = int(np.floor(time_window / cur_trace.stats.sampling_rate))
-            cur_offset = int(np.floor(offset / cur_trace.stats.sampling_rate))
-            self.logger.debug("cur_offset: %s", cur_offset)
-            self.logger.debug("cur_win_length: %d", cur_win_length)
-            self.logger.debug("cur_trace.data: %s", cur_trace.data)
-            if len(cur_trace.data) < cur_win_length:
-                self.logger.error("The window length is smaller than the data size.")
-                continue
-            cur_data = strided_app(cur_trace.data, cur_win_length,  1)
-            self.logger.debug("cur_data: %s", cur_data)
-            cur_max_pgv = np.max(cur_data, axis = 1)
-            self.logger.debug("sp filter: %s", cur_max_pgv)
-            cur_max_pgv = cur_max_pgv[(cur_offset - cur_win_length + compute_interval):]
-            cur_start = cur_trace.stats.starttime + (cur_offset - cur_win_length + compute_interval + cur_win_length - 1) * cur_trace.stats.delta
-            cur_time = [cur_start + x * compute_interval for x in range(len(cur_max_pgv))]
-            pgv_strided.append(cur_max_pgv)
-            time_strided.append(cur_time)
-
-#        for cur_stream in tri_stream.slide(window_length = time_window,
-#                                           step = compute_interval,
-#                                           offset = offset - time_window + compute_interval,
-#                                           include_partial_windows = False):
-#            if len(cur_stream) != 3:
-#                self.logger.error("Not exactly 3 traces in the stream: %s.", cur_stream)
-#                continue
-#            cur_pgv = []
-#            for cur_trace in cur_stream:
-#                cur_pgv.append(np.max(cur_trace.data))
-#
-#            pgv.append(cur_pgv)
-#            time.append(cur_trace.stats.endtime)
-
-        # Delete unused instances.
-        del tri_stream
-
-#        self.logger.info("obspy slide pgv: %s", np.array(pgv))
-#        self.logger.info("obspy slide time: %s", np.array(time))
-
-        if len(set([len(x) for x in pgv_strided])) == 1:
-            pgv_strided = np.array(pgv_strided).transpose()
-            time_strided = np.array(time_strided).transpose()[:,0]
+                            self.logger.info("Rejected the event because it didn't fit the required parameters.")
+                    finally:
+                        # Clear the detector flag.
+                        self.detector.new_event_available = False
         else:
-            self.logger.error("The size of the computed PGV max don't match: %s.", pgv_strided)
-            pgv_strided = []
-        self.logger.debug("pgv_strides: %s", pgv_strided)
-        self.logger.debug("time_strided: %s", time_strided)
+            self.logger.warning("Failed to initialize the detection run.")
 
-        #return np.array(time), np.array(pgv)
-        return time_strided, pgv_strided
 
-    def current_event_to_archive(self):
-        ''' Save the current event in the archive.
-        '''
-        self.logger.debug("Saving the current event to the archive.")
-        if self.current_event:
-            self.event_archive.append(self.current_event)
-            self.event_archive = self.event_archive[-self.event_archive_size:]
-            self.event_archive_changed.set()
-            self.save_to_archive('event_archive')
-
-    def process_monitor_stream(self):
+    async def process_monitor_stream(self):
         ''' Process the data in the monitor stream.
 
         '''
-        logger = logging.getLogger('mss_data_server.detect_monitor_stream')
-        logger.info('Processing the monitor_stream.')
-        logger.info('# gc.get_objects: %d', len(gc.get_objects()))
-        self.stream_lock.acquire()
-        monitor_stream_length = len(self.monitor_stream)
-        self.monitor_stream.merge()
-        self.stream_lock.release()
+        self.logger.info('Processing the monitor_stream.')
+        self.logger.info('# gc.get_objects: %d', len(gc.get_objects()))
+        with self.stream_lock:
+            monitor_stream_length = len(self.monitor_stream)
+            self.monitor_stream.merge()
+            self.monitor_stream.sort(keys = ['station'])
+            self.logger.debug('monitor_stream before selecting process stream: %s', str(self.monitor_stream.__str__(extended = True)))
+
+        # The minimum length of a trace to be added to the process stream [s].
+        process_min_length = 10
+
         if monitor_stream_length > 0:
             #now = obspy.UTCDateTime()
             #process_end_time = now - now.timestamp % self.process_interval
             #logger.debug('Trimming to end time: %s.', process_end_time)
-            self.stream_lock.acquire()
-            for cur_trace in self.monitor_stream:
-                sec_remain = cur_trace.stats.endtime.timestamp % self.process_interval
-                cur_end_time = obspy.UTCDateTime(round(cur_trace.stats.endtime.timestamp - sec_remain))
-                cur_end_time = cur_end_time - cur_trace.stats.delta
-                logger.debug('Trimming %s to end time: %f.', cur_trace.id, cur_end_time.timestamp)
-                cur_slice_trace = cur_trace.slice(endtime = cur_end_time)
-                if len(cur_slice_trace) > 0:
-                    self.process_stream.append(cur_slice_trace)
-                    cur_trace.trim(starttime = cur_end_time + cur_trace.stats.delta)
-            self.stream_lock.release()
+            with self.stream_lock:
+                for cur_trace in self.monitor_stream:
+                    sec_remain = cur_trace.stats.endtime.timestamp % self.process_interval
+                    cur_end_time = obspy.UTCDateTime(round(cur_trace.stats.endtime.timestamp - sec_remain))
+                    cur_end_time = cur_end_time - cur_trace.stats.delta
 
-            logger.info('process_stream: %s', str(self.process_stream))
+                    self.logger.debug("Computed end_time: %s.",
+                                      cur_end_time.isoformat())
+                    # Check if the trace length is larger xx seconds.
+                    if (cur_end_time - cur_trace.stats.starttime) < process_min_length - cur_trace.stats.delta:
+                        self.logger.debug("The process trace of %s with length %f would be smaller than %f seconds.",
+                                          cur_trace.id,
+                                          cur_end_time - cur_trace.stats.starttime,
+                                          process_min_length)
+                        continue
+
+                    self.logger.debug('Extracting process trace for %s.', cur_trace.id)
+                    cur_slice_trace = cur_trace.slice(endtime = cur_end_time)
+                    if len(cur_slice_trace) > 0:
+                        self.process_stream.append(cur_slice_trace)
+                        cur_trace.trim(starttime = cur_end_time + cur_trace.stats.delta)
+
+            self.process_stream.sort()
+            self.logger.debug('process_stream: %s', self.process_stream.__str__(extended = True))
 
             with self.stream_lock:
-                logger.info('monitor_stream: %s', str(self.monitor_stream))
+                self.logger.debug('monitor_stream: %s', str(self.monitor_stream.__str__(extended = True)))
 
             # Get a stream containing only equal length traces per station.
             el_stream = self.get_equal_length_traces()
-            self.logger.debug('Got el_stream: %s.', el_stream)
+            self.logger.debug('Got el_stream: %s.', el_stream.__str__(extended = True))
+
+            # TODO: Handle the data in the process stream that has not been
+            # used to create the el_stream.
+            self.logger.debug('Data not used for el_stream: %s.', self.process_stream.__str__(extended = True))
 
             # Detrend to remove eventual offset.
             el_stream = el_stream.split()
@@ -859,23 +712,32 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             # Convert the amplitudes from counts to m/s.
             self.convert_to_physical_units(el_stream)
 
+            # Add the velocity waveform data to an archive stream.
+            with self.archive_lock:
+                self.vel_archive_stream = self.vel_archive_stream + el_stream
+
             # Compute the PGV values.
-            self.compute_pgv(el_stream)
+            # TODO: Computing the PGV is CPU intensive and could block the
+            # websocket server. Try to find a solution to move the computation to a
+            # separate process.
+            await self.compute_pgv(el_stream)
 
             # Trim the archive stream.
             self.trim_archive()
 
             # Start the event alarm detection using the most recent pgv values.
-            try:
-                self.detect_event_warning()
-            except Exception as e:
-                self.logger.exception("Error computing the event warning.")
+            #try:
+            #    self.detect_event_warning()
+            #except Exception as e:
+            #    self.logger.exception("Error computing the event warning.")
 
             # Signal available PGV data.
             self.pgv_data_available.set()
 
             # Start the event detection.
             try:
+                # TODO. Detecting the event is CPU intensive. Try to find a way
+                # to move the detection to another process.
                 self.detect_event()
             except Exception as e:
                 self.logger.exception("Error computing the event detection.")
@@ -888,25 +750,25 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             # TODO: Check if something could be interesting and remove the code
             # below.
             if len(set([len(x) for x in export_stream])) != 1:
-                logger.warning('The length of the traces in the stream is not equal. No export.')
-                logger.debug('Add the stream back to the monitor stream.')
+                self.logger.warning('The length of the traces in the stream is not equal. No export.')
+                self.logger.debug('Add the stream back to the monitor stream.')
                 stream_lock.acquire()
                 monitor_stream += export_stream
                 monitor_stream.merge()
-                logger.debug(monitor_stream)
+                self.logger.debug(monitor_stream)
                 stream_lock.release()
             else:
                 if len(export_stream) > 0:
-                    logger.debug('Exporting the stream.')
+                    self.logger.debug('Exporting the stream.')
                     for cur_trace in export_stream:
-                        logger.debug(cur_trace.get_id().replace('.', '_'))
-                        logger.debug(cur_trace.stats.starttime.isoformat())
+                        self.logger.debug(cur_trace.get_id().replace('.', '_'))
+                        self.logger.debug(cur_trace.stats.starttime.isoformat())
                         cur_filename = 'syscom_{0:s}_{1:s}.msd'.format(cur_trace.get_id().replace('.', '_'), cur_trace.stats.starttime.isoformat().replace('-', '').replace(':', '').replace('.', '_').replace('T', '_'))
                         cur_filename = os.path.join(data_dir, cur_filename)
                         export_stream.write(cur_filename, format = 'MSEED', reclen = 512, encoding = 11)
-                    logger.debug('Done.')
+                    self.logger.debug('Done.')
                 else:
-                    logger.debug('No data in stream.')
+                    self.logger.debug('No data in stream.')
 
             # Delete old files.
             now = utcdatetime.UTCDateTime()
@@ -917,8 +779,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     def get_equal_length_traces(self):
         ''' Get a stream containing traces with equal length per station.
         '''
+        self.logger.debug('Computing equal length traces.')
         unique_stations = [(x.stats.network, x.stats.station, x.stats.location) for x in self.process_stream]
         unique_stations = list(set(unique_stations))
+        unique_stations = sorted(unique_stations)
         el_stream = obspy.core.Stream()
         for cur_station in unique_stations:
             self.logger.debug('Getting stream for %s.', cur_station)
@@ -934,39 +798,47 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
             # Check if all required channels are present:
             missing_data = False
-            required_scnl = [x for x in self.recorder_map.values()
-                             if x[0] == cur_station[1]]
-            available_scnl = [(x.stats.station,
-                               x.stats.channel,
-                               x.stats.network,
-                               x.stats.location) for x in cur_stream]
-            self.logger.debug('available_scnl: %s', available_scnl)
-            self.logger.debug('required_scnl: %s', required_scnl)
+            required_nslc = [x for x in self.recorder_map.values()
+                             if x[1] == cur_station[1]]
+            available_nslc = [(x.stats.network,
+                               x.stats.station,
+                               x.stats.location,
+                               x.stats.channel) for x in cur_stream]
+            self.logger.debug('available_nslc: %s', available_nslc)
+            self.logger.debug('required_nslc: %s', required_nslc)
 
-            for cur_required_scnl in required_scnl:
-                if cur_required_scnl not in available_scnl:
+            for cur_required_nslc in required_nslc:
+                if cur_required_nslc not in available_nslc:
                     self.logger.debug('Data for channel %s is missing.',
-                                      cur_required_scnl)
+                                      cur_required_nslc)
                     missing_data = True
                     break
 
             if missing_data:
-                self.logger.debug('Skipping station because of missing channel data.')
+                self.logger.debug('Skipping station because of missing channel data. Re-inserting the data into the process stream.')
                 self.process_stream.extend(cur_stream)
                 continue
 
-            # Select a timespan with equal end time.
+            # Select a timespan with equal end time. Re-insert the remaining
+            # stream into the process_stream.
             min_end = np.min([x.stats.endtime for x in cur_stream])
             cur_el_stream = cur_stream.slice(endtime = min_end)
             cur_rem_stream = cur_stream.trim(starttime = min_end + cur_el_stream[0].stats.delta)
             self.process_stream.extend(cur_rem_stream)
+            self.logger.debug('Remaining stream added back to the process stream: %s', cur_rem_stream)
+
+            # In case of non-equal start times, drop the data before the common
+            # start time.
+            max_start = np.max([x.stats.starttime for x in cur_el_stream])
+            cur_rem_stream = cur_el_stream.slice(endtime = max_start - cur_el_stream[0].stats.delta)
+            cur_el_stream = cur_el_stream.slice(starttime = max_start)
+            self.logger.debug('Stream dropped because the start time was not equal: %s', cur_rem_stream)
             self.logger.debug('el_stream: %s', cur_el_stream)
-            self.logger.debug('rem_stream: %s', cur_rem_stream)
             el_stream.extend(cur_el_stream)
 
         return el_stream
 
-    def compute_pgv(self, stream):
+    async def compute_pgv(self, stream):
         ''' Compute the PGV values of the stream.
         '''
         self.logger.info('Computing the PGV.')
@@ -1005,15 +877,29 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     cur_x = cur_x_trace.data
                     cur_y = cur_y_trace.data
 
+                    # Handle masked arrays.
+                    if isinstance(cur_x, np.ma.MaskedArray):
+                        cur_x = cur_x.data
+                    if isinstance(cur_y, np.ma.MaskedArray):
+                        cur_y = cur_y.data
+
                     if len(cur_x) != len(cur_y):
-                        self.logger.error("The x and y data lenght dont't match. Can't compute the res. PGV for this trace.")
+                        self.logger.error("The x and y data lenght dont't match. Can't compute the res. PGV for station %s and windowed stream: %s.", cur_station, win_st)
+                        continue
+
+                    # Check for nan values.
+                    if np.any(np.isnan(cur_x)) or np.any(np.isnan(cur_y)):
+                        nan_mask = np.isnan(cur_x) | np.isnan(cur_y)
+                        cur_x = cur_x[~nan_mask]
+                        cur_y = cur_y[~nan_mask]
+
+                    # Check if there are enough data values available.
+                    if len(cur_x) < len(cur_x_trace.data) / 2:
+                        self.logger.error("There are not enough non-nan data values available. Skipping this window. win_st: %s.", win_st)
                         continue
 
                     cur_sec_remain = cur_x_trace.stats.starttime.timestamp % samp_interval
                     cur_win_start = cur_x_trace.stats.starttime - cur_sec_remain
-                    #cur_win_end = cur_win_start + self.process_interval - cur_x_trace.stats.delta
-                    #cur_pgv_time = cur_x_trace.stats.starttime + \
-                    #               (cur_x_trace.stats.endtime - cur_x_trace.stats.starttime) / 2
                     cur_pgv_time = cur_win_start + samp_interval / 2
                     cur_pgv_value = np.max(np.sqrt(cur_x**2 + cur_y**2))
                     cur_pgv.append([cur_pgv_time, cur_pgv_value])
@@ -1037,20 +923,17 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # Merge the current pgv stream.
         self.pgv_stream.merge()
-        self.logger.info('pgv_stream: %s.', self.pgv_stream)
+        self.logger.info('pgv_stream: %s.', self.pgv_stream.__str__(extended = True))
 
         with self.archive_lock:
             self.pgv_archive_stream = self.pgv_archive_stream + self.pgv_stream
 
         # Merge the archive stream.
         with self.archive_lock:
-            self.pgv_archive_stream.merge(fill_value = self.nodata_value)
-        self.logger.info("pgv_archive_stream: %s", self.pgv_archive_stream)
+            self.pgv_archive_stream.merge()
+        self.logger.debug("pgv_archive_stream: %s", self.pgv_archive_stream.__str__(extended = True))
         self.logger.info("Finished compute_pgv.")
 
-        #self.pgv_archive_stream.write("/home/stefan/Schreibtisch/pgv_beben_neunkirchen.msd",
-        #                             format = "MSEED",
-        #                             reclen = 512)
 
     def convert_to_physical_units(self, stream):
         ''' Convert the counts to physical units.
@@ -1115,7 +998,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             cur_y = cur_y_trace.data
 
             if len(cur_x) != len(cur_y):
-                logger.error("The x and y data lenght dont't match. Can't compute the res. PGV for this trace.")
+                self.logger.error("The x and y data lenght dont't match. Can't compute the res. PGV for this trace.")
                 continue
 
             self.logger.debug("x: %s", cur_x)
@@ -1163,6 +1046,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     def get_triggered_event_stations(self):
         ''' Get the stations which have triggered during the last event.
         '''
+        # TODO: Fix the method to work with the new event objects.
         now = utcdatetime.UTCDateTime()
         window = 300
         triggered_stations = {}
@@ -1187,11 +1071,391 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.logger.debug("max_end_time: %s.", max_end_time)
                 crop_start_time = max_end_time - self.pgv_archive_time
                 self.pgv_archive_stream.trim(starttime = crop_start_time)
-                self.logger.debug("Trimmed the archive stream to %s.",
-                                 crop_start_time)
+                self.logger.debug("Trimmed the pgv archive stream start time to %s.",
+                                  crop_start_time)
+                self.logger.debug("pgv_archive_stream: %s", self.pgv_archive_stream)
 
-    def get_pgv_data(self):
-        ''' Get the latest PGV data.
+            if len(self.vel_archive_stream) > 0:
+                max_end_time = np.max([x.stats.endtime for x in self.vel_archive_stream if x])
+                self.logger.debug("max_end_time: %s.", max_end_time)
+                crop_start_time = max_end_time - self.vel_archive_time
+                self.vel_archive_stream.trim(starttime = crop_start_time)
+                self.logger.debug("Trimmed the velocity archive stream start time to %s.",
+                                  crop_start_time)
+                self.logger.debug("vel_archive_stream: %s", self.vel_archive_stream)
+
+
+    def export_event(self, export_event):
+        ''' Save the event.
+        '''
+        # Get or create the event catalog and add the event to it.
+        cat_name = "{0:04d}-{1:02d}-{2:02d}".format(export_event.start_time.year,
+                                                    export_event.start_time.month,
+                                                    export_event.start_time.day)
+
+        with self.project_lock:
+            config_filepath = self.project.config['config_filepath']
+            cur_cat = self.project.get_event_catalog(cat_name)
+            cur_cat.add_events([export_event, ])
+
+            # Get or create the detection catalog and add the event
+            # detections to it.
+            det_catalogs = self.project.get_detection_catalog_names()
+            if cat_name not in det_catalogs:
+                cur_det_cat = self.project.create_detection_catalog(name = cat_name)
+            else:
+                cur_det_cat = self.project.load_detection_catalog(name = cat_name)
+            cur_det_cat.add_detections(export_event.detections)
+
+            # Write the detections to the database. This has to be done
+            # separately. Adding the detection to the event and then
+            # writing the event to the database doesn't write the
+            # detections to the database.
+            # TODO: An error occured, because the detection already had
+            # a database id assigned, and the write_to_database method
+            # tried to update the existing detection. This part of the
+            # method is not yet working, thus an error was thrown. This
+            # should not happen, because only fresh detections with no
+            # database id should be available at this point!!!!!
+            for cur_detection in export_event.detections:
+                cur_detection.write_to_database(self.project)
+
+            # Write the event to the database.
+            self.logger.info("Writing the event to the database.")
+            export_event.write_to_database(self.project)
+
+        # Export the event data to disk files.
+        self.logger.info("Exporting the event data.")
+        self.save_event_supplement(export_event)
+
+        # Set the event to notify that the archive has changes.
+        self.event_archive_changed.set()
+
+        # Compute the geojson supplement data.
+        proc_result = subprocess.run(['mssds_postprocess',
+                                      config_filepath,
+                                      'process-event',
+                                      '--public_id',
+                                      export_event.public_id])
+
+        # Trim the event catalogs.
+        self.trim_archive_catalogs(hours = self.event_archive_timespan)
+
+
+    def get_event_supplement_dir(self, public_id, category = None):
+        ''' Get the supplement directory of an event.
+        '''
+        event_dir = pp_util.event_dir_from_publicid(public_id)
+        output_dir = os.path.join(self.supplement_dir,
+                                  event_dir)
+
+        if category is not None:
+            sup_map = pp_util.get_supplement_map()
+            if category in sup_map.keys():
+                output_dir = os.path.join(output_dir,
+                                          category)
+            else:
+                logger.error('The category %s was not found in the available supllement data categories.', category)
+
+        return output_dir
+
+
+    def save_event_supplement(self, export_event):
+        ''' Save the supplement data of the event.
+        '''
+        # Build the output directory.
+        output_dir = self.get_event_supplement_dir(public_id = export_event.public_id,
+                                                   category = 'detectiondata')
+
+        self.logger.info("Exporting the event data to folder %s.", output_dir)
+
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        # The timespan to add in front or at the back of the event limits
+        # when exporting waveform data.
+        pre_win = 20
+        post_win = 20
+
+        pgv_stream = self.save_supplement_pgv(event = export_event,
+                                              pre_win = pre_win,
+                                              post_win = post_win,
+                                              output_dir = output_dir)
+
+        self.save_supplement_vel(event = export_event,
+                                 pre_win = pre_win,
+                                 post_win = post_win,
+                                 output_dir = output_dir)
+
+        self.save_supplement_inventory(event = export_event,
+                                       output_dir = output_dir)
+
+        self.save_supplement_metadata(event = export_event,
+                                      pgv_stream = pgv_stream,
+                                      output_dir = output_dir)
+
+        self.save_supplement_detection_data(event = export_event,
+                                            output_dir = output_dir)
+
+
+    def save_supplement_pgv(self, event, pre_win, post_win, output_dir):
+        ''' Save the PGV data supplement.
+        '''
+        start_time = event.start_time - pre_win
+        end_time = event.end_time + post_win
+        # Get the PGV data from the archive stream.
+        with self.archive_lock:
+            pgv_stream = self.pgv_archive_stream.slice(starttime = start_time,
+                                                       endtime = end_time)
+
+        # Split the pgv stream to ensure a propper export to miniseed file.
+        split_pgv_stream = pgv_stream.split()
+
+        supplement_name = 'pgv'
+        supplement_category = 'detectiondata'
+        filename = "{public_id}_{category}_{name}.msd".format(public_id = event.public_id,
+                                                              category = supplement_category,
+                                                              name = supplement_name)
+        filepath = os.path.join(output_dir, filename)
+        self.logger.info("Writing the PGV data to file %s.", filepath)
+        split_pgv_stream.write(filepath,
+                               format = 'MSEED',
+                               blocksize = 512)
+
+        # The miniseed file is not compressed, because it is using float
+        # values. Compress it using gzip.
+        zip_filepath = filepath + '.gz'
+        with open(filepath, 'rb') as in_file:
+            with gzip.open(zip_filepath, 'wb') as out_file:
+                shutil.copyfileobj(in_file, out_file)
+
+        # Remove the uncompressed file.
+        os.remove(filepath)
+
+        return pgv_stream
+
+
+    def save_supplement_vel(self, event, pre_win, post_win, output_dir):
+        ''' Save the velocity data supplement.
+        '''
+        start_time = event.start_time - pre_win
+        end_time = event.end_time + post_win
+        # Get the velocity data from the archive.
+        with self.archive_lock:
+            vel_stream = self.vel_archive_stream.slice(starttime = start_time,
+                                                       endtime = end_time)
+        vel_stream.merge()
+        vel_stream = vel_stream.split()
+        self.logger.debug("vel_stream: %s", vel_stream.__str__(extended = True))
+        supplement_name = 'velocity'
+        supplement_category = 'detectiondata'
+        filename = "{public_id}_{category}_{name}.msd".format(public_id = event.public_id,
+                                                              category = supplement_category,
+                                                              name = supplement_name)
+        filepath = os.path.join(output_dir, filename)
+        self.logger.info("Writing the velocity data to file %s.", filepath)
+        vel_stream.write(filepath,
+                         format = 'MSEED',
+                         blocksize = 512)
+        # The miniseed file is not compressed, because it is using float
+        # values. Compress it using gzip.
+        zip_filepath = filepath + '.gz'
+        with open(filepath, 'rb') as in_file:
+            with gzip.open(zip_filepath, 'wb') as out_file:
+                shutil.copyfileobj(in_file, out_file)
+
+        # Remove the uncompressed file.
+        os.remove(filepath)
+
+
+
+    def save_supplement_inventory(self, event, output_dir):
+        ''' Save the supplement inventory data to a json file.
+        '''
+        # Write the inventory to a json file.
+        try:
+            supplement_name = 'geometryinventory'
+            category = 'detectiondata'
+            filename = "{public_id}_{category}_{name}.json.gz".format(public_id = event.public_id,
+                                                                      category = category,
+                                                                      name = supplement_name)
+            filepath = os.path.join(output_dir, filename)
+            self.logger.info("Writing the geometry inventory data to file %s.",
+                             filepath)
+
+            # Prepare the file container for exporting to json file.
+            container_data = {}
+            container_data['metadata'] = {'db_id': event.db_id,
+                                          'public_id': event.public_id}
+            container_data['inventory'] = self.inventory.as_dict()
+            file_container = json_util.FileContainer(data = container_data,
+                                                     agency_uri = self.agency_uri,
+                                                     author_uri = self.author_uri)
+            with gzip.open(filepath, 'wt', encoding = 'UTF-8') as json_file:
+                pref = json.dump(file_container,
+                                 fp = json_file,
+                                 cls = json_util.GeneralFileEncoder,
+                                 indent = 4,
+                                 sort_keys = True)
+        except Exception as e:
+            self.logger.exception("Error saving the geometry inventory data to json file.")
+
+
+    def save_supplement_metadata(self, event, pgv_stream, output_dir):
+        ''' Save the supplement metadata to a json file.
+        '''
+        pgv_stream = pgv_stream.slice(starttime = event.start_time,
+                                      endtime = event.end_time)
+
+        # Compute the maximum PGV values of all stations in the network.
+        max_network_pgv = {}
+        for cur_trace in pgv_stream:
+            cur_nsl = '{0:s}:{1:s}:{2:s}'.format(cur_trace.stats.network,
+                                                 cur_trace.stats.station,
+                                                 cur_trace.stats.location)
+
+            # Handle eventually masked trace data.
+            if isinstance(cur_trace.data, np.ma.MaskedArray):
+                max_pgv = float(np.nanmax(cur_trace.data.data))
+            else:
+                max_pgv = float(np.nanmax(cur_trace.data))
+
+            max_network_pgv[cur_nsl] = max_pgv
+
+        # Compute the maximum PGV values which have been used as a detection.
+        max_event_pgv = event.get_max_pgv_per_station()
+
+        # Compute the detection limits per station.
+        detection_limits = event.get_detection_limits_per_station()
+
+        event_meta = {}
+        event_meta['db_id'] = event.db_id
+        event_meta['public_id'] = event.public_id
+        event_meta['start_time'] = event.start_time
+        event_meta['end_time'] = event.end_time
+        event_meta['max_network_pgv'] = max_network_pgv
+        event_meta['max_event_pgv'] = max_event_pgv
+        event_meta['detection_limits'] = detection_limits
+
+        # Write the event metadata to a json file.
+        try:
+            supplement_name = 'metadata'
+            category = 'detectiondata'
+            filename = "{public_id}_{category}_{name}.json.gz".format(public_id = event.public_id,
+                                                                      category = category,
+                                                                      name = supplement_name)
+            filepath = os.path.join(output_dir, filename)
+            self.logger.info("Writing the event metadata data to file %s.",
+                             filepath)
+
+            # Prepare the file container for exporting to json file.
+            container_data = {}
+            container_data['metadata'] = event_meta
+            file_container = json_util.FileContainer(data = container_data,
+                                                     agency_uri = self.agency_uri,
+                                                     author_uri = self.author_uri)
+            with gzip.open(filepath, 'wt', encoding = 'UTF-8') as json_file:
+                pref = json.dump(file_container,
+                                 fp = json_file,
+                                 cls = json_util.GeneralFileEncoder,
+                                 indent = 4,
+                                 sort_keys = True)
+        except Exception as e:
+            self.logger.exception("Error saving the event metadata data to json file.")
+
+
+    def save_supplement_detection_data(self, event, output_dir):
+        ''' Save the detection data of the event.
+        '''
+        # Convert the time array UTCDateTime instances to timestamps to reduce
+        # the size of the json file.
+        for cur_key, cur_item in event.detection_data.items():
+            for cur_data in cur_item['trigger_data']:
+                cur_data['time'] = [x.timestamp for x in cur_data['time']]
+
+        # Write the event detection data to a json file.
+        try:
+            supplement_name = 'detectiondata'
+            category = 'detectiondata'
+            filename = "{public_id}_{category}_{name}.json.gz".format(public_id = event.public_id,
+                                                                      category = category,
+                                                                      name = supplement_name)
+            filepath = os.path.join(output_dir, filename)
+            self.logger.info("Writing the detection data to file %s.",
+                             filepath)
+
+            # Prepare the file container for exporting to json file.
+            container_data = {}
+            container_data['metadata'] = {'db_id': event.db_id,
+                                          'public_id': event.public_id}
+            container_data['detection_data'] = event.detection_data
+            file_container = json_util.FileContainer(data = container_data,
+                                                     agency_uri = self.agency_uri,
+                                                     author_uri = self.author_uri)
+            with gzip.open(filepath, 'wt', encoding = 'UTF-8') as json_file:
+                pref = json.dump(file_container,
+                                 fp = json_file,
+                                 cls = json_util.SupplementDetectionDataEncoder,
+                                 indent = 4,
+                                 sort_keys = True)
+        except Exception as e:
+            self.logger.exception("Error saving the detection data to json file.")
+
+
+    def get_current_pgv(self):
+        ''' Get the current PGV data.
+        '''
+        data_dict = {}
+        pgv_data = {}
+        with self.archive_lock:
+            working_stream = self.pgv_archive_stream.copy()
+
+        # The time to use for the history pgv [s].
+        history_period = 60
+
+        # Trim the stream to the selected timespan.
+        now = utcdatetime.UTCDateTime()
+        now.milliseconds = 0
+        now.second = 0
+        start_time = now - history_period
+        working_stream = working_stream.slice(starttime = start_time)
+
+        for cur_trace in working_stream:
+            try:
+                if isinstance(cur_trace.data, np.ma.MaskedArray):
+                    cur_data = cur_trace.data.data
+                else:
+                    cur_data = cur_trace.data
+
+                cur_time = cur_trace.times(type = 'utcdatetime')
+                cur_mask = ~np.isnan(cur_data)
+                if np.any(cur_mask):
+                    cur_hist_pgv = float(np.nanmax(cur_data))
+                    cur_latest_pgv = float(cur_data[cur_mask][-1])
+                    cur_latest_time = float(cur_time[cur_mask][-1].timestamp)
+                else:
+                    cur_latest_pgv = None
+                    cur_latest_time = None
+                    cur_hist_pgv = None
+
+                tmp = {'pgv_history': cur_hist_pgv,
+                       'latest_pgv': cur_latest_pgv,
+                       'latest_time': cur_latest_time}
+                cur_nsl = ':'.join([cur_trace.stats.network,
+                                    cur_trace.stats.station,
+                                    cur_trace.stats.location])
+                pgv_data[cur_nsl] = tmp
+            except Exception as e:
+                self.logger.exception("Error while preparing the pgv archive.")
+
+        data_dict['history_period'] = history_period
+        data_dict['computation_time'] = now.isoformat()
+        data_dict['pgv_data'] = pgv_data
+        return data_dict
+
+
+    def get_pgv_timeseries(self):
+        ''' Get the latest PGV timeseries data.
         '''
         pgv_data = {}
         for cur_trace in self.pgv_stream:
@@ -1202,22 +1466,44 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 # figure out where they came from. Make sure to replace them
                 # with the nodata value before creating the pgv data.
                 cur_trace.data[np.isnan(cur_trace.data)] = self.nodata_value
-                tmp['time'] = [x.isoformat() for (x, y) in zip(cur_trace.times(type = "utcdatetime"), cur_trace.data.tolist()) if y != self.nodata_value]
+                tmp['time'] = [x.timestamp for (x, y) in zip(cur_trace.times(type = "utcdatetime"), cur_trace.data.tolist()) if y != self.nodata_value]
                 tmp['data'] = [x for x in cur_trace.data.tolist() if x != self.nodata_value]
             except Exception as e:
                 self.logger.exception("Error getting the PGV data.")
-            pgv_data[cur_trace.get_id()] = tmp
+
+            cur_nsl = ':'.join([cur_trace.stats.network,
+                                cur_trace.stats.station,
+                                cur_trace.stats.location])
+            pgv_data[cur_nsl] = tmp
 
         # Clear the pgv stream.
         self.pgv_stream.clear()
         return pgv_data
 
-    def get_pgv_archive(self):
-        ''' Get the archived PGV data.
+    def get_pgv_timeseries_archive(self, nsl_code = None):
+        ''' Get the archived PGV timeseries data.
         '''
         pgv_data = {}
         with self.archive_lock:
             working_stream = self.pgv_archive_stream.copy()
+
+        # If provided select the required stations.
+        if nsl_code is not None:
+            tmp_stream = obspy.Stream()
+            for cur_nsl in nsl_code:
+                cur_parts = cur_nsl.split(':')
+                tmp_stream += working_stream.select(network = cur_parts[0],
+                                                    station = cur_parts[1],
+                                                    location = cur_parts[2])
+            working_stream = tmp_stream
+
+        # The time in seconds to send to the server.
+        display_time = 600
+        now = utcdatetime.UTCDateTime()
+        now.milliseconds = 0
+        now.second = 0
+        start_time = now - display_time
+        working_stream.trim(starttime = start_time)
 
         for cur_trace in working_stream:
             try:
@@ -1226,9 +1512,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 # with the nodata value before creating the pgv data.
                 cur_trace.data[np.isnan(cur_trace.data)] = self.nodata_value
                 tmp = {}
-                tmp['time'] = [x.isoformat() for (x, y) in zip(cur_trace.times(type = "utcdatetime"), cur_trace.data.tolist()) if y != self.nodata_value]
+                tmp['time'] = [x.timestamp for (x, y) in zip(cur_trace.times(type = "utcdatetime"), cur_trace.data.tolist()) if y != self.nodata_value]
                 tmp['data'] = [x for x in cur_trace.data.tolist() if x != self.nodata_value]
-                pgv_data[cur_trace.get_id()] = tmp
+                cur_nsl = ':'.join([cur_trace.stats.network,
+                                    cur_trace.stats.station,
+                                    cur_trace.stats.location])
+                pgv_data[cur_nsl] = tmp
             except Exception as e:
                 self.logger.exception("Error while preparing the pgv archive.")
 
@@ -1239,13 +1528,24 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         '''
         cur_event = {}
         if self.current_event:
-            cur_event['start_time'] = self.current_event['start_time'].isoformat()
-            cur_event['end_time'] = self.current_event['end_time'].isoformat()
+            cur_event = validation.Event(id = self.current_event.db_id,
+                                         public_id = self.current_event.public_id,
+                                         start_time = self.current_event.start_time.isoformat(),
+                                         end_time = self.current_event.end_time.isoformat(),
+                                         length = self.current_event.length,
+                                         description = self.current_event.description,
+                                         comment = self.current_event.comment,
+                                         max_pgv = self.current_event.max_pgv,
+                                         state = self.current_event.detection_state,
+                                         num_detections = len(self.current_event.detections),
+                                         triggered_stations = self.current_event.triggered_stations)
+            cur_event = cur_event.dict()
+
+            # TODO: Serve the detailed event data only on request.
             #cur_event['trigger_data'] = self.current_event['trigger_data']
-            cur_event['state'] = self.current_event['state']
-            cur_event['overall_trigger_data'] = self.current_event['overall_trigger_data']
-            cur_event['max_station_pgv'] = self.current_event['max_station_pgv']
-            cur_event['max_station_pgv_used'] = self.current_event['max_station_pgv_used']
+            #cur_event['overall_trigger_data'] = self.current_event['overall_trigger_data']
+            #cur_archive_event['max_station_pgv'] = cur_event['max_station_pgv']
+
         return cur_event
 
     def get_event_warning(self):
@@ -1259,34 +1559,89 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         return cur_warning
 
-    def get_event_archive(self):
-        ''' Return the current event archive in serializable form.
+    def get_recent_events(self):
+        ''' Return the recent events in serializable form.
         '''
-        cur_archive = []
-        if len(self.event_archive) > 0:
-            for cur_event in self.event_archive:
-                cur_archive_event = {}
-                cur_archive_event['start_time'] = cur_event['start_time'].isoformat()
-                cur_archive_event['end_time'] = cur_event['end_time'].isoformat()
-                #cur_archive_event['trigger_data'] = cur_event['trigger_data']
-                cur_archive_event['state'] = cur_event['state']
-                try:
-                    cur_archive_event['max_pgv'] = cur_event['max_pgv']
-                except Exception:
-                    cur_archive_event['max_pgv'] = -9999
+        recent_event_timespan = self.event_archive_timespan
+        now = utcdatetime.UTCDateTime()
+        today = utcdatetime.UTCDateTime(now.timestamp // 86400 * 86400)
+        request_start = today - recent_event_timespan * 3600
+        with self.project_lock:
+            events = self.project.get_events(start_time = request_start)
+        cur_archive = {}
+        if len(events) > 0:
+            for cur_event in events:
+                self.logger.info('public_id: %s', cur_event.public_id)
+                self.logger.info('triggered_stations: %s', cur_event.triggered_stations)
+                cur_archive_event = validation.Event(db_id = cur_event.db_id,
+                                                     public_id = cur_event.public_id,
+                                                     start_time = cur_event.start_time.isoformat(),
+                                                     end_time = cur_event.end_time.isoformat(),
+                                                     length = cur_event.length,
+                                                     description = cur_event.description,
+                                                     comment = cur_event.comment,
+                                                     max_pgv = cur_event.max_pgv,
+                                                     state = cur_event.detection_state,
+                                                     num_detections = len(cur_event.detections),
+                                                     triggered_stations = cur_event.triggered_stations)
 
-                cur_archive_event['overall_trigger_data'] = cur_event['overall_trigger_data']
-                try:
-                    cur_archive_event['max_station_pgv'] = cur_event['max_station_pgv']
-                except Exception:
-                    cur_archive_event['max_station_pgv'] = {}
-                try:
-                    cur_archive_event['max_station_pgv_used'] = cur_event['max_station_pgv_used']
-                except Exception:
-                    cur_archive_event['max_station_pgv_used'] = {}
-                cur_archive.append(cur_archive_event)
+                cur_archive[cur_event.public_id] = cur_archive_event.dict()
 
         return cur_archive
+
+
+    def get_event_by_id(self, ev_id = None, public_id = None):
+        ''' Get an event by event id or public id.
+        '''
+        if ev_id is None and public_id is None:
+            self.logger.error("Either the id or the public_id of the event have to be specified.")
+            return
+
+        with self.project_lock:
+            event = self.project.load_event_by_id(ev_id = ev_id,
+                                                  public_id = public_id)
+        return event
+
+
+    def get_event_supplement(self, public_id, selection):
+        ''' Get the detailed data of an event.
+        '''
+        event_supplement = {}
+        event_supplement['public_id'] = public_id
+        event_supplement['data'] = {}
+        #event = self.get_event_by_id(ev_id = ev_id,
+        #                             public_id = public_id)
+
+        supp_dir = self.get_event_supplement_dir(public_id = public_id)
+
+        # Check, if the supplement directory exists.
+        if not os.path.exists(supp_dir):
+            self.logger.error("The event supplement data directory % doesn't exist.",
+                              supp_dir)
+            return event_supplement
+
+        # TODO: Check the available supplement data.
+
+        # Load the supplement data.
+        for cur_selection in selection:
+            cur_category = cur_selection['category']
+            cur_name = cur_selection['name']
+            cur_data = pp_util.get_supplement_data(public_id = public_id,
+                                                   category = cur_category,
+                                                   name = cur_name,
+                                                   directory = self.supplement_dir)
+            # Convert the dataframe to json and revert it back to a dictionary to
+            # ensure, that the data can be serialized when sendig it over the 
+            # websocket.
+            cur_data = json.loads(cur_data.to_json())
+
+            if cur_category not in event_supplement['data'].keys():
+                event_supplement['data'][cur_category] = {}
+
+            event_supplement['data'][cur_category][cur_name] = cur_data
+
+        return event_supplement
+
 
     def get_keydata(self):
         ''' Return the keydata.
@@ -1299,3 +1654,33 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         keydata['triggered_event_stations'] = self.get_triggered_event_stations()
 
         return keydata
+
+
+    def get_station_metadata(self):
+        ''' Get the metadata of the available stations.
+        '''
+        stations = {}
+        for cur_station in self.inventory.get_station():
+            active_streams = []
+            for cur_channel in cur_station.channels:
+                cur_streams = cur_channel.get_stream(start_time = obspy.UTCDateTime())
+                if (len(cur_streams) > 0):
+                    active_streams.extend([x.item for x in cur_streams])
+
+            unique_recorder_serials = list(set([x.serial for x in active_streams]))
+
+            tmp = {'name': cur_station.name,
+                   'network': cur_station.network,
+                   'location': cur_station.location,
+                   'lon': cur_station.x,
+                   'lat': cur_station.y,
+                   'height': cur_station.z,
+                   'description': cur_station.description,
+                   'recorder_serials': ','.join(unique_recorder_serials)}
+            stations[cur_station.nsl_string] = tmp
+
+        return stations
+
+
+
+
