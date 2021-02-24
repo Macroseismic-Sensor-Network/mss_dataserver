@@ -514,7 +514,7 @@ async def handle_ws_connection(websocket, path, sl_client):
             try:
                 msg_header = validation.WSMessageHeader(**msg['header'])
             except Exception:
-                logger.exception('Invalid message header.')
+                logger.exception('Invalid message header. msg: ', str(msg))
                 continue
 
             logger.info('Accepted incoming message from %s: %s.',
