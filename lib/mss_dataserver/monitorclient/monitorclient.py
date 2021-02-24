@@ -260,6 +260,39 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.logger.info("Catalog keys: %s", self.project.event_library.catalogs.keys())
 
 
+    def trim_archive_catalogs(self, hours = 48):
+        ''' Trim the catalogs in the library to the given timespan.
+        '''
+        self.logger.info('Trimming the event catalogs to %d hours from now.',
+                         hours)
+        self.logger.info("Catalog keys before trim: %s",
+                         self.project.event_library.catalogs.keys())
+        now = utcdatetime.UTCDateTime()
+        start_time = now - hours * 3600
+        start_day = utcdatetime.UTCDateTime(year = start_time.year,
+                                            julday = start_time.julday)
+        n_days = np.ceil((now - start_day) / 86400)
+        n_days = int(n_days)
+        catalogs_to_keep = []
+        for k in range(n_days):
+            cur_cat_date = now - k * 86400
+            cur_name = "{0:04d}-{1:02d}-{2:02d}".format(cur_cat_date.year,
+                                                        cur_cat_date.month,
+                                                        cur_cat_date.day)
+            catalogs_to_keep.append(cur_name)
+
+        available_catalogs = list(self.project.event_library.catalogs.keys())
+        catalogs_to_remove = [x for x in available_catalogs if x not in catalogs_to_keep]
+
+        self.logger.info("Catalog to remove %s", catalogs_to_remove)
+
+        for cur_name in catalogs_to_remove:
+            self.project.event_library.remove_catalog(name = cur_name)
+
+        self.logger.info("Catalog keys after trim: %s",
+                         self.project.event_library.catalogs.keys())
+
+
     def load_archive_file(self):
         ''' Load data from the JSON archive file.
         '''
@@ -1104,6 +1137,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                       'process-event',
                                       '--public_id',
                                       export_event.public_id])
+
+        # Trim the event catalogs.
+        self.trim_archive_catalogs(hours = self.event_archive_timespan)
 
 
     def get_event_supplement_dir(self, public_id, category = None):
