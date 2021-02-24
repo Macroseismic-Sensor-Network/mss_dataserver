@@ -262,7 +262,7 @@ async def serve_keydata(sl_client):
             with clients_keydata_lock:
                 clients_copy = copy.copy(clients_keydata)
             for cur_client in clients_copy:
-                logger.info("Sending the current pgv to client %s at %s.",
+                logger.info("Sending the keydata to client %s at %s.",
                             id(cur_client),
                             cur_client.remote_address)
                 try:

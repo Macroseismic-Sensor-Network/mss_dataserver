@@ -1046,20 +1046,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     def get_triggered_event_stations(self):
         ''' Get the stations which have triggered during the last event.
         '''
-        # TODO: Fix the method to work with the new event objects.
         now = utcdatetime.UTCDateTime()
         window = 300
         triggered_stations = {}
 
-        if self.current_event and self.current_event['start_time'] >= (now - window):
-            for cur_station, cur_max_station_pgv in self.current_event['max_station_pgv'].items():
-                if cur_max_station_pgv >= self.felt_thr:
-                    triggered_stations[cur_station] = float(cur_max_station_pgv)
-        elif self.event_archive and self.event_archive[-1]['start_time'] >= (now - window):
-            for cur_station, cur_max_station_pgv in self.event_archive[-1]['max_station_pgv'].items():
-                if cur_max_station_pgv >= self.felt_thr:
-                    triggered_stations[cur_station] = float(cur_max_station_pgv)
-
+        if self.current_event and self.current_event.start_time >= (now - window):
+            triggered_stations = self.current_event.get_max_pgv_per_station()
+        #elif self.event_archive and self.event_archive['start_time'] >= (now - window):
         return triggered_stations
 
     def trim_archive(self):
