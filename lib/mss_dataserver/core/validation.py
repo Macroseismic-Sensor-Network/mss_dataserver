@@ -91,7 +91,7 @@ class MsgDataIdEnum(str, enum.Enum):
     recent_events = 'recent_events'
     event_archive = 'event_archive'
     event_warning = 'event_warning'
-    key_data = 'key_data'
+    keydata = 'keydata'
     event_supplement = 'event_supplement'
     station_metadata = 'station_metadata'
 

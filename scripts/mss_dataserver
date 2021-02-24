@@ -776,7 +776,9 @@ def start_server(ctx):
     # Serve the updated event archive.
     loop.create_task(serve_recent_events(client))
 
-    #loop.create_task(serve_keydata(client))
+    # Serve the keydata to the LWZ display.
+    loop.create_task(serve_keydata(client))
+
     #loop.create_task(serve_detection_result(client))
     #loop.create_task(serve_event_warning(client))
     loop.run_forever()
