@@ -624,7 +624,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
                 if self.current_event.detection_state == 'closed':
                     try:
-                        if (self.current_event.length >= self.min_event_length) and (len(self.current_event.detections) >= self.min_event_detections):
+                        if ((self.current_event.max_pgv >= self.valid_event_thr) and (self.current_event.length >= 1)) or ((self.current_event.length >= self.min_event_length)) and (len(self.current_event.detections) >= self.min_event_detections):
                             # Save the event and its metadata in a thread to
                             # prevent blocking the data acquisition.
                             # TODO: Copy the event before exporting it. Deepcopy
