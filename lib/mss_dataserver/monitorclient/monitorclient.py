@@ -642,6 +642,14 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                             self.logger.info("Continue the program execution.")
                         else:
                             self.logger.info("Rejected the event because it didn't fit the required parameters.")
+                            self.logger.info("start_time: %s", self.current_event.start_time.isoformat())
+                            self.logger.info("end_time: %s", self.current_event.end_time.isoformat())
+                            self.logger.info("length: %d", self.current_event.length)
+                            self.logger.info("max_pgv: %f", self.current_event.max_pgv)
+                            self.logger.info("n_detections: %f", len(self.current_event.detections))
+                            self.logger.info("valid_event_thr: %f", self.valid_event_thr)
+                            self.logger.info("min_event_length: %d", self.min_event_length)
+                            self.logger.info("min_event_detections: %d", self.min_event_detections)
                     finally:
                         # Clear the detector flag.
                         self.detector.new_event_available = False
