@@ -29,8 +29,10 @@ import math
 import os
 
 import geopandas as gpd
+import matplotlib.pyplot as plt
 import numpy as np
 import obspy
+import pyproj
 import shapely
 
 import mss_dataserver.postprocess.util as util
@@ -456,3 +458,160 @@ class EventPostProcessor(object):
                                         props = props)
         self.logger.info('Saved detectioin sequence simplices to file %s.',
                          filepath)
+
+
+    def intensity_to_pgv(self, intensity = None):
+        ''' Compute the pgv and intensity values based on the MSS relationship.
+        '''
+        if intensity is None:
+            return
+
+        k_low = 0.5
+        d_low = -5      # np.log10(0.00001)
+        k_high = 1
+        d_high = -7
+        kink = 4
+
+        intensity_low = intensity[intensity <= kink]
+        pgv_low = d_low + k_low * intensity_low
+
+        intensity_high = intensity[intensity > kink]
+        pgv_high = d_high + k_high * intensity_high
+
+        intensity = np.hstack([intensity_low, intensity_high])
+        intensity_pgv = np.hstack([pgv_low, pgv_high])
+        intensity_pgv = 10**intensity_pgv
+
+        return np.hstack([intensity[:, np.newaxis],
+                          intensity_pgv[:, np.newaxis]])
+
+
+    def pgv_to_intensity(self, pgv = None):
+        ''' Compute the pgv and intensity values based on the MSS relationship.
+        '''
+        if pgv is None:
+            return
+
+        pgv = np.log10(pgv)
+
+        k_low = 2
+        d_low = 10
+        k_high = 1
+        d_high = 7
+        kink = np.log10(1e-3)
+
+        pgv_low = pgv[pgv <= kink]
+        intensity_low = d_low + k_low * pgv_low
+
+        pgv_high = pgv[pgv > kink]
+        intensity_high = d_high + k_high * pgv_high
+
+        pgv = np.hstack([pgv_low, pgv_high])
+        intensity = np.hstack([intensity_low, intensity_high])
+
+        return np.hstack([10**pgv[:, np.newaxis],
+                          intensity[:, np.newaxis]])
+
+
+    def compute_isoseismal_supplement(self):
+        ''' Compute the isoseismal contour lines using kriging.
+        '''
+        # Load the event metadata from the supplement file.
+        meta = self.meta
+
+        # Compute a PGV geodataframe using the event metadata.
+        pgv_df = self.compute_pgv_df(meta)
+        self.add_station_amplification(pgv_df)
+
+        # Use only data with valid pgv data.
+        pgv_df = pgv_df.loc[pgv_df.pgv.notna(), :]
+
+        # Interpolate to a regular grid using ordinary kriging.
+        krig_z, krig_sigmasq, grid_x, grid_y = util.compute_pgv_krigging(x = pgv_df.x_utm.values,
+                                                                         y = pgv_df.y_utm.values,
+                                                                         z = np.log10(pgv_df.pgv),
+                                                                         nlags = 40,
+                                                                         verbose = False,
+                                                                         enable_plotting = False,
+                                                                         weight = True)
+
+        # Compute the contours.
+        intensity = np.arange(0, 6.1, 0.5)
+        # Add lower and upper limits to catch all the data below or 
+        # above the desired intensity range.
+        intensity = np.hstack([[-10], intensity, [20]])
+        intensity_pgv = self.intensity_to_pgv(intensity = intensity)
+
+        # Create and delete a figure to prevent pyplot from plotting the
+        # contours.
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        cs = ax.contourf(grid_x, grid_y, krig_z, np.log10(intensity_pgv[:, 1]),
+                         vmin = -6, vmax = -2)
+        contours = util.contourset_to_shapely(cs)
+        fig.clear()
+        plt.close(fig)
+        del ax
+        del fig
+        del cs
+
+        # Create a geodataframe of the contour polygons.
+        data = {'geometry': [],
+                'intensity': [],
+                'pgv': []}
+
+        for cur_level, cur_contour in contours.items():
+            cur_intensity = self.pgv_to_intensity(pgv = [10**cur_level] * len(cur_contour))
+            data['geometry'].extend(cur_contour)
+            data['intensity'].extend(cur_intensity[:, 1].tolist())
+            data['pgv'].extend([10**cur_level] * len(cur_contour))
+
+        df = gpd.GeoDataFrame(data = data)
+
+        # Convert the polygon coordinates to EPSG:4326.
+        src_proj = pyproj.Proj(init = 'epsg:' + self.project.inventory.get_utm_epsg()[0][0])
+        dst_proj = pyproj.Proj(init = 'epsg:4326')
+
+        for cur_id, cur_row in df.iterrows():
+            # Convert the exterior.
+            cur_xy = cur_row.geometry.exterior.xy
+            ext_lon, ext_lat = pyproj.transform(src_proj,
+                                                dst_proj,
+                                                cur_xy[0],
+                                                cur_xy[1])
+
+            # Convert the interiors.
+            cur_int_list = []
+            for cur_interior in cur_row.geometry.interiors:
+                cur_xy = cur_interior.xy
+                cur_lon, cur_lat = pyproj.transform(src_proj,
+                                                    dst_proj,
+                                                    cur_xy[0],
+                                                    cur_xy[1])
+                cur_ring = shapely.geometry.LinearRing(zip(cur_lon, cur_lat))
+                cur_int_list.append(cur_ring)
+
+            if len(cur_int_list) == 0:
+                cur_int_list = None
+            proj_poly = shapely.geometry.Polygon(zip(ext_lon, ext_lat),
+                                                 holes = cur_int_list)
+
+            df.loc[cur_id, 'geometry'] = proj_poly
+
+        df.set_crs('epsg:4326')
+
+        props = {'db_id': meta['db_id'],
+                 'event_start': util.isoformat_tz(meta['start_time']),
+                 'event_end': util.isoformat_tz(meta['end_time']),
+                 'author_uri': self.project.author_uri,
+                 'agency_uri': self.project.agency_uri}
+
+        filepath = util.save_supplement(self.event.public_id,
+                                        df,
+                                        output_dir = self.supplement_dir,
+                                        category = 'eventpgv',
+                                        name = 'isoseismalcontours',
+                                        props = props)
+        self.logger.info('Saved isoseismal contours to file %s.', filepath)
+
+        return df

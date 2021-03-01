@@ -6,7 +6,10 @@ import os
 
 import geojson
 import geopandas as gpd
+import numpy as np
 import obspy
+import pykrige as pk
+import shapely
 
 import mss_dataserver.core.json_util as json_util
 
@@ -63,7 +66,11 @@ def get_supplement_map():
                           'subdir': 'eventpgv'},
            'pgvvoronoi': {'name': 'pgvvoronoi',
                           'format': 'geojson',
-                          'subdir': 'eventpgv'}}
+                          'subdir': 'eventpgv'},
+           'isoseismalcontours': {'name': 'isoseismalcontours',
+                                  'format': 'geojson',
+                                  'subdir': 'eventpgv'},
+           }
     supplement_map['eventpgv'] = tmp
 
     # Category pgvsequence.
@@ -209,3 +216,63 @@ def isoformat_tz(utcdatetime):
     including the UTC Timezone specifier +00:00.
     '''
     return utcdatetime.datetime.replace(tzinfo=datetime.timezone.utc).isoformat()
+
+
+def contourset_to_shapely(cs):
+    contours = {}
+    # Iterate over all collections. Each collection corresponds to a
+    # contour level.
+    for m, cur_col in enumerate(cs.collections):
+        cur_level = cs.levels[m]
+        poly_list = []
+        # Iterate over the paths in the collection
+        for cur_path in cur_col.get_paths():
+            # Convert the path to polygons to handle holes in the polygon.
+            for k, cur_poly_path in enumerate(cur_path.to_polygons()):
+                cur_shape = shapely.geometry.Polygon(cur_poly_path)
+                if k == 0:
+                    cur_poly = cur_shape
+                else:
+                    # If a path contains more than one polygon, treat it as
+                    # a hole and subtract it from the first polygon.
+                    cur_poly = cur_poly.difference(cur_shape)
+            poly_list.append(cur_poly)
+
+        contours[cur_level] = poly_list
+
+    return contours
+
+
+def compute_pgv_krigging(x, y, z,
+                         nlags = 6, weight = False,
+                         verbose = False, enable_plotting = False):
+        ''' Kriging of the pgv data. '''
+        buffer = 10000
+        x_lims = [548828.0, 655078.0]
+        y_lims = [5257810.0, 5342810.0]
+        x_lims[0] = x_lims[0] - buffer
+        x_lims[1] = x_lims[1] + buffer
+        y_lims[0] = y_lims[0] - buffer
+        y_lims[1] = y_lims[1] + buffer
+        grid_delta = 100.0
+        grid_x = np.arange(x_lims[0], x_lims[1], grid_delta)
+        grid_y = np.arange(y_lims[0], y_lims[1], grid_delta)
+
+        krig_ok = pk.ok.OrdinaryKriging(x = x,
+                                        y = y,
+                                        z = z,
+                                        variogram_model = 'linear',
+                                        variogram_parameters = {'nugget': 0,
+                                                                'slope': 1 / 750},
+                                        nlags = nlags,
+                                        weight = weight,
+                                        verbose = verbose,
+                                        enable_plotting = enable_plotting,
+                                        exact_values = True,
+                                        pseudo_inv = True)
+
+        krig_z, krig_sigmasq = krig_ok.execute(style = 'grid',
+                                               xpoints = grid_x,
+                                               ypoints = grid_y)
+
+        return krig_z, krig_sigmasq, grid_x, grid_y
