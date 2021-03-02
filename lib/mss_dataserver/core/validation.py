@@ -149,6 +149,7 @@ class MsgRequestEventSupplementNameEnum(str, enum.Enum):
     pgvstation = 'pgvstation'
     pgvvoronoi = 'pgvvoronoi'
     simplices = 'simplices'
+    isoseismalfilledcontours = 'isoseismalfilledcontours'
 
 
 class MsgRequestEventSupplementCategoryEnum(str, enum.Enum):

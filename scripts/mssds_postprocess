@@ -107,10 +107,16 @@ def process_event(ctx, public_id):
     logger.info('Computing the meta supplement.')
     pp.compute_event_metadata_supplement()
 
+    # Compute the isoseismal contours.
+    logger.info('Computing the isoseismal supplement.')
+    pp.compute_isoseismal_supplement()
+
     # Compute the pgv sequence supplement.
+    logger.info('Computing the pgv sequence supplement.')
     pp.compute_pgv_sequence_supplement()
 
     # Compute the detection sequence supplement.
+    logger.info('Computing the detection sequence supplement.')
     pp.compute_detection_sequence_supplement()
 
 

@@ -460,57 +460,6 @@ class EventPostProcessor(object):
                          filepath)
 
 
-    def intensity_to_pgv(self, intensity = None):
-        ''' Compute the pgv and intensity values based on the MSS relationship.
-        '''
-        if intensity is None:
-            return
-
-        k_low = 0.5
-        d_low = -5      # np.log10(0.00001)
-        k_high = 1
-        d_high = -7
-        kink = 4
-
-        intensity_low = intensity[intensity <= kink]
-        pgv_low = d_low + k_low * intensity_low
-
-        intensity_high = intensity[intensity > kink]
-        pgv_high = d_high + k_high * intensity_high
-
-        intensity = np.hstack([intensity_low, intensity_high])
-        intensity_pgv = np.hstack([pgv_low, pgv_high])
-        intensity_pgv = 10**intensity_pgv
-
-        return np.hstack([intensity[:, np.newaxis],
-                          intensity_pgv[:, np.newaxis]])
-
-
-    def pgv_to_intensity(self, pgv = None):
-        ''' Compute the pgv and intensity values based on the MSS relationship.
-        '''
-        if pgv is None:
-            return
-
-        pgv = np.log10(pgv)
-
-        k_low = 2
-        d_low = 10
-        k_high = 1
-        d_high = 7
-        kink = np.log10(1e-3)
-
-        pgv_low = pgv[pgv <= kink]
-        intensity_low = d_low + k_low * pgv_low
-
-        pgv_high = pgv[pgv > kink]
-        intensity_high = d_high + k_high * pgv_high
-
-        pgv = np.hstack([pgv_low, pgv_high])
-        intensity = np.hstack([intensity_low, intensity_high])
-
-        return np.hstack([10**pgv[:, np.newaxis],
-                          intensity[:, np.newaxis]])
 
 
     def compute_isoseismal_supplement(self):
@@ -536,11 +485,11 @@ class EventPostProcessor(object):
                                                                          weight = True)
 
         # Compute the contours.
-        intensity = np.arange(0, 6.1, 0.5)
+        intensity = np.arange(2, 6.1, 0.5)
         # Add lower and upper limits to catch all the data below or 
         # above the desired intensity range.
         intensity = np.hstack([[-10], intensity, [20]])
-        intensity_pgv = self.intensity_to_pgv(intensity = intensity)
+        intensity_pgv = util.intensity_to_pgv(intensity = intensity)
 
         # Create and delete a figure to prevent pyplot from plotting the
         # contours.
@@ -560,45 +509,42 @@ class EventPostProcessor(object):
                 'intensity': [],
                 'pgv': []}
 
-        for cur_level, cur_contour in contours.items():
-            cur_intensity = self.pgv_to_intensity(pgv = [10**cur_level] * len(cur_contour))
-            data['geometry'].extend(cur_contour)
+        for cur_level, cur_poly in contours.items():
+            cur_intensity = util.pgv_to_intensity(pgv = [10**cur_level] * len(cur_poly))
+            data['geometry'].extend(cur_poly)
             data['intensity'].extend(cur_intensity[:, 1].tolist())
-            data['pgv'].extend([10**cur_level] * len(cur_contour))
-
+            data['pgv'].extend([10**cur_level] * len(cur_poly))
         df = gpd.GeoDataFrame(data = data)
 
         # Convert the polygon coordinates to EPSG:4326.
         src_proj = pyproj.Proj(init = 'epsg:' + self.project.inventory.get_utm_epsg()[0][0])
         dst_proj = pyproj.Proj(init = 'epsg:4326')
+        df = util.reproject_polygons(df = df,
+                                     src_proj = src_proj,
+                                     dst_proj = dst_proj)
 
+        # Clip to the network boundary.
+        # Clipping a polygon may created multiple polygons.
+        # Therefore create a new dataframe to have only one polygon per,
+        # entry. Thus avoiding possible problems due to a mixture of 
+        # multipolygons and polygons.
+        data = {'geometry': [],
+                'intensity': [],
+                'pgv': []}
         for cur_id, cur_row in df.iterrows():
-            # Convert the exterior.
-            cur_xy = cur_row.geometry.exterior.xy
-            ext_lon, ext_lat = pyproj.transform(src_proj,
-                                                dst_proj,
-                                                cur_xy[0],
-                                                cur_xy[1])
+            cur_poly = cur_row.geometry
+            clipped_poly = cur_poly.intersection(self.network_boundary.loc[0, 'geometry'])
+            self.logger.info(type(clipped_poly))
+            if isinstance(clipped_poly, shapely.geometry.multipolygon.MultiPolygon):
+                data['geometry'].extend([x for x in clipped_poly])
+                data['intensity'].extend([cur_row.intensity] * len(clipped_poly))
+                data['pgv'].extend([cur_row.pgv] * len(clipped_poly))
+            else:
+                data['geometry'].append(clipped_poly)
+                data['intensity'].append(cur_row.intensity)
+                data['pgv'].append(cur_row.pgv)
+        df = gpd.GeoDataFrame(data = data)
 
-            # Convert the interiors.
-            cur_int_list = []
-            for cur_interior in cur_row.geometry.interiors:
-                cur_xy = cur_interior.xy
-                cur_lon, cur_lat = pyproj.transform(src_proj,
-                                                    dst_proj,
-                                                    cur_xy[0],
-                                                    cur_xy[1])
-                cur_ring = shapely.geometry.LinearRing(zip(cur_lon, cur_lat))
-                cur_int_list.append(cur_ring)
-
-            if len(cur_int_list) == 0:
-                cur_int_list = None
-            proj_poly = shapely.geometry.Polygon(zip(ext_lon, ext_lat),
-                                                 holes = cur_int_list)
-
-            df.loc[cur_id, 'geometry'] = proj_poly
-
-        df.set_crs('epsg:4326')
 
         props = {'db_id': meta['db_id'],
                  'event_start': util.isoformat_tz(meta['start_time']),
@@ -610,7 +556,7 @@ class EventPostProcessor(object):
                                         df,
                                         output_dir = self.supplement_dir,
                                         category = 'eventpgv',
-                                        name = 'isoseismalcontours',
+                                        name = 'isoseismalfilledcontour',
                                         props = props)
         self.logger.info('Saved isoseismal contours to file %s.', filepath)
 

@@ -9,6 +9,7 @@ import geopandas as gpd
 import numpy as np
 import obspy
 import pykrige as pk
+import pyproj
 import shapely
 
 import mss_dataserver.core.json_util as json_util
@@ -67,7 +68,7 @@ def get_supplement_map():
            'pgvvoronoi': {'name': 'pgvvoronoi',
                           'format': 'geojson',
                           'subdir': 'eventpgv'},
-           'isoseismalcontours': {'name': 'isoseismalcontours',
+           'isoseismalfilledcontour': {'name': 'isoseismalfilledcontour',
                                   'format': 'geojson',
                                   'subdir': 'eventpgv'},
            }
@@ -124,6 +125,9 @@ def get_supplement_data(public_id, category, name, directory):
 
 def read_geojson(filepath):
     ''' Read data from a geojson file.'''
+
+    if not os.path.exists(filepath):
+        return None
 
     # Read the dta using geojson to get the foreign members.
     # Geopandas neglects foreign members.
@@ -241,6 +245,95 @@ def contourset_to_shapely(cs):
         contours[cur_level] = poly_list
 
     return contours
+
+
+def reproject_polygons(df, src_proj, dst_proj):
+    ''' Reproject the coordinates of shapely polygons.
+    '''
+    for cur_id, cur_row in df.iterrows():
+        cur_poly = cur_row.geometry
+        # Convert the exterior.
+        cur_xy = cur_poly.exterior.xy
+        ext_lon, ext_lat = pyproj.transform(src_proj,
+                                            dst_proj,
+                                            cur_xy[0],
+                                            cur_xy[1])
+
+        # Convert the interiors.
+        cur_int_list = []
+        for cur_interior in cur_poly.interiors:
+            cur_xy = cur_interior.xy
+            cur_lon, cur_lat = pyproj.transform(src_proj,
+                                                dst_proj,
+                                                cur_xy[0],
+                                                cur_xy[1])
+            cur_ring = shapely.geometry.LinearRing(zip(cur_lon, cur_lat))
+            cur_int_list.append(cur_ring)
+
+        if len(cur_int_list) == 0:
+            cur_int_list = None
+        proj_poly = shapely.geometry.Polygon(zip(ext_lon, ext_lat),
+                                             holes = cur_int_list)
+
+        df.loc[cur_id, 'geometry'] = proj_poly
+
+    # Set the CRS of the dataframe.
+    df = df.set_crs(dst_proj.crs)
+
+    return df
+
+
+def intensity_to_pgv(intensity = None):
+    ''' Compute the pgv and intensity values based on the MSS relationship.
+    '''
+    if intensity is None:
+        return
+
+    k_low = 0.5
+    d_low = -5      # np.log10(0.00001)
+    k_high = 1
+    d_high = -7
+    kink = 4
+
+    intensity_low = intensity[intensity <= kink]
+    pgv_low = d_low + k_low * intensity_low
+
+    intensity_high = intensity[intensity > kink]
+    pgv_high = d_high + k_high * intensity_high
+
+    intensity = np.hstack([intensity_low, intensity_high])
+    intensity_pgv = np.hstack([pgv_low, pgv_high])
+    intensity_pgv = 10**intensity_pgv
+
+    return np.hstack([intensity[:, np.newaxis],
+                      intensity_pgv[:, np.newaxis]])
+
+
+def pgv_to_intensity(pgv = None):
+    ''' Compute the pgv and intensity values based on the MSS relationship.
+    '''
+    if pgv is None:
+        return
+
+    pgv = np.log10(pgv)
+
+    k_low = 2
+    d_low = 10
+    k_high = 1
+    d_high = 7
+    kink = np.log10(1e-3)
+
+    pgv_low = pgv[pgv <= kink]
+    intensity_low = d_low + k_low * pgv_low
+
+    pgv_high = pgv[pgv > kink]
+    intensity_high = d_high + k_high * pgv_high
+
+    pgv = np.hstack([pgv_low, pgv_high])
+    intensity = np.hstack([intensity_low, intensity_high])
+
+    return np.hstack([10**pgv[:, np.newaxis],
+                      intensity[:, np.newaxis]])
 
 
 def compute_pgv_krigging(x, y, z,
