@@ -1627,14 +1627,19 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         for cur_selection in selection:
             cur_category = cur_selection['category']
             cur_name = cur_selection['name']
-            cur_data = pp_util.get_supplement_data(public_id = public_id,
-                                                   category = cur_category,
-                                                   name = cur_name,
-                                                   directory = self.supplement_dir)
-            # Convert the dataframe to json and revert it back to a dictionary to
-            # ensure, that the data can be serialized when sendig it over the 
-            # websocket.
-            cur_data = json.loads(cur_data.to_json())
+            try:
+                cur_data = pp_util.get_supplement_data(public_id = public_id,
+                                                       category = cur_category,
+                                                       name = cur_name,
+                                                       directory = self.supplement_dir)
+                # Convert the dataframe to json and revert it back to a dictionary to
+                # ensure, that the data can be serialized when sendig it over the 
+                # websocket.
+                cur_data = json.loads(cur_data.to_json())
+            except Exception:
+                self.logger.exception("Error getting the supplement data %s.",
+                                      cur_selection)
+                cur_data = {}
 
             if cur_category not in event_supplement['data'].keys():
                 event_supplement['data'][cur_category] = {}
