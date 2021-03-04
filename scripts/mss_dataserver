@@ -308,15 +308,18 @@ async def serve_data(sl_client):
                 # Send the data to the registered clients.
                 logger.info("Serving the data.")
                 for cur_client in clients_copy:
-                    logger.info("Sending the current pgv to client %s at %s.",
+                    cur_request_origin = cur_client.request_headers.get_all('X-Real-IP')
+                    logger.info("Sending the current pgv to client %s at proxy port %s with origin %s.",
                                 id(cur_client),
-                                cur_client.remote_address)
+                                cur_client.remote_address,
+                                cur_request_origin)
                     try:
                         await cur_client.send(msg)
                     except Exception as e:
-                        logger.exception("Error sending to client %s at %s.",
+                        logger.exception("Error sending to client %s at proxy port %s with origin %s.",
                                          id(cur_client),
-                                         cur_client.remote_address)
+                                         cur_client.remote_address,
+                                         cur_request_origin)
 
 
                 # Request the timeseries data.
@@ -324,10 +327,12 @@ async def serve_data(sl_client):
 
                 for cur_client in clients_copy:
                     if len(cur_client.pgv_timeseries) > 0:
-                        logger.info("Sending pgv timeseries for stations %s to client %s at %s.",
+                        cur_request_origin = cur_client.request_headers.get_all('X-Real-IP')
+                        logger.info("Sending pgv timeseries for stations %s to client %s at proxy port %s with origin %s.",
                                     cur_client.pgv_timeseries,
                                     id(cur_client),
-                                    cur_client.remote_address)
+                                    cur_client.remote_address,
+                                    cur_request_origin)
                         payload = {}
                         for cur_nsl in cur_client.pgv_timeseries:
                             if cur_nsl in pgv_ts.keys():
@@ -341,9 +346,10 @@ async def serve_data(sl_client):
                         try:
                             await cur_client.send(msg)
                         except Exception as e:
-                            logger.exception("Error sending to client %s at %s.",
+                            logger.exception("Error sending to client %s at proxy port %s with origin %s.",
                                              id(cur_client),
-                                             cur_client.remote_address)
+                                             cur_client.remote_address,
+                                             cur_request_origin)
 
             # Reset the PGV data flag.
             sl_client.pgv_data_available.clear()
@@ -500,6 +506,8 @@ async def handle_ws_connection(websocket, path, sl_client):
     logger = logging.getLogger(logger_name)
     logger.info('Connection request from %s.', websocket.remote_address)
 
+    logger.info('REQUEST_HEADERS: %s.', list(websocket.request_headers.raw_items()))
+
     # Initialize some state arguments of the websocket.
     # A list of nsl codes of the stations for which the pgv timeseries data
     # should be served.
@@ -508,8 +516,9 @@ async def handle_ws_connection(websocket, path, sl_client):
     mode = None
     try:
         async for msg in websocket:
+            request_origin = websocket.request_headers.get_all('X-Real-IP')
             logger.info('Handling incoming message from %s.',
-                        websocket.remote_address)
+                        request_origin)
             msg = json.loads(msg)
             try:
                 msg_header = validation.WSMessageHeader(**msg['header'])
