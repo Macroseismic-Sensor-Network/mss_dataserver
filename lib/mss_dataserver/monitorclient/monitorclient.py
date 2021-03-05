@@ -936,7 +936,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # Merge the current pgv stream.
         self.pgv_stream.merge()
-        self.logger.info('pgv_stream: %s.', self.pgv_stream.__str__(extended = True))
+        self.logger.debug('pgv_stream: %s.', self.pgv_stream.__str__(extended = True))
 
         with self.archive_lock:
             self.pgv_archive_stream = self.pgv_archive_stream + self.pgv_stream
