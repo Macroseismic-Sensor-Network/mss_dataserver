@@ -854,6 +854,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         unique_stations = list(set(unique_stations))
         samp_interval = 1 / self.pgv_sps
 
+        # Clear the PGV stream in case, it has not been served by the
+        # websocket server.
+        with self.stream_lock:
+            self.pgv_stream.clear()
+
         for cur_station in unique_stations:
             self.logger.debug('Getting stream for %s.', cur_station)
             # Get all traces for the station.
