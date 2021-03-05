@@ -94,6 +94,33 @@ def build_message(msg_class, msg_id, payload = None):
     return msg
 
 
+def log_client_message(client, msg, log_level = 'info'):
+    ''' Log a message with the client connection info.
+    '''
+    # Get the logging instance.
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+    cur_real_ip = client.request_headers.get_all('X-Real-IP')
+    cur_request_origin = client.request_headers.get_all('Origin')
+
+    if log_level == 'info':
+        log_func = logger.info
+    elif log_level == 'warning':
+        log_func = logger.warning
+    elif log_level == 'error':
+        log_func = logger.error
+    elif log_level == 'exception':
+        log_func = logger.exception
+    else:
+        log_func = logger.debug
+
+    log_func("[CON] real_ip: %s; origin: %s; proxy_port: %s; %s",
+             cur_real_ip,
+             cur_request_origin,
+             client.remote_address,
+             msg)
+
+
 async def register_pgv_client(websocket, sl_client):
     ''' Register a connected websocket client.
     '''
@@ -119,8 +146,9 @@ async def register_pgv_client(websocket, sl_client):
                         payload = payload)
 
     try:
-        logger.info("Registering the PGV client at %s.",
-                    websocket.remote_address)
+        log_client_message(client = websocket,
+                           msg = "Registering a new standard client.")
+
         # Send the welcome message.
         await websocket.send(msg)
 
@@ -128,7 +156,8 @@ async def register_pgv_client(websocket, sl_client):
         msg = build_message(msg_class = 'data',
                             msg_id = 'station_metadata',
                             payload = sl_client.get_station_metadata())
-        logger.info("Sending the station metadata.")
+        log_client_message(client = websocket,
+                           msg = "Sending the station metadata.")
         await websocket.send(msg)
 
         # Send the PGV data message.
@@ -136,7 +165,8 @@ async def register_pgv_client(websocket, sl_client):
                             msg_id = 'current_pgv',
                             payload = sl_client.get_current_pgv())
 
-        logger.info("Sending pgv archive.")
+        log_client_message(client = websocket,
+                           msg = "Sending pgv archive.")
         await websocket.send(msg)
 
         # Send the recent events if they exist.
@@ -148,7 +178,8 @@ async def register_pgv_client(websocket, sl_client):
                                 payload = payload)
 
             # Send the archived PGV data.
-            logger.info("Sending the recent events.")
+            log_client_message(client = websocket,
+                               msg = "Sending the recent events.")
             await websocket.send(msg)
         else:
             logger.debug("No recent events available.")
@@ -182,12 +213,12 @@ async def register_pgv_client(websocket, sl_client):
         # now add the websocket to the known clients.
         with clients_lock:
             clients.add(websocket)
-        logger.info("Client %s at %s registered successfully.",
-                    id(websocket),
-                    websocket.remote_address)
+        log_client_message(client = websocket,
+                           msg = "Standard client registered successfully.")
     except Exception as e:
-        logger.exception("Error registering the client from %s.",
-                         websocket.remote_address)
+        log_client_message(client = websocket,
+                           msg = "Error registering the standard client.",
+                           log_level = 'exception')
 
 
 async def register_keydata_client(websocket, sl_client):
@@ -206,14 +237,17 @@ async def register_keydata_client(websocket, sl_client):
                         payload = payload)
 
     try:
-        logger.info("Registering the client.")
+        log_client_message(client = websocket,
+                           msg = "Registering a new keydata client.")
+
         # Send the welcome message.
         await websocket.send(msg)
 
         # Send the initial keydata to the new client.
         payload = sl_client.get_keydata()
         if payload:
-            logger.info("Sending the initial keydata.")
+            log_client_message(client = websocket,
+                               msg = "Sending the initial keydata.")
             msg = build_message(msg_class = 'data',
                                 msg_id = 'keydata',
                                 payload = payload)
@@ -223,10 +257,13 @@ async def register_keydata_client(websocket, sl_client):
         # now add the websocket to the known clients.
         with clients_keydata_lock:
             clients_keydata.add(websocket)
-        logger.info("Client registered.")
+        log_client_message(client = websocket,
+                           msg = "Keydata client registered successfully.")
 
     except Exception as e:
-        logger.exception("Error registering the client.")
+        log_client_message(client = websocket,
+                           msg = "Error registering the keydata client.",
+                           log_level = 'exception')
 
 
 async def unregister_client(websocket):
@@ -262,15 +299,14 @@ async def serve_keydata(sl_client):
             with clients_keydata_lock:
                 clients_copy = copy.copy(clients_keydata)
             for cur_client in clients_copy:
-                logger.info("Sending the keydata to client %s at %s.",
-                            id(cur_client),
-                            cur_client.remote_address)
+                log_client_message(client = cur_client,
+                                   msg = "Sending the keydata to client.")
                 try:
                     await cur_client.send(msg)
                 except Exception as e:
-                    logger.exception("Error sending to client %s at %s.",
-                                     id(cur_client),
-                                     cur_client.remote_address)
+                    log_client_message(client = websocket,
+                                       msg = "Error sending keydata to client.",
+                                       log_level = 'exception')
             sl_client.event_keydata_available.clear()
     except Exception as e:
         logger.exception("Error while serving the keydata.")
@@ -308,31 +344,23 @@ async def serve_data(sl_client):
                 # Send the data to the registered clients.
                 logger.info("Serving the data.")
                 for cur_client in clients_copy:
-                    cur_request_origin = cur_client.request_headers.get_all('X-Real-IP')
-                    logger.info("Sending the current pgv to client %s at proxy port %s with origin %s.",
-                                id(cur_client),
-                                cur_client.remote_address,
-                                cur_request_origin)
+                    log_client_message(client = cur_client,
+                                       msg = "Sending the current pgv to client.")
                     try:
                         await cur_client.send(msg)
                     except Exception as e:
-                        logger.exception("Error sending to client %s at proxy port %s with origin %s.",
-                                         id(cur_client),
-                                         cur_client.remote_address,
-                                         cur_request_origin)
-
+                        log_client_message(client = cur_client,
+                                           msg = "Error sending to client.",
+                                           log_level = 'exception')
 
                 # Request the timeseries data.
                 pgv_ts = sl_client.get_pgv_timeseries()
 
                 for cur_client in clients_copy:
                     if len(cur_client.pgv_timeseries) > 0:
-                        cur_request_origin = cur_client.request_headers.get_all('X-Real-IP')
-                        logger.info("Sending pgv timeseries for stations %s to client %s at proxy port %s with origin %s.",
-                                    cur_client.pgv_timeseries,
-                                    id(cur_client),
-                                    cur_client.remote_address,
-                                    cur_request_origin)
+                        cur_log_msg = "Sending pgv timeseries for stations {stations} to client.".format(stations = cur_client.pgv_timeseries)
+                        log_client_message(client = cur_client,
+                                           msg = cur_log_msg)
                         payload = {}
                         for cur_nsl in cur_client.pgv_timeseries:
                             if cur_nsl in pgv_ts.keys():
@@ -346,10 +374,9 @@ async def serve_data(sl_client):
                         try:
                             await cur_client.send(msg)
                         except Exception as e:
-                            logger.exception("Error sending to client %s at proxy port %s with origin %s.",
-                                             id(cur_client),
-                                             cur_client.remote_address,
-                                             cur_request_origin)
+                            log_client_message(client = cur_client,
+                                               msg = "Error sending the pgv timeseries to client.",
+                                               log_level = 'exception')
 
             # Reset the PGV data flag.
             sl_client.pgv_data_available.clear()
@@ -380,13 +407,14 @@ async def serve_detection_result(sl_client):
 
             logger.info("Serving the detection result.")
             for cur_client in clients_copy:
-                logger.info("Sending to client %s.",
-                            cur_client.remote_address)
+                log_client_message(client = cur_client,
+                                   msg = "Sending detection result to client.")
                 try:
                     await cur_client.send(msg)
                 except Exception as e:
-                    logger.exception("Error sending to client: %s.",
-                                     cur_client.remote_address)
+                    log_client_message(client = cur_client,
+                                       msg = "Error sending detection result to client.",
+                                       log_level = 'exception')
             sl_client.event_detection_result_available.clear()
     except Exception as e:
         logger.exception("Error while serving the detection result.")
@@ -422,13 +450,14 @@ async def serve_current_event(sl_client):
             # Send the data to the registered clients.
             logger.info("Serving the event data.")
             for cur_client in clients_copy:
-                logger.info("Sending to client %s.",
-                            cur_client.remote_address)
+                log_client_message(client = cur_client,
+                                   msg = "Sending current event to client.")
                 try:
                     await cur_client.send(msg)
                 except Exception as e:
-                    logger.exception("Error sending to client: %s.",
-                                     cur_client.remote_address)
+                    log_client_message(client = cur_client,
+                                       msg = "Error sending current event to client.",
+                                       log_level = 'exception')
 
             # Reset the flag.
             sl_client.current_event_available.clear()
@@ -456,13 +485,14 @@ async def serve_recent_events(sl_client):
             with clients_lock:
                 clients_copy = copy.copy(clients)
             for cur_client in clients_copy:
-                logger.info("Sending to client %s.",
-                            cur_client.remote_address)
+                log_client_message(client = cur_client,
+                                   msg = "Sending recent events to client.")
                 try:
                     await cur_client.send(msg)
                 except Exception as e:
-                    logger.exception("Error sending to client: %s.",
-                                     cur_client.remote_address)
+                    log_client_message(client = cur_client,
+                                       msg = "Error sending recent events to client.",
+                                       log_level = 'exception')
             sl_client.event_archive_changed.clear()
     except Exception as e:
         logger.exception("Error while serving the event archive.")
@@ -488,13 +518,14 @@ async def serve_event_warning(sl_client):
             with clients_lock:
                 clients_copy = copy.copy(clients)
             for cur_client in clients_copy:
-                logger.info("Sending to client %s.",
-                            cur_client.remote_address)
+                log_client_message(client = cur_client,
+                                   msg = "Sending event warning to client.")
                 try:
                     await cur_client.send(msg)
                 except Exception as e:
-                    logger.exception("Error sending to client: %s.",
-                                     cur_client.remote_address)
+                    log_client_message(client = cur_client,
+                                       msg = "Error sending event warning to client.",
+                                       log_level = 'exception')
             sl_client.event_warning_available.clear()
     except Exception as e:
         logger.exception("Error while serving the event warning.")
@@ -504,9 +535,10 @@ async def handle_ws_connection(websocket, path, sl_client):
     # Get the logging instance.
     logger_name = 'mss_dataserver'
     logger = logging.getLogger(logger_name)
-    logger.info('Connection request from %s.', websocket.remote_address)
+    log_client_message(client = websocket,
+                       msg = 'New connection request.')
 
-    logger.info('REQUEST_HEADERS: %s.', list(websocket.request_headers.raw_items()))
+    #logger.info('REQUEST_HEADERS: %s.', list(websocket.request_headers.raw_items()))
 
     # Initialize some state arguments of the websocket.
     # A list of nsl codes of the stations for which the pgv timeseries data
@@ -516,19 +548,19 @@ async def handle_ws_connection(websocket, path, sl_client):
     mode = None
     try:
         async for msg in websocket:
-            request_origin = websocket.request_headers.get_all('X-Real-IP')
-            logger.info('Handling incoming message from %s.',
-                        request_origin)
+            log_client_message(client = websocket,
+                               msg = 'Handling incoming message.')
             msg = json.loads(msg)
             try:
                 msg_header = validation.WSMessageHeader(**msg['header'])
             except Exception:
-                logger.exception('Invalid message header. msg: ', str(msg))
+                log_client_message(client = websocket,
+                                   msg = 'Invalid message header. msg: {header}'.format(header = str(msg)),
+                                   log_level = 'exception')
                 continue
 
-            logger.info('Accepted incoming message from %s: %s.',
-                        websocket.remote_address,
-                        msg_header.json())
+            log_client_message(client = websocket,
+                               msg = 'Accepted incoming message: {msg}.'.format(msg = msg_header.json()))
 
             if msg_header.msg_class == validation.MsgClassEnum.control:
                 if msg_header.msg_id == validation.MsgControlIdEnum.mode:
@@ -555,9 +587,8 @@ async def handle_ws_connection(websocket, path, sl_client):
                     except Exception:
                         logger.exception('Invalid message payload.')
                         continue
-                    logger.info('Requested event supplements %s for event id: %s.',
-                                msg_payload.selection,
-                                msg_payload.public_id)
+                    log_client_message(client = websocket,
+                                       msg = 'Requested event supplements {sup} for event id: {ev_id}.'.format(sup = msg_payload.selection, ev_id = msg_payload.public_id))
 
                     # Get the requested supplement data.
                     try:
@@ -585,8 +616,8 @@ async def handle_ws_connection(websocket, path, sl_client):
                     except Exception:
                         logger.exception('Invalid message payload.')
                         continue
-                    logger.info('Requested pgv timeseries for station %s.',
-                                msg_payload.nsl_code)
+                    log_client_message(client = websocket,
+                                       msg = 'Requested pgv timeseries for station {station}.'.format(station = msg_payload.nsl_code))
                     try:
                         websocket.pgv_timeseries.append(msg_payload.nsl_code)
                     except Exception:
@@ -603,10 +634,8 @@ async def handle_ws_connection(websocket, path, sl_client):
                         msg = build_message(msg_class = 'data',
                                             msg_id = 'pgv_timeseries_archive',
                                             payload = pgv_ts)
-                        logger.info('Sending the pgv timeseries archive for station %s to client %s at %s.',
-                                    list(pgv_ts.keys()),
-                                    id(websocket),
-                                    websocket.remote_address)
+                        log_client_message(client = websocket,
+                                           msg = 'Sending the pgv timeseries archive for station {station}.'.format(station = list(pgv_ts.keys()))),
                         try:
                             await websocket.send(msg)
                         except Exception as e:
@@ -635,7 +664,8 @@ async def handle_ws_connection(websocket, path, sl_client):
     except Exception as e:
         logger.exception("Lost connection to client: %s.", websocket)
     finally:
-        logger.info('Unregistering the client %s.', websocket)
+        log_client_message(client = websocket,
+                           msg = 'Unregistering the client.')
         if mode == validation.MsgControlModeDataModeEnum.pgv:
             await unregister_client(websocket)
             with clients_lock:
