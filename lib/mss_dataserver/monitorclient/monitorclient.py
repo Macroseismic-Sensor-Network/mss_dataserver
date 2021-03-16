@@ -205,7 +205,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # Load the archived data.
         # The timespan to load in hours.
-        self.event_archive_timespan = 168
+        self.event_archive_timespan = event_archive_timespan
         self.load_archive_catalogs(hours = self.event_archive_timespan)
 
     def reset(self):
