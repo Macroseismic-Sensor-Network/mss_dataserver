@@ -624,23 +624,36 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
                 if self.current_event.detection_state == 'closed':
                     try:
+                        rejected = False
                         if ((self.current_event.max_pgv >= self.valid_event_thr) and (self.current_event.length >= 1)) or ((self.current_event.length >= self.min_event_length)) and (len(self.current_event.detections) >= self.min_event_detections):
-                            # Save the event and its metadata in a thread to
-                            # prevent blocking the data acquisition.
-                            # TODO: Copy the event before exporting it. Deepcopy
-                            # throws an error "TypeError: can't pickle
-                            # _thread.RLock objects".
-                            export_event = self.current_event
-                            export_event_thread = threading.Thread(name = 'export_event',
-                                                                   target = self.export_event,
-                                                                   args = (export_event, ))
-                            self.logger.info("Starting the export_event_thread.")
-                            export_event_thread.start()
-                            # TODO: Add some kind of event signaling to track the
-                            # execution of the export thread.
-                            self.export_event_thread = export_event_thread
-                            self.logger.info("Continue the program execution.")
+                            # If only one detection triangle is available, all three stations
+                            # have to be above the 0.1 mm/s threshold.
+                            if len(self.current_event.detections) == 1:
+                                cur_pgv_dict = self.current_event.get_max_pgv_per_station()
+                                if not np.all(np.array(list(cur_pgv_dict.values())) >= 0.1e-3):
+                                    self.logger.info("PGV of single detection event too small: %s", cur_pgv_dict)
+                                    rejected = True
+                                   
+                            if not rejected:
+                                # Save the event and its metadata in a thread to
+                                # prevent blocking the data acquisition.
+                                # TODO: Copy the event before exporting it. Deepcopy
+                                # throws an error "TypeError: can't pickle
+                                # _thread.RLock objects".
+                                export_event = self.current_event
+                                export_event_thread = threading.Thread(name = 'export_event',
+                                                                       target = self.export_event,
+                                                                       args = (export_event, ))
+                                self.logger.info("Starting the export_event_thread.")
+                                export_event_thread.start()
+                                # TODO: Add some kind of event signaling to track the
+                                # execution of the export thread.
+                                self.export_event_thread = export_event_thread
+                                self.logger.info("Continue the program execution.")
                         else:
+                            rejected = True
+                           
+                        if rejected:
                             self.logger.info("Rejected the event because it didn't fit the required parameters.")
                             self.logger.info("start_time: %s", self.current_event.start_time.isoformat())
                             self.logger.info("end_time: %s", self.current_event.end_time.isoformat())
