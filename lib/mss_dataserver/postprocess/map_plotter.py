@@ -415,6 +415,26 @@ class MapPlotter(object):
         self.artists.extend(artists)
         return max_event_pgv
 
+    def draw_contours(self, df):
+        ''' Draw the PGV contours.
+        '''
+        cmap = self.cmap
+        norm = self.norm
+        artists = [];
+        
+        color_list = [cmap(norm(x)) for x in df['pgv_log']]
+
+        cur_artist = self.ax.add_geometries(df['geometry'],
+                                            crs = self.projection,
+                                            facecolor = color_list,
+                                            edgecolor = 'black',
+                                            linewidth = 0.2,
+                                            alpha = 0.8,
+                                            zorder = 3)
+        artists.append(cur_artist)
+
+        self.artists.extend(artists)
+        
 
     def draw_simplices(self, df):
         ''' Draw the detection simplices. 
@@ -488,7 +508,7 @@ class MapPlotter(object):
     
         self.artists.extend(artists)
 
-    def draw_detection_stations(self, df):
+    def draw_detection_stations(self, df, use_sa = False):
         ''' Draw the detecion stations.
         '''
         cmap = self.cmap
@@ -496,7 +516,10 @@ class MapPlotter(object):
         artists = []
     
         # Get the max pgv of stations with a pgv value.
-        with_data_df = df[df['pgv'].notna()]
+        if use_sa:
+            with_data_df = df[df['pgv_corr'].notna()]
+        else:
+            with_data_df = df[df['pgv'].notna()]
         colorlist = [cmap(norm(x)) for x in with_data_df.pgv_log]
     
         # Plot the stations used for detection.
@@ -512,7 +535,10 @@ class MapPlotter(object):
         artists.append(cur_artist)
 
         # Plot the stations not used for detection.
-        no_data_df = df[df['pgv'].isna()]
+        if use_sa:
+            no_data_df = df[df['pgv_corr'].isna()]
+        else:
+            no_data_df = df[df['pgv'].isna()]
         colorlist = [cmap(norm(x)) for x in no_data_df.pgv_log]
         x_coord = [x.geometry.x for x in no_data_df.itertuples()]
         y_coord = [x.geometry.y for x in no_data_df.itertuples()]
@@ -759,6 +785,92 @@ class MapPlotter(object):
             max_event_pgv = self.draw_detection_pgv_level(df = cur_group,
                                                           max_event_pgv = max_event_pgv)
                 
+    def create_detection_sequence_movie(self):
+        ''' Create the movie of the detection sequence.
+        '''
+        # Initialize the map.
+        if self.fig is None:
+            self.init_map(utm_zone = 33)
+        else:
+            self.clear_map()
+            
+        # Create the output directory.
+        img_output_dir = os.path.join(self.output_dir,
+                                      self.event_dir,
+                                      'detectionsequence',
+                                      'images')
+        if not os.path.exists(img_output_dir):
+            os.makedirs(img_output_dir)
+            
+        movie_output_dir = os.path.join(self.output_dir,
+                                        self.event_dir,
+                                        'detectionsequence',
+                                        'movie')
+        if not os.path.exists(movie_output_dir):
+            os.makedirs(movie_output_dir)
+
+        # Load the detection sequence data from the geojson file.
+        sequ_df = util.get_supplement_data(public_id = self.event_public_id,
+                                           category = 'detectionsequence',
+                                           name = 'simplices',
+                                           directory = self.supplement_dir)
+        sequ_df_props = sequ_df.attrs
+
+        # Convert the geopandas dataframe to cartopy projection.
+        sequ_df = sequ_df.to_crs(self.projection.proj4_init)
+        
+        # Add the logarithmic pgv values.
+        sequ_df.insert(5, "pgv_min_log", np.log10(sequ_df.pgv_min))
+        sequ_df.insert(6, "pgv_max_log", np.log10(sequ_df.pgv_max))
+
+        # Load the station pgv sequence data from the geojson file.
+        stat_df = util.get_supplement_data(public_id = self.event_public_id,
+                                           category = 'pgvsequence',
+                                           name = 'pgvstation',
+                                           directory = self.supplement_dir)
+        stat_df_props = stat_df.attrs
+
+        # convert the geopandas dataframe to cartopy projection.
+        stat_df = stat_df.to_crs(self.projection.proj4_init)
+
+        stat_df.insert(3, "pgv_log", np.log10(stat_df.pgv))
+
+        # Initialize the maximum event PGV value used to plot the PGV level.
+        max_event_pgv = None
+
+        # Set the time zones for conversion.
+        from_zone = dateutil.tz.gettz('UTC')
+        to_zone = dateutil.tz.gettz('CET')
+        
+        # Iterate through the time groups.
+        time_groups = sequ_df.groupby('time')
+        stat_time_groups = stat_df.groupby('time')
+        
+        for cur_name, cur_group in time_groups:
+            cur_time = obspy.UTCDateTime(cur_name)
+
+            # Get the related pgvstation frame.
+            cur_stat_df = stat_time_groups.get_group(cur_name)
+
+            # Convert to local time.
+            cur_time_local = cur_time.datetime.replace(tzinfo = from_zone).astimezone(to_zone)
+
+            # Draw the network boundary.
+            self.draw_boundary()
+
+            # Draw the detection triangles.
+            self.draw_simplices(df = cur_group)
+
+            # Draw the station markers.
+            self.draw_detection_stations(df = cur_stat_df)
+
+            # Draw the time information.
+            self.draw_time_marker(time = cur_time_local)
+
+            # Draw the PGV level.
+            max_event_pgv = self.draw_detection_pgv_level(df = cur_group,
+                                                          max_event_pgv = max_event_pgv)
+                
             cur_date_string = cur_time.isoformat().replace(':', '').replace('.', '')
             cur_filename = self.event_public_id + '_detectionframe_' + cur_date_string + '.png'
             cur_filepath = os.path.join(img_output_dir,
@@ -773,3 +885,101 @@ class MapPlotter(object):
         self.create_movie(image_dir = img_output_dir,
                           output_dir = movie_output_dir,
                           name = 'detectionframe')
+
+
+    def create_pgv_contour_sequence_movie(self):
+        ''' Create the movie of the pgv contour sequence.
+        '''
+        # Initialize the map.
+        if self.fig is None:
+            self.init_map(utm_zone = 33)
+        else:
+            self.clear_map()
+            
+        # Create the output directory.
+        img_output_dir = os.path.join(self.output_dir,
+                                      self.event_dir,
+                                      'pgvcontoursequence',
+                                      'images')
+        if not os.path.exists(img_output_dir):
+            os.makedirs(img_output_dir)
+            
+        movie_output_dir = os.path.join(self.output_dir,
+                                        self.event_dir,
+                                        'pgvcontoursequence',
+                                        'movie')
+        if not os.path.exists(movie_output_dir):
+            os.makedirs(movie_output_dir)
+
+        # Load the detection sequence data from the geojson file.
+        sequ_df = util.get_supplement_data(public_id = self.event_public_id,
+                                           category = 'pgvsequence',
+                                           name = 'pgvcontour',
+                                           directory = self.supplement_dir)
+        sequ_df_props = sequ_df.attrs
+
+        # Convert the geopandas dataframe to cartopy projection.
+        sequ_df = sequ_df.to_crs(self.projection.proj4_init)
+        
+        # Add the logarithmic pgv values.
+        sequ_df.insert(4, "pgv_log", np.log10(sequ_df.pgv))
+
+        # Load the station pgv sequence data from the geojson file.
+        stat_df = util.get_supplement_data(public_id = self.event_public_id,
+                                           category = 'pgvsequence',
+                                           name = 'pgvstation',
+                                           directory = self.supplement_dir)
+        stat_df_props = stat_df.attrs
+
+        # convert the geopandas dataframe to cartopy projection.
+        stat_df = stat_df.to_crs(self.projection.proj4_init)
+
+        stat_df.insert(4, "pgv_corr", stat_df.pgv / stat_df.sa)
+        stat_df.insert(5, "pgv_log", np.log10(stat_df.pgv))
+        stat_df.insert(6, "pgv_log_corr", np.log10(stat_df.pgv_corr))
+        
+        # Set the time zones for conversion.
+        from_zone = dateutil.tz.gettz('UTC')
+        to_zone = dateutil.tz.gettz('CET')
+        
+        # Iterate through the time groups.
+        time_groups = sequ_df.groupby('time')
+        stat_time_groups = stat_df.groupby('time')
+        
+        for cur_name, cur_group in time_groups:
+            cur_time = obspy.UTCDateTime(cur_name)
+
+            # Get the related pgvstation frame.
+            cur_stat_df = stat_time_groups.get_group(cur_name)
+            
+            # Convert to local time.
+            cur_time_local = cur_time.datetime.replace(tzinfo = from_zone).astimezone(to_zone)
+
+            # Draw the network boundary.
+            #self.draw_boundary()
+
+            # Draw the pgv contour polygons.
+            self.draw_contours(df = cur_group)
+
+            # Draw the station markers.
+            self.draw_detection_stations(df = cur_stat_df,
+                                         use_sa = True)
+
+            # Draw the time information.
+            self.draw_time_marker(time = cur_time_local,
+                                  note = 'station correction applied')
+            
+            cur_date_string = cur_time.isoformat().replace(':', '').replace('.', '')
+            cur_filename = self.event_public_id + '_pgvcontourframe_' + cur_date_string + '.png'
+            cur_filepath = os.path.join(img_output_dir,
+                                        cur_filename)
+            self.fig.savefig(cur_filepath,
+                             dpi = 300,
+                             pil_kwargs = {'quality': 80},
+                             bbox_inches = 'tight',
+                             pad_inches = 0,)
+            self.clear_map()
+
+        self.create_movie(image_dir = img_output_dir,
+                          output_dir = movie_output_dir,
+                          name = 'pgvcontourframe')
