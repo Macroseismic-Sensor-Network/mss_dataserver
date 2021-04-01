@@ -79,7 +79,9 @@ def load_configuration(filename):
     config['postprocess'] = {}
     config['postprocess']['data_dir'] = parser.get('postprocess', 'data_dir').strip()
     config['postprocess']['map_dir'] = parser.get('postprocess', 'map_dir').strip()
+    config['postprocess']['visualization_dir'] = parser.get('postprocess', 'visualization_dir').strip()
     config['postprocess']['boundary_filename'] = parser.get('postprocess', 'boundary_filename').strip()
+    config['postprocess']['basemap_filename'] = parser.get('postprocess', 'basemap_filename').strip()
     config['postprocess']['station_amplification_filename'] = parser.get('postprocess', 'station_amplification_filename').strip()
 
     return config
