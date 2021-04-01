@@ -88,7 +88,7 @@ class EventPostProcessor(object):
         '''
         if self._meta is None:
             # Load the event metadata from the supplement file.
-            self._meta = util.get_supplement_data(self.event.public_id,
+            self._meta = util.get_supplement_data(self.event_public_id,
                                                   category = 'detectiondata',
                                                   name = 'metadata',
                                                   directory = self.supplement_dir)
@@ -97,7 +97,8 @@ class EventPostProcessor(object):
     def set_event(self, public_id):
         ''' Set the event to process.
         '''
-        self.event = self.project.load_event_by_id(public_id = public_id)
+        #self.event = self.project.load_event_by_id(public_id = public_id)
+        self.event_public_id = public_id
         self._meta = None
         self._pgv_stream = None
         self._detection_data = None
@@ -204,14 +205,17 @@ class EventPostProcessor(object):
 
         for cur_data in trigger_data:
             cur_coord = [(x.x, x.y) for x in cur_data['simplices_stations']]
+            cur_nsl = [x.nsl_string for x in cur_data['simplices_stations']]
+            cur_nsl = ','.join(cur_nsl)
             cur_simp_poly = shapely.geometry.Polygon(cur_coord)
             cur_time = [util.isoformat_tz(obspy.UTCDateTime(x)) for x in cur_data['time']]
             cur_added_to_event = np.zeros(len(cur_time), dtype = bool)
-            tmp = np.where(cur_data['trigger'])[0]
-            if len(tmp) > 0:
-                cur_first_trigger = int(tmp[0])
-                cur_added_to_event[cur_first_trigger:] = True
+            #tmp = np.where(cur_data['trigger'])[0]
+            #if len(tmp) > 0:
+            #    cur_first_trigger = int(tmp[0])
+            #    cur_added_to_event[cur_first_trigger:] = True
             cur_df = gpd.GeoDataFrame({'geom_simp': [cur_simp_poly] * len(cur_data['time']),
+                                       'nsl': [cur_nsl] * len(cur_data['time']),
                                        'time': cur_time,
                                        'pgv': map(lambda a: [x if not math.isnan(x) else None for x in a], cur_data['pgv'].tolist()),
                                        'pgv_min': np.nanmin(cur_data['pgv'], axis = 1),
@@ -255,7 +259,7 @@ class EventPostProcessor(object):
                  'author_uri': self.project.author_uri,
                  'agency_uri': self.project.agency_uri}
 
-        filepath = util.save_supplement(self.event.public_id,
+        filepath = util.save_supplement(self.event_public_id,
                                         pgv_df.loc[:, ['geom_stat', 'nsl',
                                                        'pgv', 'sa', 'triggered']],
                                         output_dir = self.supplement_dir,
@@ -265,7 +269,7 @@ class EventPostProcessor(object):
         self.logger.info('Saved station pgv points to file %s.', filepath)
 
         pgv_df = pgv_df.set_geometry('geom_vor')
-        filepath = util.save_supplement(self.event.public_id,
+        filepath = util.save_supplement(self.event_public_id,
                                         pgv_df.loc[:, ['geom_vor', 'nsl',
                                                        'pgv', 'sa', 'triggered']],
                                         output_dir = self.supplement_dir,
@@ -283,7 +287,7 @@ class EventPostProcessor(object):
         meta = self.meta
 
         # Load the PGV data stream.
-        pgv_stream = util.get_supplement_data(self.event.public_id,
+        pgv_stream = util.get_supplement_data(self.event_public_id,
                                                   category = 'detectiondata',
                                                   name = 'pgv',
                                                   directory = self.supplement_dir)
@@ -384,7 +388,7 @@ class EventPostProcessor(object):
 
         # Write the voronoi dataframe to a geojson file.
         sequence_df = sequence_df.set_geometry('geom_vor')
-        filepath = util.save_supplement(self.event.public_id,
+        filepath = util.save_supplement(self.event_public_id,
                                         sequence_df.loc[:, ['geom_vor', 'time', 'nsl',
                                                             'pgv', 'sa', 'triggered']],
                                         output_dir = self.supplement_dir,
@@ -394,7 +398,7 @@ class EventPostProcessor(object):
         self.logger.info('Saved pgv voronoi sequence to file %s.', filepath)
 
         sequence_df = sequence_df.set_geometry('geom_stat')
-        filepath = util.save_supplement(self.event.public_id,
+        filepath = util.save_supplement(self.event_public_id,
                                         sequence_df.loc[:, ['geom_stat', 'time', 'nsl',
                                                             'pgv', 'sa', 'triggered']],
                                         output_dir = self.supplement_dir,
@@ -409,7 +413,7 @@ class EventPostProcessor(object):
         ''' Compute the supplement data representing the detection sequence triangles.
         '''
         # Load the event detection data from the supplement file.
-        detection_data = util.get_supplement_data(self.event.public_id,
+        detection_data = util.get_supplement_data(self.event_public_id,
                                                   category = 'detectiondata',
                                                   name = 'detectiondata',
                                                   directory = self.supplement_dir)
@@ -428,6 +432,17 @@ class EventPostProcessor(object):
             else:
                 sequence_df = sequence_df.append(cur_df,
                                                  ignore_index = True)
+
+        # Set the added_to_event flag of the whole sequence.
+        # From the first triggered time, the flag is set to true.
+        simp_groups = sequence_df.groupby('nsl')
+        for cur_name, cur_group in simp_groups:
+            cur_added_to_event = np.zeros(len(cur_group), dtype = bool)
+            tmp = np.where(cur_group['triggered'])[0]
+            if len(tmp) > 0:
+                cur_first_trigger = int(tmp[0])
+                cur_added_to_event[cur_first_trigger:] = True
+            sequence_df.loc[sequence_df['nsl'] == cur_name, 'added_to_event'] = cur_added_to_event
 
         # Limit the data to the event timespan.
         pre_window = 6
@@ -448,7 +463,7 @@ class EventPostProcessor(object):
                  'agency_uri': self.project.agency_uri}
 
         # Write the sequence dataframe to a geojson file.
-        filepath = util.save_supplement(self.event.public_id,
+        filepath = util.save_supplement(self.event_public_id,
                                         sequence_df.loc[:, ['geom_simp', 'time', 'pgv',
                                                             'pgv_min', 'pgv_max', 'triggered',
                                                             'added_to_event']],
@@ -552,7 +567,7 @@ class EventPostProcessor(object):
                  'author_uri': self.project.author_uri,
                  'agency_uri': self.project.agency_uri}
 
-        filepath = util.save_supplement(self.event.public_id,
+        filepath = util.save_supplement(self.event_public_id,
                                         df,
                                         output_dir = self.supplement_dir,
                                         category = 'eventpgv',
