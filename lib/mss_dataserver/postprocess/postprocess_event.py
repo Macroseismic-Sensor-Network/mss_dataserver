@@ -208,7 +208,7 @@ class EventPostProcessor(object):
             cur_nsl = [x.nsl_string for x in cur_data['simplices_stations']]
             cur_nsl = ','.join(cur_nsl)
             cur_simp_poly = shapely.geometry.Polygon(cur_coord)
-            cur_time = [util.isoformat_tz(obspy.UTCDateTime(x)) for x in cur_data['time']]
+            cur_time = [util.isoformat_tz(obspy.UTCDateTime(round(x, 2))) for x in cur_data['time']]
             cur_added_to_event = np.zeros(len(cur_time), dtype = bool)
             #tmp = np.where(cur_data['trigger'])[0]
             #if len(tmp) > 0:
