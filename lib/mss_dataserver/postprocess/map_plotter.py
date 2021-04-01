@@ -366,7 +366,9 @@ class MapPlotter(object):
     
         self.artists.extend(artists)
 
-    def draw_detection_pgv_level(self, df, max_event_pgv = None):
+    def draw_detection_pgv_level(self, df,
+                                 max_event_pgv = None,
+                                 add_annotation = True):
         ''' The the maximum pgv markers in the colorbar axes.
         '''
         ax = self.cb.ax
@@ -381,16 +383,34 @@ class MapPlotter(object):
             elif max_pgv > max_event_pgv:
                 max_event_pgv = max_pgv
 
-                cur_artist = ax.axvline(x = max_pgv,
-                                        color = 'gray',
-                                        zorder = 9)
-                artists.append(cur_artist)
+            cur_artist = ax.axvline(x = max_pgv,
+                                    color = 'gray',
+                                    zorder = 9)
+            artists.append(cur_artist)
 
         if max_event_pgv is not None:
             cur_artist = ax.axvline(x = max_event_pgv,
                                     color = 'k',
                                     zorder = 10)
             artists.append(cur_artist)
+
+            if add_annotation:
+                # Add value text.
+                pgv_mm = 10**max_event_pgv * 1000
+                marker_text = " max: {pgv:.3f} mm/s ".format(pgv = pgv_mm)
+                if pgv_mm >= 0.1:
+                    ha = 'right'
+                else:
+                    ha = 'left'
+                y_lim = ax.get_ylim()
+                center = (y_lim[0] + y_lim[1]) / 2
+                cur_artist = ax.text(x = max_event_pgv,
+                                     y = center,
+                                     s = marker_text,
+                                     ha = ha,
+                                     va = 'center',
+                                     fontsize = 6)
+                artists.append(cur_artist)
 
         self.artists.extend(artists)
         return max_event_pgv
@@ -713,8 +733,8 @@ class MapPlotter(object):
         # Iterate through the time groups.
         time_groups = sequ_df.groupby('time')
         stat_time_groups = stat_df.groupby('time')
-
-        for cur_name, cur_group in time_groups:
+        
+        for cur_name, cur_group in enumerate(time_groups):
             cur_time = obspy.UTCDateTime(cur_name)
 
             # Get the related pgvstation frame.
@@ -738,7 +758,7 @@ class MapPlotter(object):
             # Draw the PGV level.
             max_event_pgv = self.draw_detection_pgv_level(df = cur_group,
                                                           max_event_pgv = max_event_pgv)
-
+                
             cur_date_string = cur_time.isoformat().replace(':', '').replace('.', '')
             cur_filename = self.event_public_id + '_detectionframe_' + cur_date_string + '.png'
             cur_filepath = os.path.join(img_output_dir,
