@@ -275,6 +275,8 @@ class SupplementDetectionDataDecoder(json.JSONDecoder):
     def __init__(self, **kwarg):
         json.JSONDecoder.__init__(self, object_hook = self.convert_dict)
 
+        self.inventory = geom.inventory.Inventory(name = 'detection_data_import')
+
 
     def convert_dict(self, d):
         #print "Converting dict: %s." % str(d)
@@ -327,17 +329,33 @@ class SupplementDetectionDataDecoder(json.JSONDecoder):
 
 
     def convert_station(self, d):
-        inst = geom.inventory.Station(name = d['name'],
-                                      location = d['location'],
-                                      x = d['x'],
-                                      y = d['y'],
-                                      z = d['z'],
-                                      coord_system = d['coord_system'],
-                                      description = d['description'],
-                                      author_uri = d['author_uri'],
-                                      agency_uri = d['agency_uri'],
-                                      creation_time = d['creation_time'])
+        cur_station = self.inventory.get_station(name = d['name'],
+                                                 location = d['location'],
+                                                 network = d['network'])
+        if len(cur_station) == 1:
+            # Use the found station.
+            inst = cur_station[0]
+        else:
+            # Create a new station and add it to the inventory.
+            inst = geom.inventory.Station(name = d['name'],
+                                          location = d['location'],
+                                          x = d['x'],
+                                          y = d['y'],
+                                          z = d['z'],
+                                          coord_system = d['coord_system'],
+                                          description = d['description'],
+                                          author_uri = d['author_uri'],
+                                          agency_uri = d['agency_uri'],
+                                          creation_time = d['creation_time'])
+            network_name = d['network']
+            cur_net = self.inventory.get_network(name = network_name)
+            if len(cur_net) == 1:
+                cur_net = cur_net[0]
+            else:
+                cur_net = geom.inventory.Network(name = network_name,
+                                                 author_uri = d['author_uri'],
+                                                 agency_uri = d['agency_uri'])
+            self.inventory.add_network(cur_net)
+            self.inventory.add_station(network_name = d['network'],
+                                       station_to_add = inst)
         return inst
-
-
-
