@@ -72,13 +72,15 @@ def cli(ctx, config_file):
 @cli.command()
 @click.pass_context
 @click.option('--public_id', help = 'The public ID of the event to process.')
-@click.option('--no_db', is_flag = True, help = 'No database available.')
-@click.option('--no_meta', is_flag = True, help = "Don't compute the meta supplement.")
-@click.option('--no_isoseismal', is_flag = True, help = "Don't compute the pgv kriging.")
-@click.option('--no_pgv_sequence', is_flag = True, help = "Don't compute the PGV sequence.")
-@click.option('--no_detection_sequence', is_flag = True, help = "Don't compute the detection sequence.")
+@click.option('--no-db', is_flag = True, help = 'No database available.')
+@click.option('--no-meta', is_flag = True, help = "Don't compute the meta supplement.")
+@click.option('--no-isoseismal', is_flag = True, help = "Don't compute the pgv kriging.")
+@click.option('--no-pgv-sequence', is_flag = True, help = "Don't compute the PGV sequence.")
+@click.option('--no-detection-sequence', is_flag = True, help = "Don't compute the detection sequence.")
+@click.option('--no-pgv-contour-sequence', is_flag = True, help = "Don't compute the pgv contour sequence.")
 def process_event(ctx, public_id, no_db, no_meta, no_isoseismal,
-                  no_pgv_sequence, no_detection_sequence):
+                  no_pgv_sequence, no_detection_sequence,
+                  no_pgv_contour_sequence):
     ''' Process an event. '''
 
     logger_name = 'mss_dataserver'
@@ -138,6 +140,11 @@ def process_event(ctx, public_id, no_db, no_meta, no_isoseismal,
         logger.info('Computing the detection sequence supplement.')
         pp.compute_detection_sequence_supplement()
 
+    # Compute the pgv contour sequence.
+    if not no_pgv_contour_sequence:
+        logger.info('Computing the pgv contour sequence supplement.')
+        pp.compute_pgv_contour_sequence_supplement()
+
 
 @cli.command()
 @click.pass_context
@@ -145,8 +152,10 @@ def process_event(ctx, public_id, no_db, no_meta, no_isoseismal,
 @click.option('--no-db', is_flag = True, help = 'No database available.')
 @click.option('--pgv-map/--no-pgv-map', default = True, help = 'Enable/disable computation of the pgv map [enabled].')
 @click.option('--detection-sequence/--no-detection-sequence', default = True, help = 'Enable/disable computation of the detection sequence movie [enabled].')
+@click.option('--pgv-contour-sequence/--no-pgv-contour-sequence', default = False, help = 'Enable/disable computation of the pgv contour sequence movie [disabled].')
 def create_maps(ctx, public_id, no_db,
-                pgv_map, detection_sequence):
+                pgv_map, detection_sequence,
+                pgv_contour_sequence):
     ''' Process an event. '''
 
     logger_name = 'mss_dataserver'
@@ -175,6 +184,10 @@ def create_maps(ctx, public_id, no_db,
     # Create the detection sequence images and movie.
     if detection_sequence:
         plotter.create_detection_sequence_movie()
+
+    # Create the pgv contour sequence images and movie.
+    if pgv_contour_sequence:
+        plotter.create_pgv_contour_sequence_movie()
 
 
 if __name__ == '__main__':
