@@ -69,8 +69,8 @@ def get_supplement_map():
                           'format': 'geojson',
                           'subdir': 'eventpgv'},
            'isoseismalfilledcontour': {'name': 'isoseismalfilledcontour',
-                                  'format': 'geojson',
-                                  'subdir': 'eventpgv'},
+                                       'format': 'geojson',
+                                       'subdir': 'eventpgv'},
            }
     supplement_map['eventpgv'] = tmp
 
@@ -79,6 +79,9 @@ def get_supplement_map():
                           'format': 'geojson',
                           'subdir': 'pgvsequence'},
            'pgvvoronoi': {'name': 'pgvvoronoi',
+                          'format': 'geojson',
+                          'subdir': 'pgvsequence'},
+           'pgvcontour': {'name': 'pgvcontour',
                           'format': 'geojson',
                           'subdir': 'pgvsequence'}}
     supplement_map['pgvsequence'] = tmp
