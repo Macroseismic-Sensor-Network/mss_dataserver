@@ -254,6 +254,31 @@ class Project(object):
 
             self.logger.info("Updated the database inventory with data read from %s.", inventory_file)
 
+
+    def load_inventory_from_xml(self):
+        ''' Load the inventory directly from the XML file ignoring the database.
+        
+        This function can be used when a database connction is not available,
+        but the inventory information is needed, e.g. when postprocessing 
+        events.
+        '''
+        # Read the inventory from the XML file.
+        inventory_file = self.project_config['inventory_file']
+        if not os.path.exists(inventory_file):
+            self.logger.error("Can't find the inventory file %s.",
+                              inventory_file)
+            return None
+
+        parser = inventory_parser.InventoryXmlParser()
+        try:
+            xml_inventory = parser.parse(inventory_file)
+        except Exception:
+            self.logger.exception("Couldn't load the inventory from file %s.",
+                                  inventory_file)
+
+        self.db_inventory = xml_inventory
+
+
     def get_event_catalog(self, name):
         ''' Get an event catalog.
         '''
