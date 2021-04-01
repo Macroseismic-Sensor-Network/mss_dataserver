@@ -30,6 +30,7 @@ import sys
 
 import click
 
+import mss_dataserver.core.postprocess.map_plotter as pp_map
 import mss_dataserver.core.project
 import mss_dataserver.core.util as util
 import mss_dataserver.postprocess.postprocess_event as pp_event
@@ -70,7 +71,13 @@ def cli(ctx, config_file):
 @cli.command()
 @click.pass_context
 @click.option('--public_id', help = 'The public ID of the event to process.')
-def process_event(ctx, public_id):
+@click.option('--no_db', is_flag = True, help = 'No database available.')
+@click.option('--no_meta', is_flag = True, help = "Don't compute the meta supplement.")
+@click.option('--no_isoseismal', is_flag = True, help = "Don't compute the pgv kriging.")
+@click.option('--no_pgv_sequence', is_flag = True, help = "Don't compute the PGV sequence.")
+@click.option('--no_detection_sequence', is_flag = True, help = "Don't compute the detection sequence.")
+def process_event(ctx, public_id, no_db, no_meta, no_isoseismal,
+                  no_pgv_sequence, no_detection_sequence):
     ''' Process an event. '''
 
     logger_name = 'mss_dataserver'
@@ -78,18 +85,25 @@ def process_event(ctx, public_id):
     logger.info('Processing the event with public_id {public_id}.'.format(public_id = public_id))
 
     project = ctx.obj['project']
-    try:
-        project.connect_to_db()
-    except Exception:
-        logger.exception('Error connecting to the database.')
-        sys.exit(-1)
+    if not no_db:
+        try:
+            project.connect_to_db()
+        except Exception:
+            logger.exception('Error connecting to the database.')
+            sys.exit(-1)
 
-    try:
-        project.load_inventory()
-    except Exception:
-        logger.exception('Error loading the inventory from the database.')
-        sys.exit(-1)
-
+        try:
+            project.load_inventory()
+        except Exception:
+            logger.exception('Error loading the inventory from the database.')
+            sys.exit(-1)
+    else:
+        try:
+            project.load_inventory_from_xml()
+        except Exception:
+            logger.exception('Error loading the inventory from the XML file.')
+            sys.exit(-1)
+        
     # Create the PostProcessor.
     try:
         pp = pp_event.EventPostProcessor(project = project)
@@ -98,26 +112,46 @@ def process_event(ctx, public_id):
         logger.exception('Error initializing the EventPostProcessor.')
         sys.exit(-1)
 
-    if pp.event is not None:
-        logger.info('Loaded event: %s.', pp.event.public_id)
-    else:
-        logger.info('No event loaded.')
+    #if pp.event is not None:
+    #    logger.info('Loaded event: %s.', pp.event.public_id)
+    #else:
+    #    logger.info('No event loaded.')
 
     # Compute the metadata supplement.
-    logger.info('Computing the meta supplement.')
-    pp.compute_event_metadata_supplement()
+    if not no_meta:
+        logger.info('Computing the meta supplement.')
+        pp.compute_event_metadata_supplement()
 
     # Compute the isoseismal contours.
-    logger.info('Computing the isoseismal supplement.')
-    pp.compute_isoseismal_supplement()
+    if not no_isoseismal:
+        logger.info('Computing the isoseismal supplement.')
+        pp.compute_isoseismal_supplement()
 
     # Compute the pgv sequence supplement.
-    logger.info('Computing the pgv sequence supplement.')
-    pp.compute_pgv_sequence_supplement()
+    if not no_pgv_sequence:
+        logger.info('Computing the pgv sequence supplement.')
+        pp.compute_pgv_sequence_supplement()
 
     # Compute the detection sequence supplement.
-    logger.info('Computing the detection sequence supplement.')
-    pp.compute_detection_sequence_supplement()
+    if not no_detection_sequence:
+        logger.info('Computing the detection sequence supplement.')
+        pp.compute_detection_sequence_supplement()
+
+
+@cli.command()
+@click.pass_context
+@click.option('--public_id', help = 'The public ID of the event to process.')
+@click.option('--no_db', is_flag = True, help = 'No database available.')
+def create_maps(ctx, public_id, no_db):
+    ''' Process an event. '''
+
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+    logger.info('Processing the event with public_id {public_id}.'.format(public_id = public_id))
+
+    project = ctx.obj['project']
+
+    
 
 
 if __name__ == '__main__':
