@@ -408,6 +408,182 @@ class EventPostProcessor(object):
         self.logger.info('Saved pgv station marker sequence to file %s.',
                          filepath)
 
+        
+    def compute_pgv_contour_sequence_supplement(self):
+        ''' Compute the supplement data representing the PGV sequence.
+        '''
+        # Load the event metadata from the supplement file.
+        meta = self.meta
+
+        # Load the PGV data stream.
+        pgv_stream = util.get_supplement_data(self.event_public_id,
+                                                  category = 'detectiondata',
+                                                  name = 'pgv',
+                                                  directory = self.supplement_dir)
+
+        # Trim the stream.
+        pgv_stream.trim(starttime = meta['start_time'] - 6,
+                        endtime = meta['end_time'] + 6,
+                        pad = True)
+
+        inventory = self.project.inventory
+
+        station_nsl = [('MSSNet', x.stats.station, x.stats.location) for x in pgv_stream]
+        station_nsl = [':'.join(x) for x in station_nsl]
+        stations = [inventory.get_station(nsl_string = x)[0] for x in station_nsl]
+        times = pgv_stream[0].times("utcdatetime")
+        data = np.array([x.data for x in pgv_stream]).transpose()
+
+        # Get the stations with no available data.
+        available_stations = inventory.get_station()
+
+        detection_limits = meta['detection_limits']
+
+        sequence_df = None
+        last_pgv_df = None
+
+        for k in range(len(times)):
+            cur_time = times[k]
+            self.logger.info("Computing frame {time}.".format(time = str(cur_time)))
+            triggered = []
+            for cur_station in stations:
+                if cur_station.nsl_string not in detection_limits.keys():
+                    cur_trigger = False
+                else:
+                    cur_detection_limit = detection_limits[cur_station.nsl_string]
+                    if cur_time >= cur_detection_limit[0] and cur_time <= cur_detection_limit[1]:
+                        cur_trigger = True
+                    else:
+                        cur_trigger = False
+                triggered.append(cur_trigger)
+
+            cur_points = [shapely.geometry.Point(x.x, x.y) for x in stations]
+            cur_df = gpd.GeoDataFrame({'geom_vor': [shapely.geometry.Polygon([])] * len(stations),
+                                       'geom_stat': cur_points,
+                                       'time': [util.isoformat_tz(cur_time)] * len(stations),
+                                       'nsl': [x.nsl_string for x in stations],
+                                       'x': [x.x for x in stations],
+                                       'y': [x.y for x in stations],
+                                       'x_utm': [x.x_utm for x in stations],
+                                       'y_utm': [x.y_utm for x in stations],
+                                       'pgv': data[k, :],
+                                       'triggered': triggered},
+                                      crs = "epsg:4326",
+                                      geometry = 'geom_stat')
+
+            if last_pgv_df is not None:
+                # Use the current PGV values only, if they are higher than the last ones.
+                mask = cur_df.pgv < last_pgv_df.pgv
+                cur_df.loc[mask, 'pgv'] = last_pgv_df.loc[mask, 'pgv']
+
+            # Keep the last pgv dataframe.
+            last_pgv_df = cur_df
+
+            # Add the station amplification factors.
+            self.add_station_amplification(cur_df)
+
+            # Interpolate to a regular grid using ordinary kriging.
+            self.logger.info("Interpolate")
+            krig_z, krig_sigmasq, grid_x, grid_y = util.compute_pgv_krigging(x = cur_df.x_utm.values,
+                                                                             y = cur_df.y_utm.values,
+                                                                             z = np.log10(cur_df.pgv),
+                                                                             nlags = 40,
+                                                                             verbose = False,
+                                                                             enable_plotting = False,
+                                                                             weight = True)
+
+            self.logger.info("Contours")
+            # Compute the contours.
+            intensity = np.arange(2, 8.1, 0.1)
+            # Add lower and upper limits to catch all the data below or 
+            # above the desired intensity range.
+            intensity = np.hstack([[-10], intensity, [20]])
+            intensity_pgv = util.intensity_to_pgv(intensity = intensity)
+
+            # Create and delete a figure to prevent pyplot from plotting the
+            # contours.
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            cs = ax.contourf(grid_x, grid_y, krig_z, np.log10(intensity_pgv[:, 1]),
+                             vmin = -6, vmax = -2)
+            contours = util.contourset_to_shapely(cs)
+            fig.clear()
+            plt.close(fig)
+            del ax
+            del fig
+            del cs
+
+            self.logger.info('dataframe')
+            # Create a geodataframe of the contour polygons.
+            cont_data = {'time': [],
+                         'geometry': [],
+                         'intensity': [],
+                         'pgv': []}
+
+            for cur_level, cur_poly in contours.items():
+                cur_intensity = util.pgv_to_intensity(pgv = [10**cur_level] * len(cur_poly))
+                cont_data['time'].extend([util.isoformat_tz(cur_time)] * len(cur_poly))
+                cont_data['geometry'].extend(cur_poly)
+                cont_data['intensity'].extend(cur_intensity[:, 1].tolist())
+                cont_data['pgv'].extend([10**cur_level] * len(cur_poly))
+            cur_cont_df = gpd.GeoDataFrame(data = cont_data)
+
+            # Convert the polygon coordinates to EPSG:4326.
+            src_proj = pyproj.Proj(init = 'epsg:' + self.project.inventory.get_utm_epsg()[0][0])
+            dst_proj = pyproj.Proj(init = 'epsg:4326')
+            cur_cont_df = util.reproject_polygons(df = cur_cont_df,
+                                                  src_proj = src_proj,
+                                                  dst_proj = dst_proj)
+
+            # Clip to the network boundary.
+            # Clipping a polygon may created multiple polygons.
+            # Therefore create a new dataframe to have only one polygon per,
+            # entry. Thus avoiding possible problems due to a mixture of 
+            # multipolygons and polygons.
+            cont_data = {'time': [],
+                         'geometry': [],
+                         'intensity': [],
+                         'pgv': []}
+            for cur_id, cur_row in cur_cont_df.iterrows():
+                cur_poly = cur_row.geometry
+                clipped_poly = cur_poly.intersection(self.network_boundary.loc[0, 'geometry'])
+                self.logger.info(type(clipped_poly))
+                if isinstance(clipped_poly, shapely.geometry.multipolygon.MultiPolygon):
+                    cont_data['time'].extend([cur_row.time] * len(clipped_poly))
+                    cont_data['geometry'].extend([x for x in clipped_poly])
+                    cont_data['intensity'].extend([cur_row.intensity] * len(clipped_poly))
+                    cont_data['pgv'].extend([cur_row.pgv] * len(clipped_poly))
+                else:
+                    cont_data['time'].append(cur_row.time)
+                    cont_data['geometry'].append(clipped_poly)
+                    cont_data['intensity'].append(cur_row.intensity)
+                    cont_data['pgv'].append(cur_row.pgv)
+            cur_cont_df = gpd.GeoDataFrame(data = cont_data)
+
+            # Add the dataframe to the sequence.
+            if sequence_df is None:
+                sequence_df = cur_cont_df
+            else:
+                sequence_df = sequence_df.append(cur_cont_df)
+
+        # Get some event properties to add to the properties of the feature collections.
+        props = {'db_id': meta['db_id'],
+                 'event_start': util.isoformat_tz(meta['start_time']),
+                 'event_end': util.isoformat_tz(meta['end_time']),
+                 'sequence_start': min(sequence_df.time),
+                 'sequence_end': max(sequence_df.time),
+                 'author_uri': self.project.author_uri,
+                 'agency_uri': self.project.agency_uri}
+
+        # Write the voronoi dataframe to a geojson file.
+        filepath = util.save_supplement(self.event_public_id,
+                                        sequence_df,
+                                        output_dir = self.supplement_dir,
+                                        category = 'pgvsequence',
+                                        name = 'pgvcontour',
+                                        props = props)
+        self.logger.info('Saved pgv contour sequence to file %s.', filepath)
+
 
     def compute_detection_sequence_supplement(self):
         ''' Compute the supplement data representing the detection sequence triangles.
@@ -500,7 +676,7 @@ class EventPostProcessor(object):
                                                                          weight = True)
 
         # Compute the contours.
-        intensity = np.arange(2, 6.1, 0.5)
+        intensity = np.arange(2, 8.1, 0.1)
         # Add lower and upper limits to catch all the data below or 
         # above the desired intensity range.
         intensity = np.hstack([[-10], intensity, [20]])
