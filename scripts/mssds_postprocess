@@ -30,9 +30,10 @@ import sys
 
 import click
 
-import mss_dataserver.core.postprocess.map_plotter as pp_map
+
 import mss_dataserver.core.project
 import mss_dataserver.core.util as util
+import mss_dataserver.postprocess.map_plotter as map_plotter
 import mss_dataserver.postprocess.postprocess_event as pp_event
 
 
@@ -140,9 +141,12 @@ def process_event(ctx, public_id, no_db, no_meta, no_isoseismal,
 
 @cli.command()
 @click.pass_context
-@click.option('--public_id', help = 'The public ID of the event to process.')
-@click.option('--no_db', is_flag = True, help = 'No database available.')
-def create_maps(ctx, public_id, no_db):
+@click.option('--public-id', help = 'The public ID of the event to process.')
+@click.option('--no-db', is_flag = True, help = 'No database available.')
+@click.option('--pgv-map/--no-pgv-map', default = True, help = 'Enable/disable computation of the pgv map [enabled].')
+@click.option('--detection-sequence/--no-detection-sequence', default = True, help = 'Enable/disable computation of the detection sequence movie [enabled].')
+def create_maps(ctx, public_id, no_db,
+                pgv_map, detection_sequence):
     ''' Process an event. '''
 
     logger_name = 'mss_dataserver'
@@ -151,7 +155,26 @@ def create_maps(ctx, public_id, no_db):
 
     project = ctx.obj['project']
 
-    
+    # Create the plotter.
+    supplement_dir = project.config['output']['event_dir']
+    map_dir = project.config['postprocess']['map_dir']
+    output_dir = project.config['postprocess']['visualization_dir']
+    boundary = project.config['postprocess']['boundary_filename']
+    basemap = project.config['postprocess']['basemap_filename']
+    plotter = map_plotter.MapPlotter(supplement_dir = supplement_dir,
+                                     map_dir = map_dir,
+                                     output_dir = output_dir,
+                                     boundary = boundary,
+                                     basemap = basemap)
+    plotter.set_event(public_id = public_id)
+
+    # Create the pgv map.
+    if pgv_map:
+        plotter.create_event_pgv_map()
+
+    # Create the detection sequence images and movie.
+    if detection_sequence:
+        plotter.create_detection_sequence_movie()
 
 
 if __name__ == '__main__':
