@@ -540,8 +540,6 @@ class Inventory(object):
         return ret_component
 
 
-
-
     def get_station(self, **kwargs):
         ''' Get a station from the inventory.
 
@@ -2718,7 +2716,7 @@ class Network(object):
             self.stations.append(station)
             return station
         else:
-            self.logger.error("The station with SL code %s is already in the network.", x.name + ':' + x.location)
+            self.logger.error("The station with SL code %s is already in the network.", station.name + ':' + station.location)
             return None
 
 
