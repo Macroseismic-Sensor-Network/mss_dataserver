@@ -441,7 +441,8 @@ class EventPostProcessor(object):
 
         sequence_df = None
         last_pgv_df = None
-
+        no_change_cnt = 0
+        
         for k in range(len(times)):
             cur_time = times[k]
             self.logger.info("Computing frame {time}.".format(time = str(cur_time)))
@@ -470,24 +471,44 @@ class EventPostProcessor(object):
                                        'triggered': triggered},
                                       crs = "epsg:4326",
                                       geometry = 'geom_stat')
-
-            if last_pgv_df is not None:
-                # Use the current PGV values only, if they are higher than the last ones.
-                mask = cur_df.pgv < last_pgv_df.pgv
-                cur_df.loc[mask, 'pgv'] = last_pgv_df.loc[mask, 'pgv']
-
-            # Keep the last pgv dataframe.
-            last_pgv_df = cur_df
-
+           
             # Add the station amplification factors.
             self.add_station_amplification(cur_df)
 
+            # Compute the corrected pgv values.
+            cur_df['pgv_corr'] = cur_df.pgv / cur_df.sa
+
+            # Use only the stations with a valid corrected pgv.
+            cur_df = cur_df[cur_df['pgv_corr'].notna()]
+
+            # Update the pgv values to keep the event maximum pgv.
+            # Track changes of the event maximum pgv.
+            if last_pgv_df is not None:
+                # Use the current PGV values only, if they are higher than
+                # the last ones.
+                mask = cur_df.pgv_corr < last_pgv_df.pgv_corr
+                cur_df.loc[mask, 'pgv_corr'] = last_pgv_df.loc[mask, 'pgv_corr']
+                
+                if np.all(mask):
+                    no_change_cnt += 1
+                else:
+                    no_change_cnt = 0
+                self.logger.info('no_change_cnt: ' + str(no_change_cnt))
+
+            # Exit if the was no change of the max event pgv data for some time.
+            if no_change_cnt >= 5:
+                self.logger.info('No change for some time, stop computation of contours.')
+                break
+
+            # Keep the last pgv dataframe.
+            last_pgv_df = cur_df
+           
             # Interpolate to a regular grid using ordinary kriging.
             self.logger.info("Interpolate")
             krig_z, krig_sigmasq, grid_x, grid_y = util.compute_pgv_krigging(x = cur_df.x_utm.values,
                                                                              y = cur_df.y_utm.values,
-                                                                             z = np.log10(cur_df.pgv),
-                                                                             nlags = 40,
+                                                                             z = np.log10(cur_df.pgv_corr),
+                                                                             nlags = 10,
                                                                              verbose = False,
                                                                              enable_plotting = False,
                                                                              weight = True)
@@ -540,6 +561,7 @@ class EventPostProcessor(object):
             # Therefore create a new dataframe to have only one polygon per,
             # entry. Thus avoiding possible problems due to a mixture of 
             # multipolygons and polygons.
+            self.logger.info('Clipping.')
             cont_data = {'time': [],
                          'geometry': [],
                          'intensity': [],
@@ -560,6 +582,7 @@ class EventPostProcessor(object):
                     cont_data['pgv'].append(cur_row.pgv)
             cur_cont_df = gpd.GeoDataFrame(data = cont_data)
 
+            self.logger.info('Appending to sequence.')
             # Add the dataframe to the sequence.
             if sequence_df is None:
                 sequence_df = cur_cont_df
