@@ -130,18 +130,34 @@ class MapPlotter(object):
         self.fig = plt.figure(figsize = (125/25.4, 100/25.4),
                               dpi = 300)
         self.ax = plt.axes(projection = self.projection)
+
+        # Set the map axes to the figure limits.
+        self.ax.set_position([0, 0, 1, 1])
+
+        # Plot the background map.
         rasterio.plot.show(basemap,
                            origin = 'upper',
                            interpolation = None,
                            ax = self.ax,
                            zorder = 1)
 
+        # Add the colorbar.
         self.draw_pgv_colorbar()
 
-        # Set the map axes to the figure limits.
-        self.ax.set_position([0, 0, 1, 1])
+        # Add the MSS logo.
+        logo_filepath = os.path.join(self.map_dir, 'mss_logo.png')
+        logo = plt.imread(logo_filepath)
+        self.fig.figimage(logo,
+                          origin = 'upper',
+                          yo = 1100,
+                          xo = 15)
+
+        # Add the attribution.
+        self.draw_attribution_note()
 
         self.artists = []
+
+        
 
 
     def clear_map(self):
@@ -329,7 +345,10 @@ class MapPlotter(object):
         self.artists.extend(artists)
 
     
-    def draw_pgv_level(self, df, use_sa = False):
+    def draw_pgv_level(self, df, use_sa = False,
+                       max_event_pgv = None,
+                       show_max_level = False,
+                       add_annotation = True):
         ''' The the maximum pgv marker in the colorbar axes.
         '''
         ax = self.cb.ax
@@ -342,30 +361,70 @@ class MapPlotter(object):
         if len(pgv) > 0:
             pgv = np.nanmax(pgv)
             pgv_log = np.log10(pgv)
+
+            if max_event_pgv is None:
+                max_event_pgv = pgv
+            elif pgv > max_event_pgv:
+                max_event_pgv = pgv
+
+            if show_max_level:
+                line_color = 'gray'
+            else:
+                line_color = 'k'
             cur_artist = ax.axvline(x = pgv_log,
-                                    color = 'k',
-                                    zorder = 10)
+                                    color = line_color,
+                                    zorder = 2)
             artists.append(cur_artist)
         
             # Add value text.
-            pgv_mm = pgv * 1000
-            marker_text = "max: {pgv:.3f} mm/s ".format(pgv = pgv_mm)
-            if pgv_mm >= 0.1:
-                ha = 'right'
-            else:
-                ha = 'left'
-            y_lim = ax.get_ylim()
-            center = (y_lim[0] + y_lim[1]) / 2
-            cur_artist = ax.text(x = pgv_log,
-                                 y = center,
-                                 s = marker_text,
-                                 ha = ha,
-                                 va = 'center',
-                                 fontsize = 6)
+            if add_annotation and not show_max_level:
+                pgv_mm = pgv * 1000
+                marker_text = "max: {pgv:.3f} mm/s ".format(pgv = pgv_mm)
+                if pgv_mm >= 0.1:
+                    ha = 'right'
+                else:
+                    ha = 'left'
+                y_lim = ax.get_ylim()
+                center = (y_lim[0] + y_lim[1]) / 2
+                cur_artist = ax.text(x = pgv_log,
+                                     y = center,
+                                     s = marker_text,
+                                     ha = ha,
+                                     va = 'center',
+                                     fontsize = 6,
+                                     zorder = 4)
+                artists.append(cur_artist)
+
+        if show_max_level and max_event_pgv is not None:
+            cur_artist = ax.axvline(x = np.log10(max_event_pgv),
+                                    color = 'k',
+                                    zorder = 3)
             artists.append(cur_artist)
+
+            if add_annotation:
+                # Add value text.
+                pgv_mm = max_event_pgv * 1000
+                marker_text = " max: {pgv:.3f} mm/s ".format(pgv = pgv_mm)
+                if pgv_mm >= 0.1:
+                    ha = 'right'
+                else:
+                    ha = 'left'
+                y_lim = ax.get_ylim()
+                center = (y_lim[0] + y_lim[1]) / 2
+                cur_artist = ax.text(x = np.log10(max_event_pgv),
+                                     y = center,
+                                     s = marker_text,
+                                     ha = ha,
+                                     va = 'center',
+                                     fontsize = 6,
+                                     zorder = 4)
+                artists.append(cur_artist)
     
         self.artists.extend(artists)
 
+        return max_event_pgv
+
+        
     def draw_detection_pgv_level(self, df,
                                  max_event_pgv = None,
                                  add_annotation = True):
@@ -385,13 +444,13 @@ class MapPlotter(object):
 
             cur_artist = ax.axvline(x = max_pgv,
                                     color = 'gray',
-                                    zorder = 9)
+                                    zorder = 2)
             artists.append(cur_artist)
 
         if max_event_pgv is not None:
             cur_artist = ax.axvline(x = max_event_pgv,
                                     color = 'k',
-                                    zorder = 10)
+                                    zorder = 4)
             artists.append(cur_artist)
 
             if add_annotation:
@@ -409,21 +468,30 @@ class MapPlotter(object):
                                      s = marker_text,
                                      ha = ha,
                                      va = 'center',
-                                     fontsize = 6)
+                                     fontsize = 6,
+                                     zorder = 3)
                 artists.append(cur_artist)
 
         self.artists.extend(artists)
         return max_event_pgv
 
+    
     def draw_contours(self, df):
         ''' Draw the PGV contours.
         '''
         cmap = self.cmap
         norm = self.norm
         artists = [];
+
+        # Ignore the contours below the felt threshold.
+        felt = df['pgv'] >= 0.1e-6
+        df = df[felt]
+        if len(df) == 0:
+            return
         
         color_list = [cmap(norm(x)) for x in df['pgv_log']]
 
+        # Plot the contours below the felt threshold.
         cur_artist = self.ax.add_geometries(df['geometry'],
                                             crs = self.projection,
                                             facecolor = color_list,
@@ -565,6 +633,38 @@ class MapPlotter(object):
                                             linestyle = 'dashed',
                                             zorder = 2)
         artists.append(cur_artist)
+        self.artists.extend(artists)
+
+        
+    def draw_attribution_note(self):
+        ''' Draw the map data contribution note.
+        '''
+        artists = []
+        cont_string = 'Map based on data from OE3D and OpenStreetMap. Generated with QGis and Python.'     
+        cur_artist = self.ax.text(x = 0.005,
+                                  y = 0.002,
+                                  s = cont_string,
+                                  ha = 'left',
+                                  va = 'bottom',
+                                  fontsize = 3,
+                                  transform = self.ax.transAxes)
+        artists.append(cur_artist)
+    
+        text_extent = cur_artist.get_window_extent(renderer = self.fig.canvas.get_renderer()).transformed(self.ax.transAxes.inverted())
+
+        width = text_extent.width + 0.03
+        height = text_extent.height + 0.003
+        background_rect = matplotlib.patches.Rectangle((0, 0),
+                                                       width = width,
+                                                       height = height,
+                                                       facecolor = 'lightgray',
+                                                       edgecolor = 'None',
+                                                       alpha = 0.7,
+                                                       transform = self.ax.transAxes,
+                                                       zorder = 2)
+        cur_artist = self.ax.add_patch(background_rect)
+        artists.append(cur_artist)
+
         self.artists.extend(artists)
 
         
@@ -945,7 +1045,8 @@ class MapPlotter(object):
         # Iterate through the time groups.
         time_groups = sequ_df.groupby('time')
         stat_time_groups = stat_df.groupby('time')
-        
+
+        max_event_pgv = None
         for cur_name, cur_group in time_groups:
             cur_time = obspy.UTCDateTime(cur_name)
 
@@ -968,6 +1069,15 @@ class MapPlotter(object):
             # Draw the time information.
             self.draw_time_marker(time = cur_time_local,
                                   note = 'station correction applied')
+
+            # Draw the network boundary.
+            self.draw_boundary()
+
+            # Draw the PGV level.
+            max_event_pgv = self.draw_pgv_level(df = cur_stat_df,
+                                                max_event_pgv = max_event_pgv,
+                                                use_sa = True,
+                                                show_max_level = True)
             
             cur_date_string = cur_time.isoformat().replace(':', '').replace('.', '')
             cur_filename = self.event_public_id + '_pgvcontourframe_' + cur_date_string + '.png'
