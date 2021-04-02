@@ -152,7 +152,7 @@ def process_event(ctx, public_id, no_db, no_meta, no_isoseismal,
 @click.option('--no-db', is_flag = True, help = 'No database available.')
 @click.option('--pgv-map/--no-pgv-map', default = True, help = 'Enable/disable computation of the pgv map [enabled].')
 @click.option('--detection-sequence/--no-detection-sequence', default = True, help = 'Enable/disable computation of the detection sequence movie [enabled].')
-@click.option('--pgv-contour-sequence/--no-pgv-contour-sequence', default = False, help = 'Enable/disable computation of the pgv contour sequence movie [disabled].')
+@click.option('--pgv-contour-sequence/--no-pgv-contour-sequence', default = True, help = 'Enable/disable computation of the pgv contour sequence movie [disabled].')
 def create_maps(ctx, public_id, no_db,
                 pgv_map, detection_sequence,
                 pgv_contour_sequence):
