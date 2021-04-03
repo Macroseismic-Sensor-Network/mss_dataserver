@@ -444,9 +444,6 @@ class EventPostProcessor(object):
         times = pgv_stream[0].times("utcdatetime")
         data = np.array([x.data for x in pgv_stream]).transpose()
 
-        # Get the stations with no available data.
-        available_stations = inventory.get_station()
-
         detection_limits = meta['detection_limits']
 
         sequence_df = None
@@ -525,10 +522,10 @@ class EventPostProcessor(object):
                                                                              weight = True)
 
             # Update the interpolated pgv values only if they are higher than the last ones.
-            if last_krig_z is not None:
-                cur_mask = krig_z < last_krig_z
-                krig_z[cur_mask] = last_krig_z[cur_mask]
-            last_krig_z = krig_z
+            #if last_krig_z is not None:
+            #    cur_mask = krig_z < last_krig_z
+            #    krig_z[cur_mask] = last_krig_z[cur_mask]
+            #last_krig_z = krig_z
 
             self.logger.info("Contours")
             # Compute the contours.
@@ -603,7 +600,7 @@ class EventPostProcessor(object):
             self.logger.info(cur_cont_df['geometry'])
             cur_cont_df = cur_cont_df[~cur_cont_df['geometry'].is_empty]
             self.logger.info(cur_cont_df['geometry'])
-                                             
+            
             self.logger.info('Appending to sequence.')
             # Add the dataframe to the sequence.
             if sequence_df is None:
@@ -618,7 +615,8 @@ class EventPostProcessor(object):
                  'sequence_start': min(sequence_df.time),
                  'sequence_end': max(sequence_df.time),
                  'author_uri': self.project.author_uri,
-                 'agency_uri': self.project.agency_uri}
+                 'agency_uri': self.project.agency_uri,
+                 'station_correction_applied': True}
 
         # Write the voronoi dataframe to a geojson file.
         filepath = util.save_supplement(self.event_public_id,
@@ -708,13 +706,15 @@ class EventPostProcessor(object):
         pgv_df = self.compute_pgv_df(meta)
         self.add_station_amplification(pgv_df)
 
+        pgv_df['pgv_corr'] = pgv_df.pgv / pgv_df.sa
+
         # Use only data with valid pgv data.
-        pgv_df = pgv_df.loc[pgv_df.pgv.notna(), :]
+        pgv_df = pgv_df.loc[pgv_df.pgv_corr.notna(), :]
 
         # Interpolate to a regular grid using ordinary kriging.
         krig_z, krig_sigmasq, grid_x, grid_y = util.compute_pgv_krigging(x = pgv_df.x_utm.values,
                                                                          y = pgv_df.y_utm.values,
-                                                                         z = np.log10(pgv_df.pgv),
+                                                                         z = np.log10(pgv_df.pgv_corr),
                                                                          nlags = 40,
                                                                          verbose = False,
                                                                          enable_plotting = False,
@@ -781,12 +781,12 @@ class EventPostProcessor(object):
                 data['pgv'].append(cur_row.pgv)
         df = gpd.GeoDataFrame(data = data)
 
-
         props = {'db_id': meta['db_id'],
                  'event_start': util.isoformat_tz(meta['start_time']),
                  'event_end': util.isoformat_tz(meta['end_time']),
                  'author_uri': self.project.author_uri,
-                 'agency_uri': self.project.agency_uri}
+                 'agency_uri': self.project.agency_uri,
+                 'station_correction_applied': True}
 
         filepath = util.save_supplement(self.event_public_id,
                                         df,
