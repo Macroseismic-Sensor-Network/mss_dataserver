@@ -153,9 +153,11 @@ def process_event(ctx, public_id, no_db, no_meta, no_isoseismal,
 @click.option('--pgv-map/--no-pgv-map', default = True, help = 'Enable/disable computation of the pgv map [enabled].')
 @click.option('--detection-sequence/--no-detection-sequence', default = True, help = 'Enable/disable computation of the detection sequence movie [enabled].')
 @click.option('--pgv-contour-sequence/--no-pgv-contour-sequence', default = True, help = 'Enable/disable computation of the pgv contour sequence movie [disabled].')
+@click.option('--pgv-contour-map/--no-pgv-contour-map', default = True, help = 'Enable/disable computation of the pgv contour map.')
 def create_maps(ctx, public_id, no_db,
                 pgv_map, detection_sequence,
-                pgv_contour_sequence):
+                pgv_contour_sequence,
+                pgv_contour_map):
     ''' Process an event. '''
 
     logger_name = 'mss_dataserver'
@@ -188,6 +190,10 @@ def create_maps(ctx, public_id, no_db,
     # Create the pgv contour sequence images and movie.
     if pgv_contour_sequence:
         plotter.create_pgv_contour_sequence_movie()
+
+    # Create the pgv contour map of the event.
+    if pgv_contour_map:
+        plotter.create_pgv_contour_map()
 
 
 if __name__ == '__main__':
