@@ -27,6 +27,7 @@ import csv
 import logging
 import math
 import os
+import warnings
 
 import geopandas as gpd
 import matplotlib.pyplot as plt
@@ -37,6 +38,15 @@ import shapely
 
 import mss_dataserver.postprocess.util as util
 import mss_dataserver.postprocess.voronoi as voronoi
+
+# Ignore Geoseries.notna() warning.
+# GeoSeries.notna() previously returned False for both missing (None)
+# and empty geometries. Now, it only returns False for missing values.
+# Since the calling GeoSeries contains empty geometries, the result has
+# changed compared to previous versions of GeoPandas.
+# Given a GeoSeries 's', you can use '~s.is_empty & s.notna()' to get back
+# the old behaviour.
+warnings.filterwarnings('ignore', 'GeoSeries.notna', UserWarning)
 
 
 class EventPostProcessor(object):
@@ -441,6 +451,7 @@ class EventPostProcessor(object):
 
         sequence_df = None
         last_pgv_df = None
+        last_krig_z = None
         no_change_cnt = 0
         
         for k in range(len(times)):
@@ -513,6 +524,12 @@ class EventPostProcessor(object):
                                                                              enable_plotting = False,
                                                                              weight = True)
 
+            # Update the interpolated pgv values only if they are higher than the last ones.
+            if last_krig_z is not None:
+                cur_mask = krig_z < last_krig_z
+                krig_z[cur_mask] = last_krig_z[cur_mask]
+            last_krig_z = krig_z
+
             self.logger.info("Contours")
             # Compute the contours.
             intensity = np.arange(2, 8.1, 0.1)
@@ -582,6 +599,11 @@ class EventPostProcessor(object):
                     cont_data['pgv'].append(cur_row.pgv)
             cur_cont_df = gpd.GeoDataFrame(data = cont_data)
 
+            # Remove rows having an empty geometry.
+            self.logger.info(cur_cont_df['geometry'])
+            cur_cont_df = cur_cont_df[~cur_cont_df['geometry'].is_empty]
+            self.logger.info(cur_cont_df['geometry'])
+                                             
             self.logger.info('Appending to sequence.')
             # Add the dataframe to the sequence.
             if sequence_df is None:
