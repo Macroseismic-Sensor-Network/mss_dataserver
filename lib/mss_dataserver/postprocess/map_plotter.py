@@ -127,7 +127,7 @@ class MapPlotter(object):
                                                 vmax = pgv_limits_log[1])
 
         # Create the figure and plot the base map.
-        self.fig = plt.figure(figsize = (125/25.4, 100/25.4),
+        self.fig = plt.figure(figsize = (125 / 25.4, 100 / 25.4),
                               dpi = 300)
         self.ax = plt.axes(projection = self.projection)
 
@@ -158,8 +158,6 @@ class MapPlotter(object):
         self.artists = []
 
         
-
-
     def clear_map(self):
         ''' Remove all data artists from the map.
         '''
@@ -174,9 +172,14 @@ class MapPlotter(object):
         ''' Draw the PGV colorbar.
         '''
         # Create the inset axes.
-        ax_inset = self.ax.inset_axes(bounds = [0.58, 0.05, 0.4, 0.05])
+        cb_bounds = [0.58, 0.08, 0.4, 0.05]
+        ax_inset = self.ax.inset_axes(bounds = cb_bounds)
 
-        ticks = np.array([1e-6, 1e-5, 1e-4, 1e-3, 1e-2])
+        intensity_to_plot = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+        intensity_pgv = util.intensity_to_pgv(intensity_to_plot)
+
+        ticks = intensity_pgv[:, 1]
+        ticks[0] = 0.001e-3
         ticks_log = np.log10(ticks)
         cb = matplotlib.colorbar.ColorbarBase(ax_inset,
                                               cmap = self.cmap,
@@ -184,16 +187,84 @@ class MapPlotter(object):
                                               ticks = ticks_log,
                                               orientation = 'horizontal',
                                               extend = 'both')
+        
         cb.ax.tick_params(labelsize = 8)
-        cb.ax.set_xlabel('PGV [mm/s]',
-                         loc = 'right',
-                         fontsize = 8)
+        #cb.ax.set_xlabel('PGV [mm/s]',
+        #                 loc = 'right',
+        #                 fontsize = 8)
         cb.ax.xaxis.tick_top()
         ticks_mm = ticks * 1000
         tick_labels = ["{0:.3f}".format(x) for x in ticks_mm]
         cb.set_ticklabels(tick_labels)
         cb.ax.set_xticklabels(tick_labels, rotation = 90)
-        self.cb = cb
+        self.cb = cb      
+
+        height = 0.03
+        intensity_bounds = [cb_bounds[0],
+                            cb_bounds[1] - height,
+                            cb_bounds[2],
+                            height]
+        ax_inset = self.ax.inset_axes(bounds = intensity_bounds,
+                                      xlim = cb.ax.get_xlim())
+        
+        intensity_labels = {1: 'I',
+                            2: 'II',
+                            3: 'III',
+                            4: 'IV',
+                            5: 'V',
+                            6: 'VI',
+                            7: 'VII',
+                            8: 'VIII',
+                            9: 'IX',
+                            10: 'X',
+                            11: 'XI',
+                            12: 'XII'}
+
+        # Add the intensity label:
+        xlim = ax_inset.get_xlim()
+        ax_inset.text(x = xlim[0] + 0.1,
+                      y = 0.45,
+                      s = 'Intensität: ',
+                      ha = 'left',
+                      va = 'center',
+                      fontsize = 6)
+        ax_inset.set_xlabel('PGV [mm/s]',
+                            loc = 'right',
+                            fontsize = 8)
+       
+        for k, cur_intensity_pgv in enumerate(intensity_pgv):
+            if k == len(intensity_pgv) - 1:
+                break
+
+            if np.log10(cur_intensity_pgv[1]) >= xlim[1]:
+                break
+           
+            if k > 0:
+                ax_inset.axvline(np.log10(cur_intensity_pgv[1]),
+                                 color = 'black',
+                                 linewidth = 0.5)
+                cur_x = (np.log10(intensity_pgv[k + 1][1]) + np.log10(cur_intensity_pgv[1])) / 2
+   
+            if k == 0:
+                cur_x = (np.log10(intensity_pgv[k + 1][1]) + np.log10(0.01e-3)) / 2
+            elif np.log10(intensity_pgv[k +1][1]) >= xlim[1]:
+                cur_x = (np.log10(cur_intensity_pgv[1]) + xlim[1]) / 2
+
+            #ax_inset.axvline(cur_x, color = 'gray')
+            #cur_label = '{intensity:.0f}'.format(intensity = cur_intensity_pgv[0])
+            cur_label = intensity_labels[int(cur_intensity_pgv[0])]
+            ax_inset.text(cur_x,
+                          y = 0.45,
+                          s = cur_label,
+                          ha = 'center',
+                          va = 'center',
+                          fontsize = 6)
+            #ax_inset.set_axis_off()
+            #ax_inset.set_frame_on(True)
+            #ax_inset.get_xaxis().set_visible(False)
+            ax_inset.set_xticks([])
+            ax_inset.get_yaxis().set_visible(False)
+            ax_inset.set_facecolor((1, 1, 1, 0.4))
 
 
     def draw_voronoi_cells(self, df, use_sa = False):
