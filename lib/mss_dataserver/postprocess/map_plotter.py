@@ -368,21 +368,21 @@ class MapPlotter(object):
                                          zorder = 10)
             artists.append(cur_artist)
     
-            # Draw the stations that have no data.
-            cur_df = df[df.pgv.isna()]
-            if use_sa:
-                color_list = [cmap(norm(x)) for x in cur_df['pgv_corr_log']]
-            else:
-                color_list = [cmap(norm(x)) for x in cur_df['pgv_log']]
-                cur_artist = self.ax.scatter(x = cur_df.geometry.x,
-                                             y = cur_df.geometry.y,
-                                             transform = self.projection,
-                                             s = 5,
-                                             color = 'darkgray',
-                                             edgecolor = 'k',
-                                             linewidth = 0.2,
-                                             zorder = 9)
-                artists.append(cur_artist)
+        # Draw the stations that have no data.
+        cur_df = df[df.pgv.isna()]
+        if use_sa:
+            color_list = [cmap(norm(x)) for x in cur_df['pgv_corr_log']]
+        else:
+            color_list = [cmap(norm(x)) for x in cur_df['pgv_log']]
+            cur_artist = self.ax.scatter(x = cur_df.geometry.x,
+                                         y = cur_df.geometry.y,
+                                         transform = self.projection,
+                                         s = 5,
+                                         color = 'darkgray',
+                                         edgecolor = 'k',
+                                         linewidth = 0.2,
+                                         zorder = 9)
+            artists.append(cur_artist)
     
         self.artists.extend(artists)
 
@@ -565,10 +565,6 @@ class MapPlotter(object):
             return
       
         color_list = [cmap(norm(x)) for x in df['pgv_log']]
-        #self.logger.info('pgv_log: %s', str(df['pgv_log']))
-        #self.logger.info('color_list: %s', str(np.array(color_list)))
-        #self.logger.info('geometry: %s', str(df['geometry']))
-        #self.logger.info('lengths: %d, %d, %d', len(df['pgv_log']), len(color_list), len(df['geometry']))
 
         # Plot the contours below the felt threshold.
         cur_artist = self.ax.add_geometries(df['geometry'],
@@ -665,9 +661,10 @@ class MapPlotter(object):
         # Get the max pgv of stations with a pgv value.
         if use_sa:
             with_data_df = df[df['pgv_corr'].notna()]
+            colorlist = [cmap(norm(x)) for x in with_data_df.pgv_corr_log]
         else:
             with_data_df = df[df['pgv'].notna()]
-        colorlist = [cmap(norm(x)) for x in with_data_df.pgv_log]
+            colorlist = [cmap(norm(x)) for x in with_data_df.pgv]
     
         # Plot the stations used for detection.
         x_coord = [x.geometry.x for x in with_data_df.itertuples()]
@@ -684,9 +681,10 @@ class MapPlotter(object):
         # Plot the stations not used for detection.
         if use_sa:
             no_data_df = df[df['pgv_corr'].isna()]
+            colorlist = [cmap(norm(x)) for x in no_data_df.pgv_corr_log]
         else:
             no_data_df = df[df['pgv'].isna()]
-        colorlist = [cmap(norm(x)) for x in no_data_df.pgv_log]
+            colorlist = [cmap(norm(x)) for x in no_data_df.pgv_log]
         x_coord = [x.geometry.x for x in no_data_df.itertuples()]
         y_coord = [x.geometry.y for x in no_data_df.itertuples()]
         cur_artist = self.ax.scatter(x_coord, y_coord,
@@ -719,7 +717,7 @@ class MapPlotter(object):
         ''' Draw the map data contribution note.
         '''
         artists = []
-        cont_string = 'Map based on data from OE3D and OpenStreetMap. Generated with QGis and Python.'     
+        cont_string = 'Map based on data from OE3D and OpenStreetMap. Generated with QGis and Python. CC BY-SA 4.0.'     
         cur_artist = self.ax.text(x = 0.005,
                                   y = 0.002,
                                   s = cont_string,
@@ -794,7 +792,6 @@ class MapPlotter(object):
                                                 name = 'pgvvoronoi',
                                                 directory = self.supplement_dir)
         event_pgv_props = event_pgv_df.attrs
-        print(event_pgv_props)
     
         # Convert the pandas dataframe to cartopy projection.
         event_pgv_df = event_pgv_df.to_crs(self.projection.proj4_init)
@@ -1091,6 +1088,7 @@ class MapPlotter(object):
             os.makedirs(movie_output_dir)
 
         # Load the detection sequence data from the geojson file.
+        self.logger.info('Loading the contour sequence data.')
         sequ_df = util.get_supplement_data(public_id = self.event_public_id,
                                            category = 'pgvsequence',
                                            name = 'pgvcontour',
@@ -1115,7 +1113,7 @@ class MapPlotter(object):
 
         stat_df.insert(4, "pgv_corr", stat_df.pgv / stat_df.sa)
         stat_df.insert(5, "pgv_log", np.log10(stat_df.pgv))
-        stat_df.insert(6, "pgv_log_corr", np.log10(stat_df.pgv_corr))
+        stat_df.insert(6, "pgv_corr_log", np.log10(stat_df.pgv_corr))
         
         # Set the time zones for conversion.
         from_zone = dateutil.tz.gettz('UTC')
@@ -1128,15 +1126,13 @@ class MapPlotter(object):
         max_event_pgv = None
         for cur_name, cur_group in time_groups:
             cur_time = obspy.UTCDateTime(cur_name)
+            self.logger.info('Processing time frame: %s.', cur_time)
 
             # Get the related pgvstation frame.
             cur_stat_df = stat_time_groups.get_group(cur_name)
             
             # Convert to local time.
             cur_time_local = cur_time.datetime.replace(tzinfo = from_zone).astimezone(to_zone)
-
-            # Draw the network boundary.
-            #self.draw_boundary()
 
             # Draw the pgv contour polygons.
             self.draw_contours(df = cur_group)
@@ -1172,3 +1168,78 @@ class MapPlotter(object):
         self.create_movie(image_dir = img_output_dir,
                           output_dir = movie_output_dir,
                           name = 'pgvcontourframe')
+
+        
+    def create_pgv_contour_map(self):
+        ''' Create a map of the event pgv contours.
+        '''
+        # Initialize the map.
+        if self.fig is None:
+            self.init_map(utm_zone = 33)
+        else:
+            self.clear_map()
+            
+        # Create the output directory.
+        img_output_dir = os.path.join(self.output_dir,
+                                      self.event_dir,
+                                      'eventpgv',
+                                      'images')
+        if not os.path.exists(img_output_dir):
+            os.makedirs(img_output_dir)
+
+        # Read the event pgv contour data.
+        cont_df = util.get_supplement_data(public_id = self.event_public_id,
+                                           category = 'eventpgv',
+                                           name = 'isoseismalfilledcontour',
+                                           directory = self.supplement_dir)
+        cont_props = cont_df.attrs
+        # Convert the geopandas dataframe to cartopy projection.
+        cont_df = cont_df.to_crs(self.projection.proj4_init)
+        # Add the logarithmic pgv values.
+        cont_df["pgv_log"] =  np.log10(cont_df.pgv)
+
+        # Read the station pgv data.
+        station_pgv_df = util.get_supplement_data(public_id = self.event_public_id,
+                                                  category = 'eventpgv',
+                                                  name = 'pgvstation',
+                                                  directory = self.supplement_dir)
+        # Convert the pandas dataframe to cartopy projection.
+        station_pgv_df = station_pgv_df.to_crs(self.projection.proj4_init)
+        # Compute the corrected and the logarithmic pgv data.
+        station_pgv_df.insert(4, "pgv_corr", station_pgv_df.pgv / station_pgv_df.sa)
+        station_pgv_df.insert(5, 'pgv_log', np.log10(station_pgv_df.pgv))
+        station_pgv_df.insert(6, 'pgv_corr_log', np.log10(station_pgv_df.pgv_corr))
+
+        # Draw the pgv contour polygons.
+        self.draw_contours(df = cont_df)
+
+        # Plot the station max pgv markers.
+        self.draw_detection_stations(df = station_pgv_df,
+                                     use_sa = True)
+
+        # Draw the max. pgv level indicator in the colorbar axes.
+        self.draw_pgv_level(df = station_pgv_df,
+                            use_sa = True)
+
+        # Draw the time information.
+        # Draw the public id and the time marker.
+        from_zone = dateutil.tz.gettz('UTC')
+        to_zone = dateutil.tz.gettz('CET')
+        event_start = obspy.UTCDateTime(cont_props['event_start'])
+        event_end = obspy.UTCDateTime(cont_props['event_end'])
+        event_start_local = event_start.datetime.replace(tzinfo = from_zone).astimezone(to_zone)
+        self.draw_time_marker(duration = event_end - event_start,
+                              time = event_start_local)
+
+        # Draw the network boundary.
+        self.draw_boundary()
+
+        cur_filename = self.event_public_id + '_pgvcontour.png'
+        cur_filepath = os.path.join(img_output_dir,
+                                    cur_filename)
+        self.fig.savefig(cur_filepath,
+                         dpi = 300,
+                         pil_kwargs = {'quality': 80},
+                         bbox_inches = 'tight',
+                         pad_inches = 0,)
+        self.clear_map()
