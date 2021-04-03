@@ -657,15 +657,15 @@ class MapPlotter(object):
         cmap = self.cmap
         norm = self.norm
         artists = []
-    
+   
         # Get the max pgv of stations with a pgv value.
         if use_sa:
             with_data_df = df[df['pgv_corr'].notna()]
             colorlist = [cmap(norm(x)) for x in with_data_df.pgv_corr_log]
         else:
             with_data_df = df[df['pgv'].notna()]
-            colorlist = [cmap(norm(x)) for x in with_data_df.pgv]
-    
+            colorlist = [cmap(norm(x)) for x in with_data_df.pgv_log]
+   
         # Plot the stations used for detection.
         x_coord = [x.geometry.x for x in with_data_df.itertuples()]
         y_coord = [x.geometry.y for x in with_data_df.itertuples()]
@@ -681,10 +681,8 @@ class MapPlotter(object):
         # Plot the stations not used for detection.
         if use_sa:
             no_data_df = df[df['pgv_corr'].isna()]
-            colorlist = [cmap(norm(x)) for x in no_data_df.pgv_corr_log]
         else:
             no_data_df = df[df['pgv'].isna()]
-            colorlist = [cmap(norm(x)) for x in no_data_df.pgv_log]
         x_coord = [x.geometry.x for x in no_data_df.itertuples()]
         y_coord = [x.geometry.y for x in no_data_df.itertuples()]
         cur_artist = self.ax.scatter(x_coord, y_coord,
