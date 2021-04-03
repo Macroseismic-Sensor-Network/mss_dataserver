@@ -557,10 +557,18 @@ class MapPlotter(object):
         # Ignore the contours below the felt threshold.
         felt = df['pgv'] >= 0.1e-6
         df = df[felt]
+
+        # Remove the rows having no geometry.
+        df = df[df['geometry'].notna()]
+      
         if len(df) == 0:
             return
-        
+      
         color_list = [cmap(norm(x)) for x in df['pgv_log']]
+        #self.logger.info('pgv_log: %s', str(df['pgv_log']))
+        #self.logger.info('color_list: %s', str(np.array(color_list)))
+        #self.logger.info('geometry: %s', str(df['geometry']))
+        #self.logger.info('lengths: %d, %d, %d', len(df['pgv_log']), len(color_list), len(df['geometry']))
 
         # Plot the contours below the felt threshold.
         cur_artist = self.ax.add_geometries(df['geometry'],
