@@ -224,7 +224,7 @@ class MapPlotter(object):
         xlim = ax_inset.get_xlim()
         ax_inset.text(x = xlim[0] + 0.1,
                       y = 0.45,
-                      s = 'Intensität: ',
+                      s = 'intensity: ',
                       ha = 'left',
                       va = 'center',
                       fontsize = 6)
@@ -1227,7 +1227,8 @@ class MapPlotter(object):
         event_end = obspy.UTCDateTime(cont_props['event_end'])
         event_start_local = event_start.datetime.replace(tzinfo = from_zone).astimezone(to_zone)
         self.draw_time_marker(duration = event_end - event_start,
-                              time = event_start_local)
+                              time = event_start_local,
+                              note = 'station correction applied')
 
         # Draw the network boundary.
         self.draw_boundary()
