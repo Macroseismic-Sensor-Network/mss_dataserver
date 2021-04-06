@@ -127,7 +127,7 @@ class MapPlotter(object):
                                                 vmax = pgv_limits_log[1])
 
         # Create the figure and plot the base map.
-        self.fig = plt.figure(figsize = (125 / 25.4, 100 / 25.4),
+        self.fig = plt.figure(figsize = (120 / 25.4, 100 / 25.4),
                               dpi = 300)
         self.ax = plt.axes(projection = self.projection)
 
@@ -154,6 +154,8 @@ class MapPlotter(object):
 
         # Add the attribution.
         self.draw_attribution_note()
+
+        self.ax.set_axis_off()
 
         self.artists = []
 
