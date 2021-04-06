@@ -50,9 +50,9 @@ def get_supplement_map():
            'pgv': {'name': 'pgv',
                    'format': 'miniseed',
                    'subdir': 'detectiondata'},
-           'vel': {'name': 'vel',
-                   'format': 'miniseed',
-                   'subdir': 'detectiondata'}}
+           'velocity': {'name': 'velocity',
+                        'format': 'miniseed',
+                        'subdir': 'detectiondata'}}
     supplement_map['detectiondata'] = tmp
 
     # Category detectionsequence.
