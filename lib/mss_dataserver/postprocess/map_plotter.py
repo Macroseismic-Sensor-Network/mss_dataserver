@@ -31,6 +31,7 @@ import cartopy.crs as ccrs
 import ffmpeg
 import geopandas
 import matplotlib
+import matplotlib.collections as mpl_col
 import matplotlib.pyplot as plt
 import numpy as np
 import obspy
@@ -274,7 +275,16 @@ class MapPlotter(object):
         '''
         cmap = self.cmap
         norm = self.norm
-        
+
+        # Use only the cells with valid data. When using
+        # station corrections, some cells might have no data.
+        if use_sa:
+            df_nodata = df[df.pgv_corr_log.isna()]
+            df = df[df.pgv_corr_log.notna()]
+        else:
+            df_nodata = df[df.pgv.isna()]
+            df = df[df.pgv.notna()] 
+
         # Draw the cells that didn't trigger
         cur_df = df[df.triggered == False]
         if use_sa:
@@ -296,7 +306,7 @@ class MapPlotter(object):
         cur_artist = self.ax.add_geometries(cur_df['geometry'],
                                             crs = self.projection,
                                             facecolor = (1, 1, 1, 0),
-                                            edgecolor = 'darkgray',
+                                            edgecolor = 'k',
                                             linewidth = 0.1,
                                             zorder = 4)
         artists.append(cur_artist)
@@ -324,24 +334,60 @@ class MapPlotter(object):
                                             linewidth = 0.2,
                                             zorder = 6)
         artists.append(cur_artist)
+
+
+        # Plot the polygons that have no valid data.
+        # Draw the polygon faces. 
+        cur_artist = self.ax.add_geometries(df_nodata['geometry'],
+                                            crs = self.projection,
+                                            facecolor = 'darkgray',
+                                            edgecolor = None,
+                                            alpha = 0.3,
+                                            zorder = 3)
+        artists.append(cur_artist)
+        # Draw the polygon edges
+        cur_artist = self.ax.add_geometries(df_nodata['geometry'],
+                                            crs = self.projection,
+                                            facecolor = (1, 1, 1, 0),
+                                            edgecolor = 'k',
+                                            linewidth = 0.2,
+                                            zorder = 6)
+        artists.append(cur_artist)
     
         self.artists.extend(artists)
         
 
-    def draw_station_pgv(self, df, use_sa = False):
+    def draw_station_pgv(self, df, use_sa = False,
+                         max_dia = 3):
         ''' Draw the max pgv values of the stations.
         '''
         cmap = self.cmap
         norm = self.norm
         
         artists = []
+
+        if use_sa:
+            data_col = 'pgv_corr_log'
+        else:
+            data_col = 'pgv_log'
+
+        # TODO:
+        # Use the EllipseCollection for a better constraint of the
+        # scatter circle radius.
+        # Use the pandas dataseries map() function to map the
+        # PGV to a radius range.
+        
+        # Convert mm to inches.
+        max_dia = max_dia / 25.4
     
         # Draw the stations that have data and have been triggered.
-        cur_df = df[(df.pgv.notna() & (df.triggered == True))]
+        cur_df = df[(df[data_col].notna() & (df.triggered == True))]
         if use_sa:
-            color_list = [cmap(norm(x)) for x in cur_df['pgv_corr_log']]
+            color_list = [cmap(norm(x)) for x in cur_df[data_col]]
+            size_list = [max_dia * norm(x) for x in cur_df[data_col]]
         else:
-            color_list = [cmap(norm(x)) for x in cur_df['pgv_log']]
+            color_list = [cmap(norm(x)) for x in cur_df[data_col]]
+            size_list = [max_dia * norm(x) for x in cur_df[data_col]]
 
         cur_artist = self.ax.scatter(x = cur_df.geometry.x,
                                      y = cur_df.geometry.y,
@@ -351,14 +397,28 @@ class MapPlotter(object):
                                      edgecolor = 'k',
                                      linewidth = 0.2,
                                      zorder = 10)
-        artists.append(cur_artist)
     
+        #offsets = list(zip(cur_df.geometry.x,
+        #                   cur_df.geometry.y))
+        #cur_ell = mpl_col.EllipseCollection(widths = size_list,
+        #                                    heights = size_list,
+        #                                    angles = 0,
+        #                                    units = 'inches',
+        #                                    edgecolor = 'k',
+        #                                    facecolors = color_list,
+        #                                    linewidth = 0.2,
+        #                                    offsets = offsets,
+        #                                    transOffset = self.ax.transData,
+        #                                    zorder = 10)
+        #self.ax.add_collection(cur_ell)
+        artists.append(cur_artist)
+
         # Draw the stations that have data and have not been triggered.
-        cur_df = df[(df.pgv.notna() & (df.triggered == False))]
+        cur_df = df[(df[data_col].notna() & (df.triggered == False))]
         if use_sa:
-            color_list = [cmap(norm(x)) for x in cur_df['pgv_corr_log']]
+            color_list = [cmap(norm(x)) for x in cur_df[data_col]]
         else:
-            color_list = [cmap(norm(x)) for x in cur_df['pgv_log']]
+            color_list = [cmap(norm(x)) for x in cur_df[data_col]]
             cur_artist = self.ax.scatter(x = cur_df.geometry.x,
                                          y = cur_df.geometry.y,
                                          transform = self.projection,
@@ -369,23 +429,23 @@ class MapPlotter(object):
                                          alpha = 0.5,
                                          zorder = 10)
             artists.append(cur_artist)
-    
+   
         # Draw the stations that have no data.
-        cur_df = df[df.pgv.isna()]
+        cur_df = df[df[data_col].isna()]
         if use_sa:
-            color_list = [cmap(norm(x)) for x in cur_df['pgv_corr_log']]
+            color_list = [cmap(norm(x)) for x in cur_df[data_col]]
         else:
-            color_list = [cmap(norm(x)) for x in cur_df['pgv_log']]
-            cur_artist = self.ax.scatter(x = cur_df.geometry.x,
-                                         y = cur_df.geometry.y,
-                                         transform = self.projection,
-                                         s = 5,
-                                         color = 'darkgray',
-                                         edgecolor = 'k',
-                                         linewidth = 0.2,
-                                         zorder = 9)
-            artists.append(cur_artist)
-    
+            color_list = [cmap(norm(x)) for x in cur_df[data_col]]
+        cur_artist = self.ax.scatter(x = cur_df.geometry.x,
+                                     y = cur_df.geometry.y,
+                                     transform = self.projection,
+                                     s = 5,
+                                     color = 'darkgray',
+                                     edgecolor = 'k',
+                                     linewidth = 0.2,
+                                     zorder = 11)
+        artists.append(cur_artist)
+   
         self.artists.extend(artists)
 
 
