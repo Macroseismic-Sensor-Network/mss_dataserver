@@ -26,3 +26,8 @@ build/
 
 # Ignore the egg installation folder.
 mss_dataserver.egg-info/
+
+# Emacs backup and temp files.
+*~
+\#*\#
+.#*
