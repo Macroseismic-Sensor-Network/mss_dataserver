@@ -132,8 +132,7 @@ class Inventory(object):
         d['networks'] = [x.as_dict(style = style) for x in self.networks]
         return d
 
-
-
+    
     def add_recorder(self, recorder):
         ''' Add a recorder to the inventory.
 
@@ -714,6 +713,21 @@ class Inventory(object):
     def from_db_inventory(cls, db_inventory):
         pass
 
+
+    @classmethod
+    def from_dict(cls, d):
+        ''' Create an inventory from a dictionary.
+
+        The dictionary has to be in a form returned by the as_dict method.
+        '''
+        inventory = cls(name = d['name'],
+                        type = d['type'])
+
+        for cur_network_dict in d['networks']:
+            cur_network = Network.from_dict(cur_network_dict)
+            inventory.add_network(cur_network)
+
+        return inventory
 
 
 class Recorder(object):
@@ -2331,6 +2345,28 @@ class Station(object):
                 exist_channel.merge(cur_channel)
 
 
+    @classmethod
+    def from_dict(cls, d):
+        ''' Create a station from a dictionary.
+
+        The dictionary has to be in a form returned by the as_dict method.
+        '''
+        station = cls(name = d['name'],
+                      location = d['location'],
+                      description = d['description'],
+                      coord_system = d['coord_system'],
+                      x = d['x'],
+                      y = d['y'],
+                      z = d['z'],
+                      agency_uri = d['agency_uri'],
+                      author_uri = d['author_uri'],
+                      creation_time = d['creation_time'])
+
+        for cur_channel_dict in d['channels']:
+            cur_channel = Channel.from_dict(cur_channel_dict)
+            station.add_channel(cur_channel)
+
+        return station
 
 
 class Channel(object):
@@ -2628,6 +2664,20 @@ class Channel(object):
     # time-spans have to be changed as well.
 
 
+    @classmethod
+    def from_dict(cls, d):
+        ''' Create a channel from a dictionary.
+
+        The dictionary has to be in a form returned by the as_dict method.
+        '''
+        #import ipdb; ipdb.set_trace();
+        channel = cls(name = d['name'],
+                      description = d['description'],
+                      agency_uri = d['agency_uri'],
+                      author_uri = d['author_uri'],
+                      creation_time = d['creation_time'])
+
+        return channel
 
 
 class Network(object):
@@ -2807,6 +2857,24 @@ class Network(object):
                 exist_station = exist_station[0]
                 exist_station.merge(cur_station)
 
+    @classmethod
+    def from_dict(cls, d):
+        ''' Create a network from a dictionary.
+
+        The dictionary has to be in a form returned by the as_dict method.
+        '''
+        network = cls(name = d['name'],
+                      type = d['type'],
+                      description = d['description'],
+                      agency_uri = d['agency_uri'],
+                      author_uri = d['author_uri'],
+                      creation_time = d['creation_time'])
+
+        for cur_station_dict in d['stations']:
+            cur_station = Station.from_dict(cur_station_dict)
+            network.add_station(cur_station)
+
+        return network
 
 
 class Array(object):
