@@ -34,6 +34,7 @@ import click
 import mss_dataserver.core.project
 import mss_dataserver.core.util as util
 import mss_dataserver.postprocess.map_plotter as map_plotter
+import mss_dataserver.postprocess.seismogram_plotter as seis_plotter
 import mss_dataserver.postprocess.postprocess_event as pp_event
 
 
@@ -162,6 +163,7 @@ def create_maps(ctx, public_id, no_db,
 
     logger_name = 'mss_dataserver'
     logger = logging.getLogger(logger_name)
+    logger.info('Creating the map images.')
     logger.info('Processing the event with public_id {public_id}.'.format(public_id = public_id))
 
     project = ctx.obj['project']
@@ -194,6 +196,36 @@ def create_maps(ctx, public_id, no_db,
     # Create the pgv contour map of the event.
     if pgv_contour_map:
         plotter.create_pgv_contour_map()
+
+
+@cli.command()
+@click.pass_context
+@click.option('--public-id', help = 'The public ID of the event to process.')
+@click.option('--no-db', is_flag = True, help = 'No database available.')
+@click.option('--hypocenter', help = 'The hypocenter of the event (lon,lat,depth).')
+def create_seismogram(ctx, public_id, no_db, hypocenter):
+    ''' Process an event. '''
+
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+    logger.info('Creating the seismogram images.')
+    logger.info('Processing the event with public_id {public_id}.'.format(public_id = public_id))
+
+    project = ctx.obj['project']
+
+    # Create the plotter.
+    supplement_dir = project.config['output']['event_dir']
+    output_dir = project.config['postprocess']['visualization_dir']
+    plotter = seis_plotter.SeismogramPlotter(supplement_dir = supplement_dir,
+                                             output_dir = output_dir)
+
+    if hypocenter:
+        hypocenter = hypocenter.strip().split(',')
+        hypocenter = [float(x.strip()) for x in hypocenter]
+
+    plotter.set_event(public_id = public_id,
+                      hypocenter = hypocenter)
+    plotter.plot_seismogram()
 
 
 if __name__ == '__main__':
