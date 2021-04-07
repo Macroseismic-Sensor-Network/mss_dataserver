@@ -560,13 +560,14 @@ class MapPlotter(object):
         
     def draw_detection_pgv_level(self, df,
                                  max_event_pgv = None,
-                                 add_annotation = True):
+                                 add_annotation = True,
+                                 data_col = 'pgv_min_log'):
         ''' The the maximum pgv markers in the colorbar axes.
         '''
         ax = self.cb.ax
         artists = []
         
-        pgv = df.pgv_max_log[(df.triggered == True)]
+        pgv = df[data_col][(df.triggered == True)]
     
         if len(pgv) > 0:
             max_pgv = np.nanmax(pgv)
@@ -641,7 +642,7 @@ class MapPlotter(object):
         self.artists.extend(artists)
         
 
-    def draw_simplices(self, df):
+    def draw_simplices(self, df, data_col = 'pgv_min_log'):
         ''' Draw the detection simplices. 
         '''
         cmap = self.cmap
@@ -649,7 +650,7 @@ class MapPlotter(object):
         
         # Draw the simplices that didn't trigger
         cur_df = df[(df.triggered == False) & (df.added_to_event == False)]
-        color_list = [cmap(norm(x)) for x in cur_df['pgv_min_log']]
+        color_list = [cmap(norm(x)) for x in cur_df[data_col]]
     
         artists = []
         # Draw the polygon faces.
@@ -672,7 +673,7 @@ class MapPlotter(object):
 
         # Draw the simplices that have an active trigger.
         cur_df = df[(df.triggered == True)]
-        color_list = [cmap(norm(x)) for x in cur_df['pgv_min_log']]
+        color_list = [cmap(norm(x)) for x in cur_df[data_col]]
         # Draw the polygon faces.
         cur_artist = self.ax.add_geometries(cur_df['geometry'],
                                             crs = self.projection,
@@ -693,7 +694,7 @@ class MapPlotter(object):
 
         # Draw the simplices that have no trigger, but have been added to the event.
         cur_df = df[(df.triggered == False) & (df.added_to_event == True)]
-        color_list = [cmap(norm(x)) for x in cur_df['pgv_min_log']]
+        color_list = [cmap(norm(x)) for x in cur_df[data_col]]
         # Draw the polygon faces.
         cur_artist = self.ax.add_geometries(cur_df['geometry'],
                                             crs = self.projection,
@@ -875,11 +876,20 @@ class MapPlotter(object):
         station_pgv_df.insert(6, 'pgv_corr_log', np.log10(station_pgv_df.pgv_corr))
         
 
-        # Draw the voronoi cells.
-        self.draw_voronoi_cells(df = event_pgv_df)
+        # Draw the voronoi cells using the station corrections.
+        # The voronoi cells represent interpolated data, therefore
+        # the station corrections are applied.
+        self.draw_voronoi_cells(df = event_pgv_df,
+                                use_sa = True)
 
-        # Plot the station max pgv markers.
-        self.draw_station_pgv(df = station_pgv_df)
+        # Plot the station max pgv markers without station corrections.
+        # The stations mark individual data markers, therefore, the
+        # station correction is not applied.
+        self.draw_station_pgv(df = station_pgv_df,
+                              use_sa = False)
+
+        # Draw the network boundary.
+        self.draw_boundary()
 
         # Draw the public id and the time marker.
         from_zone = dateutil.tz.gettz('UTC')
@@ -891,41 +901,13 @@ class MapPlotter(object):
                               time = event_start_local)
 
         # Draw the max. pgv level indicator in the colorbar axes.
-        self.draw_pgv_level(df = station_pgv_df)
+        # Use the station corrections to represent the interpolated,
+        # regional data.
+        self.draw_pgv_level(df = station_pgv_df,
+                            use_sa = True)
 
         # Save the map image.
         filename = self.event_public_id + '_pgvvoronoi.png'
-        filepath = os.path.join(output_dir,
-                                filename)
-        self.fig.savefig(filepath,
-                         dpi = 300,
-                         pil_kwargs = {'quality': 85},
-                         bbox_inches = 'tight',
-                         pad_inches = 0,)
-
-        
-        # Plot the same data with the station correction applied.
-        self.clear_map()
-        
-        # Draw the voronoi cells.
-        self.draw_voronoi_cells(df = event_pgv_df,
-                                use_sa = True)
-
-        # Plot the station max pgv markers.
-        self.draw_station_pgv(df = station_pgv_df,
-                              use_sa = True)
-
-        # Draw the max. pgv level indicator in the colorbar axes.
-        self.draw_pgv_level(df = station_pgv_df,
-                            use_sa = True)
-        
-        # Draw the public id and the time marker.
-        self.draw_time_marker(duration = event_end - event_start,
-                              time = event_start_local,
-                              note = 'station correction applied')
-
-        # Save the map image.
-        filename = self.event_public_id + '_pgvvoronoi_corr.png'
         filepath = os.path.join(output_dir,
                                 filename)
         self.fig.savefig(filepath,
@@ -1198,12 +1180,13 @@ class MapPlotter(object):
             self.draw_contours(df = cur_group)
 
             # Draw the station markers.
+            # The stations represent individual data points, therefore
+            # the station correction is not applied.
             self.draw_detection_stations(df = cur_stat_df,
-                                         use_sa = True)
+                                         use_sa = False)
 
             # Draw the time information.
-            self.draw_time_marker(time = cur_time_local,
-                                  note = 'station correction applied')
+            self.draw_time_marker(time = cur_time_local)
 
             # Draw the network boundary.
             self.draw_boundary()
@@ -1275,7 +1258,7 @@ class MapPlotter(object):
 
         # Plot the station max pgv markers.
         self.draw_detection_stations(df = station_pgv_df,
-                                     use_sa = True)
+                                     use_sa = False)
 
         # Draw the max. pgv level indicator in the colorbar axes.
         self.draw_pgv_level(df = station_pgv_df,
@@ -1289,8 +1272,7 @@ class MapPlotter(object):
         event_end = obspy.UTCDateTime(cont_props['event_end'])
         event_start_local = event_start.datetime.replace(tzinfo = from_zone).astimezone(to_zone)
         self.draw_time_marker(duration = event_end - event_start,
-                              time = event_start_local,
-                              note = 'station correction applied')
+                              time = event_start_local,)
 
         # Draw the network boundary.
         self.draw_boundary()
