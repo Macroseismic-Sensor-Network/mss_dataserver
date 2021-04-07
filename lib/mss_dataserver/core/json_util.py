@@ -31,6 +31,7 @@ import obspy
 
 import mss_dataserver.core.util as util
 import mss_dataserver.geometry as geom
+import mss_dataserver.geometry.inventory
 
 
 def object_to_dict(obj, attr):
