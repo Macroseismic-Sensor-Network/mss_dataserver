@@ -40,7 +40,6 @@ import rasterio.plot
 
 import mss_dataserver.postprocess.util as util
 
-
 class MapPlotter(object):
     ''' Create map images and movies using mssds geojson data.
     '''
@@ -85,6 +84,20 @@ class MapPlotter(object):
 
         # The data plot artists.
         self.artists = []
+
+        # The intensity labels.
+        self.intensity_labels = {1: 'I',
+                                 2: 'II',
+                                 3: 'III',
+                                 4: 'IV',
+                                 5: 'V',
+                                 6: 'VI',
+                                 7: 'VII',
+                                 8: 'VIII',
+                                 9: 'IX',
+                                 10: 'X',
+                                 11: 'XI',
+                                 12: 'XII'}
 
 
     def set_event(self, public_id):
@@ -210,18 +223,7 @@ class MapPlotter(object):
         ax_inset = self.ax.inset_axes(bounds = intensity_bounds,
                                       xlim = cb.ax.get_xlim())
         
-        intensity_labels = {1: 'I',
-                            2: 'II',
-                            3: 'III',
-                            4: 'IV',
-                            5: 'V',
-                            6: 'VI',
-                            7: 'VII',
-                            8: 'VIII',
-                            9: 'IX',
-                            10: 'X',
-                            11: 'XI',
-                            12: 'XII'}
+        
 
         # Add the intensity label:
         xlim = ax_inset.get_xlim()
@@ -255,7 +257,7 @@ class MapPlotter(object):
 
             #ax_inset.axvline(cur_x, color = 'gray')
             #cur_label = '{intensity:.0f}'.format(intensity = cur_intensity_pgv[0])
-            cur_label = intensity_labels[int(cur_intensity_pgv[0])]
+            cur_label = self.intensity_labels[int(cur_intensity_pgv[0])]
             ax_inset.text(cur_x,
                           y = 0.45,
                           s = cur_label,
@@ -610,7 +612,104 @@ class MapPlotter(object):
         return max_event_pgv
 
     
-    def draw_contours(self, df):
+    def draw_contours(self, df, draw_labels = False):
+        ''' Draw the PGV contours.
+        '''
+        cmap = self.cmap
+        norm = self.norm
+        artists = []
+
+        # Ignore the contours below the felt threshold.
+        felt = df['pgv'] >= 0.1e-6
+        df = df[felt]
+
+        # Remove the rows having no geometry.
+        df = df[df['geometry'].notna()]
+      
+        if len(df) == 0:
+            return
+
+        color_list = [cmap(norm(x)) for x in df['pgv_log']]
+        pgv_intensity = util.intensity_to_pgv(np.arange(1, 9))
+        
+        # Draw the contour faces.
+        cur_artist = self.ax.add_geometries(df['geometry'],
+                                            crs = self.projection,
+                                            facecolor = color_list,
+                                            edgecolor = 'None',
+                                            linewidth = 0,
+                                            alpha = 0.8,
+                                            zorder = 3)
+        artists.append(cur_artist)
+
+        import shapely
+        mss_boundary = self.mss_boundary.geometry[0][0]
+        mss_boundary_shrink = mss_boundary.buffer(-100)
+        mss_boundary_split = mss_boundary.buffer(-120)
+        #geometries = geometries[1:3]
+        contour_groups = df.groupby('pgv')
+        group_keys = list(contour_groups.groups.keys())
+        
+        for cnt_group, (cur_name, cur_group) in enumerate(contour_groups):
+            geometries = cur_group.geometry
+
+            if cnt_group % 2 == 0:
+                linewidth = 0.2
+            else:
+                linewidth = 0.4
+
+            if np.any(np.isclose(cur_name, pgv_intensity[:, 1])):
+                linestyle = 'dashed'
+                linewidth = 0.6
+            else:
+                linestyle = 'solid'
+            
+            for k, cur_geom in enumerate(geometries):
+                if not cur_geom.within(mss_boundary):
+                    cur_split = shapely.ops.split(cur_geom.boundary, mss_boundary_split.boundary)
+                    cur_split = [x for x in cur_split if x.within(mss_boundary_shrink)]
+                    edgecolor = 'k'
+                else:
+                    cur_split = [cur_geom.exterior]
+                    edgecolor = 'k'
+
+                if cnt_group < len(contour_groups) - 1:
+                    next_group = contour_groups.get_group(group_keys[cnt_group + 1])
+                    next_level_geom = next_group.geometry
+                    for cur_next_level in next_level_geom:
+                        cur_split = [x for x in cur_split if (not x.overlaps(cur_next_level.boundary)) and (not x.within(cur_next_level.buffer(50)))]
+
+                cur_artist = self.ax.add_geometries(cur_split,
+                                                    crs = self.projection,
+                                                    edgecolor = edgecolor,
+                                                    facecolor = (1, 1, 1, 0),
+                                                    linewidth = linewidth,
+                                                    linestyle = linestyle,
+                                                    zorder = 4)
+                artists.append(cur_artist)
+
+                if draw_labels:
+                    # Add the contour line annotations.
+                    cur_mask = np.isclose(cur_name, pgv_intensity[:, 1])
+                    if np.any(cur_mask):
+                        cur_intensity = int(pgv_intensity[cur_mask, 0][0])
+                        cur_label = '{pgv} ({intensity})'.format(pgv = np.round(cur_name * 1000, 3),
+                                                                 intensity = self.intensity_labels[cur_intensity])
+                        longest_ind = np.argmax([x.length for x in cur_split])
+                        cur_geom = cur_split[longest_ind]
+                        cur_artist = self.ax.annotate(cur_label,
+                                                      xy = cur_geom.coords[0],
+                                                      fontsize = 4,
+                                                      ha = 'center',
+                                                      va = 'center',
+                                                      zorder = 20)
+                        artists.append(cur_artist)        
+        
+        self.artists.extend(artists)
+
+
+    def draw_contours_working(self, df, draw_labels = False,
+                      draw_fat_contours = False):
         ''' Draw the PGV contours.
         '''
         cmap = self.cmap
@@ -626,21 +725,45 @@ class MapPlotter(object):
       
         if len(df) == 0:
             return
-      
+        import ipdb; ipdb.set_trace();
+
         color_list = [cmap(norm(x)) for x in df['pgv_log']]
+        linewidth_list = np.array([0.2] * len(df['pgv_log']))
+        pgv_intensity = util.intensity_to_pgv(np.arange(1, 9))
+        pgv_annotate = pgv_intensity[:, 1]
+        
+        if draw_fat_contours:    
+            for cur_annotate in pgv_annotate:
+                linewidth_list[np.isclose(df['pgv'], cur_annotate)] = 0.4
 
         # Plot the contours below the felt threshold.
         cur_artist = self.ax.add_geometries(df['geometry'],
                                             crs = self.projection,
                                             facecolor = color_list,
                                             edgecolor = 'black',
-                                            linewidth = 0.2,
+                                            linewidth = linewidth_list,
                                             alpha = 0.8,
                                             zorder = 3)
         artists.append(cur_artist)
 
-        self.artists.extend(artists)
+        if draw_labels:
+            # Add the contour line annotations.
+            for cur_annotate in pgv_annotate:
+                cur_mask = np.isclose(df['pgv'], cur_annotate)
+                cur_df = df[cur_mask]
+                for cur_id, cur_row in cur_df.iterrows():
+                    cur_label = np.round(cur_row['pgv'] * 1000, 3)
+                    cur_geom = cur_row['geometry']
         
+                    cur_artist = self.ax.annotate(cur_label,
+                                                  xy = cur_geom.exterior.coords[0],
+                                                  fontsize = 4,
+                                                  ha = 'center',
+                                                  va = 'center',
+                                                  zorder = 10)
+                    artists.append(cur_artist)
+        
+        self.artists.extend(artists)
 
     def draw_simplices(self, df, data_col = 'pgv_min_log'):
         ''' Draw the detection simplices. 
@@ -1177,7 +1300,8 @@ class MapPlotter(object):
             cur_time_local = cur_time.datetime.replace(tzinfo = from_zone).astimezone(to_zone)
 
             # Draw the pgv contour polygons.
-            self.draw_contours(df = cur_group)
+            self.draw_contours(df = cur_group,
+                               draw_labels = True)
 
             # Draw the station markers.
             # The stations represent individual data points, therefore
@@ -1254,7 +1378,8 @@ class MapPlotter(object):
         station_pgv_df.insert(6, 'pgv_corr_log', np.log10(station_pgv_df.pgv_corr))
 
         # Draw the pgv contour polygons.
-        self.draw_contours(df = cont_df)
+        self.draw_contours(df = cont_df,
+                           draw_labels = True)
 
         # Plot the station max pgv markers.
         self.draw_detection_stations(df = station_pgv_df,
