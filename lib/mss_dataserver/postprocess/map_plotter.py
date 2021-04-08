@@ -654,9 +654,9 @@ class MapPlotter(object):
             geometries = cur_group.geometry
 
             if cnt_group % 2 == 0:
-                linewidth = 0.2
-            else:
                 linewidth = 0.4
+            else:
+                linewidth = 0.2
 
             if np.any(np.isclose(cur_name, pgv_intensity[:, 1])):
                 linestyle = 'dashed'
