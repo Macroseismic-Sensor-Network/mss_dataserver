@@ -72,7 +72,7 @@ def cli(ctx, config_file):
 
 @cli.command()
 @click.pass_context
-@click.option('--public_id', help = 'The public ID of the event to process.')
+@click.option('--public-id', help = 'The public ID of the event to process.')
 @click.option('--no-db', is_flag = True, help = 'No database available.')
 @click.option('--no-meta', is_flag = True, help = "Don't compute the meta supplement.")
 @click.option('--no-isoseismal', is_flag = True, help = "Don't compute the pgv kriging.")
