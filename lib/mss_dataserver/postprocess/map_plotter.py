@@ -943,26 +943,37 @@ class MapPlotter(object):
 
         
     def create_movie(self, image_dir, output_dir,
-                     name, file_ext = 'png'):
+                     img_name, video_name, file_ext = 'png'):
         ''' Create a movie using ffmpeg.
         '''
         img_filepath = os.path.join(image_dir,
                                     '{public_id}_{name}_*.{ext}'.format(public_id = self.event_public_id,
-                                                                        name = name,
+                                                                        name = img_name,
                                                                         ext = file_ext))
         movie_filepath = os.path.join(output_dir,
-                                      '{public_id}_detectionsequence.mp4'.format(public_id = self.event_public_id))
+                                      '{public_id}_{vid_name}.mp4'.format(public_id = self.event_public_id,
+                                                                          vid_name = video_name))
                                                                              
         stream = ffmpeg.input(img_filepath,
                               pattern_type = 'glob',
                               framerate = 2)
         stream = stream.filter('scale',
-                               size='hd1080',
-                               force_original_aspect_ratio='increase')
-        stream = stream.output(filename = movie_filepath)
+                               width = 'trunc(iw/2)*2',
+                               height = 'trunc(ih/2)*2')
+        stream = stream.filter('scale',
+                               size = 'hd1080',
+                               force_original_aspect_ratio = 'decrease')
+        #stream = stream.filter('pad',
+        #                       width = 1920,
+        #                       height = 1080,
+        #                       x = '(ow - iw) / 2',
+        #                       y = '(oh - ih) / 2',
+        #                       color = 'red')
+        stream = stream.output(filename = movie_filepath,
+                               format = 'mp4',
+                               pix_fmt = 'yuv420p')
         stream = stream.overwrite_output()
         stream = stream.run()
-        
 
     def create_event_pgv_map(self):
         ''' Create the event PGV map.
@@ -1238,7 +1249,8 @@ class MapPlotter(object):
 
         self.create_movie(image_dir = img_output_dir,
                           output_dir = movie_output_dir,
-                          name = 'detectionframe')
+                          img_name = 'detectionframe',
+                          video_name = 'detection_sequence')
 
 
     def create_pgv_contour_sequence_movie(self):
@@ -1344,10 +1356,11 @@ class MapPlotter(object):
                              bbox_inches = 'tight',
                              pad_inches = 0,)
             self.clear_map()
-
+            
         self.create_movie(image_dir = img_output_dir,
                           output_dir = movie_output_dir,
-                          name = 'pgvcontourframe')
+                          img_name = 'pgvcontourframe',
+                          video_name = 'pgvcontoursequence')
 
         
     def create_pgv_contour_map(self):
