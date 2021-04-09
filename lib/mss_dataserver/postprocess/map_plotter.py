@@ -649,14 +649,27 @@ class MapPlotter(object):
         #geometries = geometries[1:3]
         contour_groups = df.groupby('pgv')
         group_keys = list(contour_groups.groups.keys())
-        
+
+        # Initialize the first contour linewidth.
+        mask = [np.any(np.isclose(x, pgv_intensity[:,1])) for x in group_keys]
+        if np.any(mask):
+            first_ind = np.array(mask).nonzero()[0][0]
+            if first_ind % 2 == 0:
+                contour_width = 'fat'
+            else:
+                contour_width = 'thin'   
+        else:
+            contour_width = 'fat'
+                
         for cnt_group, (cur_name, cur_group) in enumerate(contour_groups):
             geometries = cur_group.geometry
 
-            if cnt_group % 2 == 0:
+            if contour_width == 'fat':
                 linewidth = 0.4
+                contour_width = 'thin'
             else:
                 linewidth = 0.2
+                contour_width = 'fat'
 
             if np.any(np.isclose(cur_name, pgv_intensity[:, 1])):
                 linestyle = 'dashed'
