@@ -36,6 +36,18 @@ import os
 
 def load_configuration(filename):
     ''' Load the configuration from a file.
+
+    Load the configuration from a .ini file using configparser.
+
+    Parameters
+    ----------
+    filename: String
+        The full path to the configuration file.
+
+    Returns
+    -------
+    config: dict
+        A dictionary holding the configuration data.
     '''
     if not os.path.exists(filename):
         raise RuntimeError("The configuration filename {filename} doesn't exist.".format(filename = filename))
@@ -95,6 +107,33 @@ def get_logger_rotating_file_handler(filename = None,
                                      log_level = 'INFO',
                                      max_bytes = 1000,
                                      backup_count = 3):
+    ''' Create a logging rotating file handler.
+
+    Create a logging RotatingFileHandler and ad a Formatter to it.
+
+    Parameters
+    ----------
+    filename: String
+        The full path of the log file.
+
+    log_level: String
+        The logging log level.
+        ['DEBUG', 'INFO', 'WARNING', 'ERROR']
+
+    max_bytes: int
+        The maximum filesize of the log file [bytes].
+        If the file grows larger than this value, a new
+        file is created.
+
+    backup_count: int
+       The number of rotating files to use.
+
+
+    Returns
+    -------
+    ch: logging.handlers.RotatingFileHandler
+        The logging filehandler.
+    '''
     if not filename:
         return
 
@@ -109,15 +148,18 @@ def get_logger_rotating_file_handler(filename = None,
 
 class Version(object):
     ''' A version String representation.
+
+
+    Parameters
+    ----------
+    version: String
+        The version as a point-seperated string (e.g. 0.0.1).
+
     '''
+    
 
     def __init__(self, version = '0.0.1'):
         ''' Initialize the instance.
-
-        Parameters
-        ----------
-        version:String
-            The version as a point-seperated string.
 
         '''
         self.version = self.string_to_tuple(version)
@@ -179,10 +221,13 @@ class Version(object):
         return self.__eq__(c) or self.__lt__(c)
 
 
-
-
     def string_to_tuple(self, vs):
         ''' Convert a version string to a tuple.
+
+        Parameters
+        ----------
+        version: String
+            The version as a point-seperated string (e.g. 0.0.1).
         '''
         nn = vs.split('.')
         for k,x in enumerate(nn):
