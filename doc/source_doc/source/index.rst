@@ -4,12 +4,13 @@
    contain the root `toctree` directive.
 
 
-MSS dataserver
------------------
+MSS DataServer Modules
+----------------------
 .. autosummary::
    :toctree: autogen
+   :recursive:
 
-   mss_dataserver.core.project
+   mss_dataserver.core
    
    .. comment to end block
 
