@@ -239,14 +239,5 @@ intersphinx_mapping = {'http://docs.python.org/': None}
 
 autosummary_generate = ["index.rst"]
 autoclass_content = "class"
-#autodoc_default_flags=['members', 'no-inherited-members']
-#template_path = "./_templates"
+#autodoc_default_flags=['members', 'special-members', 'no-inherited-members']
 
-
-# Add extensions into path
-#sys.path = [os.path.dirname(__file__) + os.sep + '_ext'] + sys.path
-
-
-
-
-# ----------------- MONKEY PATCHES ----------------------------------------
