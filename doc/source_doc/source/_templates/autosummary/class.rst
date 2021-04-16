@@ -18,19 +18,6 @@ Methods
 {% endif %}
 {% endblock %}
 
-
-{% block attributes %}
-
-{% if attributes %}
-Attributes
-----------
-   .. autosummary::
-   {% for item in attributes %}
-      ~{{ name }}.{{ item }}
-   {%- endfor %}
-{% endif %}
-{% endblock %}
-
 Inheritence diagram
 -------------------
     .. inheritance-diagram:: {{fullname}}
