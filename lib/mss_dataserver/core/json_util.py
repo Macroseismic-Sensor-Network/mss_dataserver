@@ -23,6 +23,10 @@
  # Copyright 2019 Stefan Mertl
 ##############################################################################
 
+''' Utilities for handling JSON import and export.
+
+'''
+
 import json
 import logging
 

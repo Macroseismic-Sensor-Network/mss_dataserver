@@ -23,6 +23,9 @@
  # Copyright 2019 Stefan Mertl
 ##############################################################################
 
+''' MSS Dataserver Project.
+'''
+
 import configparser
 import json
 import logging

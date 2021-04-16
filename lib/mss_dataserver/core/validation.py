@@ -23,6 +23,10 @@
  # Copyright 2020 Stefan Mertl
 ##############################################################################
 
+''' Pydantic data validation models.
+
+'''
+
 import enum
 
 import pydantic

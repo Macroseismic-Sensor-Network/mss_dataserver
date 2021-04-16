@@ -23,6 +23,10 @@
 # Copyright 2019 Stefan Mertl
 ##############################################################################
 
+''' General utility function.
+
+'''
+
 import configparser
 import json
 import logging
