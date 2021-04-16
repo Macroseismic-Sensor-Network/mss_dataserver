@@ -11,14 +11,16 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import sys
+import os
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
+sys.path.insert(0, os.path.abspath('../../../lib'))
 #sys.path.insert(0, os.path.abspath('.'))
-sys.path.append(os.path.abspath('sphinxext'))
-sys.path.append(os.path.abspath('_ext'))
+#sys.path.append(os.path.abspath('sphinxext'))
+#sys.path.append(os.path.abspath('_ext'))
 
 # -- General configuration -----------------------------------------------------
 
@@ -29,10 +31,15 @@ sys.path.append(os.path.abspath('_ext'))
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.ifconfig',
+              'sphinx.ext.intersphinx',
               'sphinx.ext.viewcode',
+              'sphinx.ext.mathjax',
               'sphinx.ext.autosummary',
               'sphinx.ext.inheritance_diagram',
-              'numpydoc']
+              'sphinxcontrib.napoleon']
+
+# Configure the napoleon extension.
+napoleon_use_ivar = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates'] 
@@ -102,7 +109,7 @@ modindex_common_prefix = ['mss_dataserver.']
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'sphinxdoc'
+html_theme = 'haiku_maar'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -110,7 +117,7 @@ html_theme = 'sphinxdoc'
 #html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
+html_theme_path = ['_theme']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -131,7 +138,7 @@ html_theme = 'sphinxdoc'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+#html_static_path = ['_static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -175,7 +182,7 @@ html_split_index = True
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'psysmondoc'
+htmlhelp_basename = 'mssdsdoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
