@@ -39,9 +39,38 @@ import mss_dataserver.geometry.inventory
 
 
 def object_to_dict(obj, attr):
-    ''' Copy selceted attributes of object to a dictionary.
+    ''' Copy selected attributes of object to a dictionary.
+
+    Parameters
+    ----------
+    obj: :class:`object`
+        An instance of a python class.
+
+    attr: list of String
+        The attributes to copy to the dictionary.
+
+    Returns
+    -------
+    d: dict
+        A dictionary with the selected attributes.
     '''
+
     def hint_tuples(item):
+        ''' Convert a tuple.
+
+        JSON doesn't support tuples. Use a custom dictionary
+        to encode a tuple.
+
+        Parameters
+        ----------
+        item: object
+            The instance to convert.
+
+        Returns
+        -------
+        item: dict
+            The dictionary representation of the instance item.
+        '''
         if isinstance(item, tuple):
             return {'__tuple__': True, 'items': item}
         if isinstance(item, list):
@@ -57,6 +86,22 @@ def object_to_dict(obj, attr):
 
 
 class FileContainer(object):
+    ''' A container json data.
+
+    Along with the data, the container holds information about
+    the file creation.
+
+    Parameters
+    ----------
+    data: dict
+        The data to write to a JSON file.
+
+    agency_uri: String
+        The agency uniform resource identifier.
+
+    author_uri: String
+        The author uniform resource identifier
+    '''
 
     def __init__(self, data, agency_uri = None, author_uri = None):
         self.data = data
@@ -66,10 +111,25 @@ class FileContainer(object):
 
 class GeneralFileEncoder(json.JSONEncoder):
     ''' A JSON encoder for the serialization of general data.
+
+    Parameters
+    ----------
+    **kwargs: keyword argument
+        Keyword arguments passed to :class:`json.encoder.JSONEncoder`.
+
+    Attributes
+    ----------
+    version: :class:`mss_dataserver.core.util`
+        The version of the file encoder.
+
+    logger: logging.Logger
+        The logging instance.
     '''
     version = util.Version('1.0.0')
 
     def __init__(self, **kwarg):
+        ''' Initialization of the instance.
+        '''
         json.JSONEncoder.__init__(self, **kwarg)
 
         # The logger.
@@ -82,7 +142,21 @@ class GeneralFileEncoder(json.JSONEncoder):
 
 
     def default(self, obj):
-        ''' Convert pSysmon project objects to a dictionary.
+        ''' Convert objects to a dictionary.
+
+        The instance class, module and base_class relations are stored in 
+        the __class__, __module__ and __base_class__ keys. These are used 
+        by the related file decoder to restore the correct class instances.
+
+        Parameters
+        ----------
+        obj: object
+            The instance to convert to a dictionary.
+
+        Returns
+        -------
+        d: dict
+           The dictionary representation of the instance obj.
         '''
         obj_class = obj.__class__.__name__
         base_class = [x.__name__ for x in obj.__class__.__bases__]
@@ -118,6 +192,18 @@ class GeneralFileEncoder(json.JSONEncoder):
 
 
     def convert_filecontainer(self, obj):
+        ''' Convert a filecontainer instance.
+
+        Parameters
+        ----------
+        obj: FileContainer
+            The filecontainer to convert.
+
+        Returns
+        -------
+        d: dict
+           The dictionary representation of the instance obj.
+        '''
         d = obj.data
         file_meta = {'file_version': self.version,
                      'save_date': obspy.UTCDateTime(),
@@ -128,19 +214,79 @@ class GeneralFileEncoder(json.JSONEncoder):
 
 
     def convert_utcdatetime(self, obj):
+        ''' Convert a UTCDateTime instance.
+
+        Parameters
+        ----------
+        obj: obspy.utcdatetime.UTCDateTime
+            The UTCDateTime instance to convert.
+
+        Returns
+        -------
+        d: dict
+            The dictionary representation of obj.
+        '''
         return {'utcdatetime': obj.isoformat()}
 
 
     def convert_version(self, obj):
+        ''' Convert a UTCDateTime instance.
+
+        Parameters
+        ----------
+        obj: obspy.utcdatetime.UTCDateTime
+            The UTCDateTime instance to convert.
+
+        Returns
+        -------
+        d: dict
+            The dictionary representation of obj.
+        '''        ''' Convert a Version instance.
+
+        Parameters
+        ----------
+        obj: mss_dataserver.core.util.Version
+            The instance to convert.
+
+        Returns
+        -------
+        d: dict
+            The dictionary representation of obj.
+        '''
         return {'version': str(obj)}
 
 
     def convert_np_ndarray(self, obj):
+        ''' Convert a numpy array instance.
+
+        Parameters
+        ----------
+        obj: numpy.ndarray
+            The instance to convert.
+
+        Returns
+        -------
+        d: dict
+            The dictionary representation of obj.
+        '''
         return {'data': obj.tolist()}
 
 
 
 class GeneralFileDecoder(json.JSONDecoder):
+    ''' A JSON decoder for the deserialization of general data.
+
+    Parameters
+    ----------
+    **kwargs: keyword argument
+        Keyword arguments passed to :class:`json.encoder.JSONDecoder`.
+
+    Attributes
+    ----------
+    version: :class:`mss_dataserver.core.util`
+        The version of the file decoder.
+    '''
+
     version = util.Version('1.0.0')
 
     def __init__(self, **kwarg):
@@ -148,7 +294,24 @@ class GeneralFileDecoder(json.JSONDecoder):
 
 
     def convert_dict(self, d):
+        ''' Convert a dictionary to objects.
 
+        The dictionary to convert should have been with an mss_dataserver
+        JSON file encoder class. In this case, the dictionaries contains
+        hints of the original class and module name in the __class__, 
+        __module__ and __base_class__ keys. These are used to convert 
+        the dictionary to instances of the given classes.
+
+        Parameters
+        ----------
+        d: dict
+            The dictionary to convert.
+
+        Returns
+        -------
+        inst: object
+            The object representation of dict d.
+        '''
         if '__class__' in d:
             class_name = d.pop('__class__')
             module_name = d.pop('__module__')
@@ -170,6 +333,22 @@ class GeneralFileDecoder(json.JSONDecoder):
 
 
     def decode_hinted_tuple(self, item):
+        ''' Decode a tuple.
+
+        JSON doesn't support tuples. Use a custom dictionary
+        to decode. If the dictionary contains the __tuple__
+        attribute, the dictionary is converted to a tuple.
+
+        Parameters
+        ----------
+        item: dict
+            The dictionary to decode.
+
+        Returns
+        ------
+        item: object
+            The object representation of the item dictionary.
+        '''
         if isinstance(item, dict):
             if '__tuple__' in item:
                 return tuple(item['items'])
@@ -180,16 +359,52 @@ class GeneralFileDecoder(json.JSONDecoder):
 
 
     def convert_version(self, d):
+        ''' Convert a Version dictionary.
+
+        Parameters
+        ----------
+        d: dict
+            The dictionary to convert.
+
+        Returns
+        -------
+        inst: :class:`mss_dataserver.core.util.Version`
+            The instance of the converted dictionary.
+        '''
         inst = util.Version(d['version'])
         return inst
 
 
     def convert_utcdatetime(self, d):
+        ''' Convert a UTCDateTime dictionary.
+
+        Parameters
+        ----------
+        d: dict
+            The dictionary to convert.
+
+        Returns
+        -------
+        d: obspy.UTCDateTime
+            The instance of the converted dictionary.
+        '''
         inst = obspy.UTCDateTime(d['utcdatetime'])
         return inst
 
 
     def convert_np_array(self, d):
+        ''' Convert a numpy ndarray dictionary.
+
+        Parameters
+        ----------
+        d: dict
+            The dictionary to convert.
+
+        Returns
+        -------
+        inst: numpy.ndarray
+            The instance of the converted dictionary.
+        '''
         inst = np.array(d['data'])
         return inst
 
@@ -197,11 +412,23 @@ class GeneralFileDecoder(json.JSONDecoder):
 
 class SupplementDetectionDataEncoder(json.JSONEncoder):
     ''' A JSON encoder for the event supplement detection data.
+
+    Parameters
+    ----------
+    **kwargs: keyword argument
+        Keyword arguments passed to :class:`json.encoder.JSONEncoder`.
+
+    Attributes
+    ----------
+    version: :class:`mss_dataserver.core.util`
+        The version of the file encoder.
     '''
 
     version = util.Version('1.0.0')
 
     def __init__(self, **kwarg):
+        ''' Initialization of the instance.
+        '''
         json.JSONEncoder.__init__(self, **kwarg)
 
         # The logger.
@@ -214,7 +441,22 @@ class SupplementDetectionDataEncoder(json.JSONEncoder):
 
 
     def default(self, obj):
-        ''' Convert the detection data instances to dictionaries.
+        ''' Convert objects to a dictionary.
+
+        The instance class, module and base_class relations are stored in 
+        the __class__, __module__ and __base_class__ keys. These are used 
+        by the related file decoder to restore the correct class instances.
+
+        Parameters
+        ----------
+        obj: object
+            The instance to convert to a dictionary.
+
+        Returns
+        -------
+        d: dict
+           The dictionary representation of the instance obj.
+        '''        ''' Convert the detection data instances to dictionaries.
         '''
         obj_class = obj.__class__.__name__
         base_class = [x.__name__ for x in obj.__class__.__bases__]
@@ -248,6 +490,18 @@ class SupplementDetectionDataEncoder(json.JSONEncoder):
         return d
 
     def convert_filecontainer(self, obj):
+        ''' Convert a filecontainer instance.
+
+        Parameters
+        ----------
+        obj: FileContainer
+            The filecontainer to convert.
+
+        Returns
+        -------
+        d: dict
+           The dictionary representation of the instance obj.
+        '''
         d = obj.data
         file_meta = {'file_version': self.version,
                      'save_date': obspy.UTCDateTime(),
@@ -257,15 +511,63 @@ class SupplementDetectionDataEncoder(json.JSONEncoder):
         return d
 
     def convert_utcdatetime(self, obj):
+        ''' Convert a UTCDateTime instance.
+
+        Parameters
+        ----------
+        obj: obspy.utcdatetime.UTCDateTime
+            The UTCDateTime instance to convert.
+
+        Returns
+        -------
+        d: dict
+            The dictionary representation of obj.
+        '''
         return {'utcdatetime': obj.isoformat()}
 
     def convert_version(self, obj):
+        ''' Convert a Version dictionary.
+
+        Parameters
+        ----------
+        d: dict
+            The dictionary to convert.
+
+        Returns
+        -------
+        inst: :class:`mss_dataserver.core.util.Version`
+            The instance of the converted dictionary..
+        '''
         return {'version': str(obj)}
 
     def convert_np_ndarray(self, obj):
+        ''' Convert a numpy ndarray dictionary.
+
+        Parameters
+        ----------
+        d: dict
+            The dictionary to convert.
+
+        Returns
+        -------
+        inst: numpy.ndarray
+            The instance of the converted dictionary..
+        '''
         return {'data': obj.tolist()}
 
     def convert_station(self, obj):
+        ''' Convert a Station dictionary.
+
+        Parameters
+        ----------
+        d: dict
+            The dictionary to convert.
+
+        Returns
+        -------
+        inst: :class:`mss_dataserver.geometry.inventory.Station`
+            The instance of the converted dictionary.
+        '''
         attr = ['name', 'location', 'network',
                 'x', 'y', 'z', 'coord_system',
                 'description', 'author_uri', 'agency_uri',
@@ -275,17 +577,48 @@ class SupplementDetectionDataEncoder(json.JSONEncoder):
 
 
 class SupplementDetectionDataDecoder(json.JSONDecoder):
+    ''' A JSON decoder for the deserialization of detection supplement data.
+
+    Parameters
+    ----------
+    **kwargs: keyword argument
+        Keyword arguments passed to :class:`json.encoder.JSONDecoder`.
+
+    Attributes
+    ----------
+    version: :class:`mss_dataserver.core.util`
+        The version of the file decoder.
+    '''
     version = util.Version('1.0.0')
 
     def __init__(self, **kwarg):
+        ''' Initialize the instance.
+        '''
         json.JSONDecoder.__init__(self, object_hook = self.convert_dict)
 
         self.inventory = geom.inventory.Inventory(name = 'detection_data_import')
 
 
     def convert_dict(self, d):
-        #print "Converting dict: %s." % str(d)
+        ''' Convert a dictionary to objects.
 
+        The dictionary to convert should have been with an mss_dataserver
+        JSON file encoder class. In this case, the dictionaries contains
+        hints of the original class and module name in the __class__, 
+        __module__ and __base_class__ keys. These are used to convert 
+        the dictionary to instances of the given classes.
+
+        Parameters
+        ----------
+        d: dict
+            The dictionary to convert.
+
+        Returns
+        -------
+        inst: object
+            The object representation of dict d.
+        '''
+        #print "Converting dict: %s." % str(d)
         if '__class__' in d:
             class_name = d.pop('__class__')
             module_name = d.pop('__module__')
@@ -309,6 +642,22 @@ class SupplementDetectionDataDecoder(json.JSONDecoder):
 
 
     def decode_hinted_tuple(self, item):
+        ''' Decode a tuple.
+
+        JSON doesn't support tuples. Use a custom dictionary
+        to decode. If the dictionary contains the __tuple__
+        attribute, the dictionary is converted to a tuple.
+
+        Parameters
+        ----------
+        item: dict
+            The dictionary to decode.
+
+        Returns
+        ------
+        item: object
+            The object representation of the item dictionary.
+        '''
         if isinstance(item, dict):
             if '__tuple__' in item:
                 return tuple(item['items'])
@@ -319,21 +668,69 @@ class SupplementDetectionDataDecoder(json.JSONDecoder):
 
 
     def convert_version(self, d):
+        ''' Convert a Version dictionary.
+
+        Parameters
+        ----------
+        d: dict
+            The dictionary to convert.
+
+        Returns
+        -------
+        inst: :class:`mss_dataserver.core.util.Version`
+            The instance of the converted dictionary.
+        '''
         inst = util.Version(d['version'])
         return inst
 
 
     def convert_utcdatetime(self, d):
+        ''' Convert a UTCDateTime dictionary.
+
+        Parameters
+        ----------
+        d: dict
+            The dictionary to convert.
+
+        Returns
+        -------
+        d: obspy.UTCDateTime
+            The instance of the converted dictionary.
+        '''
         inst = obspy.UTCDateTime(d['utcdatetime'])
         return inst
 
 
     def convert_np_array(self, d):
+        ''' Convert a numpy ndarray dictionary.
+
+        Parameters
+        ----------
+        d: dict
+            The dictionary to convert.
+
+        Returns
+        -------
+        inst: numpy.ndarray
+            The instance of the converted dictionary.
+        '''
         inst = np.array(d['data'])
         return inst
 
 
     def convert_station(self, d):
+        ''' Convert a Station dictionary.
+
+        Parameters
+        ----------
+        d: dict
+            The dictionary to convert.
+
+        Returns
+        -------
+        inst: mss_dataserver.geometry.inventory.Station
+            The instance of the converted dictionary.
+        '''
         cur_station = self.inventory.get_station(name = d['name'],
                                                  location = d['location'],
                                                  network = d['network'])

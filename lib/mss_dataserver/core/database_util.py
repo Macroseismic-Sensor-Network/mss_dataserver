@@ -41,8 +41,28 @@ import re
 logger_name = __name__
 logger = logging.getLogger(logger_name)
 
+
 def db_table_migration(engine, table, prefix):
     ''' Check if a database table migration is needed and apply the changes.
+
+    Check the table definition of the database with the one from defined 
+    in the current database factories of the modules. If changes are 
+    detected, the database tables are updated to fit the new version.
+
+    Parameters
+    ----------
+    engine: sqlalchemy.engine.Engine
+        The sqlalchemy database Engine.
+
+    table: sqlalchemy.schema.Table
+        The table to migrate.
+
+    prefix: String
+        The database table name prefix.
+        The names of the tables contain only the basename (e.g. geom_recorder).
+        The full table name usually contains the name of the project as
+        a prefix.
+
     '''
     logger.info('Checking if database table %s needs an update.', table.__table__.name)
     migrate_success = False
@@ -72,6 +92,24 @@ def db_table_migration(engine, table, prefix):
 
 def update_db_table(engine, table, metadata, prefix):
     ''' Update the table structure to the new schema.
+
+    Parameters
+    ----------
+    engine: sqlalchemy.engine.Engine
+        The sqlalchemy database Engine.
+
+    table: sqlalchemy.schema.Table
+        The table to migrate.
+
+    metadata: sqlalchemy.schema.MetaData
+        The tables of the current database schema.
+
+    prefix: String
+        The database table name prefix.
+        The names of the tables contain only the basename (e.g. geom_recorder).
+        The full table name usually contains the name of the project as
+        a prefix.
+
     '''
     table_updated = False
     # Check for added columns.
@@ -186,6 +224,23 @@ def update_db_table(engine, table, metadata, prefix):
 
 def add_column(engine, table, column, prefix):
     ''' Add a column to a database table.
+
+    Parameters
+    ----------
+    engine: sqlalchemy.engine.Engine
+        The sqlalchemy database Engine.
+
+    table: sqlalchemy.schema.Table
+        The table to migrate.
+
+    column: sqlalchemy.schema.Column
+       The database table column to add.
+
+    prefix: String
+        The database table name prefix.
+        The names of the tables contain only the basename (e.g. geom_recorder).
+        The full table name usually contains the name of the project as
+        a prefix.
     '''
     table_name = table.__table__.name
     column_type = column.type.compile(engine.dialect)
@@ -200,8 +255,20 @@ def add_column(engine, table, column, prefix):
                         column = column,
                         target = prefix + cur_key.target_fullname)
 
+
 def remove_column(engine, table, column):
     ''' Remove a column from the database table.
+
+    Parameters
+    ----------
+    engine: sqlalchemy.engine.Engine
+        The sqlalchemy database Engine.
+
+    table: sqlalchemy.schema.Table
+        The table to migrate.
+
+    column: sqlalchemy.schema.Column
+       The database table column to add.
     '''
     table_name = table.__table__.name
     for cur_key in column.foreign_keys:
@@ -211,6 +278,17 @@ def remove_column(engine, table, column):
 
 def change_column_type(engine, table, column):
     ''' Change the type of a database table column.
+
+    Parameters
+    ----------
+    engine: sqlalchemy.engine.Engine
+        The sqlalchemy database Engine.
+
+    table: sqlalchemy.schema.Table
+        The table to migrate.
+
+    column: sqlalchemy.schema.Column
+       The database table column to add.
     '''
     table_name = table.__table__.name
     column_type = column.type.compile(dialect = engine.dialect)
@@ -219,6 +297,29 @@ def change_column_type(engine, table, column):
 
 def add_foreign_key(engine, table, columns, target_table, target_columns, on_update, on_delete):
     ''' Add a foreign key constraint.
+
+    Parameters
+    ----------
+    engine: sqlalchemy.engine.Engine
+        The sqlalchemy database Engine.
+
+    table: sqlalchemy.schema.Table
+        The table to migrate.
+
+    columns: list of String
+        The column names.
+
+    target_table: String
+        The name of the table, that the foreign key references.
+
+    target_columns: list of String
+        The names of the columns, that the foreign key references.
+
+    on_update: String
+        The action to perform on update (sql ON UPDATA).
+
+    on_delete: String
+        The action to perform on delete (sql ON DELETE).
     '''
     table_name = table.__table__.name
     if on_update is None:
@@ -237,6 +338,8 @@ def add_foreign_key(engine, table, columns, target_table, target_columns, on_upd
 
 def add_foreign_key_old(engine, table, column, target, on_update, on_delete):
     ''' Add a foreign key to the column.
+
+    This is an old function definition. Will be removed.
     '''
     table_name = table.__table__.name
     tmp = target.split('.')
@@ -247,6 +350,17 @@ def add_foreign_key_old(engine, table, column, target, on_update, on_delete):
 
 def remove_foreign_key(engine, table, fk_symbol):
     ''' Remove a foreign key.
+
+    Parameters
+    ----------
+    engine: sqlalchemy.engine.Engine
+        The sqlalchemy database Engine.
+
+    table: sqlalchemy.schema.Table
+        The table to migrate.
+    
+    fk_symbol: String
+        The name of the foreign key.
     '''
     table_name = table.__table__.name
     engine.execute('ALTER TABLE %s DROP FOREIGN KEY %s' % (table_name, fk_symbol))
@@ -254,6 +368,17 @@ def remove_foreign_key(engine, table, fk_symbol):
 
 def add_unique_constraint(engine, table, constraint):
     ''' Add a unique constraint to the table.
+
+    Parameters
+    ----------
+    engine: sqlalchemy.engine.Engine
+        The sqlalchemy database Engine.
+
+    table: sqlalchemy.schema.Table
+        The table to migrate.
+
+    constraint: String
+        The name of the constraint.
     '''
     table_name = table.__table__.name
     col_names = [x.name for x in constraint.columns]
@@ -269,6 +394,17 @@ def add_unique_constraint(engine, table, constraint):
 
 def remove_unique_constraint(engine, table, name):
     ''' Remove a unique constraint from the table using the constraint name.
+
+    Parameters
+    ----------
+    engine: sqlalchemy.engine.Engine
+        The sqlalchemy database Engine.
+
+    table: sqlalchemy.schema.Table
+        The table to migrate.
+
+    name: String
+        The name of the contraint.
     '''
     table_name = table.__table__.name
     engine.execute('ALTER TABLE %s DROP INDEX %s' % (table_name, name))
@@ -276,6 +412,19 @@ def remove_unique_constraint(engine, table, name):
 
 def compare_column_type(col1, col2):
     ''' Compare the type of two columns.
+
+    Parameters
+    ----------
+    col1: sqlalchemy.schema.Colum
+        The first column.
+
+    col2: sqlalchemy.schema.Colum
+        The column to compare.
+
+    Returns
+    -------
+    is_equal: bool
+        True if the two columns are equal, False if not.
     '''
     is_equal = False
     tmp = re.split('[()]', col1)
@@ -306,5 +455,3 @@ def compare_column_type(col1, col2):
             is_equal = True
 
     return is_equal
-
-
