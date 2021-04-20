@@ -488,14 +488,28 @@ class EventPostProcessor(object):
 
             # Use only the stations with a valid corrected pgv.
             cur_df = cur_df[cur_df['pgv_corr'].notna()]
+            cur_df = cur_df.reset_index()
 
             # Update the pgv values to keep the event maximum pgv.
             # Track changes of the event maximum pgv.
             if last_pgv_df is not None:
                 # Use the current PGV values only, if they are higher than
                 # the last ones.
-                mask = cur_df.pgv_corr < last_pgv_df.pgv_corr
-                cur_df.loc[mask, 'pgv_corr'] = last_pgv_df.loc[mask, 'pgv_corr']
+                #
+                # Update the last_pgv_df with the current df. It is possible, that
+                # rows are missing or new ones are available.
+                # Remove the rows, that are not present in the cur_df.
+                tmp_df = last_pgv_df[last_pgv_df.nsl.isin(cur_df.nsl)]
+                # Add the rows, that are not present in the last_pgv_df.
+                mask_df = tmp_df.append(cur_df[~cur_df.nsl.isin(last_pgv_df.nsl)],
+                                        ignore_index = True)
+                try:
+                    mask = cur_df.pgv_corr < mask_df.pgv_corr
+                except:
+                    import ipdb; ipdb.set_trace();
+                    
+                    
+                cur_df.loc[mask, 'pgv_corr'] = mask_df.loc[mask, 'pgv_corr']
                 
                 if np.all(mask):
                     no_change_cnt += 1
@@ -509,7 +523,13 @@ class EventPostProcessor(object):
                 break
 
             # Keep the last pgv dataframe.
-            last_pgv_df = cur_df
+            # Get the rows, that are not available in cur_df and keep them.
+            if last_pgv_df is not None:
+                tmp_df = last_pgv_df[~last_pgv_df.nsl.isin(cur_df.nsl)]
+                last_pgv_df = cur_df
+                last_pgv_df.append(tmp_df, ignore_index = True)
+            else:
+                last_pgv_df = cur_df
            
             # Interpolate to a regular grid using ordinary kriging.
             self.logger.info("Interpolate")
