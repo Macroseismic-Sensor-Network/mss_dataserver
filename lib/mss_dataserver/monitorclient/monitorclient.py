@@ -1155,7 +1155,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                       config_filepath,
                                       'process-event',
                                       '--public_id',
-                                      export_event.public_id])
+                                      export_event.public_id,
+                                      '--no-pgv-contour-sequence'])
 
         # Trim the event catalogs.
         self.trim_archive_catalogs(hours = self.event_archive_timespan)
