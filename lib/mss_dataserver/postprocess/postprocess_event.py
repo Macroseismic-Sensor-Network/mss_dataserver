@@ -503,11 +503,7 @@ class EventPostProcessor(object):
                 # Add the rows, that are not present in the last_pgv_df.
                 mask_df = tmp_df.append(cur_df[~cur_df.nsl.isin(last_pgv_df.nsl)],
                                         ignore_index = True)
-                try:
-                    mask = cur_df.pgv_corr < mask_df.pgv_corr
-                except:
-                    import ipdb; ipdb.set_trace();
-                    
+                mask = cur_df.pgv_corr < mask_df.pgv_corr
                     
                 cur_df.loc[mask, 'pgv_corr'] = mask_df.loc[mask, 'pgv_corr']
                 
