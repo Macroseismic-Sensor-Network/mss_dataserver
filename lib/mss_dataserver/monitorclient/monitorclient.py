@@ -1154,7 +1154,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         proc_result = subprocess.run(['mssds_postprocess',
                                       config_filepath,
                                       'process-event',
-                                      '--public_id',
+                                      '--public-id',
                                       export_event.public_id,
                                       '--no-pgv-contour-sequence'])
 
