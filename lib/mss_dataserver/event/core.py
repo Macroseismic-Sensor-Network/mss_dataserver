@@ -37,6 +37,72 @@ import mss_dataserver.event.detection as detection
 #from profilehooks import profile
 
 class Event(object):
+    ''' A seismic event.
+
+    Parameters
+    ----------
+    start_time: str or :class:`obspy.UTCDateTime`
+        The start time of the event. A string that can be parsed
+        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance.
+
+    end_time: str or :class:`obspy.UTCDateTime`
+        The end time of the event. A string that can be parsed
+        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance.
+
+    db_id: int
+        The database id of the event.
+
+    public_id: str
+        The public id of the event.
+
+    event_type: str
+        The type of the event.
+
+    event_type_certainty: str
+        The certainty of the event type.
+
+    description: str
+        The description of the event.
+
+    comment: str
+        The comment to the event.
+
+    tags: list of str
+        The tags of the event.
+
+    agency_uri: str
+        The Uniform Resource Identifier of the author agency.
+
+    author_uri: str
+        The Uniform Resource Identifier of the author.
+
+    creation_time: str or :class:`obspy.UTCDateTime`
+        The creation time of the event. A string that can be parsed
+        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance.
+
+    parent: object
+        The parent object containing the event.
+
+    changed: bool
+        Flag indicating if one of the event attributes has changes.
+
+    detection: list of :class:`mss_dataserver.detection.Detection`
+        The detections associated to the event.
+
+
+    Attributes
+    ----------
+    detection_state: str
+        The state of the event detection [new, updated, closed].
+
+    pgv_stream: :class:`obspy.Stream`
+        The PGV stream of the event.
+
+    detection_data: dict
+        A dictionary holding the detection data related to the event.
+        The detection data is created during the detection process
+        using :class:`mss_dataserver.event.delaunay_detection.DelaunayDetector`.
+    '''
 
     def __init__(self, start_time, end_time, db_id = None, public_id = None, event_type = None,
             event_type_certainty = None, description = None, comment = None,
@@ -118,13 +184,13 @@ class Event(object):
 
     @property
     def rid(self):
-        ''' The resource ID of the event.
+        ''' str: The resource ID of the event.
         '''
         return '/event/' + str(self.db_id)
 
     @property
     def public_id(self):
-        ''' The public ID of the event.
+        ''' str: The public ID of the event.
         '''
         if self._public_id is None:
             prefix = ''
@@ -148,27 +214,27 @@ class Event(object):
 
     @property
     def start_time_string(self):
-        ''' The string representation of the start time.
+        ''' str: The string representation of the start time.
         '''
         return self.start_time.isoformat()
 
 
     @property
     def end_time_string(self):
-        ''' The string representation of the end time.
+        ''' str: The string representation of the end time.
         '''
         return self.end_time.isoformat()
 
 
     @property
     def length(self):
-        ''' The length of the event in seconds.
+        ''' float: The length of the event in seconds.
         '''
         return self.end_time - self.start_time
 
     @property
     def max_pgv(self):
-        ''' The maximum PGV of all detections.
+        ''' float: The maximum PGV of all detections.
         '''
         if len(self.detections) > 0:
             return max([x.absolute_max_pgv for x in self.detections])
@@ -177,7 +243,7 @@ class Event(object):
 
     @property
     def triggered_stations(self):
-        ''' The nsl codes of the stations that contributed to a detection.
+        ''' list of tuple of str: The nsl codes of the stations that contributed to a detection.
         '''
         nsl = []
         for cur_detection in self.detections:
@@ -190,6 +256,11 @@ class Event(object):
     def get_max_pgv_per_station(self):
         ''' Compute the maximum PGV of the individual stations that have
             been associated to a detection.
+
+        Returns
+        -------
+        max_pgv: dict of float
+            The maximum PGV values of the stations.
         '''
         max_pgv = {}
         for cur_detection in self.detections:
@@ -203,6 +274,11 @@ class Event(object):
 
     def get_detection_limits_per_station(self):
         ''' Compute the detection start and end times for each station.
+
+        Returns
+        -------
+        detection_limits: dict of :class:`obspy.UTCDateTime`
+            The detection limits of the stations.
         '''
         detection_limits = {}
         for cur_detection in self.detections:
@@ -221,6 +297,16 @@ class Event(object):
 
     def station_has_triggered(self, station):
         ''' Check if a detection has been triggered at a station.
+
+        Parameters
+        ----------
+        station: :class:`mss_dataserver.geometry.inventory.Station`
+            The station to check.
+
+        Returns
+        -------
+        has_triggered: bool
+            True, if the station has triggered, False otherwise.
         '''
         found_detections = []
         has_triggered = False
@@ -236,6 +322,11 @@ class Event(object):
 
     def add_detection(self, detection):
         ''' Add a detection to the event.
+
+        Parameters
+        ----------
+        detection: :class:`mss_dataserver.event.detection.Detection` or :obj:`list` of :class:`mss_dataserver.event.detection.Detection`
+            The detection(s) to add.
         '''
         if type(detection) is list:
             self.detections.extend(detection)
@@ -244,7 +335,17 @@ class Event(object):
 
 
     def get_detection(self, stations):
-        ''' Get a detecion with the provided stations.
+        ''' Get a detection with the provided stations.
+
+        Parameters
+        ----------
+        stations: :obj:`list` of :class:`mss_dataserver.geometry.Inventory.Station`
+            The stations for which to get the detections.
+
+        Returns
+        -------
+        found_detections: :obj:`list` of :class:`mss_dataserver.event.detection.Detection`
+            The matching detections.
         '''
         unique_stations = []
         for cur_station in stations:
@@ -259,17 +360,34 @@ class Event(object):
 
         return found_detections
 
+    
     def has_detection(self, stations):
         ''' Check if a detection is available for a set of stations.
+
+        Parameters
+        ----------
+        stations: :obj:`list` of :class:`mss_dataserver.geometry.Inventory.Station`
+            The stations for which to get the detections.
+
+        Returns
+        -------
+        bool
+            True if a detection is available for the stations. False otherwise.
         '''
         detections = self.get_detection(stations)
         if len(detections) > 0:
             return True
         else:
             return False
+        
 
     def assign_channel_to_detections(self, inventory):
         ''' Set the channels according to the rec_stream_ids.
+
+        Parameters
+        ----------
+        inventory: :class:`mss_dataserver.geometry.inventory.Inventory`
+            The inventory used to find the matching channel.
         '''
         # Get the unique stream ids.
         id_list = [x.rec_stream_id for x in self.detections]
@@ -286,6 +404,11 @@ class Event(object):
     #@profile(immediate=True)
     def write_to_database(self, project):
         ''' Write the event to the pSysmon database.
+
+        Parameters
+        ----------
+        project: :class:`mss_dataserver.core.project.Project`
+            The project to use to access the database.
         '''
         if self.db_id is None:
             # If the db_id is None, insert a new event.
@@ -378,6 +501,17 @@ class Event(object):
     def get_db_orm(self, project):
         ''' Get an orm representation to use it for bulk insertion into
         the database.
+
+        Parameters
+        ----------
+        project: :class:`mss_dataserver.core.project.Project`
+            The project to use to access the database.
+
+        Returns
+        -------
+        :class:`EventDb`
+            An instance of the sqlalchemy Table Mapper class defined in 
+            :meth:`mss_dataserver.event.databaseFactory`.
         '''
         db_event_orm_class = project.db_tables['event']
         d2e_orm_class = project.db_tables['detection_to_event']
@@ -429,8 +563,17 @@ class Event(object):
 
         Parameters
         ----------
-        db_event : SQLAlchemy ORM
-            The ORM of the events database table.
+        db_event : :class:`EventDb`
+            An instance of the sqlalchemy Table Mapper class defined in 
+            :meth:`mss_dataserver.event.databaseFactory`.
+
+        inventory: :class:`mss_dataserver.geometry.inventory.Inventory`
+            The inventory used to map geometry information to the event.
+
+        Returns
+        -------
+        :class:`mss_dataserver.event.core.Event`
+            The event created from the database ORM instance.
         '''
         if db_event.tags:
             event_tags = db_event.tags.split(',')
@@ -451,8 +594,6 @@ class Event(object):
                     changed = False
                     )
         return event
-
-
 
 
 class Catalog(object):
