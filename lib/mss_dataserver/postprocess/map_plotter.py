@@ -704,11 +704,12 @@ class MapPlotter(object):
                 if draw_labels:
                     # Add the contour line annotations.
                     cur_mask = np.isclose(cur_name, pgv_intensity[:, 1])
-                    if np.any(cur_mask):
+                    if np.any(cur_mask) and (len(cur_split) > 0):
                         cur_intensity = int(pgv_intensity[cur_mask, 0][0])
                         cur_label = '{pgv} ({intensity})'.format(pgv = np.round(cur_name * 1000, 3),
                                                                  intensity = self.intensity_labels[cur_intensity])
                         longest_ind = np.argmax([x.length for x in cur_split])
+                            
                         cur_geom = cur_split[longest_ind]
                         cur_artist = self.ax.annotate(cur_label,
                                                       xy = cur_geom.coords[0],
@@ -738,7 +739,6 @@ class MapPlotter(object):
       
         if len(df) == 0:
             return
-        import ipdb; ipdb.set_trace();
 
         color_list = [cmap(norm(x)) for x in df['pgv_log']]
         linewidth_list = np.array([0.2] * len(df['pgv_log']))
