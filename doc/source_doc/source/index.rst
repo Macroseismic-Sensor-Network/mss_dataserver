@@ -11,6 +11,7 @@ MSS DataServer Modules
    :recursive:
 
    mss_dataserver.core
+   mss_dataserver.event
    
    .. comment to end block
 
