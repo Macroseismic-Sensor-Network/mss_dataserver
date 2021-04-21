@@ -38,16 +38,23 @@ def load_configuration(filename):
     ''' Load the configuration from a file.
 
     Load the configuration from a .ini file using configparser.
+    The properties of the configuration file are documented in an 
+    example .ini file in the *example* directory.
 
     Parameters
     ----------
-    filename: String
+    filename: str
         The full path to the configuration file.
 
     Returns
     -------
     config: dict
         A dictionary holding the configuration data.
+
+    Notes
+    -----
+    Example configuration file:  https://github.com/Macroseismic-Sensor-Network/mss_dataserver/blob/main/example/mss_dataserver_config.ini
+
     '''
     if not os.path.exists(filename):
         raise RuntimeError("The configuration filename {filename} doesn't exist.".format(filename = filename))
@@ -113,10 +120,10 @@ def get_logger_rotating_file_handler(filename = None,
 
     Parameters
     ----------
-    filename: String
+    filename: str
         The full path of the log file.
 
-    log_level: String
+    log_level: str
         The logging log level.
         ['DEBUG', 'INFO', 'WARNING', 'ERROR']
 
@@ -152,7 +159,7 @@ class Version(object):
 
     Parameters
     ----------
-    version: String
+    version: str
         The version as a point-seperated string (e.g. 0.0.1).
 
     '''
@@ -226,8 +233,13 @@ class Version(object):
 
         Parameters
         ----------
-        version: String
+        version: str
             The version as a point-seperated string (e.g. 0.0.1).
+
+        Returns
+        -------
+        version_tuple: tuple
+            The version string as a tuple.
         '''
         nn = vs.split('.')
         for k,x in enumerate(nn):
