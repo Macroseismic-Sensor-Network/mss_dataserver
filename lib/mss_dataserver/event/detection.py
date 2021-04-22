@@ -334,6 +334,29 @@ class Detection(object):
 
 class Catalog(object):
     ''' A detection catalog.
+
+    Parameters
+    ----------
+    name: str 
+        The name of the catalog.
+
+    db_id: int
+        The database id of the catalog.
+
+    description: str
+        The description of the catalog.
+
+    agency_uri: str
+        The uniform resource identifier of the author agency.
+
+    author_uri: str
+        The uniform resource identifier of the author.
+
+    creation_time: :class:`obspy.UTCDateTime`
+        The creation time of the detection.
+
+    detections: :obj:`list` of :class:`Detection`
+        The detections of the catalog.
     '''
 
     def __init__(self, name, db_id = None, description = None, agency_uri = None,
@@ -369,7 +392,7 @@ class Catalog(object):
         if detections is None:
             self.detections = []
         else:
-            self.events = detections
+            self.detections = detections
 
 
     def add_detections(self, detections):
@@ -409,23 +432,29 @@ class Catalog(object):
 
         Parameters
         ----------
-        start_time : class:`~obspy.core.utcdatetime.UTCDateTime`
+        start_time : class:`obspy.UTCDateTime`
             The minimum starttime of the detections.
 
-        end_time : class:`~obspy.core.utcdatetime.UTCDateTime`
+        end_time : class:`obspy.UTCDateTime`
             The maximum end_time of the detections.
 
-        start_inside : Boolean
+        start_inside : bool
             If True, select only those detection with a start time
             inside the search window.
 
-        end_inside : Boolean
+        end_inside : bool
             If True, select only those detection with an end time
             inside the search window.
 
-        nslc : tuple of Strings
-            The NSLC code (network, station, location, channel) of
-            the channel (e.g. ('XX', 'GILA', '00', 'HHZ')).
+        Keyword Arguments
+        -----------------
+        nslc: :obj:`tuple` of :obj:`str`
+            The network-station-location-channel code (e.g ('XX', 'DUBA', '00', 'HNormal')).
+
+        Returns
+        -------
+        :class:`Detection`
+            The detection matching the search criteria.
         '''
         ret_detections = self.detections
 
@@ -454,6 +483,11 @@ class Catalog(object):
 
     def assign_channel(self, inventory):
         ''' Set the channels according to the rec_stream_ids.
+
+        Parameters.
+        -----------
+        inventory: :class:`~mss_dataserver.geometry.inventory.Inventory`
+            The inventory used to get the matching channels.
         '''
         # Get the unique stream ids.
         id_list = [x.rec_stream_id for x in self.detections]
@@ -476,11 +510,14 @@ class Catalog(object):
 
         Parameters
         ----------
-        start_time : :class:`obspy.core.utcdatetime.UTCDateTime`
+        start_time : :class:`obspy.UTCDateTime`
             The begin of the time-span to load.
 
-        end_time : :class:`obspy.core.utcdatetime.UTCDateTime`
+        end_time : :class:`obspy.UTCDateTime`
             The end of the time-span to load.
+
+        min_detection_length: float
+            The minimum length of the detection.
         '''
         if project is None:
             raise RuntimeError("The project is None. Can't query the database without a project.")
@@ -522,6 +559,11 @@ class Catalog(object):
 
     def write_to_database(self, project):
         ''' Write the catalog to the database.
+
+        Parameters
+        ----------
+        project: :class:`~mss_dataserver.core.project.Project`
+            The project used to access the database.
 
         '''
         if self.db_id is None:
@@ -579,12 +621,17 @@ class Catalog(object):
 
         Parameters
         ----------
-        db_catalog : SQLAlchemy ORM
-            The ORM of the events catalog database table.
+        db_catalog: :class:`mss_dataserver.event.databaseFactory.DetectionCatalogDb`
+            The table mapperclass of the detection catalog database table.
 
-        load_detections : Boolean
-            If true all events contained in the catalog are loaded
+        load_detections: bool
+            If true all detections contained in the catalog are loaded
             from the database.
+
+        Returns
+        -------
+        :class:`Detection`
+            The detection class created using the database ORM instance.
         '''
         catalog = cls(name = db_catalog.name,
                       db_id = db_catalog.id,
