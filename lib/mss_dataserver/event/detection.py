@@ -652,6 +652,16 @@ class Catalog(object):
 
 class Library(object):
     ''' Manage detection catalogs.
+
+    Parameters
+    ----------
+    name: str
+        The name of the library.
+
+    Attributes
+    ----------
+    catalogs: dict
+        The catalogs managed by the library. The key is the name of the catalog. 
     '''
 
     def __init__(self, name):
@@ -669,7 +679,7 @@ class Library(object):
 
         Parameters
         ----------
-        catalog : :class:`Catalog` or list of :class:`Catalog`
+        catalog : :class:`Catalog` or :obj:`list` of :class:`Catalog`
             The catalog(s) to add to the library.
         '''
 
