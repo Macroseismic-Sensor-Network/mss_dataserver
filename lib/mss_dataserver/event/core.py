@@ -694,9 +694,25 @@ class Catalog(object):
         end_time : :class:`obspy.core.utcdatetime.UTCDateTime`
             The maximum end_time of the detections.
 
-        nslc : tuple of Strings
-            The NSLC code (network, station, location, channel) of
-            the channel (e.g. ('XX', 'GILA', '00', 'HHZ')).
+
+        Keyword Arguments
+        -----------------
+        db_id: int
+            The database id of the event.
+
+        public_id: str
+            The public_id of the event.
+
+        event_type: str
+            The event type (not yet implemented).
+
+        changed: bool
+            True is an event has changed, False otherwise.
+
+        Returns
+        -------
+        :obj:`list` of :class:`Event`
+            The events matching the search criteria.
         '''
         ret_events = self.events
 
@@ -950,6 +966,17 @@ class Catalog(object):
 
 class Library(object):
     ''' Manage a set of event catalogs.
+
+    Parameters
+    ----------
+    name: str
+        The name of the library.
+
+    Attributes
+    ----------
+    catalogs: dict
+        A dictionary of event catalogs (:class:`~mss_dataserver.event.core.Catalog`) with
+        the name of the catalog as the dictionary key.
     '''
 
     def __init__(self, name):
@@ -987,12 +1014,12 @@ class Library(object):
 
         Parameters
         ----------
-        name : String
+        name : str
             The name of the catalog to remove.
 
         Returns
         -------
-        removed_catalog : :class:`Catalog`
+        :class:`Catalog`
             The removed catalog. None if no catalog was removed.
         '''
         if name in iter(self.catalogs.keys()):
@@ -1011,12 +1038,12 @@ class Library(object):
 
         Parameters
         ----------
-        project : :class:`psysmon.core.project.Project`
-            The project managing the database.
+        project : :class:`~mss_dataserver.core.project.Project`
+            The project used to access the database.
 
         Returns
         -------
-        catalog_names : List of Strings
+        :obj:`list` of :obj:`str`
             The available catalog names in the database.
         '''
         catalog_names = []
@@ -1037,11 +1064,14 @@ class Library(object):
 
         Parameters
         ----------
-        project : :class:`psysmon.core.project.Project`
-            The project managing the database.
+        project : :class:`~mss_dataserver.core.project.Project`
+            The project used to access the database.
 
-        name : String or list of Strings
+        name : :obj:`str` of :obj:`list` of :obj:`str`
             The name of the catalog to load from the database.
+
+        load_events: bool
+            Load the events from the database.
         '''
         if isinstance(name, str):
             name = [name, ]
@@ -1066,14 +1096,19 @@ class Library(object):
 
         Parameters
         ----------
-        project : :class:`psysmon.core.project.Project`
-            The project managing the database.
+        project : :class:`~mss_dataserver.core.project.Project`
+            The project used to access the database.
 
-        ev_id : Integer
+        ev_id : int
             The unique database id of the event.
 
-        public_id : String
-            The unique public id of the event.
+        public_id : str
+            The public id of the event.
+
+        Returns
+        -------
+        :obj:`list` of :class:`Event`
+            The events found in the database matching the search criteria.
         '''
         if ev_id is None and public_id is None:
             raise RuntimeError(("You have to specify at least one of the two "
@@ -1105,19 +1140,28 @@ class Library(object):
 
 
     def get_events(self, catalog_names = None, start_time = None, end_time = None, **kwargs):
-        ''' Get events using from search criteria passed as keywords.
+        ''' Get events from the library using from search criteria passed as keywords.
+
+        Only events already loaded from the database are processed.
 
         Parameters
         ----------
-        start_time : :class:`~obspy.core.utcdatetime.UTCDateTime`
+        start_time : :class:`~bspy.core.utcdatetime.UTCDateTime`
             The minimum starttime of the detections.
 
-        end_time : :class:`~obspy.core.utcdatetime.UTCDateTime`
+        end_time : :class:`obspy.core.utcdatetime.UTCDateTime`
             The maximum end_time of the detections.
 
-        nslc : tuple of Strings
-            The NSLC code (network, station, location, channel) of
-            the channel (e.g. ('XX', 'GILA', '00', 'HHZ')).
+
+        Keyword Arguments
+        -----------------
+        kwargs:
+            Keyword arguments passed to :meth:`Catalog.get_events`.
+
+        Returns
+        -------
+        :obj:`list` of :class:`Event`
+            The events matching the search criteria.
         '''
         ret_events = []
 
@@ -1140,11 +1184,19 @@ class Library(object):
 
         Parameters
         ----------
-        ev_id : Integer
+        project: :class:`mss_dataserver.core.project.Project`
+            The project to use to access the database.
+
+        ev_id : int
             The unique database id of the event.
 
-        public_id : String
+        public_id : str
             The unique public id of the event.
+
+        Returns
+        -------
+        :class:`Event`
+            The event matching the search criteria.
 
         '''
         if ev_id is None and public_id is None:
@@ -1169,4 +1221,3 @@ class Library(object):
                                 "this shouldn't happen for unique ids."))
 
         return event
-
