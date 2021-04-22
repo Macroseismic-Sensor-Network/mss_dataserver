@@ -38,6 +38,10 @@ clean:
 	-rm -rf $(BUILDDIR)/*
 	-rm -rf source/autogen/*
 
+github:
+	@make html
+	@cp -a build/html/. ../../docs
+
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
