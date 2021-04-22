@@ -405,7 +405,7 @@ class Event(object):
 
     #@profile(immediate=True)
     def write_to_database(self, project):
-        ''' Write the event to the pSysmon database.
+        ''' Write the event to the database.
 
         Parameters
         ----------
