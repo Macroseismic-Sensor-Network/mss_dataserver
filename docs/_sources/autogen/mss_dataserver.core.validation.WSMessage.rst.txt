@@ -1,0 +1,49 @@
+WSMessage
+========================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. autoclass:: WSMessage
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~WSMessage.fields
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~WSMessage.__init__
+      ~WSMessage.construct
+      ~WSMessage.copy
+      ~WSMessage.dict
+      ~WSMessage.from_orm
+      ~WSMessage.json
+      ~WSMessage.parse_file
+      ~WSMessage.parse_obj
+      ~WSMessage.parse_raw
+      ~WSMessage.schema
+      ~WSMessage.schema_json
+      ~WSMessage.to_string
+      ~WSMessage.update_forward_refs
+      ~WSMessage.validate
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.validation.WSMessage

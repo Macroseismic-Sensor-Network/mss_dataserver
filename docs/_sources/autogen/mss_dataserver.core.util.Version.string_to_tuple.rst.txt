@@ -1,0 +1,7 @@
+string_to_tuple
+================================================
+
+.. currentmodule:: mss_dataserver.core.util
+.. automethod:: Version.string_to_tuple
+
+

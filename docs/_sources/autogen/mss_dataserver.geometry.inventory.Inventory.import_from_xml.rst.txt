@@ -1,0 +1,7 @@
+import_from_xml
+===========================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: Inventory.import_from_xml
+
+

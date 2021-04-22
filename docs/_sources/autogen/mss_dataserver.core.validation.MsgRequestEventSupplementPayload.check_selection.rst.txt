@@ -1,0 +1,7 @@
+check_selection
+===============================================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. automethod:: MsgRequestEventSupplementPayload.check_selection
+
+

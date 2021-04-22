@@ -1,0 +1,7 @@
+__init__
+==================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: Network.__init__
+
+

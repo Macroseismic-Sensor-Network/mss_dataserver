@@ -1,0 +1,44 @@
+SupplementDetectionDataDecoder
+============================================================
+
+.. currentmodule:: mss_dataserver.core.json_util
+.. autoclass:: SupplementDetectionDataDecoder
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~SupplementDetectionDataDecoder.version
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~SupplementDetectionDataDecoder.__init__
+      ~SupplementDetectionDataDecoder.convert_dict
+      ~SupplementDetectionDataDecoder.convert_np_array
+      ~SupplementDetectionDataDecoder.convert_station
+      ~SupplementDetectionDataDecoder.convert_utcdatetime
+      ~SupplementDetectionDataDecoder.convert_version
+      ~SupplementDetectionDataDecoder.decode
+      ~SupplementDetectionDataDecoder.decode_hinted_tuple
+      ~SupplementDetectionDataDecoder.raw_decode
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.json_util.SupplementDetectionDataDecoder

@@ -1,0 +1,7 @@
+remove_recorder_by_instance
+============================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbInventory.remove_recorder_by_instance
+
+

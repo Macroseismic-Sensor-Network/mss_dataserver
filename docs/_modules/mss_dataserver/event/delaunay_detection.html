@@ -1,0 +1,786 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mss_dataserver.event.delaunay_detection &#8212; mss_dataserver 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/haiku_maar.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
+          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>mss_dataserver.event.delaunay_detection</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../event.html" accesskey="U">mss_dataserver.event</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.event.delaunay_detection</a></li> 
+      </ul>
+    </div>
+      </div>
+      <div class="content" role="main">
+        
+        
+  <h1>Source code for mss_dataserver.event.delaunay_detection</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">##############################################################################</span>
+ <span class="c1"># LICENSE</span>
+ <span class="c1">#</span>
+ <span class="c1"># This file is part of mss_dataserver.</span>
+ <span class="c1"># </span>
+ <span class="c1"># If you use mss_dataserver in any program or publication, please inform and</span>
+ <span class="c1"># acknowledge its authors.</span>
+ <span class="c1"># </span>
+ <span class="c1"># mss_dataserver is free software: you can redistribute it and/or modify</span>
+ <span class="c1"># it under the terms of the GNU General Public License as published by</span>
+ <span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+ <span class="c1"># (at your option) any later version.</span>
+ <span class="c1"># </span>
+ <span class="c1"># mss_dataserver is distributed in the hope that it will be useful,</span>
+ <span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+ <span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+ <span class="c1"># GNU General Public License for more details.</span>
+ <span class="c1"># </span>
+ <span class="c1"># You should have received a copy of the GNU General Public License</span>
+ <span class="c1"># along with mss_dataserver. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+ <span class="c1">#</span>
+ <span class="c1"># Copyright 2019 Stefan Mertl</span>
+<span class="c1">##############################################################################</span>
+<span class="sd">&#39;&#39;&#39; Seismic event detection using amplitudes of Delaunay triangles in a </span>
+<span class="sd">Voronoi network.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">obspy</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+<span class="kn">import</span> <span class="nn">scipy.spatial</span>
+
+<span class="kn">import</span> <span class="nn">mss_dataserver.event.core</span> <span class="k">as</span> <span class="nn">event_core</span>
+<span class="kn">import</span> <span class="nn">mss_dataserver.event.detection</span> <span class="k">as</span> <span class="nn">event_detection</span>
+
+
+<div class="viewcode-block" id="DelaunayDetector"><a class="viewcode-back" href="../../../autogen/mss_dataserver.event.delaunay_detection.DelaunayDetector.html#mss_dataserver.event.delaunay_detection.DelaunayDetector">[docs]</a><span class="k">class</span> <span class="nc">DelaunayDetector</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Event detection using amplitudes and Delaunay Triangulation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    network_stations: :obj:`list` of :class:`~mss_dataserver.geometry.inventory.Station`</span>
+<span class="sd">        All available stations of the network.</span>
+
+<span class="sd">    trigger_thr: float</span>
+<span class="sd">        The trigger threshold value [m/s].</span>
+
+<span class="sd">    window_length: float</span>
+<span class="sd">        The length of the detection window [s].</span>
+
+<span class="sd">    safety_time: float</span>
+<span class="sd">        The length of the timespan used as a safety period when computing</span>
+<span class="sd">        the end-time of the detection timespan [s].</span>
+
+<span class="sd">    p_vel: float</span>
+<span class="sd">        The P-wave velocity used to compute the maximum traveltimes over </span>
+<span class="sd">        the length of a detection triangle [m/s].</span>
+
+<span class="sd">    min_trigger_window: float</span>
+<span class="sd">        The length of the minimum trigger window [s].</span>
+
+<span class="sd">    max_edge_length: float</span>
+<span class="sd">        The maximum edge length of a triangle used for the detection [m].</span>
+
+<span class="sd">    author_uri: str</span>
+<span class="sd">        The uniform resource identifier of the author.</span>
+
+<span class="sd">    agency_uri: str</span>
+<span class="sd">        The uniform resource identifier of the author agency.</span>
+
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    max_time_window: :class:`numpy.ndarray`</span>
+<span class="sd">        The maximum time that a wave needs to pass the detection triangles.</span>
+
+<span class="sd">    current_event: :class:`~mss_dataserver.event.core.Event`</span>
+<span class="sd">        The currently detected event.</span>
+
+<span class="sd">    detect_stations: :obj:`list` of :class:`~mss_dataserver.geometry.inventory.Station`</span>
+<span class="sd">        The stations used for the event detection. Stations available in network_stations</span>
+<span class="sd">        that don&#39;t have data are ignored.</span>
+
+<span class="sd">    unused_stations: :obj:`list` of :class:`~mss_dataserver.geometry.inventory.Station`</span>
+<span class="sd">        The stations not used for the event detection.</span>
+
+<span class="sd">    detect_stream: :class:`obspy.Stream`</span>
+<span class="sd">        The stream holding the PGV data used for event detection.</span>
+
+<span class="sd">    tri: :class:`scipy.spatial.Delaunay`</span>
+<span class="sd">        The detection triangles used for detection.</span>
+
+<span class="sd">    edge_length: dict</span>
+<span class="sd">        The maximum edge lengths of the detection triangles [m]. The key is a tuple</span>
+<span class="sd">        of the NSL codes of the stations of the triangles.</span>
+
+<span class="sd">    last_detection_start: :class:`obspy.UTCDateTime`</span>
+<span class="sd">        The start time of the data used for the last detection.</span>
+
+<span class="sd">    last_detection_end: :class:`obspy.UTCDateTime`</span>
+<span class="sd">        The end time of the data used for the last detection.</span>
+
+<span class="sd">    trigger_data: :obj:`list` of :obj:`dict`</span>
+<span class="sd">        The current event trigger data of the detection triangles.</span>
+
+<span class="sd">    detection_run_initialized: bool</span>
+<span class="sd">        A new detection run has been initialized.</span>
+
+<span class="sd">    event_triggered: bool</span>
+<span class="sd">        An event has been triggered.</span>
+
+<span class="sd">    new_event_available: bool</span>
+<span class="sd">        A new event is available.</span>
+<span class="sd">    </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+<div class="viewcode-block" id="DelaunayDetector.__init__"><a class="viewcode-back" href="../../../autogen/mss_dataserver.event.delaunay_detection.DelaunayDetector.__init__.html#mss_dataserver.event.delaunay_detection.DelaunayDetector.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">network_stations</span><span class="p">,</span>
+                 <span class="n">trigger_thr</span> <span class="o">=</span> <span class="mf">0.01e-3</span><span class="p">,</span>
+                 <span class="n">window_length</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+                 <span class="n">safety_time</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+                 <span class="n">p_vel</span> <span class="o">=</span> <span class="mi">3500</span><span class="p">,</span>
+                 <span class="n">min_trigger_window</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+                 <span class="n">max_edge_length</span> <span class="o">=</span> <span class="mi">40000</span><span class="p">,</span>
+                 <span class="n">author_uri</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">agency_uri</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Initialization of the instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">logger_name</span> <span class="o">=</span> <span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">logger_name</span><span class="p">)</span>
+
+        <span class="c1"># All available network stations.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">network_stations</span> <span class="o">=</span> <span class="n">network_stations</span>
+
+        <span class="c1"># The trigger threshold value [m/s].</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trigger_thr</span> <span class="o">=</span> <span class="n">trigger_thr</span>
+
+        <span class="c1"># The length of the detection window [s].</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window_length</span> <span class="o">=</span> <span class="n">window_length</span>
+
+        <span class="c1"># The length of the timespan used as a safety period when selecting</span>
+        <span class="c1"># computing the end-time of the detection timespan [s].</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">safety_time</span> <span class="o">=</span> <span class="n">safety_time</span>
+
+        <span class="c1"># The p wave velocity [m/s].</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p_vel</span> <span class="o">=</span> <span class="n">p_vel</span>
+
+        <span class="c1"># The length of the minimum trigger window [s].</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_trigger_window</span> <span class="o">=</span> <span class="n">min_trigger_window</span>
+
+        <span class="c1"># The maximum edge length of a triangle used for the detection [m].</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_edge_length</span> <span class="o">=</span> <span class="n">max_edge_length</span>
+
+        <span class="c1"># The URI of the author.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">author_uri</span> <span class="o">=</span> <span class="n">author_uri</span>
+
+        <span class="c1"># The URI of the agency</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agency_uri</span> <span class="o">=</span> <span class="n">agency_uri</span>
+
+        <span class="c1"># The maximum maximum time that a wave needs to pass the triangles [s].</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_time_window</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># The currently detected event.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># The stations used for the event detection.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">detect_stations</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># The stations not used for the event detection.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unused_stations</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># The seismogram stream used for the event detection.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">detect_stream</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># The delaunay triangulation result.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tri</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># The triangle max. edge lenghts [m].</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edge_length</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># The time of the last data used for detection.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_detection_start</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_detection_end</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># The current trigger data.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trigger_data</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># The state of the event detector.</span>
+        <span class="c1"># A new detection run has been initialized.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">detection_run_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># An event has been triggered.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event_triggered</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># A new event is available.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">new_event_available</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Compute the maximum time window based on all available stations.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compute_max_time_window</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="DelaunayDetector.reset"><a class="viewcode-back" href="../../../autogen/mss_dataserver.event.delaunay_detection.DelaunayDetector.reset.html#mss_dataserver.event.delaunay_detection.DelaunayDetector.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Reset the detector to an initial state.</span>
+
+<span class="sd">        Clear all runtime relevant variables.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_time_window</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">detect_stations</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unused_stations</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">detect_stream</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tri</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edge_length</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_detection_start</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_detection_end</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trigger_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">detection_run_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event_triggered</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">new_event_available</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compute_max_time_window</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="DelaunayDetector.init_detection_run"><a class="viewcode-back" href="../../../autogen/mss_dataserver.event.delaunay_detection.DelaunayDetector.init_detection_run.html#mss_dataserver.event.delaunay_detection.DelaunayDetector.init_detection_run">[docs]</a>    <span class="k">def</span> <span class="nf">init_detection_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Initialize a new detection run.</span>
+
+<span class="sd">        Prepare the detection stream and compute the delaunay triangles.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        stream: :class:`obspy.Stream`</span>
+<span class="sd">            The stream containing the PGV that should be used for the detection.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        :meth:`prepare_detection_stream`</span>
+<span class="sd">        :meth:`compute_delaunay_triangulation`</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Initializing the detection run.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trigger_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">detect_stream</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">detect_stream</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">detect_stream</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The passed stream contains no traces. Aborting the initialisation of the detection run.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">detection_run_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prepare_detection_stream</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">detect_stream</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_delaunay_triangulation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">detect_stations</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">edge_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_edge_length</span><span class="p">(</span><span class="n">stations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">detect_stations</span><span class="p">,</span>
+                                                            <span class="n">tri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tri</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">detection_run_initialized</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">detection_run_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;detect_stations: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">detect_stations</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;tri: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tri</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;edge_length: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_length</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;detection_run_initialized: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">detection_run_initialized</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DelaunayDetector.compute_max_time_window"><a class="viewcode-back" href="../../../autogen/mss_dataserver.event.delaunay_detection.DelaunayDetector.compute_max_time_window.html#mss_dataserver.event.delaunay_detection.DelaunayDetector.compute_max_time_window">[docs]</a>    <span class="k">def</span> <span class="nf">compute_max_time_window</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Compute the maximum time window that a wave needs to pass the triangles.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">tri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_delaunay_triangulation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">network_stations</span><span class="p">)</span>
+        <span class="n">edge_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_edge_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">network_stations</span><span class="p">,</span> <span class="n">tri</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge_length</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_time_window</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">edge_length</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_vel</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_time_window</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_time_window</span><span class="p">)</span></div>
+
+            
+<div class="viewcode-block" id="DelaunayDetector.compute_delaunay_triangulation"><a class="viewcode-back" href="../../../autogen/mss_dataserver.event.delaunay_detection.DelaunayDetector.compute_delaunay_triangulation.html#mss_dataserver.event.delaunay_detection.DelaunayDetector.compute_delaunay_triangulation">[docs]</a>    <span class="k">def</span> <span class="nf">compute_delaunay_triangulation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stations</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Compute the Delaunay triangles.</span>
+
+<span class="sd">        The Delaunay triangles are comuted using :class:`scipy.spatial.Delaunay`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        stations: :obj:`list` of :class:`~mss_dataserver.geometry.inventory.Station`</span>
+<span class="sd">            The stations used to compute the Delaunay tesselation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`scipy.spatial.Delaunay`</span>
+<span class="sd">            The result of the Delaunay tesselation.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">stat</span><span class="o">.</span><span class="n">x_utm</span> <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="n">stat</span><span class="o">.</span><span class="n">y_utm</span> <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">]</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">tri</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">spatial</span><span class="o">.</span><span class="n">Delaunay</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error computing the delaunay triangulation.&quot;</span><span class="p">)</span>
+            <span class="n">tri</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">tri</span></div>
+
+    
+<div class="viewcode-block" id="DelaunayDetector.compute_edge_length"><a class="viewcode-back" href="../../../autogen/mss_dataserver.event.delaunay_detection.DelaunayDetector.compute_edge_length.html#mss_dataserver.event.delaunay_detection.DelaunayDetector.compute_edge_length">[docs]</a>    <span class="k">def</span> <span class="nf">compute_edge_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stations</span><span class="p">,</span> <span class="n">tri</span><span class="p">,</span> <span class="n">clean_tri</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Compute the edge length of the detection triangles.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        stations: :obj:`list` of :class:`~mss_dataserver.geometry.inventory.Station`</span>
+<span class="sd">            The stations that have been used to compute the Delaunay tesselation _tri_.</span>
+
+<span class="sd">        tri: :class:`scipy.spatial.Delaunay`</span>
+<span class="sd">            A Delaunay tesselation computed using _stations_.</span>
+
+<span class="sd">        clean_tri: bool</span>
+<span class="sd">            Filter the simplices of _tri_ using the maximum edge length of the triangles.</span>
+<span class="sd">            Only the simplices with an edge length smaller than _self.max_edge_length_ are </span>
+<span class="sd">            kept.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            A dictionary with the edge lengths of the detection triangles. The key is </span>
+<span class="sd">            a tuple of the NSL codes of the stations of the triangle.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">stat</span><span class="o">.</span><span class="n">x_utm</span> <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="n">stat</span><span class="o">.</span><span class="n">y_utm</span> <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">]</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)))</span>
+
+        <span class="n">edge_length</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">valid_simp</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">tri</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">cur_simp</span> <span class="ow">in</span> <span class="n">tri</span><span class="o">.</span><span class="n">simplices</span><span class="p">:</span>
+                <span class="n">cur_stations</span> <span class="o">=</span> <span class="p">[</span><span class="n">stations</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">cur_simp</span><span class="p">]</span>
+                <span class="n">cur_key</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="n">stat</span><span class="o">.</span><span class="n">nsl_string</span> <span class="k">for</span> <span class="n">stat</span> <span class="ow">in</span> <span class="n">cur_stations</span><span class="p">]))</span>
+                <span class="n">cur_vert</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">cur_simp</span><span class="p">]</span>
+                <span class="n">cur_dist</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">cur_vert</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">cur_vert</span><span class="p">]</span>
+                <span class="n">cur_max_edge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">cur_dist</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">clean_tri</span> <span class="ow">and</span> <span class="n">cur_max_edge</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_edge_length</span><span class="p">:</span>
+                    <span class="n">edge_length</span><span class="p">[</span><span class="n">cur_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_max_edge</span>
+                    <span class="n">valid_simp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_simp</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="ow">not</span> <span class="n">clean_tri</span><span class="p">:</span>
+                    <span class="n">edge_length</span><span class="p">[</span><span class="n">cur_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_max_edge</span>
+                    <span class="n">valid_simp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_simp</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">clean_tri</span><span class="p">:</span>
+                <span class="n">tri</span><span class="o">.</span><span class="n">simplices</span> <span class="o">=</span> <span class="n">valid_simp</span>
+
+        <span class="k">return</span> <span class="n">edge_length</span></div>
+
+
+<div class="viewcode-block" id="DelaunayDetector.prepare_detection_stream"><a class="viewcode-back" href="../../../autogen/mss_dataserver.event.delaunay_detection.DelaunayDetector.prepare_detection_stream.html#mss_dataserver.event.delaunay_detection.DelaunayDetector.prepare_detection_stream">[docs]</a>    <span class="k">def</span> <span class="nf">prepare_detection_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Prepare the data stream used for the detection run.</span>
+
+<span class="sd">        Use the data in :attr:`stream` to compute self.detect_stream. </span>
+<span class="sd">        The :attr:`DelaunayDetector.detect_stream` contains at least the data of the </span>
+<span class="sd">        timespan with length :attr:`DelaunayDetector.window_length`. For computation, the data with the </span>
+<span class="sd">        length :attr:`DelaunayDetector.max_time_window` is prepended. So the passed data stream has </span>
+<span class="sd">        to contain a period of :attr:`DelaunayDetector.window_length` + :attr:`DelaunayDetector.max_time_window`, otherwise</span>
+<span class="sd">        the detect stream will not be initialized.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        stream: :class:`obspy.Stream`</span>
+<span class="sd">            The stream containing the PGV that should be used for the detection.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;passed stream: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">stream</span><span class="o">.</span><span class="fm">__str__</span><span class="p">(</span><span class="n">extended</span> <span class="o">=</span> <span class="kc">True</span><span class="p">))</span>
+        <span class="n">max_end_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">endtime</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">stream</span><span class="p">])</span>
+        <span class="c1"># Assume, that all traces have the same sampling rate.</span>
+        <span class="c1"># TODO: Add a check to validate that the sampling rate of all traces is</span>
+        <span class="c1"># the same.</span>
+        <span class="n">sps</span> <span class="o">=</span> <span class="n">stream</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">sampling_rate</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_detection_end</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">detect_win_start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">starttime</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">stream</span><span class="p">])</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_time_window</span>
+            <span class="c1">#detect_win_start = np.max([x.stats.starttime for x in stream]) + self.max_time_window</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">detect_win_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_detection_end</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">sps</span>
+
+        <span class="n">min_delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">delta</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">stream</span><span class="p">])</span>
+        <span class="n">detect_win_end</span> <span class="o">=</span> <span class="p">((</span><span class="n">max_end_time</span><span class="o">.</span><span class="n">timestamp</span> <span class="o">+</span> <span class="n">min_delta</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">safety_time</span><span class="p">)</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_length</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_length</span>
+        <span class="n">detect_win_end</span> <span class="o">=</span> <span class="n">obspy</span><span class="o">.</span><span class="n">UTCDateTime</span><span class="p">(</span><span class="n">detect_win_end</span><span class="p">)</span> <span class="o">-</span> <span class="n">min_delta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;max_time_window: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_time_window</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;detect_win_start: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">detect_win_start</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;detect_win_end: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">detect_win_end</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">detect_win_end</span> <span class="o">&lt;=</span> <span class="n">detect_win_start</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The detection window end is smaller than the detection window start. Skipping the preparation of the detection stream.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">detect_stream</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">detect_win_end</span> <span class="o">-</span> <span class="n">detect_win_start</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">window_length</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="n">sps</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The length of the available data is smaller than the detection window length </span><span class="si">%f</span><span class="s2">. Skipping the preparation of the detection stream.&quot;</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">window_length</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="n">sps</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">detect_stream</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">detect_stream</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">starttime</span> <span class="o">=</span> <span class="n">detect_win_start</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_time_window</span><span class="p">,</span>
+                                              <span class="n">endtime</span> <span class="o">=</span> <span class="n">detect_win_end</span><span class="p">,</span>
+                                              <span class="n">nearest_sample</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;detect_stream: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">detect_stream</span><span class="o">.</span><span class="fm">__str__</span><span class="p">(</span><span class="n">extended</span> <span class="o">=</span> <span class="kc">True</span><span class="p">))</span>
+            <span class="c1"># Set the last detection end time.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">last_detection_start</span> <span class="o">=</span> <span class="n">detect_win_start</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">last_detection_end</span> <span class="o">=</span> <span class="n">detect_win_end</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">detect_stations</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unused_stations</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">cur_trace</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">detect_stream</span><span class="p">:</span>
+                <span class="n">cur_station</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">network_stations</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">cur_trace</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">station</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">cur_station</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">detect_stations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_station</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unused_stations</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">network_stations</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">detect_stations</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="DelaunayDetector.compute_triangle_max_pgv"><a class="viewcode-back" href="../../../autogen/mss_dataserver.event.delaunay_detection.DelaunayDetector.compute_triangle_max_pgv.html#mss_dataserver.event.delaunay_detection.DelaunayDetector.compute_triangle_max_pgv">[docs]</a>    <span class="k">def</span> <span class="nf">compute_triangle_max_pgv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simp</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Compute the maximal PGV values of a delaunay triangle.</span>
+
+<span class="sd">        The indices of :attr:simp are used to build the simplices keys using </span>
+<span class="sd">        the station NSL codes. With these keys, the triangle edge lengths can </span>
+<span class="sd">        be accessed.</span>
+
+<span class="sd">        For each triangle, the minimum time, that a seismic wave needs to pass the triangle</span>
+<span class="sd">        is computed. This time is used for the lenght of the window used to compute the </span>
+<span class="sd">        maximum PGV. The maximum PGV is computed for overlapping windows with a step of 1 second.</span>
+<span class="sd">        </span>
+<span class="sd">        With this method, triangles with small edge lengths have a smaller time window and </span>
+<span class="sd">        thus react quicker to changes of the PGV value.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        simp: :obj:`tuple` of :obj:`int`</span>
+<span class="sd">            The simplices indices of the :class:`scipy.spatial.Delaunay` simplices.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        time: :class:`numpy.ndarray`</span>
+<span class="sd">            The time valus of the computed maximum PGV data.</span>
+
+<span class="sd">        pgv: :class:`numpy.ndarray`</span>
+<span class="sd">            The maximum PGV data.</span>
+
+<span class="sd">        simp_stations: :obj:`list` of :class:`~mss_dataserver.geometry.inventory.Station`</span>
+<span class="sd">            The stations at the triangle corners.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Computing the triangle max pgv.&quot;</span><span class="p">)</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_time_window</span>
+        <span class="n">simp_keys</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">detect_stations</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">nsl_string</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">simp</span><span class="p">]))</span>
+        <span class="n">simp_edge_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_length</span><span class="p">[</span><span class="n">simp_keys</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Stations involved: </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">simp_keys</span><span class="p">)</span>
+
+        <span class="c1"># Compute the length of the search time window using a default velocity</span>
+        <span class="c1"># of 3500 m/s.</span>
+        <span class="n">time_window</span> <span class="o">=</span> <span class="n">simp_edge_length</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_vel</span>
+        <span class="n">time_window</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">time_window</span><span class="p">)</span>
+
+        <span class="c1"># Use the minimum time window if the computed time window is smaller</span>
+        <span class="c1"># than the minimum time window.</span>
+        <span class="k">if</span> <span class="n">time_window</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_trigger_window</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Time window too small. Edge lengths: </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">edge_length</span><span class="p">)</span>
+            <span class="n">time_window</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_trigger_window</span>
+
+        <span class="c1"># Split an array into chunks using numpy stride_tricks. This is much</span>
+        <span class="c1"># faster than using a loop.</span>
+        <span class="k">def</span> <span class="nf">strided_app</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">stepsize</span><span class="p">):</span>
+            <span class="sd">&#39;&#39;&#39; Create overlapping subarrays using numpy stride_tricks.</span>
+
+<span class="sd">            The strides is the step in bytes in each dimension of the array.</span>
+
+<span class="sd">            a: the array to split into subarrays</span>
+<span class="sd">            length: lenght of the subarrays [samples]</span>
+<span class="sd">            stepsize: stepsize [samples]</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+            <span class="n">nrows</span> <span class="o">=</span> <span class="p">((</span><span class="n">a</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">length</span><span class="p">)</span> <span class="o">//</span> <span class="n">stepsize</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">lib</span><span class="o">.</span><span class="n">stride_tricks</span><span class="o">.</span><span class="n">as_strided</span><span class="p">(</span><span class="n">a</span><span class="p">,</span>
+                                                   <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">length</span><span class="p">),</span>
+                                                   <span class="n">strides</span><span class="o">=</span><span class="p">(</span><span class="n">stepsize</span> <span class="o">*</span> <span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+
+        <span class="c1"># Get the stations of the triangle corners.</span>
+        <span class="n">simp_stations</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">detect_stations</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">simp</span><span class="p">]</span>
+
+        <span class="c1"># Select the data of the triangle stations from the detection stream.</span>
+        <span class="n">tri_stream</span> <span class="o">=</span> <span class="n">obspy</span><span class="o">.</span><span class="n">Stream</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">cur_station</span> <span class="ow">in</span> <span class="n">simp_stations</span><span class="p">:</span>
+            <span class="n">tri_stream</span> <span class="o">=</span> <span class="n">tri_stream</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">detect_stream</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">station</span> <span class="o">=</span> <span class="n">cur_station</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="c1"># Trim the stream to equal lengths padding too short streams.</span>
+        <span class="n">min_start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">starttime</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">tri_stream</span><span class="p">])</span>
+        <span class="n">max_end</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">endtime</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">tri_stream</span><span class="p">])</span>
+        <span class="n">tri_stream</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">starttime</span> <span class="o">=</span> <span class="n">min_start</span><span class="p">,</span>
+                        <span class="n">endtime</span> <span class="o">=</span> <span class="n">max_end</span><span class="p">,</span>
+                        <span class="n">pad</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="n">fill_value</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;tri_stream: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">tri_stream</span><span class="p">)</span>
+
+        <span class="n">pgv</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">cur_trace</span> <span class="ow">in</span> <span class="n">tri_stream</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;cur_trace: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">cur_trace</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;time_window: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">time_window</span><span class="p">)</span>
+            <span class="n">cur_win_length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">time_window</span> <span class="o">*</span> <span class="n">cur_trace</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">))</span>
+            <span class="n">cur_offset</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">offset</span> <span class="o">*</span> <span class="n">cur_trace</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;cur_offset: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">cur_offset</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;cur_win_length: </span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">cur_win_length</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;cur_trace.data: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">cur_trace</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_trace</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">cur_win_length</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The data size is smaller than the window length.&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="c1"># Create overlapping windows with the computed length with 1 sample</span>
+            <span class="c1"># step size.</span>
+            <span class="c1"># Handle masked trace data.</span>
+            <span class="n">cur_tr_data</span> <span class="o">=</span> <span class="n">cur_trace</span><span class="o">.</span><span class="n">data</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cur_tr_data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">):</span>
+                <span class="n">cur_tr_data</span> <span class="o">=</span> <span class="n">cur_tr_data</span><span class="o">.</span><span class="n">data</span>
+            <span class="n">cur_data</span> <span class="o">=</span> <span class="n">strided_app</span><span class="p">(</span><span class="n">cur_tr_data</span><span class="p">,</span> <span class="n">cur_win_length</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;cur_data: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">cur_data</span><span class="p">)</span>
+            <span class="n">cur_max_pgv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">cur_data</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;cur_max_pgv: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">cur_max_pgv</span><span class="p">)</span>
+            <span class="c1"># Set max. PGV sample is assigned to the last time of the</span>
+            <span class="c1"># computation window. I&#39;m using the past data values to compute the</span>
+            <span class="c1"># max. PGV of a given time value.</span>
+            <span class="n">cur_max_pgv</span> <span class="o">=</span> <span class="n">cur_max_pgv</span><span class="p">[(</span><span class="n">cur_offset</span> <span class="o">-</span> <span class="n">cur_win_length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):]</span>
+            <span class="n">cur_start</span> <span class="o">=</span> <span class="n">cur_trace</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">starttime</span> <span class="o">+</span> <span class="n">cur_offset</span> <span class="o">*</span> <span class="n">cur_trace</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">delta</span>
+            <span class="n">cur_time</span> <span class="o">=</span> <span class="p">[</span><span class="n">cur_start</span> <span class="o">+</span> <span class="n">x</span> <span class="o">*</span> <span class="n">cur_trace</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">delta</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cur_max_pgv</span><span class="p">))]</span>
+            <span class="n">pgv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_max_pgv</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_time</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pgv</span><span class="p">]))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">pgv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pgv</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">time</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The size of the computed PGV max don&#39;t match: </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">pgv</span><span class="p">)</span>
+            <span class="n">pgv</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;pgv: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">pgv</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;time: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">time</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">time</span><span class="p">,</span> <span class="n">pgv</span><span class="p">,</span> <span class="n">simp_stations</span></div>
+
+<div class="viewcode-block" id="DelaunayDetector.compute_trigger_data"><a class="viewcode-back" href="../../../autogen/mss_dataserver.event.delaunay_detection.DelaunayDetector.compute_trigger_data.html#mss_dataserver.event.delaunay_detection.DelaunayDetector.compute_trigger_data">[docs]</a>    <span class="k">def</span> <span class="nf">compute_trigger_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Compute the trigger data for all Delaunay triangles.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing the trigger data.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trigger_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tri</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">cur_simp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tri</span><span class="o">.</span><span class="n">simplices</span><span class="p">:</span>
+                <span class="n">cur_time</span><span class="p">,</span> <span class="n">cur_pgv</span><span class="p">,</span> <span class="n">cur_simp_stations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_triangle_max_pgv</span><span class="p">(</span><span class="n">cur_simp</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_pgv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1">#if np.any(np.isnan(cur_pgv)):</span>
+                    <span class="c1">#    self.logger.warning(&quot;There is a NaN value in the cur_pgv. Skipping this triangle.&quot;)</span>
+                    <span class="c1">#    self.logger.info(&quot;cur_pgv: %s.&quot;, cur_pgv)</span>
+
+                    <span class="n">cur_trig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">cur_pgv</span><span class="p">,</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trigger_thr</span>
+
+                    <span class="n">tmp</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;simplices_stations&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_simp_stations</span>
+                    <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_time</span>
+                    <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;pgv&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_pgv</span>
+                    <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;trigger&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_trig</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">trigger_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The delaunay triangles are not available.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DelaunayDetector.check_for_event_trigger"><a class="viewcode-back" href="../../../autogen/mss_dataserver.event.delaunay_detection.DelaunayDetector.check_for_event_trigger.html#mss_dataserver.event.delaunay_detection.DelaunayDetector.check_for_event_trigger">[docs]</a>    <span class="k">def</span> <span class="nf">check_for_event_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Compute if an event trigger is available.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        trigger_start: :class:`obspy.UTCDateTime`</span>
+<span class="sd">            The start of the event trigger.</span>
+<span class="sd">        </span>
+<span class="sd">        trigger_end: :class:`obspy.UTCDateTime`</span>
+<span class="sd">            The end of the event trigger.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">trigger_times</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">trigger_start</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">trigger_end</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">cur_trigger_data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">trigger_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">cur_trigger_data</span><span class="p">[</span><span class="s1">&#39;trigger&#39;</span><span class="p">]):</span>
+                <span class="n">cur_mask</span> <span class="o">=</span> <span class="n">cur_trigger_data</span><span class="p">[</span><span class="s1">&#39;trigger&#39;</span><span class="p">]</span>
+                <span class="n">cur_trigger_start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cur_trigger_data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">])[</span><span class="n">cur_mask</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">cur_trigger_end</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cur_trigger_data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">])[</span><span class="n">cur_mask</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">cur_trigger_limits</span> <span class="o">=</span> <span class="p">[</span><span class="n">obspy</span><span class="o">.</span><span class="n">UTCDateTime</span><span class="p">(</span><span class="n">cur_trigger_start</span><span class="p">),</span>
+                                      <span class="n">obspy</span><span class="o">.</span><span class="n">UTCDateTime</span><span class="p">(</span><span class="n">cur_trigger_end</span><span class="p">)]</span>
+                <span class="c1"># Add the trigger limits to the trigger data for later use.</span>
+                <span class="n">cur_trigger_data</span><span class="p">[</span><span class="s1">&#39;trigger_limits&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_trigger_limits</span>
+                <span class="n">trigger_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_trigger_limits</span><span class="p">)</span>
+
+        <span class="n">trigger_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">trigger_times</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trigger_times</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;trigger_times: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">trigger_times</span><span class="p">)</span>
+            <span class="n">trigger_start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">trigger_times</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">trigger_end</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">trigger_times</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">trigger_start</span><span class="p">,</span> <span class="n">trigger_end</span></div>
+
+    
+<div class="viewcode-block" id="DelaunayDetector.evaluate_event_trigger"><a class="viewcode-back" href="../../../autogen/mss_dataserver.event.delaunay_detection.DelaunayDetector.evaluate_event_trigger.html#mss_dataserver.event.delaunay_detection.DelaunayDetector.evaluate_event_trigger">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate_event_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Evaluate the event trigger data and declare or update an event.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Evaluating the event trigger.&quot;</span><span class="p">)</span>
+        <span class="n">trigger_start</span><span class="p">,</span> <span class="n">trigger_end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_for_event_trigger</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;trigger_start: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">trigger_start</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;trigger_end: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">trigger_end</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_triggered</span> <span class="ow">and</span> <span class="n">trigger_start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># A new event has been triggered.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;New Event triggered.&quot;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">cur_event</span> <span class="o">=</span> <span class="n">event_core</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">trigger_start</span><span class="p">,</span>
+                                             <span class="n">end_time</span> <span class="o">=</span> <span class="n">trigger_end</span><span class="p">,</span>
+                                             <span class="n">author_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">author_uri</span><span class="p">,</span>
+                                             <span class="n">agency_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agency_uri</span><span class="p">)</span>
+
+                <span class="c1"># Compute the max. PGV of each triggered station.</span>
+                <span class="k">for</span> <span class="n">cur_data</span> <span class="ow">in</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">trigger_data</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;trigger&#39;</span><span class="p">])]:</span>
+                    <span class="c1"># Create a detection instance.</span>
+                    <span class="n">cur_mask</span> <span class="o">=</span> <span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;trigger&#39;</span><span class="p">]</span>
+                    <span class="n">max_pgv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;pgv&#39;</span><span class="p">][</span><span class="n">cur_mask</span><span class="p">],</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+                    <span class="n">cur_simp_stations</span> <span class="o">=</span> <span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;simplices_stations&#39;</span><span class="p">]</span>
+                    <span class="n">cur_detection</span> <span class="o">=</span> <span class="n">event_detection</span><span class="o">.</span><span class="n">Detection</span><span class="p">(</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;trigger_limits&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                                                              <span class="n">end_time</span> <span class="o">=</span> <span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;trigger_limits&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                                                              <span class="n">stations</span> <span class="o">=</span> <span class="n">cur_simp_stations</span><span class="p">,</span>
+                                                              <span class="n">max_pgv</span> <span class="o">=</span> <span class="p">{</span><span class="n">cur_simp_stations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">nsl_string</span><span class="p">:</span> <span class="n">max_pgv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                                                         <span class="n">cur_simp_stations</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">nsl_string</span><span class="p">:</span> <span class="n">max_pgv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                                                         <span class="n">cur_simp_stations</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">nsl_string</span><span class="p">:</span> <span class="n">max_pgv</span><span class="p">[</span><span class="mi">2</span><span class="p">]},</span>
+                                                              <span class="n">author_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">author_uri</span><span class="p">,</span>
+                                                              <span class="n">agency_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agency_uri</span><span class="p">)</span>
+                    <span class="n">cur_event</span><span class="o">.</span><span class="n">add_detection</span><span class="p">(</span><span class="n">cur_detection</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span> <span class="o">=</span> <span class="n">cur_event</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="o">.</span><span class="n">detection_state</span> <span class="o">=</span> <span class="s1">&#39;new&#39;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">event_triggered</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">new_event_available</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error processing the event trigger.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">event_triggered</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">new_event_available</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_triggered</span> <span class="ow">and</span> <span class="n">trigger_start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># A trigger occured during an existing event.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Updating an existing event.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="o">.</span><span class="n">end_time</span> <span class="o">=</span> <span class="n">trigger_end</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="o">.</span><span class="n">detection_state</span> <span class="o">=</span> <span class="s1">&#39;updated&#39;</span>
+
+
+            <span class="k">for</span> <span class="n">cur_data</span> <span class="ow">in</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">trigger_data</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&#39;trigger&#39;</span><span class="p">])]:</span>
+                <span class="n">cur_simp_stations</span> <span class="o">=</span> <span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;simplices_stations&#39;</span><span class="p">]</span>
+                <span class="n">cur_mask</span> <span class="o">=</span> <span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;trigger&#39;</span><span class="p">]</span>
+                <span class="n">max_pgv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;pgv&#39;</span><span class="p">][</span><span class="n">cur_mask</span><span class="p">],</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="o">.</span><span class="n">has_detection</span><span class="p">(</span><span class="n">cur_simp_stations</span><span class="p">):</span>
+                    <span class="c1"># Update the detection.</span>
+                    <span class="n">cur_detection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="o">.</span><span class="n">get_detection</span><span class="p">(</span><span class="n">cur_simp_stations</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_detection</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">cur_detection</span> <span class="o">=</span> <span class="n">cur_detection</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">cur_detection</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">end_time</span> <span class="o">=</span> <span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;trigger_limits&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                                             <span class="n">max_pgv</span> <span class="o">=</span> <span class="p">{</span><span class="n">cur_simp_stations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">nsl_string</span><span class="p">:</span> <span class="n">max_pgv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                                        <span class="n">cur_simp_stations</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">nsl_string</span><span class="p">:</span> <span class="n">max_pgv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                                        <span class="n">cur_simp_stations</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">nsl_string</span><span class="p">:</span> <span class="n">max_pgv</span><span class="p">[</span><span class="mi">2</span><span class="p">]})</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Expected exactly one detection. Got: </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">cur_detection</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Add the detection.</span>
+                    <span class="n">cur_detection</span> <span class="o">=</span> <span class="n">event_detection</span><span class="o">.</span><span class="n">Detection</span><span class="p">(</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;trigger_limits&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                                                              <span class="n">end_time</span> <span class="o">=</span> <span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;trigger_limits&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                                                              <span class="n">stations</span> <span class="o">=</span> <span class="n">cur_simp_stations</span><span class="p">,</span>
+                                                              <span class="n">max_pgv</span> <span class="o">=</span> <span class="p">{</span><span class="n">cur_simp_stations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">nsl_string</span><span class="p">:</span> <span class="n">max_pgv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                                                         <span class="n">cur_simp_stations</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">nsl_string</span><span class="p">:</span> <span class="n">max_pgv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                                                         <span class="n">cur_simp_stations</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">nsl_string</span><span class="p">:</span> <span class="n">max_pgv</span><span class="p">[</span><span class="mi">2</span><span class="p">]},</span>
+                                                              <span class="n">author_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">author_uri</span><span class="p">,</span>
+                                                              <span class="n">agency_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agency_uri</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="o">.</span><span class="n">add_detection</span><span class="p">(</span><span class="n">cur_detection</span><span class="p">)</span>
+
+        <span class="c1"># Check if the event has to be closed because the time from the event</span>
+        <span class="c1"># end to the currently processed time is large than the keep listening</span>
+        <span class="c1"># time.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_triggered</span><span class="p">:</span>
+            <span class="n">keep_listening</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_time_window</span>
+
+            <span class="c1"># Add the PGV stream to the event pgv stream.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="o">.</span><span class="n">pgv_stream</span> <span class="o">+=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">detect_stream</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="o">.</span><span class="n">pgv_stream</span><span class="o">.</span><span class="n">merge</span><span class="p">()</span>
+
+            <span class="c1"># Add the trigger data to the event.</span>
+            <span class="n">cur_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_detection_end</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="o">.</span><span class="n">detection_data</span><span class="p">[</span><span class="n">cur_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="o">.</span><span class="n">detection_data</span><span class="p">[</span><span class="n">cur_key</span><span class="p">][</span><span class="s1">&#39;detection_start&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_detection_start</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="o">.</span><span class="n">detection_data</span><span class="p">[</span><span class="n">cur_key</span><span class="p">][</span><span class="s1">&#39;detection_end&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_detection_end</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="o">.</span><span class="n">detection_data</span><span class="p">[</span><span class="n">cur_key</span><span class="p">][</span><span class="s1">&#39;trigger_data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trigger_data</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="o">.</span><span class="n">detection_data</span><span class="p">[</span><span class="n">cur_key</span><span class="p">][</span><span class="s1">&#39;detect_stations&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">detect_stations</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="o">.</span><span class="n">detection_data</span><span class="p">[</span><span class="n">cur_key</span><span class="p">][</span><span class="s1">&#39;unused_stations&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unused_stations</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">last_detection_end</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="o">.</span><span class="n">end_time</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">keep_listening</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Closing an event.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">event_triggered</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="o">.</span><span class="n">detection_state</span> <span class="o">=</span> <span class="s1">&#39;closed&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Event is over, but keep_listening: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">keep_listening</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DelaunayDetector.get_event"><a class="viewcode-back" href="../../../autogen/mss_dataserver.event.delaunay_detection.DelaunayDetector.get_event.html#mss_dataserver.event.delaunay_detection.DelaunayDetector.get_event">[docs]</a>    <span class="k">def</span> <span class="nf">get_event</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Get a copy of the current event.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`~mss_dataserver.event.core.Event`</span>
+<span class="sd">            The copied current event.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DelaunayDetector.run_detection"><a class="viewcode-back" href="../../../autogen/mss_dataserver.event.delaunay_detection.DelaunayDetector.run_detection.html#mss_dataserver.event.delaunay_detection.DelaunayDetector.run_detection">[docs]</a>    <span class="k">def</span> <span class="nf">run_detection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Run the event detection using the passed stream.</span>
+
+<span class="sd">        Not used - will be removed.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">pass</span></div></div>
+</pre></div>
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../event.html" >mss_dataserver.event</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.event.delaunay_detection</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stefan Mertl.
+      Last updated on 2021-04-22 20:20.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

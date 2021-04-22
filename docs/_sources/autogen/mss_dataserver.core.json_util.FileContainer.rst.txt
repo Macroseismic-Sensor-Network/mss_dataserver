@@ -1,0 +1,30 @@
+FileContainer
+===========================================
+
+.. currentmodule:: mss_dataserver.core.json_util
+.. autoclass:: FileContainer
+   :show-inheritance:
+
+
+
+
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~FileContainer.__init__
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.json_util.FileContainer

@@ -1,0 +1,39 @@
+RecorderStreamParameter
+=========================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. autoclass:: RecorderStreamParameter
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~RecorderStreamParameter.end_time_string
+      ~RecorderStreamParameter.parent_inventory
+      ~RecorderStreamParameter.rec_stream_id
+      ~RecorderStreamParameter.start_time_string
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~RecorderStreamParameter.__init__
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.inventory.RecorderStreamParameter

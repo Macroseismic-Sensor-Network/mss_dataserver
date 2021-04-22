@@ -1,0 +1,7 @@
+remove_catalog
+=====================================================
+
+.. currentmodule:: mss_dataserver.event.detection
+.. automethod:: Library.remove_catalog
+
+

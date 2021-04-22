@@ -1,0 +1,139 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mss_dataserver.core.database_util &#8212; mss_dataserver 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/haiku_maar.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="mss_dataserver.core.database_util.add_column" href="mss_dataserver.core.database_util.add_column.html" />
+    <link rel="prev" title="mss_dataserver.core" href="mss_dataserver.core.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../index.html">
+          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>mss_dataserver.core.database_util</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.database_util.add_column.html" title="mss_dataserver.core.database_util.add_column"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.html" title="mss_dataserver.core"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.core.html" accesskey="U">mss_dataserver.core</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.core.database_util</a></li> 
+      </ul>
+    </div>
+      </div>
+      <div class="content" role="main">
+        
+        
+  <div class="section" id="module-mss_dataserver.core.database_util">
+<span id="mss-dataserver-core-database-util"></span><h1>mss_dataserver.core.database_util<a class="headerlink" href="#module-mss_dataserver.core.database_util" title="Permalink to this headline">¶</a></h1>
+<p>Utility functions to interact with the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">copyright</dt>
+<dd class="field-odd"><p>Stefan Mertl</p>
+</dd>
+<dt class="field-even">license</dt>
+<dd class="field-even"><p>GNU General Public License, Version 3
+(<a class="reference external" href="http://www.gnu.org/licenses/gpl-3.0.html">http://www.gnu.org/licenses/gpl-3.0.html</a>)</p>
+</dd>
+</dl>
+<p class="rubric">Functions</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.database_util.add_column.html#mss_dataserver.core.database_util.add_column" title="mss_dataserver.core.database_util.add_column"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_column</span></code></a>(engine, table, column, prefix)</p></td>
+<td><p>Add a column to a database table.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.database_util.add_foreign_key.html#mss_dataserver.core.database_util.add_foreign_key" title="mss_dataserver.core.database_util.add_foreign_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_foreign_key</span></code></a>(engine, table, columns, …)</p></td>
+<td><p>Add a foreign key constraint.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.database_util.add_foreign_key_old.html#mss_dataserver.core.database_util.add_foreign_key_old" title="mss_dataserver.core.database_util.add_foreign_key_old"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_foreign_key_old</span></code></a>(engine, table, column, …)</p></td>
+<td><p>Add a foreign key to the column.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.database_util.add_unique_constraint.html#mss_dataserver.core.database_util.add_unique_constraint" title="mss_dataserver.core.database_util.add_unique_constraint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_unique_constraint</span></code></a>(engine, table, constraint)</p></td>
+<td><p>Add a unique constraint to the table.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.database_util.change_column_type.html#mss_dataserver.core.database_util.change_column_type" title="mss_dataserver.core.database_util.change_column_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_column_type</span></code></a>(engine, table, column)</p></td>
+<td><p>Change the type of a database table column.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.database_util.compare_column_type.html#mss_dataserver.core.database_util.compare_column_type" title="mss_dataserver.core.database_util.compare_column_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compare_column_type</span></code></a>(col1, col2)</p></td>
+<td><p>Compare the type of two columns.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.database_util.db_table_migration.html#mss_dataserver.core.database_util.db_table_migration" title="mss_dataserver.core.database_util.db_table_migration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">db_table_migration</span></code></a>(engine, table, prefix)</p></td>
+<td><p>Check if a database table migration is needed and apply the changes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.database_util.remove_column.html#mss_dataserver.core.database_util.remove_column" title="mss_dataserver.core.database_util.remove_column"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_column</span></code></a>(engine, table, column)</p></td>
+<td><p>Remove a column from the database table.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.database_util.remove_foreign_key.html#mss_dataserver.core.database_util.remove_foreign_key" title="mss_dataserver.core.database_util.remove_foreign_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_foreign_key</span></code></a>(engine, table, fk_symbol)</p></td>
+<td><p>Remove a foreign key.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.database_util.remove_unique_constraint.html#mss_dataserver.core.database_util.remove_unique_constraint" title="mss_dataserver.core.database_util.remove_unique_constraint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_unique_constraint</span></code></a>(engine, table, name)</p></td>
+<td><p>Remove a unique constraint from the table using the constraint name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.database_util.update_db_table.html#mss_dataserver.core.database_util.update_db_table" title="mss_dataserver.core.database_util.update_db_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_db_table</span></code></a>(engine, table, metadata, prefix)</p></td>
+<td><p>Update the table structure to the new schema.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.database_util.add_column.html" title="mss_dataserver.core.database_util.add_column"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.html" title="mss_dataserver.core"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.core.html" >mss_dataserver.core</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.core.database_util</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stefan Mertl.
+      Last updated on 2021-04-22 20:20.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

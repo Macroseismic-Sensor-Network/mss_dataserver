@@ -1,0 +1,7 @@
+load_events
+=============================================
+
+.. currentmodule:: mss_dataserver.event.core
+.. automethod:: Catalog.load_events
+
+

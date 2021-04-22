@@ -1,0 +1,7 @@
+update_forward_refs
+============================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. automethod:: WSMessage.update_forward_refs
+
+

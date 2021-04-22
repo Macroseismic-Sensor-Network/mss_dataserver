@@ -1,0 +1,6 @@
+mss_dataserver.geometry.util.get_epsg_dict
+==========================================
+
+.. currentmodule:: mss_dataserver.geometry.util
+
+.. autofunction:: get_epsg_dict

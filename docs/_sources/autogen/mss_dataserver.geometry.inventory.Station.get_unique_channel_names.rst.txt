@@ -1,0 +1,7 @@
+get_unique_channel_names
+==================================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: Station.get_unique_channel_names
+
+

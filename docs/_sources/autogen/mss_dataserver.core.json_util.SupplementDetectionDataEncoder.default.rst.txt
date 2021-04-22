@@ -1,0 +1,7 @@
+default
+====================================================================
+
+.. currentmodule:: mss_dataserver.core.json_util
+.. automethod:: SupplementDetectionDataEncoder.default
+
+

@@ -1,0 +1,155 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Catalog &#8212; mss_dataserver 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/haiku_maar.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="__init__" href="mss_dataserver.event.detection.Catalog.__init__.html" />
+    <link rel="prev" title="mss_dataserver.event.detection" href="mss_dataserver.event.detection.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../index.html">
+          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>Catalog</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.event.detection.Catalog.__init__.html" title="__init__"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.event.detection.html" title="mss_dataserver.event.detection"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.event.html" >mss_dataserver.event</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="mss_dataserver.event.detection.html" accesskey="U">mss_dataserver.event.detection</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Catalog</a></li> 
+      </ul>
+    </div>
+      </div>
+      <div class="content" role="main">
+        
+        
+  <div class="section" id="catalog">
+<h1>Catalog<a class="headerlink" href="#catalog" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="mss_dataserver.event.detection.Catalog">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.event.detection.</span></code><code class="sig-name descname"><span class="pre">Catalog</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agency_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">creation_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mss_dataserver/event/detection.html#Catalog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.event.detection.Catalog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A detection catalog.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name of the catalog.</p></li>
+<li><p><strong>db_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The database id of the catalog.</p></li>
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The description of the catalog.</p></li>
+<li><p><strong>agency_uri</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The uniform resource identifier of the author agency.</p></li>
+<li><p><strong>author_uri</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The uniform resource identifier of the author.</p></li>
+<li><p><strong>creation_time</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code>) – The creation time of the detection.</p></li>
+<li><p><strong>detections</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference internal" href="mss_dataserver.event.detection.Detection.html#mss_dataserver.event.detection.Detection" title="mss_dataserver.event.detection.Detection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Detection</span></code></a>) – The detections of the catalog.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.event.detection.Catalog.__init__.html#mss_dataserver.event.detection.Catalog.__init__" title="mss_dataserver.event.detection.Catalog.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(name[, db_id, description, …])</p></td>
+<td><p>Instance initialization.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.event.detection.Catalog.add_detections.html#mss_dataserver.event.detection.Catalog.add_detections" title="mss_dataserver.event.detection.Catalog.add_detections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_detections</span></code></a>(detections)</p></td>
+<td><p>Add one or more detections to the catalog.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.event.detection.Catalog.assign_channel.html#mss_dataserver.event.detection.Catalog.assign_channel" title="mss_dataserver.event.detection.Catalog.assign_channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assign_channel</span></code></a>(inventory)</p></td>
+<td><p>Set the channels according to the rec_stream_ids.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.event.detection.Catalog.clear_detections.html#mss_dataserver.event.detection.Catalog.clear_detections" title="mss_dataserver.event.detection.Catalog.clear_detections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear_detections</span></code></a>()</p></td>
+<td><p>Clear the detections list.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.event.detection.Catalog.from_orm.html#mss_dataserver.event.detection.Catalog.from_orm" title="mss_dataserver.event.detection.Catalog.from_orm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_orm</span></code></a>(db_catalog[, load_detections])</p></td>
+<td><p>Convert a database orm mapper catalog to a catalog.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.event.detection.Catalog.get_detections.html#mss_dataserver.event.detection.Catalog.get_detections" title="mss_dataserver.event.detection.Catalog.get_detections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_detections</span></code></a>([start_time, end_time, …])</p></td>
+<td><p>Get detections using search criteria passed as keywords.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.event.detection.Catalog.load_detections.html#mss_dataserver.event.detection.Catalog.load_detections" title="mss_dataserver.event.detection.Catalog.load_detections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_detections</span></code></a>(project[, start_time, …])</p></td>
+<td><p>Load detections from the database.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.event.detection.Catalog.remove_detections.html#mss_dataserver.event.detection.Catalog.remove_detections" title="mss_dataserver.event.detection.Catalog.remove_detections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_detections</span></code></a>(detections)</p></td>
+<td><p>Remove the detections from the catalog.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.event.detection.Catalog.write_to_database.html#mss_dataserver.event.detection.Catalog.write_to_database" title="mss_dataserver.event.detection.Catalog.write_to_database"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_to_database</span></code></a>(project)</p></td>
+<td><p>Write the catalog to the database.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="inheritence-diagram">
+<h2>Inheritence diagram<a class="headerlink" href="#inheritence-diagram" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="graphviz"><img src="../_images/inheritance-f354fd02cb9dfc72834953998d57454cccd56e35.png" alt="Inheritance diagram of mss_dataserver.event.detection.Catalog" usemap="#inheritanceea915d7605" class="inheritance graphviz" /></div>
+<map id="inheritanceea915d7605" name="inheritanceea915d7605">
+<area shape="rect" id="node1" href="#mss_dataserver.event.detection.Catalog" target="_top" title="A detection catalog." alt="" coords="5,5,291,31"/>
+</map></div></blockquote>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.event.detection.Catalog.__init__.html" title="__init__"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.event.detection.html" title="mss_dataserver.event.detection"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.event.html" >mss_dataserver.event</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="mss_dataserver.event.detection.html" >mss_dataserver.event.detection</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Catalog</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stefan Mertl.
+      Last updated on 2021-04-22 20:20.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

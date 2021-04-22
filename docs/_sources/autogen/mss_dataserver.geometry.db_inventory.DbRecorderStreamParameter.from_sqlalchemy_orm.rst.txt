@@ -1,0 +1,7 @@
+from_sqlalchemy_orm
+==================================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbRecorderStreamParameter.from_sqlalchemy_orm
+
+

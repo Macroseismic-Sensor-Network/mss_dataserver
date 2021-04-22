@@ -1,0 +1,7 @@
+validate
+======================================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. automethod:: MsgRequestPgvTimeseriesPayload.validate
+
+

@@ -1,0 +1,7 @@
+schema
+======================================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. automethod:: MsgRequestEventSupplementPayload.schema
+
+

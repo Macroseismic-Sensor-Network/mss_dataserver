@@ -1,0 +1,7 @@
+merge
+============================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbSensorComponent.merge
+
+

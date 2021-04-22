@@ -1,0 +1,7 @@
+from_orm
+=================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. automethod:: WSMessage.from_orm
+
+

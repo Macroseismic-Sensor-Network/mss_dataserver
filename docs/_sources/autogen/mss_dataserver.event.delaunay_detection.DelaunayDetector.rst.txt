@@ -1,0 +1,42 @@
+DelaunayDetector
+========================================================
+
+.. currentmodule:: mss_dataserver.event.delaunay_detection
+.. autoclass:: DelaunayDetector
+   :show-inheritance:
+
+
+
+
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~DelaunayDetector.__init__
+      ~DelaunayDetector.check_for_event_trigger
+      ~DelaunayDetector.compute_delaunay_triangulation
+      ~DelaunayDetector.compute_edge_length
+      ~DelaunayDetector.compute_max_time_window
+      ~DelaunayDetector.compute_triangle_max_pgv
+      ~DelaunayDetector.compute_trigger_data
+      ~DelaunayDetector.evaluate_event_trigger
+      ~DelaunayDetector.get_event
+      ~DelaunayDetector.init_detection_run
+      ~DelaunayDetector.prepare_detection_stream
+      ~DelaunayDetector.reset
+      ~DelaunayDetector.run_detection
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.event.delaunay_detection.DelaunayDetector

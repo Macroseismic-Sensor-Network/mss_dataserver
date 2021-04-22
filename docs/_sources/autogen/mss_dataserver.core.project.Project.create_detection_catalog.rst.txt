@@ -1,0 +1,7 @@
+create_detection_catalog
+============================================================
+
+.. currentmodule:: mss_dataserver.core.project
+.. automethod:: Project.create_detection_catalog
+
+

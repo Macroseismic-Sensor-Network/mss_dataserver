@@ -1,0 +1,7 @@
+get_free_parameter_slot
+=============================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbRecorderStream.get_free_parameter_slot
+
+

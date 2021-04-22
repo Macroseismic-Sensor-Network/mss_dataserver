@@ -1,0 +1,7 @@
+remove_channel_by_instance
+====================================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: Station.remove_channel_by_instance
+
+

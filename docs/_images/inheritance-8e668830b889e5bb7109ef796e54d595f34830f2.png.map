@@ -1,0 +1,4 @@
+<map id="inheritanced70e5b9460" name="inheritanced70e5b9460">
+<area shape="rect" id="node1" href="#mss_dataserver.core.validation.WSMessage" target="_top" title="The websocket message model." alt="" coords="5,152,313,177"/>
+<area shape="rect" id="node3" title="Mixin to provide __str__, __repr__, and __pretty__ methods. See #884 for more details." alt="" coords="53,5,265,31"/>
+</map>

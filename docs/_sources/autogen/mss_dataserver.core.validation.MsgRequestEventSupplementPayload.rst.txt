@@ -1,0 +1,50 @@
+MsgRequestEventSupplementPayload
+===============================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. autoclass:: MsgRequestEventSupplementPayload
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~MsgRequestEventSupplementPayload.fields
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~MsgRequestEventSupplementPayload.__init__
+      ~MsgRequestEventSupplementPayload.check_selection
+      ~MsgRequestEventSupplementPayload.construct
+      ~MsgRequestEventSupplementPayload.copy
+      ~MsgRequestEventSupplementPayload.dict
+      ~MsgRequestEventSupplementPayload.from_orm
+      ~MsgRequestEventSupplementPayload.json
+      ~MsgRequestEventSupplementPayload.parse_file
+      ~MsgRequestEventSupplementPayload.parse_obj
+      ~MsgRequestEventSupplementPayload.parse_raw
+      ~MsgRequestEventSupplementPayload.schema
+      ~MsgRequestEventSupplementPayload.schema_json
+      ~MsgRequestEventSupplementPayload.to_string
+      ~MsgRequestEventSupplementPayload.update_forward_refs
+      ~MsgRequestEventSupplementPayload.validate
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.validation.MsgRequestEventSupplementPayload

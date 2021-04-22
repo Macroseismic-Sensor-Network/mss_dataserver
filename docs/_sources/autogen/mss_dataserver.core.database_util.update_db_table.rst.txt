@@ -1,0 +1,6 @@
+mss_dataserver.core.database_util.update_db_table
+=================================================
+
+.. currentmodule:: mss_dataserver.core.database_util
+
+.. autofunction:: update_db_table

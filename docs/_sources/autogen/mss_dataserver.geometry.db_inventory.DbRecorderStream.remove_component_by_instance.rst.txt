@@ -1,0 +1,7 @@
+remove_component_by_instance
+==================================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbRecorderStream.remove_component_by_instance
+
+

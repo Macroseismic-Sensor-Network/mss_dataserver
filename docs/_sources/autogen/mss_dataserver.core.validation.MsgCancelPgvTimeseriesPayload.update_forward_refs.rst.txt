@@ -1,0 +1,7 @@
+update_forward_refs
+================================================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. automethod:: MsgCancelPgvTimeseriesPayload.update_forward_refs
+
+

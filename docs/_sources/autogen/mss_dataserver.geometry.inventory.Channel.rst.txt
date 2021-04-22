@@ -1,0 +1,46 @@
+Channel
+=========================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. autoclass:: Channel
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~Channel.assigned_recorders
+      ~Channel.nslc
+      ~Channel.nslc_string
+      ~Channel.parent_inventory
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~Channel.__init__
+      ~Channel.add_stream
+      ~Channel.as_dict
+      ~Channel.from_dict
+      ~Channel.get_stream
+      ~Channel.merge
+      ~Channel.remove_stream
+      ~Channel.remove_stream_by_instance
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.inventory.Channel

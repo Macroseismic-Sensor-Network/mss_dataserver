@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>prepare_detection_stream &#8212; mss_dataserver 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/haiku_maar.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="reset" href="mss_dataserver.event.delaunay_detection.DelaunayDetector.reset.html" />
+    <link rel="prev" title="init_detection_run" href="mss_dataserver.event.delaunay_detection.DelaunayDetector.init_detection_run.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../index.html">
+          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>prepare_detection_stream</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.event.delaunay_detection.DelaunayDetector.reset.html" title="reset"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.event.delaunay_detection.DelaunayDetector.init_detection_run.html" title="init_detection_run"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.event.html" >mss_dataserver.event</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="mss_dataserver.event.delaunay_detection.html" >mss_dataserver.event.delaunay_detection</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="mss_dataserver.event.delaunay_detection.DelaunayDetector.html" accesskey="U">DelaunayDetector</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">prepare_detection_stream</a></li> 
+      </ul>
+    </div>
+      </div>
+      <div class="content" role="main">
+        
+        
+  <div class="section" id="prepare-detection-stream">
+<h1>prepare_detection_stream<a class="headerlink" href="#prepare-detection-stream" title="Permalink to this headline">¶</a></h1>
+<dl class="py method">
+<dt id="mss_dataserver.event.delaunay_detection.DelaunayDetector.prepare_detection_stream">
+<code class="sig-prename descclassname"><span class="pre">DelaunayDetector.</span></code><code class="sig-name descname"><span class="pre">prepare_detection_stream</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stream</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mss_dataserver/event/delaunay_detection.html#DelaunayDetector.prepare_detection_stream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.event.delaunay_detection.DelaunayDetector.prepare_detection_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare the data stream used for the detection run.</p>
+<p>Use the data in <code class="xref py py-attr docutils literal notranslate"><span class="pre">stream</span></code> to compute self.detect_stream.
+The <code class="xref py py-attr docutils literal notranslate"><span class="pre">DelaunayDetector.detect_stream</span></code> contains at least the data of the
+timespan with length <code class="xref py py-attr docutils literal notranslate"><span class="pre">DelaunayDetector.window_length</span></code>. For computation, the data with the
+length <code class="xref py py-attr docutils literal notranslate"><span class="pre">DelaunayDetector.max_time_window</span></code> is prepended. So the passed data stream has
+to contain a period of <code class="xref py py-attr docutils literal notranslate"><span class="pre">DelaunayDetector.window_length</span></code> + <code class="xref py py-attr docutils literal notranslate"><span class="pre">DelaunayDetector.max_time_window</span></code>, otherwise
+the detect stream will not be initialized.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>stream</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.Stream</span></code>) – The stream containing the PGV that should be used for the detection.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.event.delaunay_detection.DelaunayDetector.reset.html" title="reset"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.event.delaunay_detection.DelaunayDetector.init_detection_run.html" title="init_detection_run"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.event.html" >mss_dataserver.event</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="mss_dataserver.event.delaunay_detection.html" >mss_dataserver.event.delaunay_detection</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="mss_dataserver.event.delaunay_detection.DelaunayDetector.html" >DelaunayDetector</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">prepare_detection_stream</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stefan Mertl.
+      Last updated on 2021-04-22 20:20.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

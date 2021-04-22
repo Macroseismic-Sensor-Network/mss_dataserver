@@ -1,0 +1,1001 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mss_dataserver.geometry.inventory_parser &#8212; mss_dataserver 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/haiku_maar.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
+          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>mss_dataserver.geometry.inventory_parser</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../geometry.html" accesskey="U">mss_dataserver.geometry</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.geometry.inventory_parser</a></li> 
+      </ul>
+    </div>
+      </div>
+      <div class="content" role="main">
+        
+        
+  <h1>Source code for mss_dataserver.geometry.inventory_parser</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">##############################################################################</span>
+ <span class="c1"># LICENSE</span>
+ <span class="c1">#</span>
+ <span class="c1"># This file is part of mss_dataserver.</span>
+ <span class="c1"># </span>
+ <span class="c1"># If you use mss_dataserver in any program or publication, please inform and</span>
+ <span class="c1"># acknowledge its authors.</span>
+ <span class="c1"># </span>
+ <span class="c1"># mss_dataserver is free software: you can redistribute it and/or modify</span>
+ <span class="c1"># it under the terms of the GNU General Public License as published by</span>
+ <span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+ <span class="c1"># (at your option) any later version.</span>
+ <span class="c1"># </span>
+ <span class="c1"># mss_dataserver is distributed in the hope that it will be useful,</span>
+ <span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+ <span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+ <span class="c1"># GNU General Public License for more details.</span>
+ <span class="c1"># </span>
+ <span class="c1"># You should have received a copy of the GNU General Public License</span>
+ <span class="c1"># along with mss_dataserver. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+ <span class="c1">#</span>
+ <span class="c1"># Copyright 2019 Stefan Mertl</span>
+<span class="c1">##############################################################################</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">The inventory parser module.</span>
+
+<span class="sd">This module contains parser classes to read inventory data from files.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">lxml</span> <span class="kn">import</span> <span class="n">etree</span>
+
+<span class="kn">from</span> <span class="nn">mss_dataserver.geometry.inventory</span> <span class="kn">import</span> <span class="n">Inventory</span>
+<span class="kn">from</span> <span class="nn">mss_dataserver.geometry.inventory</span> <span class="kn">import</span> <span class="n">Network</span>
+<span class="kn">from</span> <span class="nn">mss_dataserver.geometry.inventory</span> <span class="kn">import</span> <span class="n">Array</span>
+<span class="kn">from</span> <span class="nn">mss_dataserver.geometry.inventory</span> <span class="kn">import</span> <span class="n">Station</span>
+<span class="kn">from</span> <span class="nn">mss_dataserver.geometry.inventory</span> <span class="kn">import</span> <span class="n">Channel</span>
+<span class="kn">from</span> <span class="nn">mss_dataserver.geometry.inventory</span> <span class="kn">import</span> <span class="n">Recorder</span>
+<span class="kn">from</span> <span class="nn">mss_dataserver.geometry.inventory</span> <span class="kn">import</span> <span class="n">RecorderStream</span>
+<span class="kn">from</span> <span class="nn">mss_dataserver.geometry.inventory</span> <span class="kn">import</span> <span class="n">RecorderStreamParameter</span>
+<span class="kn">from</span> <span class="nn">mss_dataserver.geometry.inventory</span> <span class="kn">import</span> <span class="n">Sensor</span>
+<span class="kn">from</span> <span class="nn">mss_dataserver.geometry.inventory</span> <span class="kn">import</span> <span class="n">SensorComponent</span>
+<span class="kn">from</span> <span class="nn">mss_dataserver.geometry.inventory</span> <span class="kn">import</span> <span class="n">SensorComponentParameter</span>
+<span class="kn">from</span> <span class="nn">obspy.core.utcdatetime</span> <span class="kn">import</span> <span class="n">UTCDateTime</span>
+
+<div class="viewcode-block" id="InventoryXmlParser"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser">[docs]</a><span class="k">class</span> <span class="nc">InventoryXmlParser</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Parse a pSysmon inventory XML file.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+<div class="viewcode-block" id="InventoryXmlParser.__init__"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.__init__.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># the logger instance.</span>
+        <span class="n">logger_name</span> <span class="o">=</span> <span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">logger_name</span><span class="p">)</span>
+
+        <span class="c1"># The required attributes which have to be present in the tags.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_attributes</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_attributes</span><span class="p">[</span><span class="s1">&#39;inventory&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_attributes</span><span class="p">[</span><span class="s1">&#39;sensor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;serial&#39;</span><span class="p">,</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_attributes</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_attributes</span><span class="p">[</span><span class="s1">&#39;component_parameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_attributes</span><span class="p">[</span><span class="s1">&#39;response_paz&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_attributes</span><span class="p">[</span><span class="s1">&#39;recorder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;serial&#39;</span><span class="p">,</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_attributes</span><span class="p">[</span><span class="s1">&#39;stream&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_attributes</span><span class="p">[</span><span class="s1">&#39;stream_parameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_attributes</span><span class="p">[</span><span class="s1">&#39;assigned_component&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_attributes</span><span class="p">[</span><span class="s1">&#39;network&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_attributes</span><span class="p">[</span><span class="s1">&#39;station&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_attributes</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_attributes</span><span class="p">[</span><span class="s1">&#39;channel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_attributes</span><span class="p">[</span><span class="s1">&#39;assigned_stream&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_attributes</span><span class="p">[</span><span class="s1">&#39;array&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_attributes</span><span class="p">[</span><span class="s1">&#39;array_station&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+
+        <span class="c1"># The required tags which have to be present in the inventory.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_tags</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_tags</span><span class="p">[</span><span class="s1">&#39;sensor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;producer&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_tags</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;description&#39;</span><span class="p">,</span> <span class="s1">&#39;input_unit&#39;</span><span class="p">,</span> <span class="s1">&#39;output_unit&#39;</span><span class="p">,</span>
+                                           <span class="s1">&#39;deliver_unit&#39;</span><span class="p">,</span> <span class="s1">&#39;component_parameter&#39;</span><span class="p">,</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_tags</span><span class="p">[</span><span class="s1">&#39;component_parameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;start_time&#39;</span><span class="p">,</span> <span class="s1">&#39;end_time&#39;</span><span class="p">,</span>
+                                                     <span class="s1">&#39;sensitivity&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_tags</span><span class="p">[</span><span class="s1">&#39;response_paz&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="s1">&#39;A0_normalization_factor&#39;</span><span class="p">,</span>
+                                              <span class="s1">&#39;normalization_frequency&#39;</span><span class="p">)</span>
+        <span class="c1">#self.required_tags[&#39;complex_zero&#39;] = (&#39;real_zero&#39;, &#39;imaginary_zero&#39;)</span>
+        <span class="c1">#self.required_tags[&#39;complex_pole&#39;] = (&#39;real_pole&#39;, &#39;imaginary_pole&#39;)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_tags</span><span class="p">[</span><span class="s1">&#39;recorder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;producer&#39;</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_tags</span><span class="p">[</span><span class="s1">&#39;stream&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_tags</span><span class="p">[</span><span class="s1">&#39;stream_parameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;start_time&#39;</span><span class="p">,</span> <span class="s1">&#39;end_time&#39;</span><span class="p">,</span> <span class="s1">&#39;gain&#39;</span><span class="p">,</span>
+                                        <span class="s1">&#39;bitweight&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_tags</span><span class="p">[</span><span class="s1">&#39;assigned_component&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;sensor_serial&#39;</span><span class="p">,</span> <span class="s1">&#39;sensor_model&#39;</span><span class="p">,</span> <span class="s1">&#39;sensor_producer&#39;</span><span class="p">,</span>
+                                                    <span class="s1">&#39;component_name&#39;</span><span class="p">,</span> <span class="s1">&#39;start_time&#39;</span><span class="p">,</span> <span class="s1">&#39;end_time&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_tags</span><span class="p">[</span><span class="s1">&#39;network&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;description&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_tags</span><span class="p">[</span><span class="s1">&#39;station&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;location&#39;</span><span class="p">,</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_tags</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span>
+                                        <span class="s1">&#39;coord_system&#39;</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_tags</span><span class="p">[</span><span class="s1">&#39;channel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;description&#39;</span><span class="p">,</span> <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_tags</span><span class="p">[</span><span class="s1">&#39;assigned_stream&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;recorder_serial&#39;</span><span class="p">,</span> <span class="s1">&#39;recorder_model&#39;</span><span class="p">,</span>
+                                                 <span class="s1">&#39;recorder_producer&#39;</span><span class="p">,</span><span class="s1">&#39;stream_name&#39;</span><span class="p">,</span>
+                                                 <span class="s1">&#39;start_time&#39;</span><span class="p">,</span> <span class="s1">&#39;end_time&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_tags</span><span class="p">[</span><span class="s1">&#39;array&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_tags</span><span class="p">[</span><span class="s1">&#39;array_station&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;network&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;location&#39;</span><span class="p">,</span>
+                                               <span class="s1">&#39;start_time&#39;</span><span class="p">,</span> <span class="s1">&#39;end_time&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="InventoryXmlParser.parse"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.parse.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">inventory_name</span> <span class="o">=</span> <span class="s1">&#39;new xml inventory&#39;</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">lxml.etree</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;parsing file...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">inventory</span> <span class="o">=</span> <span class="n">Inventory</span><span class="p">(</span><span class="n">inventory_name</span><span class="p">,</span> <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;xml&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Parse the xml file passed as argument.</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">XMLParser</span><span class="p">(</span><span class="n">remove_comments</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">lxml</span><span class="o">.</span><span class="n">etree</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">parser</span><span class="p">)</span>
+        <span class="n">inventory_root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+
+        <span class="c1"># Check if the root element is of type inventory.</span>
+        <span class="k">if</span> <span class="n">inventory_root</span><span class="o">.</span><span class="n">tag</span> <span class="o">!=</span> <span class="s1">&#39;inventory&#39;</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;found inventory root tag</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Set the name of the inventory.</span>
+        <span class="n">inventory</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">inventory_root</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+
+        <span class="c1"># Get the recorders and stations of the inventory.</span>
+        <span class="n">sensor_list</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;sensor_list&#39;</span><span class="p">)</span>
+        <span class="n">recorder_list</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;recorder_list&#39;</span><span class="p">)</span>
+        <span class="n">networks</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;network&#39;</span><span class="p">)</span>
+        <span class="n">arrays</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;array&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Process the sensors first.</span>
+        <span class="k">for</span> <span class="n">cur_sensor_list</span> <span class="ow">in</span> <span class="n">sensor_list</span><span class="p">:</span>
+            <span class="n">sensors</span> <span class="o">=</span> <span class="n">cur_sensor_list</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;sensor&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">process_sensors</span><span class="p">(</span><span class="n">inventory</span><span class="p">,</span> <span class="n">sensors</span><span class="p">)</span>
+
+        <span class="c1"># Next process the recorders. These might depend on sensors.</span>
+        <span class="k">for</span> <span class="n">cur_recorder_list</span> <span class="ow">in</span> <span class="n">recorder_list</span><span class="p">:</span>
+            <span class="n">recorders</span> <span class="o">=</span> <span class="n">cur_recorder_list</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;recorder&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">process_recorders</span><span class="p">(</span><span class="n">inventory</span><span class="p">,</span> <span class="n">recorders</span><span class="p">)</span>
+
+        <span class="c1"># Now process the networks which might depend on recorders.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process_networks</span><span class="p">(</span><span class="n">inventory</span><span class="p">,</span> <span class="n">networks</span><span class="p">)</span>
+
+        <span class="c1"># Finally process the arrays which require all elements already added</span>
+        <span class="c1"># to the inventory.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process_arrays</span><span class="p">(</span><span class="n">inventory</span><span class="p">,</span> <span class="n">arrays</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Success reading the XML file.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">inventory</span></div>
+
+
+<div class="viewcode-block" id="InventoryXmlParser.instance_to_xml"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.instance_to_xml.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.instance_to_xml">[docs]</a>    <span class="k">def</span> <span class="nf">instance_to_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">attributes</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span> <span class="n">attr_map</span><span class="p">,</span> <span class="n">converter</span><span class="p">,</span> <span class="n">element_handler</span> <span class="o">=</span> <span class="p">{}):</span>
+        <span class="sd">&#39;&#39;&#39; Translate an inventory object into a xml element.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">attrib</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">cur_key</span> <span class="ow">in</span> <span class="n">attributes</span><span class="p">:</span>
+            <span class="n">attrib</span><span class="p">[</span><span class="n">cur_key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">attr_map</span><span class="p">[</span><span class="n">cur_key</span><span class="p">])</span>
+
+        <span class="n">element</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">attrib</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cur_key</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cur_key</span> <span class="ow">in</span> <span class="n">element_handler</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">eh</span> <span class="o">=</span> <span class="n">element_handler</span><span class="p">[</span><span class="n">cur_key</span><span class="p">]</span>
+                <span class="n">eh</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">cur_key</span><span class="p">,</span>
+                   <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">attr_map</span><span class="p">[</span><span class="n">cur_key</span><span class="p">]),</span>
+                   <span class="n">root</span> <span class="o">=</span> <span class="n">element</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tag</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">cur_key</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">cur_key</span> <span class="ow">in</span> <span class="n">converter</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">cur_text</span> <span class="o">=</span> <span class="n">converter</span><span class="p">[</span><span class="n">cur_key</span><span class="p">](</span><span class="nb">getattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">attr_map</span><span class="p">[</span><span class="n">cur_key</span><span class="p">]))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">attr_map</span><span class="p">[</span><span class="n">cur_key</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">cur_text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">cur_text</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+                <span class="n">tag</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">cur_text</span>
+
+        <span class="k">return</span> <span class="n">element</span></div>
+
+
+<div class="viewcode-block" id="InventoryXmlParser.clean_time_string"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.clean_time_string.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.clean_time_string">[docs]</a>    <span class="k">def</span> <span class="nf">clean_time_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Remove running and big bang string from time string.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;big bang&#39;</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">elif</span> <span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;running&#39;</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="InventoryXmlParser.handle_element_pz"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.handle_element_pz.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.handle_element_pz">[docs]</a>    <span class="k">def</span> <span class="nf">handle_element_pz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">root</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a list of complex values to a list of xml tree elements.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">cur_pz</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="n">element</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="n">element</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cur_pz</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="InventoryXmlParser.export_xml"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.export_xml.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.export_xml">[docs]</a>    <span class="k">def</span> <span class="nf">export_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inventory</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Export an inventory to xml file.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">Element</span><span class="p">(</span><span class="s1">&#39;inventory&#39;</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">inventory</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="c1"># sensor</span>
+        <span class="n">sensor_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;serial&#39;</span><span class="p">,]</span>
+        <span class="n">sensor_tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;producer&#39;</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">]</span>
+        <span class="n">sensor_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;serial&#39;</span><span class="p">:</span><span class="s1">&#39;serial&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;model&#39;</span><span class="p">:</span><span class="s1">&#39;model&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;producer&#39;</span><span class="p">:</span><span class="s1">&#39;producer&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;description&#39;</span><span class="p">:</span><span class="s1">&#39;description&#39;</span><span class="p">}</span>
+        <span class="n">sensor_converter</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># sensor component</span>
+        <span class="n">component_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="p">]</span>
+        <span class="n">component_tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">,</span> <span class="s1">&#39;input_unit&#39;</span><span class="p">,</span> <span class="s1">&#39;output_unit&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;deliver_unit&#39;</span><span class="p">]</span>
+        <span class="n">component_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span><span class="s1">&#39;name&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;description&#39;</span><span class="p">:</span><span class="s1">&#39;description&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;input_unit&#39;</span><span class="p">:</span><span class="s1">&#39;input_unit&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;output_unit&#39;</span><span class="p">:</span><span class="s1">&#39;output_unit&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;deliver_unit&#39;</span><span class="p">:</span><span class="s1">&#39;deliver_unit&#39;</span><span class="p">}</span>
+        <span class="n">component_converter</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># sensor component parameter</span>
+        <span class="n">component_parameter_attributes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">component_parameter_tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">,</span> <span class="s1">&#39;end_time&#39;</span><span class="p">,</span> <span class="s1">&#39;sensitivity&#39;</span><span class="p">]</span>
+        <span class="n">component_parameter_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;start_time&#39;</span><span class="p">:</span><span class="s1">&#39;start_time_string&#39;</span><span class="p">,</span>
+                                   <span class="s1">&#39;end_time&#39;</span><span class="p">:</span><span class="s1">&#39;end_time_string&#39;</span><span class="p">,</span>
+                                   <span class="s1">&#39;sensitivity&#39;</span><span class="p">:</span><span class="s1">&#39;sensitivity&#39;</span><span class="p">}</span>
+        <span class="n">component_parameter_converter</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;start_time&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">clean_time_string</span><span class="p">,</span>
+                                         <span class="s1">&#39;end_time&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">clean_time_string</span><span class="p">}</span>
+
+        <span class="n">component_parameter_paz_attributes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">component_parameter_paz_tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;A0_normalization_factor&#39;</span><span class="p">,</span> <span class="s1">&#39;normalization_frequency&#39;</span><span class="p">,</span>
+                                        <span class="s1">&#39;complex_zero&#39;</span><span class="p">,</span> <span class="s1">&#39;complex_pole&#39;</span><span class="p">]</span>
+        <span class="n">component_parameter_paz_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span><span class="s1">&#39;tf_type&#39;</span><span class="p">,</span>
+                                       <span class="s1">&#39;A0_normalization_factor&#39;</span><span class="p">:</span><span class="s1">&#39;tf_normalization_factor&#39;</span><span class="p">,</span>
+                                       <span class="s1">&#39;normalization_frequency&#39;</span><span class="p">:</span><span class="s1">&#39;tf_normalization_frequency&#39;</span><span class="p">,</span>
+                                       <span class="s1">&#39;complex_zero&#39;</span><span class="p">:</span><span class="s1">&#39;tf_zeros&#39;</span><span class="p">,</span>
+                                       <span class="s1">&#39;complex_pole&#39;</span><span class="p">:</span><span class="s1">&#39;tf_poles&#39;</span><span class="p">}</span>
+        <span class="n">component_parameter_paz_converter</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">component_parameter_paz_handler</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;complex_zero&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_element_pz</span><span class="p">,</span>
+                                           <span class="s1">&#39;complex_pole&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_element_pz</span><span class="p">}</span>
+
+
+        <span class="c1"># recorder</span>
+        <span class="n">rec_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;serial&#39;</span><span class="p">,]</span>
+        <span class="n">rec_tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;producer&#39;</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">]</span>
+        <span class="n">rec_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;serial&#39;</span><span class="p">:</span><span class="s1">&#39;serial&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;model&#39;</span><span class="p">:</span><span class="s1">&#39;model&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;producer&#39;</span><span class="p">:</span><span class="s1">&#39;producer&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;description&#39;</span><span class="p">:</span><span class="s1">&#39;description&#39;</span><span class="p">}</span>
+        <span class="n">rec_converter</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1">#stream</span>
+        <span class="n">stream_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,]</span>
+        <span class="n">stream_tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">,]</span>
+        <span class="n">stream_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span><span class="s1">&#39;name&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;label&#39;</span><span class="p">:</span><span class="s1">&#39;label&#39;</span><span class="p">}</span>
+        <span class="n">stream_converter</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1">#stream_parameter</span>
+        <span class="n">stream_param_attributes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">stream_param_tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">,</span> <span class="s1">&#39;end_time&#39;</span><span class="p">,</span> <span class="s1">&#39;gain&#39;</span><span class="p">,</span> <span class="s1">&#39;bitweight&#39;</span><span class="p">]</span>
+        <span class="n">stream_param_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;start_time&#39;</span><span class="p">:</span><span class="s1">&#39;start_time_string&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;end_time&#39;</span><span class="p">:</span><span class="s1">&#39;end_time_string&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;gain&#39;</span><span class="p">:</span><span class="s1">&#39;gain&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;bitweight&#39;</span><span class="p">:</span><span class="s1">&#39;bitweight&#39;</span><span class="p">}</span>
+        <span class="n">stream_param_converter</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;start_time&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">clean_time_string</span><span class="p">,</span>
+                                  <span class="s1">&#39;end_time&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">clean_time_string</span><span class="p">}</span>
+
+        <span class="c1"># stream assigned component</span>
+        <span class="n">stream_comp_attributes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">stream_comp_tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;sensor_serial&#39;</span><span class="p">,</span> <span class="s1">&#39;sensor_model&#39;</span><span class="p">,</span> <span class="s1">&#39;sensor_producer&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;component_name&#39;</span><span class="p">,</span> <span class="s1">&#39;start_time&#39;</span><span class="p">,</span> <span class="s1">&#39;end_time&#39;</span><span class="p">]</span>
+        <span class="n">stream_comp_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;sensor_serial&#39;</span><span class="p">:</span><span class="s1">&#39;serial&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;sensor_model&#39;</span><span class="p">:</span><span class="s1">&#39;model&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;sensor_producer&#39;</span><span class="p">:</span><span class="s1">&#39;producer&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;component_name&#39;</span><span class="p">:</span><span class="s1">&#39;name&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;start_time&#39;</span><span class="p">:</span><span class="s1">&#39;start_time_string&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;end_time&#39;</span><span class="p">:</span><span class="s1">&#39;end_time_string&#39;</span><span class="p">}</span>
+        <span class="n">stream_comp_converter</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;start_time&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">clean_time_string</span><span class="p">,</span>
+                                 <span class="s1">&#39;end_time&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">clean_time_string</span><span class="p">}</span>
+
+        <span class="c1"># network</span>
+        <span class="n">net_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,]</span>
+        <span class="n">net_tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">]</span>
+        <span class="n">net_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span><span class="s1">&#39;name&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;description&#39;</span><span class="p">:</span><span class="s1">&#39;description&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;type&#39;</span><span class="p">:</span><span class="s1">&#39;type&#39;</span><span class="p">}</span>
+        <span class="n">net_converter</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># array</span>
+        <span class="n">array_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,]</span>
+        <span class="n">array_tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">,]</span>
+        <span class="n">array_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;description&#39;</span><span class="p">:</span> <span class="s1">&#39;description&#39;</span><span class="p">}</span>
+        <span class="n">array_converter</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># array_station</span>
+        <span class="n">array_stat_attributes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">array_stat_tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;network&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;location&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;start_time&#39;</span><span class="p">,</span> <span class="s1">&#39;end_time&#39;</span><span class="p">]</span>
+        <span class="n">array_stat_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;network&#39;</span><span class="p">:</span> <span class="s1">&#39;network&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;name&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;location&#39;</span><span class="p">:</span> <span class="s1">&#39;location&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;start_time&#39;</span><span class="p">:</span> <span class="s1">&#39;start_time&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;end_time&#39;</span><span class="p">:</span> <span class="s1">&#39;end_time&#39;</span><span class="p">}</span>
+        <span class="n">array_stat_converter</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># station</span>
+        <span class="n">stat_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,]</span>
+        <span class="n">stat_tags</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">stat_map</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">stat_converter</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1">#location</span>
+        <span class="n">loc_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,]</span>
+        <span class="n">loc_tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;coord_system&#39;</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">]</span>
+        <span class="n">loc_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span><span class="s1">&#39;location&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="s1">&#39;x&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;y&#39;</span><span class="p">:</span><span class="s1">&#39;y&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;z&#39;</span><span class="p">:</span><span class="s1">&#39;z&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;coord_system&#39;</span><span class="p">:</span><span class="s1">&#39;coord_system&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;description&#39;</span><span class="p">:</span><span class="s1">&#39;description&#39;</span><span class="p">}</span>
+        <span class="n">loc_converter</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># channel</span>
+        <span class="n">chan_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,]</span>
+        <span class="n">chan_tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">,]</span>
+        <span class="n">chan_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span><span class="s1">&#39;name&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;description&#39;</span><span class="p">:</span><span class="s1">&#39;description&#39;</span><span class="p">}</span>
+        <span class="n">chan_converter</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># assigned stream</span>
+        <span class="n">chan_stream_attributes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">chan_stream_tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;recorder_serial&#39;</span><span class="p">,</span> <span class="s1">&#39;recorder_model&#39;</span><span class="p">,</span> <span class="s1">&#39;recorder_producer&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;stream_name&#39;</span><span class="p">,</span> <span class="s1">&#39;start_time&#39;</span><span class="p">,</span> <span class="s1">&#39;end_time&#39;</span><span class="p">]</span>
+        <span class="n">chan_stream_map</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;recorder_serial&#39;</span><span class="p">:</span><span class="s1">&#39;serial&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;recorder_model&#39;</span><span class="p">:</span><span class="s1">&#39;model&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;recorder_producer&#39;</span><span class="p">:</span><span class="s1">&#39;producer&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;stream_name&#39;</span><span class="p">:</span><span class="s1">&#39;name&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;start_time&#39;</span><span class="p">:</span><span class="s1">&#39;start_time_string&#39;</span><span class="p">,</span>
+                           <span class="s1">&#39;end_time&#39;</span><span class="p">:</span><span class="s1">&#39;end_time_string&#39;</span><span class="p">}</span>
+        <span class="n">chan_stream_converter</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;start_time&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">clean_time_string</span><span class="p">,</span>
+                                 <span class="s1">&#39;end_time&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">clean_time_string</span><span class="p">}</span>
+
+
+
+        <span class="c1"># Export the sensors.</span>
+        <span class="n">sensor_list</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;sensor_list&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cur_sensor</span> <span class="ow">in</span> <span class="n">inventory</span><span class="o">.</span><span class="n">sensors</span><span class="p">:</span>
+            <span class="n">sensor_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance_to_xml</span><span class="p">(</span><span class="n">instance</span> <span class="o">=</span> <span class="n">cur_sensor</span><span class="p">,</span>
+                                                  <span class="n">root</span> <span class="o">=</span> <span class="n">sensor_list</span><span class="p">,</span>
+                                                  <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;sensor&#39;</span><span class="p">,</span>
+                                                  <span class="n">attributes</span> <span class="o">=</span> <span class="n">sensor_attributes</span><span class="p">,</span>
+                                                  <span class="n">tags</span> <span class="o">=</span> <span class="n">sensor_tags</span><span class="p">,</span>
+                                                  <span class="n">attr_map</span> <span class="o">=</span> <span class="n">sensor_map</span><span class="p">,</span>
+                                                  <span class="n">converter</span> <span class="o">=</span> <span class="n">sensor_converter</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">cur_component</span> <span class="ow">in</span> <span class="n">cur_sensor</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
+                <span class="n">comp_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance_to_xml</span><span class="p">(</span><span class="n">instance</span> <span class="o">=</span> <span class="n">cur_component</span><span class="p">,</span>
+                                                    <span class="n">root</span> <span class="o">=</span> <span class="n">sensor_element</span><span class="p">,</span>
+                                                    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;component&#39;</span><span class="p">,</span>
+                                                    <span class="n">attributes</span> <span class="o">=</span> <span class="n">component_attributes</span><span class="p">,</span>
+                                                    <span class="n">tags</span> <span class="o">=</span> <span class="n">component_tags</span><span class="p">,</span>
+                                                    <span class="n">attr_map</span> <span class="o">=</span> <span class="n">component_map</span><span class="p">,</span>
+                                                    <span class="n">converter</span> <span class="o">=</span> <span class="n">component_converter</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">cur_parameter</span> <span class="ow">in</span> <span class="n">cur_component</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+                    <span class="n">param_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance_to_xml</span><span class="p">(</span><span class="n">instance</span> <span class="o">=</span> <span class="n">cur_parameter</span><span class="p">,</span>
+                                                         <span class="n">root</span> <span class="o">=</span> <span class="n">comp_element</span><span class="p">,</span>
+                                                         <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;component_parameter&#39;</span><span class="p">,</span>
+                                                         <span class="n">attributes</span> <span class="o">=</span> <span class="n">component_parameter_attributes</span><span class="p">,</span>
+                                                         <span class="n">tags</span> <span class="o">=</span> <span class="n">component_parameter_tags</span><span class="p">,</span>
+                                                         <span class="n">attr_map</span> <span class="o">=</span> <span class="n">component_parameter_map</span><span class="p">,</span>
+                                                         <span class="n">converter</span> <span class="o">=</span> <span class="n">component_parameter_converter</span><span class="p">)</span>
+                    <span class="n">paz_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance_to_xml</span><span class="p">(</span><span class="n">instance</span> <span class="o">=</span> <span class="n">cur_parameter</span><span class="p">,</span>
+                                                       <span class="n">root</span> <span class="o">=</span> <span class="n">param_element</span><span class="p">,</span>
+                                                       <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;response_paz&#39;</span><span class="p">,</span>
+                                                       <span class="n">attributes</span> <span class="o">=</span> <span class="n">component_parameter_paz_attributes</span><span class="p">,</span>
+                                                       <span class="n">tags</span> <span class="o">=</span> <span class="n">component_parameter_paz_tags</span><span class="p">,</span>
+                                                       <span class="n">attr_map</span> <span class="o">=</span> <span class="n">component_parameter_paz_map</span><span class="p">,</span>
+                                                       <span class="n">converter</span> <span class="o">=</span> <span class="n">component_parameter_paz_converter</span><span class="p">,</span>
+                                                       <span class="n">element_handler</span> <span class="o">=</span> <span class="n">component_parameter_paz_handler</span><span class="p">)</span>
+
+        <span class="c1">#Export the recorders.</span>
+        <span class="n">recorder_list</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;recorder_list&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cur_recorder</span> <span class="ow">in</span> <span class="n">inventory</span><span class="o">.</span><span class="n">recorders</span><span class="p">:</span>
+            <span class="n">rec_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance_to_xml</span><span class="p">(</span><span class="n">instance</span> <span class="o">=</span> <span class="n">cur_recorder</span><span class="p">,</span>
+                                               <span class="n">root</span> <span class="o">=</span> <span class="n">recorder_list</span><span class="p">,</span>
+                                               <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;recorder&#39;</span><span class="p">,</span>
+                                               <span class="n">attributes</span> <span class="o">=</span> <span class="n">rec_attributes</span><span class="p">,</span>
+                                               <span class="n">tags</span> <span class="o">=</span> <span class="n">rec_tags</span><span class="p">,</span>
+                                               <span class="n">attr_map</span> <span class="o">=</span> <span class="n">rec_map</span><span class="p">,</span>
+                                               <span class="n">converter</span> <span class="o">=</span> <span class="n">rec_converter</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">cur_stream</span> <span class="ow">in</span> <span class="n">cur_recorder</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>
+                <span class="n">stream_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance_to_xml</span><span class="p">(</span><span class="n">instance</span> <span class="o">=</span> <span class="n">cur_stream</span><span class="p">,</span>
+                                                      <span class="n">root</span> <span class="o">=</span> <span class="n">rec_element</span><span class="p">,</span>
+                                                      <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;stream&#39;</span><span class="p">,</span>
+                                                      <span class="n">attributes</span> <span class="o">=</span> <span class="n">stream_attributes</span><span class="p">,</span>
+                                                      <span class="n">tags</span> <span class="o">=</span> <span class="n">stream_tags</span><span class="p">,</span>
+                                                      <span class="n">attr_map</span> <span class="o">=</span> <span class="n">stream_map</span><span class="p">,</span>
+                                                      <span class="n">converter</span> <span class="o">=</span> <span class="n">stream_converter</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">cur_param</span> <span class="ow">in</span> <span class="n">cur_stream</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+                    <span class="n">param_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance_to_xml</span><span class="p">(</span><span class="n">instance</span> <span class="o">=</span> <span class="n">cur_param</span><span class="p">,</span>
+                                                         <span class="n">root</span> <span class="o">=</span> <span class="n">stream_element</span><span class="p">,</span>
+                                                         <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;stream_parameter&#39;</span><span class="p">,</span>
+                                                         <span class="n">attributes</span> <span class="o">=</span> <span class="n">stream_param_attributes</span><span class="p">,</span>
+                                                         <span class="n">tags</span> <span class="o">=</span> <span class="n">stream_param_tags</span><span class="p">,</span>
+                                                         <span class="n">attr_map</span> <span class="o">=</span> <span class="n">stream_param_map</span><span class="p">,</span>
+                                                         <span class="n">converter</span> <span class="o">=</span> <span class="n">stream_param_converter</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">cur_comp_tb</span> <span class="ow">in</span> <span class="n">cur_stream</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
+                    <span class="n">comp_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance_to_xml</span><span class="p">(</span><span class="n">instance</span> <span class="o">=</span> <span class="n">cur_comp_tb</span><span class="p">,</span>
+                                                        <span class="n">root</span> <span class="o">=</span> <span class="n">stream_element</span><span class="p">,</span>
+                                                        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;assigned_component&#39;</span><span class="p">,</span>
+                                                        <span class="n">attributes</span> <span class="o">=</span> <span class="n">stream_comp_attributes</span><span class="p">,</span>
+                                                        <span class="n">tags</span> <span class="o">=</span> <span class="n">stream_comp_tags</span><span class="p">,</span>
+                                                        <span class="n">attr_map</span> <span class="o">=</span> <span class="n">stream_comp_map</span><span class="p">,</span>
+                                                        <span class="n">converter</span> <span class="o">=</span> <span class="n">stream_comp_converter</span><span class="p">)</span>
+
+        <span class="c1"># Export the networks.</span>
+        <span class="k">for</span> <span class="n">cur_network</span> <span class="ow">in</span> <span class="n">inventory</span><span class="o">.</span><span class="n">networks</span><span class="p">:</span>
+            <span class="n">net_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance_to_xml</span><span class="p">(</span><span class="n">instance</span> <span class="o">=</span> <span class="n">cur_network</span><span class="p">,</span>
+                                               <span class="n">root</span> <span class="o">=</span> <span class="n">root</span><span class="p">,</span>
+                                               <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;network&#39;</span><span class="p">,</span>
+                                               <span class="n">attributes</span> <span class="o">=</span> <span class="n">net_attributes</span><span class="p">,</span>
+                                               <span class="n">tags</span> <span class="o">=</span> <span class="n">net_tags</span><span class="p">,</span>
+                                               <span class="n">attr_map</span> <span class="o">=</span> <span class="n">net_map</span><span class="p">,</span>
+                                               <span class="n">converter</span> <span class="o">=</span> <span class="n">net_converter</span><span class="p">)</span>
+
+            <span class="c1"># Get the unique station names.</span>
+            <span class="n">stat_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">cur_network</span><span class="o">.</span><span class="n">stations</span><span class="p">]</span>
+            <span class="n">stat_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">stat_names</span><span class="p">))</span>
+
+            <span class="k">for</span> <span class="n">cur_stat_name</span> <span class="ow">in</span> <span class="n">stat_names</span><span class="p">:</span>
+                <span class="n">cur_station_list</span> <span class="o">=</span> <span class="n">cur_network</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">cur_stat_name</span><span class="p">)</span>
+
+                <span class="c1"># Create the station element.</span>
+                <span class="n">stat_element</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">SubElement</span><span class="p">(</span><span class="n">net_element</span><span class="p">,</span> <span class="s1">&#39;station&#39;</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">cur_stat_name</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">cur_station</span> <span class="ow">in</span> <span class="n">cur_station_list</span><span class="p">:</span>
+                    <span class="c1"># Add the location elements.</span>
+                    <span class="n">loc_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance_to_xml</span><span class="p">(</span><span class="n">instance</span> <span class="o">=</span> <span class="n">cur_station</span><span class="p">,</span>
+                                                        <span class="n">root</span> <span class="o">=</span> <span class="n">stat_element</span><span class="p">,</span>
+                                                        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;location&#39;</span><span class="p">,</span>
+                                                        <span class="n">attributes</span> <span class="o">=</span> <span class="n">loc_attributes</span><span class="p">,</span>
+                                                        <span class="n">tags</span> <span class="o">=</span> <span class="n">loc_tags</span><span class="p">,</span>
+                                                        <span class="n">attr_map</span> <span class="o">=</span> <span class="n">loc_map</span><span class="p">,</span>
+                                                        <span class="n">converter</span> <span class="o">=</span> <span class="n">loc_converter</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">cur_channel</span> <span class="ow">in</span> <span class="n">cur_station</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
+                        <span class="n">chan_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance_to_xml</span><span class="p">(</span><span class="n">instance</span> <span class="o">=</span> <span class="n">cur_channel</span><span class="p">,</span>
+                                                            <span class="n">root</span> <span class="o">=</span> <span class="n">loc_element</span><span class="p">,</span>
+                                                            <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;channel&#39;</span><span class="p">,</span>
+                                                            <span class="n">attributes</span> <span class="o">=</span> <span class="n">chan_attributes</span><span class="p">,</span>
+                                                            <span class="n">tags</span> <span class="o">=</span> <span class="n">chan_tags</span><span class="p">,</span>
+                                                            <span class="n">attr_map</span> <span class="o">=</span> <span class="n">chan_map</span><span class="p">,</span>
+                                                            <span class="n">converter</span> <span class="o">=</span> <span class="n">chan_converter</span><span class="p">)</span>
+
+                        <span class="k">for</span> <span class="n">cur_stream_tb</span> <span class="ow">in</span> <span class="n">cur_channel</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">instance_to_xml</span><span class="p">(</span><span class="n">instance</span> <span class="o">=</span> <span class="n">cur_stream_tb</span><span class="p">,</span>
+                                                 <span class="n">root</span> <span class="o">=</span> <span class="n">chan_element</span><span class="p">,</span>
+                                                 <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;assigned_stream&#39;</span><span class="p">,</span>
+                                                 <span class="n">attributes</span> <span class="o">=</span> <span class="n">chan_stream_attributes</span><span class="p">,</span>
+                                                 <span class="n">tags</span> <span class="o">=</span> <span class="n">chan_stream_tags</span><span class="p">,</span>
+                                                 <span class="n">attr_map</span> <span class="o">=</span> <span class="n">chan_stream_map</span><span class="p">,</span>
+                                                 <span class="n">converter</span> <span class="o">=</span> <span class="n">chan_stream_converter</span><span class="p">)</span>
+
+
+        <span class="c1"># Export the arrays</span>
+        <span class="k">for</span> <span class="n">cur_array</span> <span class="ow">in</span> <span class="n">inventory</span><span class="o">.</span><span class="n">arrays</span><span class="p">:</span>
+            <span class="n">array_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance_to_xml</span><span class="p">(</span><span class="n">instance</span> <span class="o">=</span> <span class="n">cur_array</span><span class="p">,</span>
+                                                 <span class="n">root</span> <span class="o">=</span> <span class="n">root</span><span class="p">,</span>
+                                                 <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;array&#39;</span><span class="p">,</span>
+                                                 <span class="n">attributes</span> <span class="o">=</span> <span class="n">array_attributes</span><span class="p">,</span>
+                                                 <span class="n">tags</span> <span class="o">=</span> <span class="n">array_tags</span><span class="p">,</span>
+                                                 <span class="n">attr_map</span> <span class="o">=</span> <span class="n">array_map</span><span class="p">,</span>
+                                                 <span class="n">converter</span> <span class="o">=</span> <span class="n">array_converter</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">cur_station_tb</span> <span class="ow">in</span> <span class="n">cur_array</span><span class="o">.</span><span class="n">stations</span><span class="p">:</span>
+                <span class="c1"># Create the station element.</span>
+                <span class="n">stat_element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance_to_xml</span><span class="p">(</span><span class="n">instance</span> <span class="o">=</span> <span class="n">cur_station_tb</span><span class="p">,</span>
+                                                    <span class="n">root</span> <span class="o">=</span> <span class="n">array_element</span><span class="p">,</span>
+                                                    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;station&#39;</span><span class="p">,</span>
+                                                    <span class="n">attributes</span> <span class="o">=</span> <span class="n">array_stat_attributes</span><span class="p">,</span>
+                                                    <span class="n">tags</span> <span class="o">=</span> <span class="n">array_stat_tags</span><span class="p">,</span>
+                                                    <span class="n">attr_map</span> <span class="o">=</span> <span class="n">array_stat_map</span><span class="p">,</span>
+                                                    <span class="n">converter</span> <span class="o">=</span> <span class="n">array_stat_converter</span><span class="p">)</span>
+
+
+        <span class="c1"># Write the xml string to a file.</span>
+        <span class="n">et</span> <span class="o">=</span> <span class="n">etree</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+        <span class="n">et</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">pretty_print</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">xml_declaration</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">encoding</span> <span class="o">=</span> <span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span></div>
+        <span class="c1">#fid = open(filename, &#39;w&#39;)</span>
+        <span class="c1">#fid.write(etree.tostring(root, pretty_print = True))</span>
+        <span class="c1">#fid.close()</span>
+
+
+
+<div class="viewcode-block" id="InventoryXmlParser.process_sensors"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_sensors.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_sensors">[docs]</a>    <span class="k">def</span> <span class="nf">process_sensors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inventory</span><span class="p">,</span> <span class="n">sensors</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Process the extracted sensor tags.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        inventory : :class:`~psysmon.packages.geometry.inventory.Inventory`</span>
+<span class="sd">            The inventory to which to add the parsed sensors.</span>
+
+<span class="sd">        sensors : xml sensor nodes</span>
+<span class="sd">            The xml sensor nodes parsed using the findall method.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Processing the sensors.&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cur_sensor</span> <span class="ow">in</span> <span class="n">sensors</span><span class="p">:</span>
+            <span class="n">sensor_content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_node</span><span class="p">(</span><span class="n">cur_sensor</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_completeness</span><span class="p">(</span><span class="n">cur_sensor</span><span class="p">,</span> <span class="n">sensor_content</span><span class="p">,</span> <span class="s1">&#39;sensor&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="s1">&#39;component&#39;</span> <span class="ow">in</span> <span class="n">sensor_content</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">sensor_content</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">)</span>
+
+            <span class="n">sensor_to_add</span> <span class="o">=</span> <span class="n">Sensor</span><span class="p">(</span><span class="n">serial</span> <span class="o">=</span> <span class="n">cur_sensor</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;serial&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">sensor_content</span><span class="p">)</span>
+            <span class="n">inventory</span><span class="o">.</span><span class="n">add_sensor</span><span class="p">(</span><span class="n">sensor_to_add</span><span class="p">)</span>
+
+            <span class="n">components</span> <span class="o">=</span> <span class="n">cur_sensor</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">process_components</span><span class="p">(</span><span class="n">sensor_to_add</span><span class="p">,</span> <span class="n">components</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="InventoryXmlParser.process_components"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_components.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_components">[docs]</a>    <span class="k">def</span> <span class="nf">process_components</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sensor</span><span class="p">,</span> <span class="n">components</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Process the component nodes of a sensor.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sensor : :class:`~psysmon.packages.geometry.inventory.Sensor`</span>
+<span class="sd">            The sensor to which to add the components.</span>
+
+<span class="sd">        components : xml component nodes</span>
+<span class="sd">            The xml component nodes parsed using the findall method.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">cur_component</span> <span class="ow">in</span> <span class="n">components</span><span class="p">:</span>
+            <span class="n">component_content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_node</span><span class="p">(</span><span class="n">cur_component</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_completeness</span><span class="p">(</span><span class="n">cur_component</span><span class="p">,</span> <span class="n">component_content</span><span class="p">,</span> <span class="s1">&#39;component&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="s1">&#39;component_parameter&#39;</span> <span class="ow">in</span> <span class="n">component_content</span><span class="p">:</span>
+                <span class="n">component_content</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;component_parameter&#39;</span><span class="p">)</span>
+            <span class="n">component_to_add</span> <span class="o">=</span> <span class="n">SensorComponent</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">cur_component</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+                                               <span class="o">**</span><span class="n">component_content</span><span class="p">)</span>
+            <span class="n">sensor</span><span class="o">.</span><span class="n">add_component</span><span class="p">(</span><span class="n">component_to_add</span><span class="p">)</span>
+
+            <span class="n">parameters</span> <span class="o">=</span> <span class="n">cur_component</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;component_parameter&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">process_component_parameters</span><span class="p">(</span><span class="n">component_to_add</span><span class="p">,</span> <span class="n">parameters</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="InventoryXmlParser.process_component_parameters"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_component_parameters.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_component_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">process_component_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Process the component_parameter nodes of a component.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">cur_parameter</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_node</span><span class="p">(</span><span class="n">cur_parameter</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_completeness</span><span class="p">(</span><span class="n">cur_parameter</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="s1">&#39;component_parameter&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="s1">&#39;response_paz&#39;</span> <span class="ow">in</span> <span class="n">content</span><span class="p">:</span>
+                <span class="n">content</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;response_paz&#39;</span><span class="p">)</span>
+            <span class="n">parameter_to_add</span> <span class="o">=</span> <span class="n">SensorComponentParameter</span><span class="p">(</span><span class="o">**</span><span class="n">content</span><span class="p">)</span>
+            <span class="n">component</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">parameter_to_add</span><span class="p">)</span>
+
+            <span class="n">response_paz</span> <span class="o">=</span> <span class="n">cur_parameter</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;response_paz&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">process_response_paz</span><span class="p">(</span><span class="n">parameter_to_add</span><span class="p">,</span> <span class="n">response_paz</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="InventoryXmlParser.process_response_paz"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_response_paz.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_response_paz">[docs]</a>    <span class="k">def</span> <span class="nf">process_response_paz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">response_paz</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Process the response_paz nodes of a component_paramter.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">cur_paz</span> <span class="ow">in</span> <span class="n">response_paz</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_node</span><span class="p">(</span><span class="n">cur_paz</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_completeness</span><span class="p">(</span><span class="n">cur_paz</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="s1">&#39;response_paz&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Adding the tf to the parameter </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">parameter</span><span class="p">)</span>
+            <span class="n">parameter</span><span class="o">.</span><span class="n">set_transfer_function</span><span class="p">(</span><span class="n">tf_type</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span>
+                                            <span class="n">tf_units</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">],</span>
+                                            <span class="n">tf_normalization_factor</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">content</span><span class="p">[</span><span class="s1">&#39;A0_normalization_factor&#39;</span><span class="p">]),</span>
+                                            <span class="n">tf_normalization_frequency</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">content</span><span class="p">[</span><span class="s1">&#39;normalization_frequency&#39;</span><span class="p">]))</span>
+
+            <span class="n">zeros</span> <span class="o">=</span> <span class="n">cur_paz</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;complex_zero&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">process_complex_zero</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">zeros</span><span class="p">)</span>
+            <span class="n">poles</span> <span class="o">=</span> <span class="n">cur_paz</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;complex_pole&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">process_complex_pole</span><span class="p">(</span><span class="n">parameter</span><span class="p">,</span> <span class="n">poles</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="InventoryXmlParser.process_complex_zero"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_complex_zero.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_complex_zero">[docs]</a>    <span class="k">def</span> <span class="nf">process_complex_zero</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">zeros</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Process the complex_zero nodes in a response_paz.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">cur_zero</span> <span class="ow">in</span> <span class="n">zeros</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Adding zero to the parameter </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">parameter</span><span class="p">)</span>
+            <span class="n">zero</span> <span class="o">=</span> <span class="n">cur_zero</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">parameter</span><span class="o">.</span><span class="n">tf_add_complex_zero</span><span class="p">(</span><span class="nb">complex</span><span class="p">(</span><span class="n">zero</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="InventoryXmlParser.process_complex_pole"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_complex_pole.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_complex_pole">[docs]</a>    <span class="k">def</span> <span class="nf">process_complex_pole</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">,</span> <span class="n">poles</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Process the complex_poles nodes in a response_paz.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">cur_pole</span> <span class="ow">in</span> <span class="n">poles</span><span class="p">:</span>
+            <span class="n">pole</span> <span class="o">=</span> <span class="n">cur_pole</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">parameter</span><span class="o">.</span><span class="n">tf_add_complex_pole</span><span class="p">(</span><span class="nb">complex</span><span class="p">(</span><span class="n">pole</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="InventoryXmlParser.process_recorders"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_recorders.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_recorders">[docs]</a>    <span class="k">def</span> <span class="nf">process_recorders</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inventory</span><span class="p">,</span> <span class="n">recorders</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Process the extracted recorder nodes.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        inventory : :class:`~psysmon.packages.geometry.inventory.Inventory`</span>
+<span class="sd">            The inventory to which to add the parsed sensors.</span>
+
+<span class="sd">        recorders : xml recorder nodes</span>
+<span class="sd">            The xml recorder nodes parsed using the findall method.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Processing the recorders.&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cur_recorder</span> <span class="ow">in</span> <span class="n">recorders</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_node</span><span class="p">(</span><span class="n">cur_recorder</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_completeness</span><span class="p">(</span><span class="n">cur_recorder</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="s1">&#39;recorder&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="s1">&#39;stream&#39;</span> <span class="ow">in</span> <span class="n">content</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">content</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;stream&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Create the Recorder instance.</span>
+            <span class="n">rec_to_add</span> <span class="o">=</span> <span class="n">Recorder</span><span class="p">(</span><span class="n">serial</span> <span class="o">=</span> <span class="n">cur_recorder</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;serial&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">content</span><span class="p">)</span>
+            <span class="n">inventory</span><span class="o">.</span><span class="n">add_recorder</span><span class="p">(</span><span class="n">rec_to_add</span><span class="p">)</span>
+
+            <span class="c1"># Process the streams of the recorder.</span>
+            <span class="n">streams</span> <span class="o">=</span> <span class="n">cur_recorder</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;stream&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">process_recorder_streams</span><span class="p">(</span><span class="n">rec_to_add</span><span class="p">,</span> <span class="n">streams</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="InventoryXmlParser.process_recorder_streams"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_recorder_streams.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_recorder_streams">[docs]</a>    <span class="k">def</span> <span class="nf">process_recorder_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recorder</span><span class="p">,</span> <span class="n">streams</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Process the stream nodes of a recorder.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        recorder : :class:`~psysmon.packages.geometry.inventory.Recorder`</span>
+<span class="sd">            The recorder to which to add the streams.</span>
+
+<span class="sd">        streams : xml stream nodes</span>
+<span class="sd">            The xml stream nodes parsed using the findall method.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">cur_stream</span> <span class="ow">in</span> <span class="n">streams</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_node</span><span class="p">(</span><span class="n">cur_stream</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_completeness</span><span class="p">(</span><span class="n">cur_stream</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="s1">&#39;stream&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="s1">&#39;stream_parameter&#39;</span> <span class="ow">in</span> <span class="n">content</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">content</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;stream_parameter&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="s1">&#39;assigned_component&#39;</span> <span class="ow">in</span> <span class="n">content</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">content</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;assigned_component&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Create the stream instance.</span>
+            <span class="n">stream_to_add</span> <span class="o">=</span> <span class="n">RecorderStream</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">cur_stream</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">content</span><span class="p">)</span>
+            <span class="n">recorder</span><span class="o">.</span><span class="n">add_stream</span><span class="p">(</span><span class="n">stream_to_add</span><span class="p">)</span>
+
+            <span class="n">stream_parameters</span> <span class="o">=</span> <span class="n">cur_stream</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;stream_parameter&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">process_stream_parameters</span><span class="p">(</span><span class="n">stream_to_add</span><span class="p">,</span> <span class="n">stream_parameters</span><span class="p">)</span>
+
+            <span class="n">assigned_components</span> <span class="o">=</span> <span class="n">cur_stream</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;assigned_component&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">process_assigned_components</span><span class="p">(</span><span class="n">stream_to_add</span><span class="p">,</span> <span class="n">assigned_components</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="InventoryXmlParser.process_stream_parameters"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_stream_parameters.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_stream_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">process_stream_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Process the stream_parameter nodes of a recorder stream.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">cur_parameter</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_node</span><span class="p">(</span><span class="n">cur_parameter</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_completeness</span><span class="p">(</span><span class="n">cur_parameter</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="s1">&#39;stream_parameter&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">parameter_to_add</span> <span class="o">=</span> <span class="n">RecorderStreamParameter</span><span class="p">(</span><span class="o">**</span><span class="n">content</span><span class="p">)</span>
+            <span class="n">stream</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">parameter_to_add</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="InventoryXmlParser.process_assigned_components"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_assigned_components.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_assigned_components">[docs]</a>    <span class="k">def</span> <span class="nf">process_assigned_components</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">components</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Process the components assigned to a recorder stream.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">cur_component</span> <span class="ow">in</span> <span class="n">components</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_node</span><span class="p">(</span><span class="n">cur_component</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_completeness</span><span class="p">(</span><span class="n">cur_component</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="s1">&#39;assigned_component&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">stream</span><span class="o">.</span><span class="n">add_component</span><span class="p">(</span><span class="n">serial</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="s1">&#39;sensor_serial&#39;</span><span class="p">],</span>
+                                 <span class="n">model</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="s1">&#39;sensor_model&#39;</span><span class="p">],</span>
+                                 <span class="n">producer</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="s1">&#39;sensor_producer&#39;</span><span class="p">],</span>
+                                 <span class="n">name</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="s1">&#39;component_name&#39;</span><span class="p">],</span>
+                                 <span class="n">start_time</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">],</span>
+                                 <span class="n">end_time</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="s1">&#39;end_time&#39;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="InventoryXmlParser.process_networks"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_networks.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_networks">[docs]</a>    <span class="k">def</span> <span class="nf">process_networks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inventory</span><span class="p">,</span> <span class="n">networks</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Process the extracted network nodes.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        inventory : :class:`~psysmon.packages.geometry.inventory.Inventory`</span>
+<span class="sd">            The inventory to which to add the parsed sensors.</span>
+
+<span class="sd">        networks : xml network nodes</span>
+<span class="sd">            The xml network nodes parsed using the findall method.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Processing the networks.&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cur_network</span> <span class="ow">in</span> <span class="n">networks</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_node</span><span class="p">(</span><span class="n">cur_network</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_completeness</span><span class="p">(</span><span class="n">cur_network</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="s1">&#39;network&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="s1">&#39;station&#39;</span> <span class="ow">in</span> <span class="n">content</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">content</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;station&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Create the Recorder instance.</span>
+            <span class="n">net_to_add</span> <span class="o">=</span> <span class="n">Network</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">cur_network</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">content</span><span class="p">)</span>
+
+            <span class="c1"># Add the network to the inventory.</span>
+            <span class="n">inventory</span><span class="o">.</span><span class="n">add_network</span><span class="p">(</span><span class="n">net_to_add</span><span class="p">)</span>
+
+            <span class="n">stations</span> <span class="o">=</span> <span class="n">cur_network</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;station&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">process_stations</span><span class="p">(</span><span class="n">net_to_add</span><span class="p">,</span> <span class="n">stations</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="InventoryXmlParser.process_arrays"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_arrays.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_arrays">[docs]</a>    <span class="k">def</span> <span class="nf">process_arrays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inventory</span><span class="p">,</span> <span class="n">arrays</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Process the extracted array nodes.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        inventory : :class:`~psysmon.packages.geometry.inventory.Inventory`</span>
+<span class="sd">            The inventory to which to add the parsed sensors.</span>
+
+<span class="sd">        arrays : xml array nodes</span>
+<span class="sd">            The xml array nodes parsed using the findall method.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Processing the networks.&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cur_array</span> <span class="ow">in</span> <span class="n">arrays</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_node</span><span class="p">(</span><span class="n">cur_array</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">check_completeness</span><span class="p">(</span><span class="n">cur_array</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="s1">&#39;array&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="s1">&#39;station&#39;</span> <span class="ow">in</span> <span class="n">content</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">content</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;station&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Create the Array instance and add it to the inventory.</span>
+            <span class="n">array_to_add</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">cur_array</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">content</span><span class="p">)</span>
+            <span class="n">inventory</span><span class="o">.</span><span class="n">add_array</span><span class="p">(</span><span class="n">array_to_add</span><span class="p">)</span>
+
+            <span class="c1"># Process the stations to be added to the array.</span>
+            <span class="n">stations</span> <span class="o">=</span> <span class="n">cur_array</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;station&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">cur_station</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">:</span>
+                <span class="n">stat_content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_node</span><span class="p">(</span><span class="n">cur_station</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">check_completeness</span><span class="p">(</span><span class="n">cur_station</span><span class="p">,</span> <span class="n">stat_content</span><span class="p">,</span> <span class="s1">&#39;array_station&#39;</span><span class="p">)</span>
+                <span class="n">station_to_add</span> <span class="o">=</span> <span class="n">inventory</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">network</span> <span class="o">=</span> <span class="n">stat_content</span><span class="p">[</span><span class="s1">&#39;network&#39;</span><span class="p">],</span>
+                                                       <span class="n">name</span> <span class="o">=</span> <span class="n">stat_content</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+                                                       <span class="n">location</span> <span class="o">=</span> <span class="n">stat_content</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">station_to_add</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">station_to_add</span> <span class="o">=</span> <span class="n">station_to_add</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">array_to_add</span><span class="o">.</span><span class="n">add_station</span><span class="p">(</span><span class="n">station_to_add</span><span class="p">,</span>
+                                             <span class="n">start_time</span> <span class="o">=</span> <span class="n">stat_content</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">],</span>
+                                             <span class="n">end_time</span> <span class="o">=</span> <span class="n">stat_content</span><span class="p">[</span><span class="s1">&#39;end_time&#39;</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="InventoryXmlParser.process_stations"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_stations.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_stations">[docs]</a>    <span class="k">def</span> <span class="nf">process_stations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">network</span><span class="p">,</span> <span class="n">stations</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Process the station nodes of a network.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        network : :class:`~psysmon.packages.geometry.inventory.Network`</span>
+<span class="sd">            The network to which to add the stations.</span>
+
+<span class="sd">        stations : xml station nodes</span>
+<span class="sd">            The xml station nodes parsed using the findall method.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">cur_station</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_node</span><span class="p">(</span><span class="n">cur_station</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_completeness</span><span class="p">(</span><span class="n">cur_station</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="s1">&#39;station&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">locations</span> <span class="o">=</span> <span class="n">cur_station</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;location&#39;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">cur_location</span> <span class="ow">in</span> <span class="n">locations</span><span class="p">:</span>
+                <span class="n">loc_content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_node</span><span class="p">(</span><span class="n">cur_location</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="s1">&#39;channel&#39;</span> <span class="ow">in</span> <span class="n">loc_content</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">loc_content</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;channel&#39;</span><span class="p">)</span>
+
+                <span class="n">station_to_add</span> <span class="o">=</span> <span class="n">Station</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">cur_station</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+                                         <span class="n">location</span> <span class="o">=</span> <span class="n">cur_location</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+                                         <span class="o">**</span><span class="n">loc_content</span><span class="p">)</span>
+
+                <span class="n">network</span><span class="o">.</span><span class="n">add_station</span><span class="p">(</span><span class="n">station_to_add</span><span class="p">)</span>
+
+                <span class="n">channels</span> <span class="o">=</span> <span class="n">cur_location</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;channel&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">process_channels</span><span class="p">(</span><span class="n">station_to_add</span><span class="p">,</span> <span class="n">channels</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="InventoryXmlParser.process_channels"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_channels.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_channels">[docs]</a>    <span class="k">def</span> <span class="nf">process_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">channels</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Process the channel nodes of a station.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        station : :class:`~psysmon.packages.geometry.inventory.Station`</span>
+<span class="sd">            The station to which to add the channels.</span>
+
+<span class="sd">        channels : xml channel nodes</span>
+<span class="sd">            The xml channel nodes parsed using the findall method.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">cur_channel</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_node</span><span class="p">(</span><span class="n">cur_channel</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_completeness</span><span class="p">(</span><span class="n">cur_channel</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="s1">&#39;channel&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="s1">&#39;assigned_stream&#39;</span> <span class="ow">in</span> <span class="n">content</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">content</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;assigned_stream&#39;</span><span class="p">)</span>
+
+            <span class="n">channel_to_add</span> <span class="o">=</span> <span class="n">Channel</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">cur_channel</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">content</span><span class="p">)</span>
+
+            <span class="n">station</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">channel_to_add</span><span class="p">)</span>
+
+            <span class="n">assigned_streams</span> <span class="o">=</span> <span class="n">cur_channel</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;assigned_stream&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">process_assigned_streams</span><span class="p">(</span><span class="n">channel_to_add</span><span class="p">,</span> <span class="n">assigned_streams</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="InventoryXmlParser.process_assigned_streams"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_assigned_streams.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_assigned_streams">[docs]</a>    <span class="k">def</span> <span class="nf">process_assigned_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">streams</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Process the assigned streams of a channel.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        channel : :class:`~psysmon.packages.geometry.inventory.Channel`</span>
+<span class="sd">            The channel to which to add the streams.</span>
+
+<span class="sd">        streams : xml stream nodes</span>
+<span class="sd">            The xml stream nodes parsed using the findall method.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">cur_stream</span> <span class="ow">in</span> <span class="n">streams</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_node</span><span class="p">(</span><span class="n">cur_stream</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_completeness</span><span class="p">(</span><span class="n">cur_stream</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="s1">&#39;assigned_stream&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">channel</span><span class="o">.</span><span class="n">add_stream</span><span class="p">(</span><span class="n">serial</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="s1">&#39;recorder_serial&#39;</span><span class="p">],</span>
+                               <span class="n">model</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="s1">&#39;recorder_model&#39;</span><span class="p">],</span>
+                               <span class="n">producer</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="s1">&#39;recorder_producer&#39;</span><span class="p">],</span>
+                               <span class="n">name</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="s1">&#39;stream_name&#39;</span><span class="p">],</span>
+                               <span class="n">start_time</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">],</span>
+                               <span class="n">end_time</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="s1">&#39;end_time&#39;</span><span class="p">])</span></div>
+
+
+
+
+<div class="viewcode-block" id="InventoryXmlParser.get_node_text"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.get_node_text.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.get_node_text">[docs]</a>    <span class="k">def</span> <span class="nf">get_node_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_element</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">xml_element</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">node</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">text</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="InventoryXmlParser.parse_node"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.parse_node.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.parse_node">[docs]</a>    <span class="k">def</span> <span class="nf">parse_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xml_element</span><span class="p">):</span>
+        <span class="n">node_content</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">cur_node</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">xml_element</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">cur_node</span><span class="o">.</span><span class="n">text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">node_content</span><span class="p">[</span><span class="n">cur_node</span><span class="o">.</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_node</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">node_content</span><span class="p">[</span><span class="n">cur_node</span><span class="o">.</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_node</span><span class="o">.</span><span class="n">text</span>
+
+        <span class="k">return</span> <span class="n">node_content</span></div>
+
+<div class="viewcode-block" id="InventoryXmlParser.keys_complete"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.keys_complete.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.keys_complete">[docs]</a>    <span class="k">def</span> <span class="nf">keys_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_content</span><span class="p">,</span> <span class="n">required_keys</span><span class="p">):</span>
+        <span class="n">missing_keys</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">cur_key</span> <span class="ow">in</span> <span class="n">required_keys</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cur_key</span> <span class="ow">in</span> <span class="n">node_content</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">missing_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_key</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">missing_keys</span></div>
+
+
+<div class="viewcode-block" id="InventoryXmlParser.check_completeness"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.check_completeness.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.check_completeness">[docs]</a>    <span class="k">def</span> <span class="nf">check_completeness</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">node_type</span><span class="p">):</span>
+            <span class="n">missing_attrib</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys_complete</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">attrib</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_attributes</span><span class="p">[</span><span class="n">node_type</span><span class="p">])</span>
+            <span class="n">missing_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys_complete</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_tags</span><span class="p">[</span><span class="n">node_type</span><span class="p">]);</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">missing_keys</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">missing_attrib</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">node_type</span> <span class="o">+</span> <span class="s2">&quot; xml content:&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Not all required fields present!</span><span class="se">\n</span><span class="s2">Missing Keys:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">missing_keys</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">missing_attrib</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Not all required fieds for node </span><span class="si">%s</span><span class="s2"> present.&quot;</span> <span class="o">%</span> <span class="n">node_type</span><span class="p">)</span></div></div>
+</pre></div>
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../geometry.html" >mss_dataserver.geometry</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.geometry.inventory_parser</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stefan Mertl.
+      Last updated on 2021-04-22 20:20.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+get_db_orm
+===================================================
+
+.. currentmodule:: mss_dataserver.event.detection
+.. automethod:: Detection.get_db_orm
+
+

@@ -1,0 +1,7 @@
+create_database_tables
+==========================================================
+
+.. currentmodule:: mss_dataserver.core.project
+.. automethod:: Project.create_database_tables
+
+

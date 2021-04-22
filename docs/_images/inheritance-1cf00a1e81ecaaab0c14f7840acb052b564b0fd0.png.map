@@ -1,0 +1,4 @@
+<map id="inheritance7c7c22c4a5" name="inheritance7c7c22c4a5">
+<area shape="rect" id="node1" href="#mss_dataserver.core.validation.MsgRequestEventSupplementPayload" target="_top" title="The request:event_supplement message payload model." alt="" coords="5,152,480,177"/>
+<area shape="rect" id="node3" title="Mixin to provide __str__, __repr__, and __pretty__ methods. See #884 for more details." alt="" coords="137,5,349,31"/>
+</map>

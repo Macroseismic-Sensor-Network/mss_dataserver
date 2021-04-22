@@ -1,0 +1,32 @@
+MsgRequestEventSupplementNameEnum
+================================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. autoclass:: MsgRequestEventSupplementNameEnum
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~MsgRequestEventSupplementNameEnum.isoseismalfilledcontours
+      ~MsgRequestEventSupplementNameEnum.pgvstation
+      ~MsgRequestEventSupplementNameEnum.pgvvoronoi
+      ~MsgRequestEventSupplementNameEnum.simplices
+
+
+
+
+      
+
+
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.validation.MsgRequestEventSupplementNameEnum

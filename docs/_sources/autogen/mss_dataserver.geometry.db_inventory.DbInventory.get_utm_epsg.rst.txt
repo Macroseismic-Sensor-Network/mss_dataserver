@@ -1,0 +1,7 @@
+get_utm_epsg
+=============================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbInventory.get_utm_epsg
+
+

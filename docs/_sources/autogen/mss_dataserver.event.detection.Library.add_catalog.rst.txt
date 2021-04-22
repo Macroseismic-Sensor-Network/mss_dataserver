@@ -1,0 +1,7 @@
+add_catalog
+==================================================
+
+.. currentmodule:: mss_dataserver.event.detection
+.. automethod:: Library.add_catalog
+
+

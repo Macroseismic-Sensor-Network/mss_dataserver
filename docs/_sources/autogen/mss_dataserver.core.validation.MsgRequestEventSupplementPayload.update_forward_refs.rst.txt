@@ -1,0 +1,7 @@
+update_forward_refs
+===================================================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. automethod:: MsgRequestEventSupplementPayload.update_forward_refs
+
+

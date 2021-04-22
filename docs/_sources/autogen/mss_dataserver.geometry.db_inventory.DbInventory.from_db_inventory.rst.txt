@@ -1,0 +1,7 @@
+from_db_inventory
+==================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbInventory.from_db_inventory
+
+

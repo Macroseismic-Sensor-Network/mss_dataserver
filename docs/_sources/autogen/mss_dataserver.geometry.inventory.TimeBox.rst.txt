@@ -1,0 +1,38 @@
+TimeBox
+=========================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. autoclass:: TimeBox
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~TimeBox.end_time_string
+      ~TimeBox.start_time_string
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~TimeBox.__init__
+      ~TimeBox.as_dict
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.inventory.TimeBox

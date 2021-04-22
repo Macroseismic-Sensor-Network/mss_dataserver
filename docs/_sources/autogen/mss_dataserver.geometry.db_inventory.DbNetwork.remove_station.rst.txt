@@ -1,0 +1,7 @@
+remove_station
+=============================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbNetwork.remove_station
+
+

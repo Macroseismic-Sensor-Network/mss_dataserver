@@ -1,0 +1,7 @@
+pop_stream_by_instance
+======================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbRecorder.pop_stream_by_instance
+
+

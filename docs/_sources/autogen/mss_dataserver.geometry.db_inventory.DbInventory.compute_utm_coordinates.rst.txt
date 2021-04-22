@@ -1,0 +1,7 @@
+compute_utm_coordinates
+========================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbInventory.compute_utm_coordinates
+
+

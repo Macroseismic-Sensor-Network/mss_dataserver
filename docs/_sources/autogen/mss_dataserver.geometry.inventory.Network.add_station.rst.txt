@@ -1,0 +1,7 @@
+add_station
+=====================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: Network.add_station
+
+

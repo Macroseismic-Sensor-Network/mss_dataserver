@@ -1,0 +1,6 @@
+mss_dataserver.geometry.util.zone2UtmCentralMeridian
+====================================================
+
+.. currentmodule:: mss_dataserver.geometry.util
+
+.. autofunction:: zone2UtmCentralMeridian

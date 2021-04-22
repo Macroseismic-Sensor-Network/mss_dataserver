@@ -1,0 +1,7 @@
+__init__
+=====================================================================
+
+.. currentmodule:: mss_dataserver.core.json_util
+.. automethod:: SupplementDetectionDataEncoder.__init__
+
+

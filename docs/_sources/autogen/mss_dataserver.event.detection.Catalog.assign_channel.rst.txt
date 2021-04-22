@@ -1,0 +1,7 @@
+assign_channel
+=====================================================
+
+.. currentmodule:: mss_dataserver.event.detection
+.. automethod:: Catalog.assign_channel
+
+

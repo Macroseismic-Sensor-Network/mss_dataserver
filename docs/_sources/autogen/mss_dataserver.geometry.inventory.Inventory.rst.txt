@@ -1,0 +1,60 @@
+Inventory
+===========================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. autoclass:: Inventory
+   :show-inheritance:
+
+
+
+
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~Inventory.__init__
+      ~Inventory.add_array
+      ~Inventory.add_network
+      ~Inventory.add_recorder
+      ~Inventory.add_sensor
+      ~Inventory.add_station
+      ~Inventory.as_dict
+      ~Inventory.clear
+      ~Inventory.compute_utm_coordinates
+      ~Inventory.from_db_inventory
+      ~Inventory.from_dict
+      ~Inventory.get_array
+      ~Inventory.get_channel
+      ~Inventory.get_channel_from_stream
+      ~Inventory.get_component
+      ~Inventory.get_network
+      ~Inventory.get_recorder
+      ~Inventory.get_sensor
+      ~Inventory.get_station
+      ~Inventory.get_stream
+      ~Inventory.get_utm_epsg
+      ~Inventory.has_changed
+      ~Inventory.import_from_xml
+      ~Inventory.merge
+      ~Inventory.refresh_recorders
+      ~Inventory.remove_network
+      ~Inventory.remove_network_by_instance
+      ~Inventory.remove_recorder_by_instance
+      ~Inventory.remove_sensor_by_instance
+      ~Inventory.remove_station
+      ~Inventory.update_networks
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.inventory.Inventory

@@ -1,0 +1,7 @@
+get_event_catalog
+=====================================================
+
+.. currentmodule:: mss_dataserver.core.project
+.. automethod:: Project.get_event_catalog
+
+

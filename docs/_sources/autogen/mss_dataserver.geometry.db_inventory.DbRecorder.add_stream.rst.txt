@@ -1,0 +1,7 @@
+add_stream
+==========================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbRecorder.add_stream
+
+

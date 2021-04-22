@@ -1,0 +1,31 @@
+MsgRequestEventSupplementCategoryEnum
+====================================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. autoclass:: MsgRequestEventSupplementCategoryEnum
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~MsgRequestEventSupplementCategoryEnum.detectionsequence
+      ~MsgRequestEventSupplementCategoryEnum.eventpgv
+      ~MsgRequestEventSupplementCategoryEnum.pgvsequence
+
+
+
+
+      
+
+
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.validation.MsgRequestEventSupplementCategoryEnum

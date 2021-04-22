@@ -1,0 +1,7 @@
+parse_file
+===============================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. automethod:: MsgControlModePayload.parse_file
+
+

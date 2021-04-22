@@ -1,0 +1,38 @@
+Catalog
+======================================
+
+.. currentmodule:: mss_dataserver.event.detection
+.. autoclass:: Catalog
+   :show-inheritance:
+
+
+
+
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~Catalog.__init__
+      ~Catalog.add_detections
+      ~Catalog.assign_channel
+      ~Catalog.clear_detections
+      ~Catalog.from_orm
+      ~Catalog.get_detections
+      ~Catalog.load_detections
+      ~Catalog.remove_detections
+      ~Catalog.write_to_database
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.event.detection.Catalog

@@ -1,0 +1,7 @@
+get_events
+==============================================
+
+.. currentmodule:: mss_dataserver.core.project
+.. automethod:: Project.get_events
+
+

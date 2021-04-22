@@ -1,0 +1,7 @@
+get_catalogs_in_db
+=========================================================
+
+.. currentmodule:: mss_dataserver.event.detection
+.. automethod:: Library.get_catalogs_in_db
+
+

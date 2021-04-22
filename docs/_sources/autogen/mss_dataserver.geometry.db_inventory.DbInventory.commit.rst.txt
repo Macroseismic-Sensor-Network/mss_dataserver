@@ -1,0 +1,7 @@
+commit
+=======================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbInventory.commit
+
+

@@ -1,0 +1,111 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>decode_hinted_tuple &#8212; mss_dataserver 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/haiku_maar.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="raw_decode" href="mss_dataserver.core.json_util.SupplementDetectionDataDecoder.raw_decode.html" />
+    <link rel="prev" title="decode" href="mss_dataserver.core.json_util.SupplementDetectionDataDecoder.decode.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../index.html">
+          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>decode_hinted_tuple</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.json_util.SupplementDetectionDataDecoder.raw_decode.html" title="raw_decode"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.json_util.SupplementDetectionDataDecoder.decode.html" title="decode"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.core.html" >mss_dataserver.core</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="mss_dataserver.core.json_util.html" >mss_dataserver.core.json_util</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="mss_dataserver.core.json_util.SupplementDetectionDataDecoder.html" accesskey="U">SupplementDetectionDataDecoder</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">decode_hinted_tuple</a></li> 
+      </ul>
+    </div>
+      </div>
+      <div class="content" role="main">
+        
+        
+  <div class="section" id="decode-hinted-tuple">
+<h1>decode_hinted_tuple<a class="headerlink" href="#decode-hinted-tuple" title="Permalink to this headline">¶</a></h1>
+<dl class="py method">
+<dt id="mss_dataserver.core.json_util.SupplementDetectionDataDecoder.decode_hinted_tuple">
+<code class="sig-prename descclassname"><span class="pre">SupplementDetectionDataDecoder.</span></code><code class="sig-name descname"><span class="pre">decode_hinted_tuple</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mss_dataserver/core/json_util.html#SupplementDetectionDataDecoder.decode_hinted_tuple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.decode_hinted_tuple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decode a tuple.</p>
+<p>JSON doesn’t support tuples. Use a custom dictionary
+to decode. If the dictionary contains the __tuple__
+attribute, the dictionary is converted to a tuple.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>item</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – The dictionary to decode.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>item</strong> – The object representation of the item dictionary.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)">object</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.json_util.SupplementDetectionDataDecoder.raw_decode.html" title="raw_decode"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.json_util.SupplementDetectionDataDecoder.decode.html" title="decode"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.core.html" >mss_dataserver.core</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="mss_dataserver.core.json_util.html" >mss_dataserver.core.json_util</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="mss_dataserver.core.json_util.SupplementDetectionDataDecoder.html" >SupplementDetectionDataDecoder</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">decode_hinted_tuple</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stefan Mertl.
+      Last updated on 2021-04-22 20:20.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

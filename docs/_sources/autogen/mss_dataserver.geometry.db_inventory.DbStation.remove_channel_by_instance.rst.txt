@@ -1,0 +1,7 @@
+remove_channel_by_instance
+=========================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbStation.remove_channel_by_instance
+
+

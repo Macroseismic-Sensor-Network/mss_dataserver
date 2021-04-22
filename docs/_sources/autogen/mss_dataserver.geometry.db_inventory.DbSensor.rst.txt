@@ -1,0 +1,43 @@
+DbSensor
+=============================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. autoclass:: DbSensor
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~DbSensor.id
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~DbSensor.__init__
+      ~DbSensor.add_component
+      ~DbSensor.from_inventory_instance
+      ~DbSensor.from_sqlalchemy_orm
+      ~DbSensor.get_component
+      ~DbSensor.merge
+      ~DbSensor.pop_component
+      ~DbSensor.pop_component_by_instance
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.db_inventory.DbSensor

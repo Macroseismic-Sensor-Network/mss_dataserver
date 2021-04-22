@@ -1,0 +1,7 @@
+remove_sensor_by_instance
+==========================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbInventory.remove_sensor_by_instance
+
+

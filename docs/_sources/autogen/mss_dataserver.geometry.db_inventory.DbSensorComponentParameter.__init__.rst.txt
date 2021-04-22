@@ -1,0 +1,7 @@
+__init__
+========================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbSensorComponentParameter.__init__
+
+

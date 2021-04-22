@@ -1,0 +1,7 @@
+add_station
+============================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbInventory.add_station
+
+

@@ -1,0 +1,7 @@
+instance_to_xml
+===========================================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory_parser
+.. automethod:: InventoryXmlParser.instance_to_xml
+
+

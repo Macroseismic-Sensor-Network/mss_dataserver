@@ -1,0 +1,115 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>get_events &#8212; mss_dataserver 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/haiku_maar.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="load_database_table_structure" href="mss_dataserver.core.project.Project.load_database_table_structure.html" />
+    <link rel="prev" title="get_event_catalog_names" href="mss_dataserver.core.project.Project.get_event_catalog_names.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../index.html">
+          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>get_events</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.project.Project.load_database_table_structure.html" title="load_database_table_structure"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.project.Project.get_event_catalog_names.html" title="get_event_catalog_names"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.core.html" >mss_dataserver.core</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="mss_dataserver.core.project.html" >mss_dataserver.core.project</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="mss_dataserver.core.project.Project.html" accesskey="U">Project</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">get_events</a></li> 
+      </ul>
+    </div>
+      </div>
+      <div class="content" role="main">
+        
+        
+  <div class="section" id="get-events">
+<h1>get_events<a class="headerlink" href="#get-events" title="Permalink to this headline">¶</a></h1>
+<dl class="py method">
+<dt id="mss_dataserver.core.project.Project.get_events">
+<code class="sig-prename descclassname"><span class="pre">Project.</span></code><code class="sig-name descname"><span class="pre">get_events</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">catalog_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mss_dataserver/core/project.html#Project.get_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.core.project.Project.get_events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get events using search criteria passed as keywords.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>catalog_names</strong> (<em>List of String</em>) – The catalog names to load.</p></li>
+<li><p><strong>start_time</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">UTCDateTime</span></code>) – The minimum starttime of the detections.</p></li>
+<li><p><strong>end_time</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">UTCDateTime</span></code>) – The maximum end_time of the detections.</p></li>
+<li><p><strong>nslc</strong> (<em>tuple of Strings</em>) – The NSLC (network, station, location, channel)code
+of the channel (e.g. (‘XX’, ‘GILA’, ‘00’, ‘HHZ’)).</p></li>
+<li><p><strong>kwargs</strong> (<em>Keyword arguments</em>) – Additional keyword arguments passed to <a class="reference internal" href="mss_dataserver.event.core.Library.get_events.html#mss_dataserver.event.core.Library.get_events" title="mss_dataserver.event.core.Library.get_events"><code class="xref py py-meth docutils literal notranslate"><span class="pre">mss_dataserver.event.core.Library.get_events()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>ret_events</strong> – The events found in the library matching the search criterias.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List of <a class="reference internal" href="mss_dataserver.event.core.Event.html#mss_dataserver.event.core.Event" title="mss_dataserver.event.core.Event"><code class="xref py py-class docutils literal notranslate"><span class="pre">mss_dataserver.event.core.Event</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.project.Project.load_database_table_structure.html" title="load_database_table_structure"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.project.Project.get_event_catalog_names.html" title="get_event_catalog_names"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.core.html" >mss_dataserver.core</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="mss_dataserver.core.project.html" >mss_dataserver.core.project</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="mss_dataserver.core.project.Project.html" >Project</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">get_events</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stefan Mertl.
+      Last updated on 2021-04-22 20:20.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

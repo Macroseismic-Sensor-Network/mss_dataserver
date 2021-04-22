@@ -1,0 +1,7 @@
+dict
+=========================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. automethod:: Event.dict
+
+

@@ -1,0 +1,7 @@
+compute_triangle_max_pgv
+=================================================================================
+
+.. currentmodule:: mss_dataserver.event.delaunay_detection
+.. automethod:: DelaunayDetector.compute_triangle_max_pgv
+
+

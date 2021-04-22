@@ -1,0 +1,7 @@
+update
+===============================================
+
+.. currentmodule:: mss_dataserver.event.detection
+.. automethod:: Detection.update
+
+

@@ -1,0 +1,7 @@
+has_changed
+============================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbInventory.has_changed
+
+

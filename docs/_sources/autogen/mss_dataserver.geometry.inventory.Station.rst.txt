@@ -1,0 +1,53 @@
+Station
+=========================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. autoclass:: Station
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~Station.assigned_recorders
+      ~Station.assigned_recorders_string
+      ~Station.assigned_sensors_string
+      ~Station.available_channels_string
+      ~Station.location_string
+      ~Station.network
+      ~Station.nsl
+      ~Station.nsl_string
+      ~Station.parent_inventory
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~Station.__init__
+      ~Station.add_channel
+      ~Station.as_dict
+      ~Station.from_dict
+      ~Station.get_channel
+      ~Station.get_lon_lat
+      ~Station.get_nslc
+      ~Station.get_unique_channel_names
+      ~Station.merge
+      ~Station.remove_channel_by_instance
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.inventory.Station

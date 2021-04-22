@@ -1,0 +1,7 @@
+add_stream
+====================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: Channel.add_stream
+
+

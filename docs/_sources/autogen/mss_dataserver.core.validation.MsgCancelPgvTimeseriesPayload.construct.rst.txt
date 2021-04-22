@@ -1,0 +1,7 @@
+construct
+======================================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. automethod:: MsgCancelPgvTimeseriesPayload.construct
+
+

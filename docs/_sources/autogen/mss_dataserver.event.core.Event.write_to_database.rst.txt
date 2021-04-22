@@ -1,0 +1,7 @@
+write_to_database
+=================================================
+
+.. currentmodule:: mss_dataserver.event.core
+.. automethod:: Event.write_to_database
+
+

@@ -1,0 +1,7 @@
+load_arrays
+============================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbInventory.load_arrays
+
+

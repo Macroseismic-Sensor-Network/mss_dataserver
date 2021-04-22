@@ -1,0 +1,7 @@
+convert_np_ndarray
+===============================================================================
+
+.. currentmodule:: mss_dataserver.core.json_util
+.. automethod:: SupplementDetectionDataEncoder.convert_np_ndarray
+
+

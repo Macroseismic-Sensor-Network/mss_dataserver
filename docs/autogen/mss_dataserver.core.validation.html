@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mss_dataserver.core.validation &#8212; mss_dataserver 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/haiku_maar.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Event" href="mss_dataserver.core.validation.Event.html" />
+    <link rel="prev" title="string_to_tuple" href="mss_dataserver.core.util.Version.string_to_tuple.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../index.html">
+          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>mss_dataserver.core.validation</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.validation.Event.html" title="Event"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.util.Version.string_to_tuple.html" title="string_to_tuple"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.core.html" accesskey="U">mss_dataserver.core</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.core.validation</a></li> 
+      </ul>
+    </div>
+      </div>
+      <div class="content" role="main">
+        
+        
+  <div class="section" id="module-mss_dataserver.core.validation">
+<span id="mss-dataserver-core-validation"></span><h1>mss_dataserver.core.validation<a class="headerlink" href="#module-mss_dataserver.core.validation" title="Permalink to this headline">¶</a></h1>
+<p>Pydantic data validation models.</p>
+<p>The validation models are used to validate the data messages
+sent and received using the websocket interface.</p>
+<p class="rubric">Classes</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.validation.Event.html#mss_dataserver.core.validation.Event" title="mss_dataserver.core.validation.Event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Event</span></code></a>(*, db_id, public_id, start_time, …)</p></td>
+<td><p>The Event validation model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.validation.MsgCancelIdEnum.html#mss_dataserver.core.validation.MsgCancelIdEnum" title="mss_dataserver.core.validation.MsgCancelIdEnum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MsgCancelIdEnum</span></code></a>(value)</p></td>
+<td><p>The cancel message id enumeration.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.validation.MsgCancelPgvTimeseriesPayload.html#mss_dataserver.core.validation.MsgCancelPgvTimeseriesPayload" title="mss_dataserver.core.validation.MsgCancelPgvTimeseriesPayload"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MsgCancelPgvTimeseriesPayload</span></code></a>(*, nsl_code)</p></td>
+<td><p>The cancel:pgv_timeseries message payload model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.validation.MsgClassEnum.html#mss_dataserver.core.validation.MsgClassEnum" title="mss_dataserver.core.validation.MsgClassEnum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MsgClassEnum</span></code></a>(value)</p></td>
+<td><p>The websocket message class enumeration.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.validation.MsgControlIdEnum.html#mss_dataserver.core.validation.MsgControlIdEnum" title="mss_dataserver.core.validation.MsgControlIdEnum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MsgControlIdEnum</span></code></a>(value)</p></td>
+<td><p>The control message id enumeration.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.validation.MsgControlModeDataModeEnum.html#mss_dataserver.core.validation.MsgControlModeDataModeEnum" title="mss_dataserver.core.validation.MsgControlModeDataModeEnum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MsgControlModeDataModeEnum</span></code></a>(value)</p></td>
+<td><p>The control:datamode enumeration.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.validation.MsgControlModePayload.html#mss_dataserver.core.validation.MsgControlModePayload" title="mss_dataserver.core.validation.MsgControlModePayload"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MsgControlModePayload</span></code></a>(*, data_mode)</p></td>
+<td><p>The control:mode message model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.validation.MsgDataIdEnum.html#mss_dataserver.core.validation.MsgDataIdEnum" title="mss_dataserver.core.validation.MsgDataIdEnum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MsgDataIdEnum</span></code></a>(value)</p></td>
+<td><p>The data message id enumeration.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.validation.MsgRequestEventSupplementCategoryEnum.html#mss_dataserver.core.validation.MsgRequestEventSupplementCategoryEnum" title="mss_dataserver.core.validation.MsgRequestEventSupplementCategoryEnum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MsgRequestEventSupplementCategoryEnum</span></code></a>(value)</p></td>
+<td><p>The request:event_supplement_category enumeration.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.validation.MsgRequestEventSupplementNameEnum.html#mss_dataserver.core.validation.MsgRequestEventSupplementNameEnum" title="mss_dataserver.core.validation.MsgRequestEventSupplementNameEnum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MsgRequestEventSupplementNameEnum</span></code></a>(value)</p></td>
+<td><p>The request:event_supplement_name enumeration.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.validation.MsgRequestEventSupplementPayload.html#mss_dataserver.core.validation.MsgRequestEventSupplementPayload" title="mss_dataserver.core.validation.MsgRequestEventSupplementPayload"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MsgRequestEventSupplementPayload</span></code></a>(*, …)</p></td>
+<td><p>The request:event_supplement message payload model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.validation.MsgRequestIdEnum.html#mss_dataserver.core.validation.MsgRequestIdEnum" title="mss_dataserver.core.validation.MsgRequestIdEnum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MsgRequestIdEnum</span></code></a>(value)</p></td>
+<td><p>The request message id enumeration.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.validation.MsgRequestPgvTimeseriesPayload.html#mss_dataserver.core.validation.MsgRequestPgvTimeseriesPayload" title="mss_dataserver.core.validation.MsgRequestPgvTimeseriesPayload"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MsgRequestPgvTimeseriesPayload</span></code></a>(*, nsl_code)</p></td>
+<td><p>The request:pgv_timeseries message payload model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.validation.MsgSohIdEnum.html#mss_dataserver.core.validation.MsgSohIdEnum" title="mss_dataserver.core.validation.MsgSohIdEnum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MsgSohIdEnum</span></code></a>(value)</p></td>
+<td><p>The SOH message id enumeration.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.validation.WSMessage.html#mss_dataserver.core.validation.WSMessage" title="mss_dataserver.core.validation.WSMessage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WSMessage</span></code></a>(*, header, payload)</p></td>
+<td><p>The websocket message model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.validation.WSMessageHeader.html#mss_dataserver.core.validation.WSMessageHeader" title="mss_dataserver.core.validation.WSMessageHeader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WSMessageHeader</span></code></a>(*, msg_class, msg_id, …)</p></td>
+<td><p>The websocket message header model.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.validation.Event.html" title="Event"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.util.Version.string_to_tuple.html" title="string_to_tuple"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.core.html" >mss_dataserver.core</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.core.validation</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stefan Mertl.
+      Last updated on 2021-04-22 20:20.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

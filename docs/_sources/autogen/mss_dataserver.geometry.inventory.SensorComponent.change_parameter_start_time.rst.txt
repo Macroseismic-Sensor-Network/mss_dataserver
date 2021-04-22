@@ -1,0 +1,7 @@
+change_parameter_start_time
+=============================================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: SensorComponent.change_parameter_start_time
+
+

@@ -1,0 +1,7 @@
+load_detection_catalog
+==========================================================
+
+.. currentmodule:: mss_dataserver.core.project
+.. automethod:: Project.load_detection_catalog
+
+

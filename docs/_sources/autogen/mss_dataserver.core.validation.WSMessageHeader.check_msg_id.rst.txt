@@ -1,0 +1,7 @@
+check_msg_id
+===========================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. automethod:: WSMessageHeader.check_msg_id
+
+

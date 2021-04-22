@@ -1,0 +1,49 @@
+DbSensorComponent
+======================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. autoclass:: DbSensorComponent
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~DbSensorComponent.assigned_streams
+      ~DbSensorComponent.id
+      ~DbSensorComponent.model
+      ~DbSensorComponent.parent_inventory
+      ~DbSensorComponent.producer
+      ~DbSensorComponent.serial
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~DbSensorComponent.__init__
+      ~DbSensorComponent.add_parameter
+      ~DbSensorComponent.change_parameter_end_time
+      ~DbSensorComponent.change_parameter_start_time
+      ~DbSensorComponent.from_inventory_instance
+      ~DbSensorComponent.from_sqlalchemy_orm
+      ~DbSensorComponent.get_parameter
+      ~DbSensorComponent.merge
+      ~DbSensorComponent.remove_parameter
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.db_inventory.DbSensorComponent

@@ -1,0 +1,30 @@
+MsgSohIdEnum
+===========================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. autoclass:: MsgSohIdEnum
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~MsgSohIdEnum.connection
+      ~MsgSohIdEnum.server_state
+
+
+
+
+      
+
+
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.validation.MsgSohIdEnum

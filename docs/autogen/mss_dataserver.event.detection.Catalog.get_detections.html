@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>get_detections &#8212; mss_dataserver 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/haiku_maar.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="load_detections" href="mss_dataserver.event.detection.Catalog.load_detections.html" />
+    <link rel="prev" title="from_orm" href="mss_dataserver.event.detection.Catalog.from_orm.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../index.html">
+          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>get_detections</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.event.detection.Catalog.load_detections.html" title="load_detections"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.event.detection.Catalog.from_orm.html" title="from_orm"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.event.html" >mss_dataserver.event</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="mss_dataserver.event.detection.html" >mss_dataserver.event.detection</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="mss_dataserver.event.detection.Catalog.html" accesskey="U">Catalog</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">get_detections</a></li> 
+      </ul>
+    </div>
+      </div>
+      <div class="content" role="main">
+        
+        
+  <div class="section" id="get-detections">
+<h1>get_detections<a class="headerlink" href="#get-detections" title="Permalink to this headline">¶</a></h1>
+<dl class="py method">
+<dt id="mss_dataserver.event.detection.Catalog.get_detections">
+<code class="sig-prename descclassname"><span class="pre">Catalog.</span></code><code class="sig-name descname"><span class="pre">get_detections</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_inside</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_inside</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mss_dataserver/event/detection.html#Catalog.get_detections"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.event.detection.Catalog.get_detections" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get detections using search criteria passed as keywords.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_time</strong> (class:<cite>obspy.UTCDateTime</cite>) – The minimum starttime of the detections.</p></li>
+<li><p><strong>end_time</strong> (class:<cite>obspy.UTCDateTime</cite>) – The maximum end_time of the detections.</p></li>
+<li><p><strong>start_inside</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, select only those detection with a start time
+inside the search window.</p></li>
+<li><p><strong>end_inside</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If True, select only those detection with an end time
+inside the search window.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>nslc</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>) – The network-station-location-channel code (e.g (‘XX’, ‘DUBA’, ‘00’, ‘HNormal’)).</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The detection matching the search criteria.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="mss_dataserver.event.detection.Detection.html#mss_dataserver.event.detection.Detection" title="mss_dataserver.event.detection.Detection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Detection</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.event.detection.Catalog.load_detections.html" title="load_detections"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.event.detection.Catalog.from_orm.html" title="from_orm"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.event.html" >mss_dataserver.event</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="mss_dataserver.event.detection.html" >mss_dataserver.event.detection</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="mss_dataserver.event.detection.Catalog.html" >Catalog</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">get_detections</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stefan Mertl.
+      Last updated on 2021-04-22 20:20.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

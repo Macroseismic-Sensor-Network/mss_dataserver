@@ -1,0 +1,35 @@
+Recorder
+==========================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. autoclass:: Recorder
+   :show-inheritance:
+
+
+
+
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~Recorder.__init__
+      ~Recorder.add_stream
+      ~Recorder.get_stream
+      ~Recorder.merge
+      ~Recorder.pop_stream
+      ~Recorder.pop_stream_by_instance
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.inventory.Recorder

@@ -1,0 +1,43 @@
+GeneralFileDecoder
+================================================
+
+.. currentmodule:: mss_dataserver.core.json_util
+.. autoclass:: GeneralFileDecoder
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~GeneralFileDecoder.version
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~GeneralFileDecoder.__init__
+      ~GeneralFileDecoder.convert_dict
+      ~GeneralFileDecoder.convert_np_array
+      ~GeneralFileDecoder.convert_utcdatetime
+      ~GeneralFileDecoder.convert_version
+      ~GeneralFileDecoder.decode
+      ~GeneralFileDecoder.decode_hinted_tuple
+      ~GeneralFileDecoder.raw_decode
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.json_util.GeneralFileDecoder

@@ -1,0 +1,7 @@
+process_recorders
+=============================================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory_parser
+.. automethod:: InventoryXmlParser.process_recorders
+
+

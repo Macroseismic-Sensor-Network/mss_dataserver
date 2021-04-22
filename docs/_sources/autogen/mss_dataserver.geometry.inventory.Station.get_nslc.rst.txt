@@ -1,0 +1,7 @@
+get_nslc
+==================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: Station.get_nslc
+
+

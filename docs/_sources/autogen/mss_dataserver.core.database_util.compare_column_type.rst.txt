@@ -1,0 +1,6 @@
+mss_dataserver.core.database_util.compare_column_type
+=====================================================
+
+.. currentmodule:: mss_dataserver.core.database_util
+
+.. autofunction:: compare_column_type

@@ -1,0 +1,7 @@
+process_assigned_components
+=======================================================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory_parser
+.. automethod:: InventoryXmlParser.process_assigned_components
+
+

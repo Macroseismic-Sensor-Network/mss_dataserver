@@ -1,0 +1,7 @@
+set_transfer_function
+=====================================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbSensorComponentParameter.set_transfer_function
+
+

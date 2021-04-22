@@ -1,0 +1,7 @@
+get_detection_limits_per_station
+================================================================
+
+.. currentmodule:: mss_dataserver.event.core
+.. automethod:: Event.get_detection_limits_per_station
+
+

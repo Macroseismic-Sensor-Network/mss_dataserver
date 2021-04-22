@@ -1,0 +1,49 @@
+DbChannel
+==============================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. autoclass:: DbChannel
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~DbChannel.assigned_recorders
+      ~DbChannel.id
+      ~DbChannel.nslc
+      ~DbChannel.nslc_string
+      ~DbChannel.parent_inventory
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~DbChannel.__init__
+      ~DbChannel.add_stream
+      ~DbChannel.as_dict
+      ~DbChannel.from_dict
+      ~DbChannel.from_inventory_instance
+      ~DbChannel.from_sqlalchemy_orm
+      ~DbChannel.get_stream
+      ~DbChannel.merge
+      ~DbChannel.remove_stream
+      ~DbChannel.remove_stream_by_instance
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.db_inventory.DbChannel

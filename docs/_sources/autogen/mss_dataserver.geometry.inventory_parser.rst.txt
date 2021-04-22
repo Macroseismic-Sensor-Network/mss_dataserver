@@ -1,0 +1,29 @@
+mss_dataserver.geometry.inventory_parser
+========================================
+
+.. automodule:: mss_dataserver.geometry.inventory_parser
+
+
+
+
+
+
+
+
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree: .
+   
+      InventoryXmlParser
+
+
+
+
+
+
+
+
+
+
+

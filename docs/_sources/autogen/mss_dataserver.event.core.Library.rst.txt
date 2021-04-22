@@ -1,0 +1,38 @@
+Library
+=================================
+
+.. currentmodule:: mss_dataserver.event.core
+.. autoclass:: Library
+   :show-inheritance:
+
+
+
+
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~Library.__init__
+      ~Library.add_catalog
+      ~Library.clear
+      ~Library.get_catalogs_in_db
+      ~Library.get_events
+      ~Library.load_catalog_from_db
+      ~Library.load_event_by_id
+      ~Library.load_event_from_db
+      ~Library.remove_catalog
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.event.core.Library

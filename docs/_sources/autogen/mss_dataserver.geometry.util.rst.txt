@@ -1,0 +1,32 @@
+mss_dataserver.geometry.util
+============================
+
+.. automodule:: mss_dataserver.geometry.util
+
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree: .
+   
+      epsg_from_srs
+      get_epsg_dict
+      lon2UtmZone
+      zone2UtmCentralMeridian
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

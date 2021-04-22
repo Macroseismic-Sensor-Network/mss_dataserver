@@ -1,0 +1,49 @@
+Event
+====================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. autoclass:: Event
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~Event.fields
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~Event.__init__
+      ~Event.construct
+      ~Event.copy
+      ~Event.dict
+      ~Event.from_orm
+      ~Event.json
+      ~Event.parse_file
+      ~Event.parse_obj
+      ~Event.parse_raw
+      ~Event.schema
+      ~Event.schema_json
+      ~Event.to_string
+      ~Event.update_forward_refs
+      ~Event.validate
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.validation.Event

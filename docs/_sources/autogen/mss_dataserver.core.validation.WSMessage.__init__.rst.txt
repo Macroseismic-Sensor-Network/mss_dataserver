@@ -1,0 +1,7 @@
+__init__
+=================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. automethod:: WSMessage.__init__
+
+

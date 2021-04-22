@@ -1,0 +1,7 @@
+load_inventory_from_xml
+===========================================================
+
+.. currentmodule:: mss_dataserver.core.project
+.. automethod:: Project.load_inventory_from_xml
+
+

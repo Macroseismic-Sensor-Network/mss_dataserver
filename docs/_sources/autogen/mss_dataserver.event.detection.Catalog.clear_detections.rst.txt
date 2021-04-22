@@ -1,0 +1,7 @@
+clear_detections
+=======================================================
+
+.. currentmodule:: mss_dataserver.event.detection
+.. automethod:: Catalog.clear_detections
+
+

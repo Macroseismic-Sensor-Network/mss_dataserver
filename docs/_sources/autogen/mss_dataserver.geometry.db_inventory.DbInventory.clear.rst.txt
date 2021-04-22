@@ -1,0 +1,7 @@
+clear
+======================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbInventory.clear
+
+

@@ -1,0 +1,4 @@
+<map id="inheritanceeab18b9f2e" name="inheritanceeab18b9f2e">
+<area shape="rect" id="node1" href="#mss_dataserver.core.validation.MsgRequestPgvTimeseriesPayload" target="_top" title="The request:pgv_timeseries message payload model." alt="" coords="5,152,460,177"/>
+<area shape="rect" id="node3" title="Mixin to provide __str__, __repr__, and __pretty__ methods. See #884 for more details." alt="" coords="127,5,339,31"/>
+</map>

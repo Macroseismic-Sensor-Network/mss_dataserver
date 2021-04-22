@@ -1,0 +1,7 @@
+remove_stream_by_instance
+========================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbChannel.remove_stream_by_instance
+
+

@@ -1,0 +1,46 @@
+DbSensorComponentParameter
+===============================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. autoclass:: DbSensorComponentParameter
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~DbSensorComponentParameter.end_time_string
+      ~DbSensorComponentParameter.id
+      ~DbSensorComponentParameter.parent_inventory
+      ~DbSensorComponentParameter.poles_string
+      ~DbSensorComponentParameter.start_time_string
+      ~DbSensorComponentParameter.zeros_string
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~DbSensorComponentParameter.__init__
+      ~DbSensorComponentParameter.from_inventory_instance
+      ~DbSensorComponentParameter.from_sqlalchemy_orm
+      ~DbSensorComponentParameter.set_transfer_function
+      ~DbSensorComponentParameter.tf_add_complex_pole
+      ~DbSensorComponentParameter.tf_add_complex_zero
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.db_inventory.DbSensorComponentParameter

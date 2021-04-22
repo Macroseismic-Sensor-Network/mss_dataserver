@@ -1,0 +1,49 @@
+MsgRequestPgvTimeseriesPayload
+=============================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. autoclass:: MsgRequestPgvTimeseriesPayload
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~MsgRequestPgvTimeseriesPayload.fields
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~MsgRequestPgvTimeseriesPayload.__init__
+      ~MsgRequestPgvTimeseriesPayload.construct
+      ~MsgRequestPgvTimeseriesPayload.copy
+      ~MsgRequestPgvTimeseriesPayload.dict
+      ~MsgRequestPgvTimeseriesPayload.from_orm
+      ~MsgRequestPgvTimeseriesPayload.json
+      ~MsgRequestPgvTimeseriesPayload.parse_file
+      ~MsgRequestPgvTimeseriesPayload.parse_obj
+      ~MsgRequestPgvTimeseriesPayload.parse_raw
+      ~MsgRequestPgvTimeseriesPayload.schema
+      ~MsgRequestPgvTimeseriesPayload.schema_json
+      ~MsgRequestPgvTimeseriesPayload.to_string
+      ~MsgRequestPgvTimeseriesPayload.update_forward_refs
+      ~MsgRequestPgvTimeseriesPayload.validate
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.validation.MsgRequestPgvTimeseriesPayload

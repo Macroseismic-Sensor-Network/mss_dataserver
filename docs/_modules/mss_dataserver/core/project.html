@@ -1,0 +1,600 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mss_dataserver.core.project &#8212; mss_dataserver 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/haiku_maar.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
+          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>mss_dataserver.core.project</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.core.project</a></li> 
+      </ul>
+    </div>
+      </div>
+      <div class="content" role="main">
+        
+        
+  <h1>Source code for mss_dataserver.core.project</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">##############################################################################</span>
+ <span class="c1"># LICENSE</span>
+ <span class="c1">#</span>
+ <span class="c1"># This file is part of mss_dataserver.</span>
+ <span class="c1"># </span>
+ <span class="c1"># If you use mss_dataserver in any program or publication, please inform and</span>
+ <span class="c1"># acknowledge its authors.</span>
+ <span class="c1"># </span>
+ <span class="c1"># mss_dataserver is free software: you can redistribute it and/or modify</span>
+ <span class="c1"># it under the terms of the GNU General Public License as published by</span>
+ <span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+ <span class="c1"># (at your option) any later version.</span>
+ <span class="c1"># </span>
+ <span class="c1"># mss_dataserver is distributed in the hope that it will be useful,</span>
+ <span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+ <span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+ <span class="c1"># GNU General Public License for more details.</span>
+ <span class="c1"># </span>
+ <span class="c1"># You should have received a copy of the GNU General Public License</span>
+ <span class="c1"># along with mss_dataserver. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+ <span class="c1">#</span>
+ <span class="c1"># Copyright 2019 Stefan Mertl</span>
+<span class="c1">##############################################################################</span>
+
+<span class="sd">&#39;&#39;&#39; MSS Dataserver Project.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">configparser</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">sqlalchemy</span>
+<span class="kn">import</span> <span class="nn">sqlalchemy.ext.declarative</span>
+<span class="kn">import</span> <span class="nn">sqlalchemy.orm</span>
+
+<span class="kn">import</span> <span class="nn">mss_dataserver.event</span> <span class="k">as</span> <span class="nn">event</span>
+<span class="kn">import</span> <span class="nn">mss_dataserver.event.core</span>
+<span class="kn">import</span> <span class="nn">mss_dataserver.geometry</span> <span class="k">as</span> <span class="nn">geometry</span>
+<span class="kn">import</span> <span class="nn">mss_dataserver.core.database_util</span> <span class="k">as</span> <span class="nn">db_util</span>
+<span class="kn">import</span> <span class="nn">mss_dataserver.geometry.inventory_parser</span> <span class="k">as</span> <span class="nn">inventory_parser</span>
+<span class="kn">import</span> <span class="nn">mss_dataserver.geometry.db_inventory</span> <span class="k">as</span> <span class="nn">database_inventory</span>
+
+
+<div class="viewcode-block" id="Project"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.project.Project.html#mss_dataserver.core.project.Project">[docs]</a><span class="k">class</span> <span class="nc">Project</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; A project holds global configuration and settings.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    kwargs: dict</span>
+<span class="sd">        The dictionary created from the configuration file.</span>
+
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    logger: logging.Logger</span>
+<span class="sd">        The logger instance.</span>
+
+<span class="sd">    project_config: dict</span>
+<span class="sd">        The *project* configuration section.</span>
+
+<span class="sd">    author_uri: String</span>
+<span class="sd">        The Uniform Resource Identifier of the author.</span>
+<span class="sd">  </span>
+<span class="sd">    agency_uri: String</span>
+<span class="sd">        The Uniform Resource Identifier of the author agency.</span>
+
+<span class="sd">    config: dict</span>
+<span class="sd">        The complete configuration dictionary (kwargs).</span>
+
+<span class="sd">    process_config: dict</span>
+<span class="sd">        The *process* configuration section.</span>
+
+<span class="sd">    db_host: String</span>
+<span class="sd">        The URL or IP of the database host.</span>
+
+<span class="sd">    db_username: String</span>
+<span class="sd">        The database user name.</span>
+
+<span class="sd">    db_pwd: String</span>
+<span class="sd">        The database password.</span>
+
+<span class="sd">    db_dialect: String</span>
+<span class="sd">        The dialect of the database.</span>
+
+<span class="sd">    db_driver: String</span>
+<span class="sd">        The driver of the database.</span>
+
+<span class="sd">    db_database_name: String</span>
+<span class="sd">        The name of the database.</span>
+
+<span class="sd">    db_tables: list</span>
+<span class="sd">        The tables loaded from the database.</span>
+
+<span class="sd">    db_inventory: :class:`mss_dataserver.geometry.DbInventory`</span>
+<span class="sd">        The geometry inventory of the project.</span>
+
+<span class="sd">    inventory: :class:`mss_dataserer.geometry.DbInventory`</span>
+<span class="sd">        A dynamic property returning db_inventory.</span>
+
+<span class="sd">    event_library: :class:`mss_dataserver.event.core.Library`</span>
+<span class="sd">        The event library of the project.</span>
+
+<span class="sd">    detection_library: :class:`mss_dataserver.detection.Library`</span>
+<span class="sd">        The detection library of the project.</span>
+
+<span class="sd">    </span>
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :meth:`mss_dataserver.core.util.load_configuration`</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="Project.__init__"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.project.Project.__init__.html#mss_dataserver.core.project.Project.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Initialize the instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">logger_name</span> <span class="o">=</span> <span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">logger_name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">project_config</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">author_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_config</span><span class="p">[</span><span class="s1">&#39;author_uri&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agency_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_config</span><span class="p">[</span><span class="s1">&#39;agency_uri&#39;</span><span class="p">]</span>
+
+        <span class="c1"># The complete configuration content.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">kwargs</span>
+
+        <span class="c1"># The processing configuration.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process_config</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;process&#39;</span><span class="p">]</span>
+
+        <span class="c1"># The database configuration.</span>
+        <span class="n">db_config</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;database&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_host</span> <span class="o">=</span> <span class="n">db_config</span><span class="p">[</span><span class="s1">&#39;host&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_username</span> <span class="o">=</span> <span class="n">db_config</span><span class="p">[</span><span class="s1">&#39;username&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_pwd</span> <span class="o">=</span> <span class="n">db_config</span><span class="p">[</span><span class="s1">&#39;password&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_dialect</span> <span class="o">=</span> <span class="n">db_config</span><span class="p">[</span><span class="s1">&#39;dialect&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_driver</span> <span class="o">=</span> <span class="n">db_config</span><span class="p">[</span><span class="s1">&#39;driver&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_database_name</span> <span class="o">=</span> <span class="n">db_config</span><span class="p">[</span><span class="s1">&#39;database_name&#39;</span><span class="p">]</span>
+
+        <span class="c1"># Check and create the output directories.</span>
+        <span class="n">output_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">][</span><span class="s1">&#39;data_dir&#39;</span><span class="p">],</span>
+                       <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">][</span><span class="s1">&#39;event_dir&#39;</span><span class="p">]]</span>
+        <span class="k">for</span> <span class="n">cur_dir</span> <span class="ow">in</span> <span class="n">output_dirs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cur_dir</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">cur_dir</span><span class="p">)</span>
+
+        <span class="c1"># The database connection state.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_engine</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_metadata</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_base</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_session_class</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># A dictionary of the project database tables.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_tables</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># The geometry inventory.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_inventory</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># The events library.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event_library</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">Library</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;mss events&#39;</span><span class="p">)</span>
+
+        <span class="c1"># The detections library.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">detection_library</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">detection</span><span class="o">.</span><span class="n">Library</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;mss detections&#39;</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">inventory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; The geometry inventory.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_inventory</span>
+
+
+<div class="viewcode-block" id="Project.connect_to_db"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.project.Project.connect_to_db.html#mss_dataserver.core.project.Project.connect_to_db">[docs]</a>    <span class="k">def</span> <span class="nf">connect_to_db</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Connect to the database.</span>
+
+<span class="sd">        Connect to the database using the parameters specified in </span>
+<span class="sd">        the configuration file.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_driver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">dialect_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_dialect</span> <span class="o">+</span> <span class="s2">&quot;+&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_driver</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dialect_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_dialect</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_pwd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">engine_string</span> <span class="o">=</span> <span class="n">dialect_string</span> <span class="o">+</span> <span class="s2">&quot;://&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_username</span> <span class="o">+</span> <span class="s2">&quot;:&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_pwd</span> <span class="o">+</span> <span class="s2">&quot;@&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_host</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_database_name</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">engine_string</span> <span class="o">=</span> <span class="n">dialect_string</span> <span class="o">+</span> <span class="s2">&quot;://&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_username</span> <span class="o">+</span> <span class="s2">&quot;@&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_host</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_database_name</span>
+
+            <span class="n">engine_string</span> <span class="o">=</span> <span class="n">engine_string</span> <span class="o">+</span> <span class="s2">&quot;?charset=utf8&quot;</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">db_engine</span> <span class="o">=</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">create_engine</span><span class="p">(</span><span class="n">engine_string</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db_engine</span><span class="o">.</span><span class="n">echo</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db_metadata</span> <span class="o">=</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_engine</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db_base</span> <span class="o">=</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">ext</span><span class="o">.</span><span class="n">declarative</span><span class="o">.</span><span class="n">declarative_base</span><span class="p">(</span><span class="n">metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_metadata</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db_session_class</span> <span class="o">=</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">orm</span><span class="o">.</span><span class="n">sessionmaker</span><span class="p">(</span><span class="n">bind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_engine</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Can&#39;t connect to the database.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_base</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_database_table_structure</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The db_metadata is empty. There seems to be no connection to the database.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Project.load_database_table_structure"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.project.Project.load_database_table_structure.html#mss_dataserver.core.project.Project.load_database_table_structure">[docs]</a>    <span class="k">def</span> <span class="nf">load_database_table_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Load the required database tables from the modules.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">geom_tables</span> <span class="o">=</span> <span class="n">geometry</span><span class="o">.</span><span class="n">databaseFactory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_base</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cur_table</span> <span class="ow">in</span> <span class="n">geom_tables</span><span class="p">:</span>
+            <span class="n">cur_name</span> <span class="o">=</span> <span class="n">cur_table</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db_tables</span><span class="p">[</span><span class="n">cur_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_table</span>
+
+        <span class="n">event_tables</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">databaseFactory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_base</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cur_table</span> <span class="ow">in</span> <span class="n">event_tables</span><span class="p">:</span>
+            <span class="n">cur_name</span> <span class="o">=</span> <span class="n">cur_table</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db_tables</span><span class="p">[</span><span class="n">cur_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_table</span></div>
+
+
+
+<div class="viewcode-block" id="Project.create_database_tables"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.project.Project.create_database_tables.html#mss_dataserver.core.project.Project.create_database_tables">[docs]</a>    <span class="k">def</span> <span class="nf">create_database_tables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create the database tables needed for the project.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">cur_key</span><span class="p">,</span> <span class="n">cur_table</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_tables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating table </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">cur_key</span><span class="p">)</span>
+            <span class="n">db_util</span><span class="o">.</span><span class="n">db_table_migration</span><span class="p">(</span><span class="n">table</span> <span class="o">=</span> <span class="n">cur_table</span><span class="p">,</span>
+                                       <span class="n">engine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_engine</span><span class="p">,</span>
+                                       <span class="n">prefix</span> <span class="o">=</span> <span class="s1">&#39;dataserver_&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_metadata</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">db_metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The db_metadata is empty. There seems to be no connection to the database.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error creating the database tables.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Project.get_db_session"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.project.Project.get_db_session.html#mss_dataserver.core.project.Project.get_db_session">[docs]</a>    <span class="k">def</span> <span class="nf">get_db_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a sqlAlchemy database session.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        session : :class:`orm.session.Session`</span>
+<span class="sd">            A sqlAlchemy database session.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_session_class</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Project.load_inventory"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.project.Project.load_inventory.html#mss_dataserver.core.project.Project.load_inventory">[docs]</a>    <span class="k">def</span> <span class="nf">load_inventory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update_from_xml</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Load the geometry inventory.</span>
+
+<span class="sd">        Load the geometry inventory from the database. </span>
+<span class="sd">        If specified, read the inventory XML file specified in the </span>
+<span class="sd">        project configuration and update the database with the loaded</span>
+<span class="sd">        inventory.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        update_from_xml: bool</span>
+<span class="sd">            If True, the database is updated with the data loaded from </span>
+<span class="sd">            the inventory XML file.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># Load the existing inventory from the database.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db_inventory</span> <span class="o">=</span> <span class="n">database_inventory</span><span class="o">.</span><span class="n">DbInventory</span><span class="p">(</span><span class="n">project</span> <span class="o">=</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db_inventory</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error while loading the database inventory.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">update_from_xml</span><span class="p">:</span>
+            <span class="c1"># Read the inventory from the XML file.</span>
+            <span class="n">inventory_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_config</span><span class="p">[</span><span class="s1">&#39;inventory_file&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">inventory_file</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Can&#39;t find the inventory file </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span>
+                                  <span class="n">inventory_file</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+            <span class="n">parser</span> <span class="o">=</span> <span class="n">inventory_parser</span><span class="o">.</span><span class="n">InventoryXmlParser</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">xml_inventory</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">inventory_file</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t load the inventory from file </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span>
+                                      <span class="n">inventory_file</span><span class="p">)</span>
+
+            <span class="c1"># Update the database inventory with the loaded XML inventory.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db_inventory</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">xml_inventory</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db_inventory</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+            <span class="c1"># Reload to get all ORM objects.</span>
+            <span class="c1"># TODO: Check how to get the ORM objects without reloading the</span>
+            <span class="c1"># inventory.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db_inventory</span> <span class="o">=</span> <span class="n">database_inventory</span><span class="o">.</span><span class="n">DbInventory</span><span class="p">(</span><span class="n">project</span> <span class="o">=</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db_inventory</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Updated the database inventory with data read from </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">inventory_file</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Project.load_inventory_from_xml"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.project.Project.load_inventory_from_xml.html#mss_dataserver.core.project.Project.load_inventory_from_xml">[docs]</a>    <span class="k">def</span> <span class="nf">load_inventory_from_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Load the inventory directly from the XML file ignoring the database.</span>
+<span class="sd">        </span>
+<span class="sd">        This function can be used when a database connction is not available,</span>
+<span class="sd">        but the inventory information is needed, e.g. when postprocessing </span>
+<span class="sd">        events.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># Read the inventory from the XML file.</span>
+        <span class="n">inventory_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_config</span><span class="p">[</span><span class="s1">&#39;inventory_file&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">inventory_file</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Can&#39;t find the inventory file </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span>
+                              <span class="n">inventory_file</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">inventory_parser</span><span class="o">.</span><span class="n">InventoryXmlParser</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">xml_inventory</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">inventory_file</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t load the inventory from file </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span>
+                                  <span class="n">inventory_file</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_inventory</span> <span class="o">=</span> <span class="n">xml_inventory</span></div>
+
+
+<div class="viewcode-block" id="Project.get_event_catalog"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.project.Project.get_event_catalog.html#mss_dataserver.core.project.Project.get_event_catalog">[docs]</a>    <span class="k">def</span> <span class="nf">get_event_catalog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Get an event catalog.</span>
+
+<span class="sd">        If the catalog doesn&#39;t exist, a new catalog is created.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name: String</span>
+<span class="sd">            The name of the catalog to get.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        cur_cat: :class:`mss_dataserver.event.core.Catalog`</span>
+<span class="sd">            The catalog with name *name*.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_library</span><span class="o">.</span><span class="n">catalogs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using an already existing catalog in the library.&quot;</span><span class="p">)</span>
+            <span class="n">cur_cat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_library</span><span class="o">.</span><span class="n">catalogs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ev_catalogs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_library</span><span class="o">.</span><span class="n">get_catalogs_in_db</span><span class="p">(</span><span class="n">project</span> <span class="o">=</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ev_catalogs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating a new event catalog.&quot;</span><span class="p">)</span>
+                <span class="n">cur_cat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_event_catalog</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading the event catalog from database.&quot;</span><span class="p">)</span>
+                <span class="n">cur_cat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_event_catalog</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">,</span>
+                                                  <span class="n">load_events</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cur_cat</span></div>
+
+    
+<div class="viewcode-block" id="Project.get_event_catalog_names"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.project.Project.get_event_catalog_names.html#mss_dataserver.core.project.Project.get_event_catalog_names">[docs]</a>    <span class="k">def</span> <span class="nf">get_event_catalog_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Get the event catalog names available in the database.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        cat_names: list of Strings</span>
+<span class="sd">            The names of the event catalogs available in the database.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_library</span><span class="o">.</span><span class="n">get_catalogs_in_db</span><span class="p">(</span><span class="n">project</span> <span class="o">=</span> <span class="bp">self</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="Project.create_event_catalog"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.project.Project.create_event_catalog.html#mss_dataserver.core.project.Project.create_event_catalog">[docs]</a>    <span class="k">def</span> <span class="nf">create_event_catalog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create an event catalog in the database.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name: String</span>
+<span class="sd">            The name of the catalog.</span>
+
+<span class="sd">        description: String</span>
+<span class="sd">            The description of the catalog.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        cat: :class:`mss_dataserver.event.core.Catalog`</span>
+<span class="sd">            The created catalog.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">cat</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">,</span>
+                                 <span class="n">description</span> <span class="o">=</span> <span class="n">description</span><span class="p">,</span>
+                                 <span class="n">agency_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agency_uri</span><span class="p">,</span>
+                                 <span class="n">author_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">author_uri</span><span class="p">)</span>
+        <span class="n">cat</span><span class="o">.</span><span class="n">write_to_database</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event_library</span><span class="o">.</span><span class="n">add_catalog</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cat</span></div>
+
+    
+<div class="viewcode-block" id="Project.load_event_catalog"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.project.Project.load_event_catalog.html#mss_dataserver.core.project.Project.load_event_catalog">[docs]</a>    <span class="k">def</span> <span class="nf">load_event_catalog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">load_events</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Load an event catalog from the database.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name: String</span>
+<span class="sd">            The name of the catalog to load.</span>
+
+<span class="sd">        load_events: bool</span>
+<span class="sd">            Load the events from the database.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        cat: :class:`mss_dataserver.event.core.Catalog`</span>
+<span class="sd">            The loaded catalog.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event_library</span><span class="o">.</span><span class="n">load_catalog_from_db</span><span class="p">(</span><span class="n">project</span> <span class="o">=</span> <span class="bp">self</span><span class="p">,</span>
+                                                <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">,</span>
+                                                <span class="n">load_events</span> <span class="o">=</span> <span class="n">load_events</span><span class="p">)</span>
+        <span class="n">cat</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_library</span><span class="o">.</span><span class="n">catalogs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">cat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_library</span><span class="o">.</span><span class="n">catalogs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">cat</span></div>
+
+
+<div class="viewcode-block" id="Project.load_event_by_id"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.project.Project.load_event_by_id.html#mss_dataserver.core.project.Project.load_event_by_id">[docs]</a>    <span class="k">def</span> <span class="nf">load_event_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ev_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">public_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Get an event by event id or public id.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ev_id: Integer</span>
+<span class="sd">            The database id of the event to load.</span>
+
+<span class="sd">        public_id: String</span>
+<span class="sd">            The public id of the event to load.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        event: :class:`mss_dataserver.event.core.Event`</span>
+<span class="sd">            The loaded event.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">event</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_library</span><span class="o">.</span><span class="n">load_event_by_id</span><span class="p">(</span><span class="n">project</span> <span class="o">=</span> <span class="bp">self</span><span class="p">,</span>
+                                                    <span class="n">ev_id</span> <span class="o">=</span> <span class="n">ev_id</span><span class="p">,</span>
+                                                    <span class="n">public_id</span> <span class="o">=</span> <span class="n">public_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">event</span></div>
+
+
+<div class="viewcode-block" id="Project.get_events"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.project.Project.get_events.html#mss_dataserver.core.project.Project.get_events">[docs]</a>    <span class="k">def</span> <span class="nf">get_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">catalog_names</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                   <span class="n">start_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Get events using search criteria passed as keywords.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        catalog_names: List of String</span>
+<span class="sd">            The catalog names to load.</span>
+
+<span class="sd">        start_time : :class:`~obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">            The minimum starttime of the detections.</span>
+
+<span class="sd">        end_time : :class:`~obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">            The maximum end_time of the detections.</span>
+
+<span class="sd">        nslc : tuple of Strings</span>
+<span class="sd">            The NSLC (network, station, location, channel)code</span>
+<span class="sd">            of the channel (e.g. (&#39;XX&#39;, &#39;GILA&#39;, &#39;00&#39;, &#39;HHZ&#39;)).</span>
+
+<span class="sd">        kwargs: Keyword arguments</span>
+<span class="sd">            Additional keyword arguments passed to :meth:`mss_dataserver.event.core.Library.get_events`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ret_events: List of :class:`mss_dataserver.event.core.Event`</span>
+<span class="sd">            The events found in the library matching the search criterias.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">ret_events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_library</span><span class="o">.</span><span class="n">get_events</span><span class="p">(</span><span class="n">catalog_names</span> <span class="o">=</span> <span class="n">catalog_names</span><span class="p">,</span>
+                                                   <span class="n">start_time</span> <span class="o">=</span> <span class="n">start_time</span><span class="p">,</span>
+                                                   <span class="n">end_time</span> <span class="o">=</span> <span class="n">end_time</span><span class="p">,</span>
+                                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret_events</span></div>
+
+    
+<div class="viewcode-block" id="Project.get_detection_catalog_names"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.project.Project.get_detection_catalog_names.html#mss_dataserver.core.project.Project.get_detection_catalog_names">[docs]</a>    <span class="k">def</span> <span class="nf">get_detection_catalog_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Get the detection catalog names available in the database.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        cat_names: List of String</span>
+<span class="sd">            The names of the detection catalogs available in the database.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">detection_library</span><span class="o">.</span><span class="n">get_catalogs_in_db</span><span class="p">(</span><span class="n">project</span> <span class="o">=</span> <span class="bp">self</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="Project.create_detection_catalog"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.project.Project.create_detection_catalog.html#mss_dataserver.core.project.Project.create_detection_catalog">[docs]</a>    <span class="k">def</span> <span class="nf">create_detection_catalog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create an detection catalog in the database.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name: String</span>
+<span class="sd">            The name of the catalog.</span>
+
+<span class="sd">        description: String</span>
+<span class="sd">            The description of the catalog.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        cat: :class:`mss_dataserver.detection.Catalog`</span>
+<span class="sd">            The created catalog.     </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">cat</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">detection</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">,</span>
+                                      <span class="n">description</span> <span class="o">=</span> <span class="n">description</span><span class="p">,</span>
+                                      <span class="n">agency_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agency_uri</span><span class="p">,</span>
+                                      <span class="n">author_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">author_uri</span><span class="p">)</span>
+        <span class="n">cat</span><span class="o">.</span><span class="n">write_to_database</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cat</span></div>
+
+    
+<div class="viewcode-block" id="Project.load_detection_catalog"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.project.Project.load_detection_catalog.html#mss_dataserver.core.project.Project.load_detection_catalog">[docs]</a>    <span class="k">def</span> <span class="nf">load_detection_catalog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">load_detections</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Load a detection catalog from the database.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name: String</span>
+<span class="sd">            The name of the detection catalog.</span>
+
+<span class="sd">        load_detections: bool</span>
+<span class="sd">            Load the detections from the database.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        cat: :class:`mss_dataserver.detection.Library.Catalog`</span>
+<span class="sd">            The loaded detection catalog.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">detection_library</span><span class="o">.</span><span class="n">load_catalog_from_db</span><span class="p">(</span><span class="n">project</span> <span class="o">=</span> <span class="bp">self</span><span class="p">,</span>
+                                                    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">,</span>
+                                                    <span class="n">load_detections</span> <span class="o">=</span> <span class="n">load_detections</span><span class="p">)</span>
+        <span class="n">cat</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">detection_library</span><span class="o">.</span><span class="n">catalogs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">cat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">detection_library</span><span class="o">.</span><span class="n">catalogs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">cat</span></div></div>
+</pre></div>
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.core.project</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stefan Mertl.
+      Last updated on 2021-04-22 20:20.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

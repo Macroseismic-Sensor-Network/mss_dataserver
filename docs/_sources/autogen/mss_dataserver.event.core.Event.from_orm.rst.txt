@@ -1,0 +1,7 @@
+from_orm
+========================================
+
+.. currentmodule:: mss_dataserver.event.core
+.. automethod:: Event.from_orm
+
+

@@ -1,0 +1,7 @@
+get_parameter
+===================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbRecorderStream.get_parameter
+
+

@@ -1,0 +1,38 @@
+Catalog
+=================================
+
+.. currentmodule:: mss_dataserver.event.core
+.. autoclass:: Catalog
+   :show-inheritance:
+
+
+
+
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~Catalog.__init__
+      ~Catalog.add_events
+      ~Catalog.clear_events
+      ~Catalog.from_orm
+      ~Catalog.get_events
+      ~Catalog.get_events_db_data
+      ~Catalog.load_events
+      ~Catalog.write_to_csv
+      ~Catalog.write_to_database
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.event.core.Catalog

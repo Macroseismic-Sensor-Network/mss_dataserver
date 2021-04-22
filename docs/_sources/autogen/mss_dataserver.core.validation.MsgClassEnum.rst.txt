@@ -1,0 +1,33 @@
+MsgClassEnum
+===========================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. autoclass:: MsgClassEnum
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~MsgClassEnum.cancel
+      ~MsgClassEnum.control
+      ~MsgClassEnum.data
+      ~MsgClassEnum.request
+      ~MsgClassEnum.soh
+
+
+
+
+      
+
+
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.validation.MsgClassEnum

@@ -1,0 +1,7 @@
+__init__
+====================================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory_parser
+.. automethod:: InventoryXmlParser.__init__
+
+

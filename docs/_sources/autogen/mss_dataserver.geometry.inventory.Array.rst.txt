@@ -1,0 +1,35 @@
+Array
+=======================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. autoclass:: Array
+   :show-inheritance:
+
+
+
+
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~Array.__init__
+      ~Array.add_station
+      ~Array.get_station
+      ~Array.merge
+      ~Array.remove_station
+      ~Array.remove_station_by_instance
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.inventory.Array

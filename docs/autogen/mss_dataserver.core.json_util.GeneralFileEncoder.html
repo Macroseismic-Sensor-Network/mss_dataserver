@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GeneralFileEncoder &#8212; mss_dataserver 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/haiku_maar.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="__init__" href="mss_dataserver.core.json_util.GeneralFileEncoder.__init__.html" />
+    <link rel="prev" title="raw_decode" href="mss_dataserver.core.json_util.GeneralFileDecoder.raw_decode.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../index.html">
+          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>GeneralFileEncoder</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.json_util.GeneralFileEncoder.__init__.html" title="__init__"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.json_util.GeneralFileDecoder.raw_decode.html" title="raw_decode"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.core.html" >mss_dataserver.core</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="mss_dataserver.core.json_util.html" accesskey="U">mss_dataserver.core.json_util</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">GeneralFileEncoder</a></li> 
+      </ul>
+    </div>
+      </div>
+      <div class="content" role="main">
+        
+        
+  <div class="section" id="generalfileencoder">
+<h1>GeneralFileEncoder<a class="headerlink" href="#generalfileencoder" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="mss_dataserver.core.json_util.GeneralFileEncoder">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.core.json_util.</span></code><code class="sig-name descname"><span class="pre">GeneralFileEncoder</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwarg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mss_dataserver/core/json_util.html#GeneralFileEncoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.core.json_util.GeneralFileEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">json.encoder.JSONEncoder</span></code></p>
+<p>A JSON encoder for the serialization of general data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> (<em>keyword argument</em>) – Keyword arguments passed to <code class="xref py py-class docutils literal notranslate"><span class="pre">json.encoder.JSONEncoder</span></code>.</p>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>version</strong> (<a class="reference internal" href="mss_dataserver.core.util.html#module-mss_dataserver.core.util" title="mss_dataserver.core.util"><code class="xref py py-class docutils literal notranslate"><span class="pre">mss_dataserver.core.util</span></code></a>) – The version of the file encoder.</p></li>
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.9)"><em>logging.Logger</em></a>) – The logging instance.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="section" id="properties">
+<h2>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">item_separator</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">key_separator</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">version</span></code></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.json_util.GeneralFileEncoder.__init__.html#mss_dataserver.core.json_util.GeneralFileEncoder.__init__" title="mss_dataserver.core.json_util.GeneralFileEncoder.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(**kwarg)</p></td>
+<td><p>Initialization of the instance.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.json_util.GeneralFileEncoder.convert_filecontainer.html#mss_dataserver.core.json_util.GeneralFileEncoder.convert_filecontainer" title="mss_dataserver.core.json_util.GeneralFileEncoder.convert_filecontainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert_filecontainer</span></code></a>(obj)</p></td>
+<td><p>Convert a filecontainer instance.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.json_util.GeneralFileEncoder.convert_np_ndarray.html#mss_dataserver.core.json_util.GeneralFileEncoder.convert_np_ndarray" title="mss_dataserver.core.json_util.GeneralFileEncoder.convert_np_ndarray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert_np_ndarray</span></code></a>(obj)</p></td>
+<td><p>Convert a numpy array instance.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.json_util.GeneralFileEncoder.convert_utcdatetime.html#mss_dataserver.core.json_util.GeneralFileEncoder.convert_utcdatetime" title="mss_dataserver.core.json_util.GeneralFileEncoder.convert_utcdatetime"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert_utcdatetime</span></code></a>(obj)</p></td>
+<td><p>Convert a UTCDateTime instance.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.json_util.GeneralFileEncoder.convert_version.html#mss_dataserver.core.json_util.GeneralFileEncoder.convert_version" title="mss_dataserver.core.json_util.GeneralFileEncoder.convert_version"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert_version</span></code></a>(obj)</p></td>
+<td><p>Convert a UTCDateTime instance.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.json_util.GeneralFileEncoder.default.html#mss_dataserver.core.json_util.GeneralFileEncoder.default" title="mss_dataserver.core.json_util.GeneralFileEncoder.default"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default</span></code></a>(obj)</p></td>
+<td><p>Convert objects to a dictionary.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.json_util.GeneralFileEncoder.encode.html#mss_dataserver.core.json_util.GeneralFileEncoder.encode" title="mss_dataserver.core.json_util.GeneralFileEncoder.encode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">encode</span></code></a>(o)</p></td>
+<td><p>Return a JSON string representation of a Python data structure.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.json_util.GeneralFileEncoder.iterencode.html#mss_dataserver.core.json_util.GeneralFileEncoder.iterencode" title="mss_dataserver.core.json_util.GeneralFileEncoder.iterencode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iterencode</span></code></a>(o[, _one_shot])</p></td>
+<td><p>Encode the given object and yield each string representation as available.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="inheritence-diagram">
+<h2>Inheritence diagram<a class="headerlink" href="#inheritence-diagram" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="graphviz"><img src="../_images/inheritance-e71f8971970ee85f4b74b6b911e379029ac2970f.png" alt="Inheritance diagram of mss_dataserver.core.json_util.GeneralFileEncoder" usemap="#inheritancec8a42012a4" class="inheritance graphviz" /></div>
+<map id="inheritancec8a42012a4" name="inheritancec8a42012a4">
+<area shape="rect" id="node2" href="#mss_dataserver.core.json_util.GeneralFileEncoder" target="_top" title="A JSON encoder for the serialization of general data." alt="" coords="5,79,351,104"/>
+</map></div></blockquote>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.json_util.GeneralFileEncoder.__init__.html" title="__init__"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.json_util.GeneralFileDecoder.raw_decode.html" title="raw_decode"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.core.html" >mss_dataserver.core</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="mss_dataserver.core.json_util.html" >mss_dataserver.core.json_util</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">GeneralFileEncoder</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stefan Mertl.
+      Last updated on 2021-04-22 20:20.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

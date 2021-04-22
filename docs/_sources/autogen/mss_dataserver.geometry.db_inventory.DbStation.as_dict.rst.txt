@@ -1,0 +1,7 @@
+as_dict
+======================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbStation.as_dict
+
+

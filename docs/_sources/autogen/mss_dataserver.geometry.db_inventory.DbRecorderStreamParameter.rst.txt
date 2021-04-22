@@ -1,0 +1,42 @@
+DbRecorderStreamParameter
+==============================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. autoclass:: DbRecorderStreamParameter
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~DbRecorderStreamParameter.end_time_string
+      ~DbRecorderStreamParameter.id
+      ~DbRecorderStreamParameter.parent_inventory
+      ~DbRecorderStreamParameter.rec_stream_id
+      ~DbRecorderStreamParameter.start_time_string
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~DbRecorderStreamParameter.__init__
+      ~DbRecorderStreamParameter.from_inventory_instance
+      ~DbRecorderStreamParameter.from_sqlalchemy_orm
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter

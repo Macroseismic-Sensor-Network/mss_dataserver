@@ -1,0 +1,7 @@
+evaluate_event_trigger
+===============================================================================
+
+.. currentmodule:: mss_dataserver.event.delaunay_detection
+.. automethod:: DelaunayDetector.evaluate_event_trigger
+
+

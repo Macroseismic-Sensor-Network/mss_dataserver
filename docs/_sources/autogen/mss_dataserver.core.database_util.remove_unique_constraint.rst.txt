@@ -1,0 +1,6 @@
+mss_dataserver.core.database_util.remove_unique_constraint
+==========================================================
+
+.. currentmodule:: mss_dataserver.core.database_util
+
+.. autofunction:: remove_unique_constraint

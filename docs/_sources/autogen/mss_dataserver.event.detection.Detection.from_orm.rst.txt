@@ -1,0 +1,7 @@
+from_orm
+=================================================
+
+.. currentmodule:: mss_dataserver.event.detection
+.. automethod:: Detection.from_orm
+
+

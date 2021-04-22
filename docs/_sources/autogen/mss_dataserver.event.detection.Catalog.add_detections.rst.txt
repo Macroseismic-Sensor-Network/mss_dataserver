@@ -1,0 +1,7 @@
+add_detections
+=====================================================
+
+.. currentmodule:: mss_dataserver.event.detection
+.. automethod:: Catalog.add_detections
+
+

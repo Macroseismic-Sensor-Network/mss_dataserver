@@ -1,0 +1,6 @@
+mss_dataserver.core.database_util.db_table_migration
+====================================================
+
+.. currentmodule:: mss_dataserver.core.database_util
+
+.. autofunction:: db_table_migration

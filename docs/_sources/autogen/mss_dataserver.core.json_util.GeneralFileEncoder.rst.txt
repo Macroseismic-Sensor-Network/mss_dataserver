@@ -1,0 +1,45 @@
+GeneralFileEncoder
+================================================
+
+.. currentmodule:: mss_dataserver.core.json_util
+.. autoclass:: GeneralFileEncoder
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~GeneralFileEncoder.item_separator
+      ~GeneralFileEncoder.key_separator
+      ~GeneralFileEncoder.version
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~GeneralFileEncoder.__init__
+      ~GeneralFileEncoder.convert_filecontainer
+      ~GeneralFileEncoder.convert_np_ndarray
+      ~GeneralFileEncoder.convert_utcdatetime
+      ~GeneralFileEncoder.convert_version
+      ~GeneralFileEncoder.default
+      ~GeneralFileEncoder.encode
+      ~GeneralFileEncoder.iterencode
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.json_util.GeneralFileEncoder

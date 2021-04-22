@@ -1,0 +1,7 @@
+tf_add_complex_zero
+===================================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbSensorComponentParameter.tf_add_complex_zero
+
+

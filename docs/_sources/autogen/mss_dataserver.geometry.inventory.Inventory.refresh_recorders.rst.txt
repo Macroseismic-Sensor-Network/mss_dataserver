@@ -1,0 +1,7 @@
+refresh_recorders
+=============================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: Inventory.refresh_recorders
+
+

@@ -1,0 +1,7 @@
+as_dict
+=================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: Network.as_dict
+
+

@@ -1,0 +1,176 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WSMessageHeader &#8212; mss_dataserver 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/haiku_maar.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="__init__" href="mss_dataserver.core.validation.WSMessageHeader.__init__.html" />
+    <link rel="prev" title="validate" href="mss_dataserver.core.validation.WSMessage.validate.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../index.html">
+          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>WSMessageHeader</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.validation.WSMessageHeader.__init__.html" title="__init__"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.validation.WSMessage.validate.html" title="validate"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.core.html" >mss_dataserver.core</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="mss_dataserver.core.validation.html" accesskey="U">mss_dataserver.core.validation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">WSMessageHeader</a></li> 
+      </ul>
+    </div>
+      </div>
+      <div class="content" role="main">
+        
+        
+  <div class="section" id="wsmessageheader">
+<h1>WSMessageHeader<a class="headerlink" href="#wsmessageheader" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="mss_dataserver.core.validation.WSMessageHeader">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.core.validation.</span></code><code class="sig-name descname"><span class="pre">WSMessageHeader</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg_class</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="mss_dataserver.core.validation.MsgClassEnum.html#mss_dataserver.core.validation.MsgClassEnum" title="mss_dataserver.core.validation.MsgClassEnum"><span class="pre">mss_dataserver.core.validation.MsgClassEnum</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="mss_dataserver.core.validation.MsgControlIdEnum.html#mss_dataserver.core.validation.MsgControlIdEnum" title="mss_dataserver.core.validation.MsgControlIdEnum"><span class="pre">mss_dataserver.core.validation.MsgControlIdEnum</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="mss_dataserver.core.validation.MsgDataIdEnum.html#mss_dataserver.core.validation.MsgDataIdEnum" title="mss_dataserver.core.validation.MsgDataIdEnum"><span class="pre">mss_dataserver.core.validation.MsgDataIdEnum</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="mss_dataserver.core.validation.MsgSohIdEnum.html#mss_dataserver.core.validation.MsgSohIdEnum" title="mss_dataserver.core.validation.MsgSohIdEnum"><span class="pre">mss_dataserver.core.validation.MsgSohIdEnum</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="mss_dataserver.core.validation.MsgRequestIdEnum.html#mss_dataserver.core.validation.MsgRequestIdEnum" title="mss_dataserver.core.validation.MsgRequestIdEnum"><span class="pre">mss_dataserver.core.validation.MsgRequestIdEnum</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_time</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">mss_dataserver.core.validation.ConstrainedStrValue</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mss_dataserver/core/validation.html#WSMessageHeader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.core.validation.WSMessageHeader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pydantic.main.BaseModel</span></code></p>
+<p>The websocket message header model.</p>
+</dd></dl>
+
+<div class="section" id="properties">
+<h2>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fields</span></code></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.validation.WSMessageHeader.__init__.html#mss_dataserver.core.validation.WSMessageHeader.__init__" title="mss_dataserver.core.validation.WSMessageHeader.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(**data)</p></td>
+<td><p>Create a new model by parsing and validating input data from keyword arguments.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.validation.WSMessageHeader.check_msg_id.html#mss_dataserver.core.validation.WSMessageHeader.check_msg_id" title="mss_dataserver.core.validation.WSMessageHeader.check_msg_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_msg_id</span></code></a>(v, values)</p></td>
+<td><p>Check if the msg_id is in the allowed values for the related msg_class.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.validation.WSMessageHeader.construct.html#mss_dataserver.core.validation.WSMessageHeader.construct" title="mss_dataserver.core.validation.WSMessageHeader.construct"><code class="xref py py-obj docutils literal notranslate"><span class="pre">construct</span></code></a>([_fields_set])</p></td>
+<td><p>Creates a new model setting __dict__ and __fields_set__ from trusted or pre-validated data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.validation.WSMessageHeader.copy.html#mss_dataserver.core.validation.WSMessageHeader.copy" title="mss_dataserver.core.validation.WSMessageHeader.copy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code></a>(*[, include, exclude, update, deep])</p></td>
+<td><p>Duplicate a model, optionally choose which fields to include, exclude and change.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.validation.WSMessageHeader.dict.html#mss_dataserver.core.validation.WSMessageHeader.dict" title="mss_dataserver.core.validation.WSMessageHeader.dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a>(*[, include, exclude, by_alias, …])</p></td>
+<td><p>Generate a dictionary representation of the model, optionally specifying which fields to include or exclude.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.validation.WSMessageHeader.from_orm.html#mss_dataserver.core.validation.WSMessageHeader.from_orm" title="mss_dataserver.core.validation.WSMessageHeader.from_orm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_orm</span></code></a>(obj)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.validation.WSMessageHeader.json.html#mss_dataserver.core.validation.WSMessageHeader.json" title="mss_dataserver.core.validation.WSMessageHeader.json"><code class="xref py py-obj docutils literal notranslate"><span class="pre">json</span></code></a>(*[, include, exclude, by_alias, …])</p></td>
+<td><p>Generate a JSON representation of the model, <cite>include</cite> and <cite>exclude</cite> arguments as per <cite>dict()</cite>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.validation.WSMessageHeader.parse_file.html#mss_dataserver.core.validation.WSMessageHeader.parse_file" title="mss_dataserver.core.validation.WSMessageHeader.parse_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_file</span></code></a>(path, *[, content_type, …])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.validation.WSMessageHeader.parse_obj.html#mss_dataserver.core.validation.WSMessageHeader.parse_obj" title="mss_dataserver.core.validation.WSMessageHeader.parse_obj"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_obj</span></code></a>(obj)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.validation.WSMessageHeader.parse_raw.html#mss_dataserver.core.validation.WSMessageHeader.parse_raw" title="mss_dataserver.core.validation.WSMessageHeader.parse_raw"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_raw</span></code></a>(b, *[, content_type, encoding, …])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.validation.WSMessageHeader.schema.html#mss_dataserver.core.validation.WSMessageHeader.schema" title="mss_dataserver.core.validation.WSMessageHeader.schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">schema</span></code></a>([by_alias, ref_template])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.validation.WSMessageHeader.schema_json.html#mss_dataserver.core.validation.WSMessageHeader.schema_json" title="mss_dataserver.core.validation.WSMessageHeader.schema_json"><code class="xref py py-obj docutils literal notranslate"><span class="pre">schema_json</span></code></a>(*[, by_alias, ref_template])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.validation.WSMessageHeader.to_string.html#mss_dataserver.core.validation.WSMessageHeader.to_string" title="mss_dataserver.core.validation.WSMessageHeader.to_string"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_string</span></code></a>([pretty])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.validation.WSMessageHeader.update_forward_refs.html#mss_dataserver.core.validation.WSMessageHeader.update_forward_refs" title="mss_dataserver.core.validation.WSMessageHeader.update_forward_refs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_forward_refs</span></code></a>(**localns)</p></td>
+<td><p>Try to update ForwardRefs on fields based on this Model, globalns and localns.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.validation.WSMessageHeader.validate.html#mss_dataserver.core.validation.WSMessageHeader.validate" title="mss_dataserver.core.validation.WSMessageHeader.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>(value)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="inheritence-diagram">
+<h2>Inheritence diagram<a class="headerlink" href="#inheritence-diagram" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="graphviz"><img src="../_images/inheritance-d30f6b7896ffb24d3d0b8b5fd7e8afd1c698eb6b.png" alt="Inheritance diagram of mss_dataserver.core.validation.WSMessageHeader" usemap="#inheritance8911a229ac" class="inheritance graphviz" /></div>
+<map id="inheritance8911a229ac" name="inheritance8911a229ac">
+<area shape="rect" id="node1" href="#mss_dataserver.core.validation.WSMessageHeader" target="_top" title="The websocket message header model." alt="" coords="5,152,360,177"/>
+</map></div></blockquote>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.validation.WSMessageHeader.__init__.html" title="__init__"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.core.validation.WSMessage.validate.html" title="validate"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.core.html" >mss_dataserver.core</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="mss_dataserver.core.validation.html" >mss_dataserver.core.validation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">WSMessageHeader</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stefan Mertl.
+      Last updated on 2021-04-22 20:20.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

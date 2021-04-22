@@ -1,0 +1,7 @@
+add_component
+==============================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: RecorderStream.add_component
+
+

@@ -1,0 +1,7 @@
+compute_delaunay_triangulation
+=======================================================================================
+
+.. currentmodule:: mss_dataserver.event.delaunay_detection
+.. automethod:: DelaunayDetector.compute_delaunay_triangulation
+
+

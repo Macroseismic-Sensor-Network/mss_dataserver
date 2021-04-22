@@ -1,0 +1,43 @@
+SensorComponentParameter
+==========================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. autoclass:: SensorComponentParameter
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~SensorComponentParameter.end_time_string
+      ~SensorComponentParameter.parent_inventory
+      ~SensorComponentParameter.poles_string
+      ~SensorComponentParameter.start_time_string
+      ~SensorComponentParameter.zeros_string
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~SensorComponentParameter.__init__
+      ~SensorComponentParameter.set_transfer_function
+      ~SensorComponentParameter.tf_add_complex_pole
+      ~SensorComponentParameter.tf_add_complex_zero
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.inventory.SensorComponentParameter

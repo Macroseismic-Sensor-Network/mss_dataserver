@@ -1,0 +1,7 @@
+remove_parameter_by_instance
+==================================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbRecorderStream.remove_parameter_by_instance
+
+

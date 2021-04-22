@@ -1,0 +1,50 @@
+RecorderStream
+================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. autoclass:: RecorderStream
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~RecorderStream.assigned_channels
+      ~RecorderStream.model
+      ~RecorderStream.parent_inventory
+      ~RecorderStream.producer
+      ~RecorderStream.serial
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~RecorderStream.__init__
+      ~RecorderStream.add_component
+      ~RecorderStream.add_parameter
+      ~RecorderStream.as_dict
+      ~RecorderStream.get_component
+      ~RecorderStream.get_free_component_slot
+      ~RecorderStream.get_free_parameter_slot
+      ~RecorderStream.get_parameter
+      ~RecorderStream.merge
+      ~RecorderStream.remove_component_by_instance
+      ~RecorderStream.remove_parameter_by_instance
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.inventory.RecorderStream

@@ -1,0 +1,7 @@
+compute_edge_length
+============================================================================
+
+.. currentmodule:: mss_dataserver.event.delaunay_detection
+.. automethod:: DelaunayDetector.compute_edge_length
+
+

@@ -1,0 +1,7 @@
+copy
+====================================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. automethod:: MsgRequestEventSupplementPayload.copy
+
+

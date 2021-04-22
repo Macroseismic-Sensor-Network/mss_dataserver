@@ -1,0 +1,6 @@
+mss_dataserver.core.json_util.object_to_dict
+============================================
+
+.. currentmodule:: mss_dataserver.core.json_util
+
+.. autofunction:: object_to_dict

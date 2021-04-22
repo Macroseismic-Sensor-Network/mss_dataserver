@@ -1,0 +1,528 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mss_dataserver.core.database_util &#8212; mss_dataserver 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/haiku_maar.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
+          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>mss_dataserver.core.database_util</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.core.database_util</a></li> 
+      </ul>
+    </div>
+      </div>
+      <div class="content" role="main">
+        
+        
+  <h1>Source code for mss_dataserver.core.database_util</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">##############################################################################</span>
+ <span class="c1"># LICENSE</span>
+ <span class="c1">#</span>
+ <span class="c1"># This file is part of mss_dataserver.</span>
+ <span class="c1"># </span>
+ <span class="c1"># If you use mss_dataserver in any program or publication, please inform and</span>
+ <span class="c1"># acknowledge its authors.</span>
+ <span class="c1"># </span>
+ <span class="c1"># mss_dataserver is free software: you can redistribute it and/or modify</span>
+ <span class="c1"># it under the terms of the GNU General Public License as published by</span>
+ <span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+ <span class="c1"># (at your option) any later version.</span>
+ <span class="c1"># </span>
+ <span class="c1"># mss_dataserver is distributed in the hope that it will be useful,</span>
+ <span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+ <span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+ <span class="c1"># GNU General Public License for more details.</span>
+ <span class="c1"># </span>
+ <span class="c1"># You should have received a copy of the GNU General Public License</span>
+ <span class="c1"># along with mss_dataserver. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+ <span class="c1">#</span>
+ <span class="c1"># Copyright 2019 Stefan Mertl</span>
+<span class="c1">##############################################################################</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Utility functions to interact with the database.</span>
+
+<span class="sd">:copyright:</span>
+<span class="sd">    Stefan Mertl</span>
+
+<span class="sd">:license:</span>
+<span class="sd">    GNU General Public License, Version 3 </span>
+<span class="sd">    (http://www.gnu.org/licenses/gpl-3.0.html)</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">sqlalchemy</span> <span class="k">as</span> <span class="nn">sqa</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="n">logger_name</span> <span class="o">=</span> <span class="vm">__name__</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">logger_name</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="db_table_migration"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.db_table_migration.html#mss_dataserver.core.database_util.db_table_migration">[docs]</a><span class="k">def</span> <span class="nf">db_table_migration</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Check if a database table migration is needed and apply the changes.</span>
+
+<span class="sd">    Check the table definition of the database with the one from defined </span>
+<span class="sd">    in the current database factories of the modules. If changes are </span>
+<span class="sd">    detected, the database tables are updated to fit the new version.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    engine: sqlalchemy.engine.Engine</span>
+<span class="sd">        The sqlalchemy database Engine.</span>
+
+<span class="sd">    table: sqlalchemy.schema.Table</span>
+<span class="sd">        The table to migrate.</span>
+
+<span class="sd">    prefix: String</span>
+<span class="sd">        The database table name prefix.</span>
+<span class="sd">        The names of the tables contain only the basename (e.g. geom_recorder).</span>
+<span class="sd">        The full table name usually contains the name of the project as</span>
+<span class="sd">        a prefix.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Checking if database table </span><span class="si">%s</span><span class="s1"> needs an update.&#39;</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">migrate_success</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">cur_metadata</span> <span class="o">=</span> <span class="n">sqa</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+    <span class="n">cur_metadata</span><span class="o">.</span><span class="n">reflect</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">table</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">cur_metadata</span><span class="o">.</span><span class="n">tables</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="c1"># Check for changes between the existing and the new table.</span>
+        <span class="n">table_updated</span> <span class="o">=</span> <span class="n">update_db_table</span><span class="p">(</span><span class="n">engine</span> <span class="o">=</span> <span class="n">engine</span><span class="p">,</span>
+                                        <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="p">,</span>
+                                        <span class="n">metadata</span> <span class="o">=</span> <span class="n">cur_metadata</span><span class="p">,</span>
+                                        <span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">table_updated</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Everything is up-to-date. No update needed.&#39;</span><span class="p">)</span>
+
+        <span class="n">migrate_success</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># The table is missing in the schema, create it.</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;The table </span><span class="si">%s</span><span class="s1"> is not existing, create it.&#39;</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+            <span class="n">migrate_success</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s1">&#39;Error creating the table </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">migrate_success</span></div>
+
+
+<div class="viewcode-block" id="update_db_table"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.update_db_table.html#mss_dataserver.core.database_util.update_db_table">[docs]</a><span class="k">def</span> <span class="nf">update_db_table</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Update the table structure to the new schema.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    engine: sqlalchemy.engine.Engine</span>
+<span class="sd">        The sqlalchemy database Engine.</span>
+
+<span class="sd">    table: sqlalchemy.schema.Table</span>
+<span class="sd">        The table to migrate.</span>
+
+<span class="sd">    metadata: sqlalchemy.schema.MetaData</span>
+<span class="sd">        The tables of the current database schema.</span>
+
+<span class="sd">    prefix: String</span>
+<span class="sd">        The database table name prefix.</span>
+<span class="sd">        The names of the tables contain only the basename (e.g. geom_recorder).</span>
+<span class="sd">        The full table name usually contains the name of the project as</span>
+<span class="sd">        a prefix.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">table_updated</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="c1"># Check for added columns.</span>
+    <span class="n">new_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">__table__</span>
+    <span class="n">exist_table</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="n">new_table</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+    <span class="n">columns_to_add</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">new_table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">exist_table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="k">if</span> <span class="n">columns_to_add</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">table_updated</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;A database table migration is needed.&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cur_col</span> <span class="ow">in</span> <span class="n">columns_to_add</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Adding column </span><span class="si">%s</span><span class="s1"> to table </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">cur_col</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">add_column</span><span class="p">(</span><span class="n">engine</span> <span class="o">=</span> <span class="n">engine</span><span class="p">,</span>
+                       <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="p">,</span>
+                       <span class="n">column</span> <span class="o">=</span> <span class="n">new_table</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">cur_col</span><span class="p">],</span>
+                       <span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span><span class="p">)</span>
+
+        <span class="n">table_updated</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># Check for columns to remove.</span>
+    <span class="n">columns_to_remove</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">exist_table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">new_table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+    <span class="k">if</span> <span class="n">columns_to_remove</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">table_updated</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;A database table migration is needed.&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cur_col</span> <span class="ow">in</span> <span class="n">columns_to_remove</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Removing column </span><span class="si">%s</span><span class="s1"> from table </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">cur_col</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">remove_column</span><span class="p">(</span><span class="n">engine</span> <span class="o">=</span> <span class="n">engine</span><span class="p">,</span>
+                          <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="p">,</span>
+                          <span class="n">column</span> <span class="o">=</span> <span class="n">exist_table</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">cur_col</span><span class="p">])</span>
+
+        <span class="n">table_updated</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># Check for changed column specifications.</span>
+    <span class="k">for</span> <span class="n">cur_name</span><span class="p">,</span> <span class="n">cur_col</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">new_table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="n">cur_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">exist_table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="c1"># The column is not existing in the database. </span>
+            <span class="c1"># Might have been deleted. Ignore it.</span>
+            <span class="k">continue</span>
+        <span class="n">exist_col</span> <span class="o">=</span> <span class="n">exist_table</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">cur_name</span><span class="p">]</span>
+        <span class="c1"># Check for the column type.</span>
+        <span class="n">new_type</span> <span class="o">=</span> <span class="n">cur_col</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">dialect</span><span class="p">)</span>
+        <span class="n">exist_type</span> <span class="o">=</span> <span class="n">exist_col</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">dialect</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">compare_column_type</span><span class="p">(</span><span class="n">new_type</span><span class="p">,</span> <span class="n">exist_type</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">table_updated</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;A database table migration is needed.&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Changing the type of column </span><span class="si">%s</span><span class="s1"> from </span><span class="si">%s</span><span class="s1"> to </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">cur_name</span><span class="p">,</span> <span class="n">exist_type</span><span class="p">,</span> <span class="n">new_type</span><span class="p">)</span>
+            <span class="n">change_column_type</span><span class="p">(</span><span class="n">engine</span> <span class="o">=</span> <span class="n">engine</span><span class="p">,</span>
+                               <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="p">,</span>
+                               <span class="n">column</span> <span class="o">=</span> <span class="n">cur_col</span><span class="p">)</span>
+            <span class="n">table_updated</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># Drop all existing foreign keys. This has to be done in case that unique</span>
+        <span class="c1"># keys have to be removed which might be needed by foreign keys.</span>
+        <span class="k">for</span> <span class="n">cur_key</span> <span class="ow">in</span> <span class="n">exist_col</span><span class="o">.</span><span class="n">foreign_keys</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Removing the foreign key </span><span class="si">%s</span><span class="s2"> from table </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">cur_key</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">remove_foreign_key</span><span class="p">(</span><span class="n">engine</span> <span class="o">=</span> <span class="n">engine</span><span class="p">,</span>
+                               <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="p">,</span>
+                               <span class="n">fk_symbol</span> <span class="o">=</span> <span class="n">cur_key</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+
+    <span class="c1"># Remove all unique contraints.</span>
+    <span class="n">insp</span> <span class="o">=</span> <span class="n">sqa</span><span class="o">.</span><span class="n">inspect</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+    <span class="n">unique_const</span> <span class="o">=</span> <span class="n">insp</span><span class="o">.</span><span class="n">get_unique_constraints</span><span class="p">(</span><span class="n">exist_table</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">cur_const</span> <span class="ow">in</span> <span class="n">unique_const</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Removing the unique constraint </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">cur_const</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+        <span class="n">remove_unique_constraint</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">cur_const</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+
+
+    <span class="c1"># Add the new constraints to the table.</span>
+    <span class="n">const_to_add</span> <span class="o">=</span> <span class="n">new_table</span><span class="o">.</span><span class="n">constraints</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">exist_table</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
+    <span class="n">unique_const</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">const_to_add</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sqa</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">UniqueConstraint</span><span class="p">)]</span>
+    <span class="n">foreign_const</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">const_to_add</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sqa</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">ForeignKeyConstraint</span><span class="p">)]</span>
+    <span class="c1"># TODO: Handle changes of the primary key.</span>
+    <span class="n">primary_const</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">const_to_add</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sqa</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">PrimaryKeyConstraint</span><span class="p">)]</span>
+
+    <span class="k">for</span> <span class="n">cur_const</span> <span class="ow">in</span> <span class="n">unique_const</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Adding the unique constraint </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">cur_const</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">add_unique_constraint</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">cur_const</span><span class="p">)</span>
+        <span class="n">table_updated</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">for</span> <span class="n">cur_const</span> <span class="ow">in</span> <span class="n">foreign_const</span><span class="p">:</span>
+        <span class="c1">#logger.warning(&quot;Changing foreign key constraint is not yet implemented (%s).&quot;, cur_const)</span>
+        <span class="n">target_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">target_fullname</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">cur_const</span><span class="o">.</span><span class="n">elements</span><span class="p">]</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Adding foreign key (</span><span class="si">%s</span><span class="s1">) referring (</span><span class="si">%s</span><span class="s1">).&#39;</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cur_const</span><span class="o">.</span><span class="n">column_keys</span><span class="p">),</span>
+                    <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">target_columns</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Get the target table using the ForeignKey elements. Using the</span>
+            <span class="c1"># referred_table was not working for all constraints because the</span>
+            <span class="c1"># referred_table is a dynamic attribute.</span>
+            <span class="n">target_name</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">target_fullname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">cur_const</span><span class="o">.</span><span class="n">elements</span><span class="p">]</span>
+            <span class="n">target_name</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">target_name</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_name</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Too many target tables for the foreign constraint: </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">target_name</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">target_name</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">target_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">add_foreign_key</span><span class="p">(</span><span class="n">engine</span> <span class="o">=</span> <span class="n">engine</span><span class="p">,</span>
+                            <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="p">,</span>
+                            <span class="n">columns</span> <span class="o">=</span> <span class="n">cur_const</span><span class="o">.</span><span class="n">column_keys</span><span class="p">,</span>
+                            <span class="n">target_table</span> <span class="o">=</span> <span class="n">target_name</span><span class="p">,</span>
+                            <span class="n">target_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">target_fullname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">cur_const</span><span class="o">.</span><span class="n">elements</span><span class="p">],</span>
+                            <span class="n">on_update</span> <span class="o">=</span> <span class="n">cur_const</span><span class="o">.</span><span class="n">onupdate</span><span class="p">,</span>
+                            <span class="n">on_delete</span> <span class="o">=</span> <span class="n">cur_const</span><span class="o">.</span><span class="n">ondelete</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error creating the foreign key.&quot;</span><span class="p">)</span>
+
+
+    <span class="k">return</span> <span class="n">table_updated</span></div>
+
+
+<div class="viewcode-block" id="add_column"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.add_column.html#mss_dataserver.core.database_util.add_column">[docs]</a><span class="k">def</span> <span class="nf">add_column</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Add a column to a database table.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    engine: sqlalchemy.engine.Engine</span>
+<span class="sd">        The sqlalchemy database Engine.</span>
+
+<span class="sd">    table: sqlalchemy.schema.Table</span>
+<span class="sd">        The table to migrate.</span>
+
+<span class="sd">    column: sqlalchemy.schema.Column</span>
+<span class="sd">       The database table column to add.</span>
+
+<span class="sd">    prefix: String</span>
+<span class="sd">        The database table name prefix.</span>
+<span class="sd">        The names of the tables contain only the basename (e.g. geom_recorder).</span>
+<span class="sd">        The full table name usually contains the name of the project as</span>
+<span class="sd">        a prefix.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">table_name</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">column_type</span> <span class="o">=</span> <span class="n">column</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">dialect</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">column</span><span class="o">.</span><span class="n">nullable</span><span class="p">:</span>
+        <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;ALTER TABLE </span><span class="si">%s</span><span class="s1"> ADD COLUMN </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">column</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">column_type</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;ALTER TABLE </span><span class="si">%s</span><span class="s1"> ADD COLUMN </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> NOT NULL&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">column</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">column_type</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">cur_key</span> <span class="ow">in</span> <span class="n">column</span><span class="o">.</span><span class="n">foreign_keys</span><span class="p">:</span>
+        <span class="n">add_foreign_key</span><span class="p">(</span><span class="n">engine</span> <span class="o">=</span> <span class="n">engine</span><span class="p">,</span>
+                        <span class="n">table</span> <span class="o">=</span> <span class="n">table</span><span class="p">,</span>
+                        <span class="n">column</span> <span class="o">=</span> <span class="n">column</span><span class="p">,</span>
+                        <span class="n">target</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">cur_key</span><span class="o">.</span><span class="n">target_fullname</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="remove_column"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.remove_column.html#mss_dataserver.core.database_util.remove_column">[docs]</a><span class="k">def</span> <span class="nf">remove_column</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Remove a column from the database table.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    engine: sqlalchemy.engine.Engine</span>
+<span class="sd">        The sqlalchemy database Engine.</span>
+
+<span class="sd">    table: sqlalchemy.schema.Table</span>
+<span class="sd">        The table to migrate.</span>
+
+<span class="sd">    column: sqlalchemy.schema.Column</span>
+<span class="sd">       The database table column to add.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">table_name</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">for</span> <span class="n">cur_key</span> <span class="ow">in</span> <span class="n">column</span><span class="o">.</span><span class="n">foreign_keys</span><span class="p">:</span>
+        <span class="n">remove_foreign_key</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">cur_key</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;ALTER TABLE </span><span class="si">%s</span><span class="s1"> DROP COLUMN </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">column</span><span class="o">.</span><span class="n">name</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="change_column_type"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.change_column_type.html#mss_dataserver.core.database_util.change_column_type">[docs]</a><span class="k">def</span> <span class="nf">change_column_type</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Change the type of a database table column.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    engine: sqlalchemy.engine.Engine</span>
+<span class="sd">        The sqlalchemy database Engine.</span>
+
+<span class="sd">    table: sqlalchemy.schema.Table</span>
+<span class="sd">        The table to migrate.</span>
+
+<span class="sd">    column: sqlalchemy.schema.Column</span>
+<span class="sd">       The database table column to add.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">table_name</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">column_type</span> <span class="o">=</span> <span class="n">column</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">dialect</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">dialect</span><span class="p">)</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;ALTER TABLE </span><span class="si">%s</span><span class="s1"> MODIFY </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">column</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">column_type</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="add_foreign_key"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.add_foreign_key.html#mss_dataserver.core.database_util.add_foreign_key">[docs]</a><span class="k">def</span> <span class="nf">add_foreign_key</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">target_table</span><span class="p">,</span> <span class="n">target_columns</span><span class="p">,</span> <span class="n">on_update</span><span class="p">,</span> <span class="n">on_delete</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Add a foreign key constraint.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    engine: sqlalchemy.engine.Engine</span>
+<span class="sd">        The sqlalchemy database Engine.</span>
+
+<span class="sd">    table: sqlalchemy.schema.Table</span>
+<span class="sd">        The table to migrate.</span>
+
+<span class="sd">    columns: list of String</span>
+<span class="sd">        The column names.</span>
+
+<span class="sd">    target_table: String</span>
+<span class="sd">        The name of the table, that the foreign key references.</span>
+
+<span class="sd">    target_columns: list of String</span>
+<span class="sd">        The names of the columns, that the foreign key references.</span>
+
+<span class="sd">    on_update: String</span>
+<span class="sd">        The action to perform on update (sql ON UPDATA).</span>
+
+<span class="sd">    on_delete: String</span>
+<span class="sd">        The action to perform on delete (sql ON DELETE).</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">table_name</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">if</span> <span class="n">on_update</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">on_update</span> <span class="o">=</span> <span class="s1">&#39;RESTRICT&#39;</span>
+
+    <span class="k">if</span> <span class="n">on_delete</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">on_delete</span> <span class="o">=</span> <span class="s1">&#39;RESTRICT&#39;</span>
+
+    <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;ALTER TABLE </span><span class="si">%s</span><span class="s1"> ADD FOREIGN KEY (</span><span class="si">%s</span><span class="s1">) REFERENCES </span><span class="si">%s</span><span class="s1">(</span><span class="si">%s</span><span class="s1">) ON UPDATE </span><span class="si">%s</span><span class="s1"> ON DELETE </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table_name</span><span class="p">,</span>
+                                                                              <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">columns</span><span class="p">),</span>
+                                                                              <span class="n">target_table</span><span class="p">,</span>
+                                                                              <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">target_columns</span><span class="p">),</span>
+                                                                              <span class="n">on_update</span><span class="p">,</span>
+                                                                              <span class="n">on_delete</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="add_foreign_key_old"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.add_foreign_key_old.html#mss_dataserver.core.database_util.add_foreign_key_old">[docs]</a><span class="k">def</span> <span class="nf">add_foreign_key_old</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">on_update</span><span class="p">,</span> <span class="n">on_delete</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Add a foreign key to the column.</span>
+
+<span class="sd">    This is an old function definition. Will be removed.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">table_name</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+    <span class="n">target_table</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">target_column</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;ALTER TABLE </span><span class="si">%s</span><span class="s1"> ADD FOREIGN KEY (</span><span class="si">%s</span><span class="s1">) REFERENCES </span><span class="si">%s</span><span class="s1">(</span><span class="si">%s</span><span class="s1">) ON_DELETE </span><span class="si">%s</span><span class="s1"> ON_UPDATE </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">column</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">target_table</span><span class="p">,</span> <span class="n">target_column</span><span class="p">,</span> <span class="n">on_update</span><span class="p">,</span> <span class="n">on_delete</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="remove_foreign_key"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.remove_foreign_key.html#mss_dataserver.core.database_util.remove_foreign_key">[docs]</a><span class="k">def</span> <span class="nf">remove_foreign_key</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">fk_symbol</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Remove a foreign key.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    engine: sqlalchemy.engine.Engine</span>
+<span class="sd">        The sqlalchemy database Engine.</span>
+
+<span class="sd">    table: sqlalchemy.schema.Table</span>
+<span class="sd">        The table to migrate.</span>
+<span class="sd">    </span>
+<span class="sd">    fk_symbol: String</span>
+<span class="sd">        The name of the foreign key.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">table_name</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;ALTER TABLE </span><span class="si">%s</span><span class="s1"> DROP FOREIGN KEY </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">fk_symbol</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="add_unique_constraint"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.add_unique_constraint.html#mss_dataserver.core.database_util.add_unique_constraint">[docs]</a><span class="k">def</span> <span class="nf">add_unique_constraint</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">constraint</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Add a unique constraint to the table.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    engine: sqlalchemy.engine.Engine</span>
+<span class="sd">        The sqlalchemy database Engine.</span>
+
+<span class="sd">    table: sqlalchemy.schema.Table</span>
+<span class="sd">        The table to migrate.</span>
+
+<span class="sd">    constraint: String</span>
+<span class="sd">        The name of the constraint.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">table_name</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">col_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">constraint</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+    <span class="n">const_name</span> <span class="o">=</span> <span class="n">constraint</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="k">if</span> <span class="n">const_name</span><span class="p">:</span>
+        <span class="n">sql_cmd</span> <span class="o">=</span> <span class="s1">&#39;ALTER TABLE </span><span class="si">%s</span><span class="s1"> ADD CONSTRAINT </span><span class="si">%s</span><span class="s1"> UNIQUE (</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">const_name</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">col_names</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sql_cmd</span> <span class="o">=</span> <span class="s1">&#39;ALTER TABLE </span><span class="si">%s</span><span class="s1"> ADD CONSTRAINT UNIQUE (</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">col_names</span><span class="p">))</span>
+
+    <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_cmd</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="remove_unique_constraint"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.remove_unique_constraint.html#mss_dataserver.core.database_util.remove_unique_constraint">[docs]</a><span class="k">def</span> <span class="nf">remove_unique_constraint</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Remove a unique constraint from the table using the constraint name.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    engine: sqlalchemy.engine.Engine</span>
+<span class="sd">        The sqlalchemy database Engine.</span>
+
+<span class="sd">    table: sqlalchemy.schema.Table</span>
+<span class="sd">        The table to migrate.</span>
+
+<span class="sd">    name: String</span>
+<span class="sd">        The name of the contraint.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">table_name</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">__table__</span><span class="o">.</span><span class="n">name</span>
+    <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;ALTER TABLE </span><span class="si">%s</span><span class="s1"> DROP INDEX </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="compare_column_type"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.compare_column_type.html#mss_dataserver.core.database_util.compare_column_type">[docs]</a><span class="k">def</span> <span class="nf">compare_column_type</span><span class="p">(</span><span class="n">col1</span><span class="p">,</span> <span class="n">col2</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Compare the type of two columns.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    col1: sqlalchemy.schema.Colum</span>
+<span class="sd">        The first column.</span>
+
+<span class="sd">    col2: sqlalchemy.schema.Colum</span>
+<span class="sd">        The column to compare.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    is_equal: bool</span>
+<span class="sd">        True if the two columns are equal, False if not.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">is_equal</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;[()]&#39;</span><span class="p">,</span> <span class="n">col1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tmp</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">col1_type</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">col1_len</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">col1_len</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">tmp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;[()]&#39;</span><span class="p">,</span> <span class="n">col2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tmp</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">col2_type</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">col2_len</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">col2_len</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">col1_type</span> <span class="o">==</span> <span class="n">col2_type</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">col1_len</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col1_len</span> <span class="o">==</span> <span class="n">col2_len</span><span class="p">:</span>
+                <span class="n">is_equal</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">is_equal</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="n">is_equal</span></div>
+</pre></div>
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.core.database_util</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stefan Mertl.
+      Last updated on 2021-04-22 20:20.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

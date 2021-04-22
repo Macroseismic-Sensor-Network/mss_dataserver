@@ -1,0 +1,6 @@
+mss_dataserver.core.util.get_logger_rotating_file_handler
+=========================================================
+
+.. currentmodule:: mss_dataserver.core.util
+
+.. autofunction:: get_logger_rotating_file_handler

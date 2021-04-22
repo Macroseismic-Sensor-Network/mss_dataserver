@@ -1,0 +1,50 @@
+WSMessageHeader
+==============================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. autoclass:: WSMessageHeader
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~WSMessageHeader.fields
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~WSMessageHeader.__init__
+      ~WSMessageHeader.check_msg_id
+      ~WSMessageHeader.construct
+      ~WSMessageHeader.copy
+      ~WSMessageHeader.dict
+      ~WSMessageHeader.from_orm
+      ~WSMessageHeader.json
+      ~WSMessageHeader.parse_file
+      ~WSMessageHeader.parse_obj
+      ~WSMessageHeader.parse_raw
+      ~WSMessageHeader.schema
+      ~WSMessageHeader.schema_json
+      ~WSMessageHeader.to_string
+      ~WSMessageHeader.update_forward_refs
+      ~WSMessageHeader.validate
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.validation.WSMessageHeader

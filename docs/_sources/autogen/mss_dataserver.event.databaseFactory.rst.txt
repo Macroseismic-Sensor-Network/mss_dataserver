@@ -1,0 +1,6 @@
+mss_dataserver.event.databaseFactory
+====================================
+
+.. currentmodule:: mss_dataserver.event
+
+.. autofunction:: databaseFactory

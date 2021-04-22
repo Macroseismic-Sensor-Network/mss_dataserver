@@ -1,0 +1,52 @@
+Event
+===============================
+
+.. currentmodule:: mss_dataserver.event.core
+.. autoclass:: Event
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~Event.end_time_string
+      ~Event.length
+      ~Event.max_pgv
+      ~Event.public_id
+      ~Event.rid
+      ~Event.start_time_string
+      ~Event.triggered_stations
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~Event.__init__
+      ~Event.add_detection
+      ~Event.assign_channel_to_detections
+      ~Event.from_orm
+      ~Event.get_db_orm
+      ~Event.get_detection
+      ~Event.get_detection_limits_per_station
+      ~Event.get_max_pgv_per_station
+      ~Event.has_detection
+      ~Event.station_has_triggered
+      ~Event.write_to_database
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.event.core.Event

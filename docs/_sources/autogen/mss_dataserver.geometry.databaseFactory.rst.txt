@@ -1,0 +1,6 @@
+mss_dataserver.geometry.databaseFactory
+=======================================
+
+.. currentmodule:: mss_dataserver.geometry
+
+.. autofunction:: databaseFactory

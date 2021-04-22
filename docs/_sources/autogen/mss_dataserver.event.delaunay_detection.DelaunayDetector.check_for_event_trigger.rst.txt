@@ -1,0 +1,7 @@
+check_for_event_trigger
+================================================================================
+
+.. currentmodule:: mss_dataserver.event.delaunay_detection
+.. automethod:: DelaunayDetector.check_for_event_trigger
+
+

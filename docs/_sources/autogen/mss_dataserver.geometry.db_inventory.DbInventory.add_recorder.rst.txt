@@ -1,0 +1,7 @@
+add_recorder
+=============================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbInventory.add_recorder
+
+

@@ -1,0 +1,6 @@
+mss_dataserver.core.database_util.remove_foreign_key
+====================================================
+
+.. currentmodule:: mss_dataserver.core.database_util
+
+.. autofunction:: remove_foreign_key

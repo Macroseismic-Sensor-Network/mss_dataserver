@@ -1,0 +1,7 @@
+compute_max_time_window
+================================================================================
+
+.. currentmodule:: mss_dataserver.event.delaunay_detection
+.. automethod:: DelaunayDetector.compute_max_time_window
+
+

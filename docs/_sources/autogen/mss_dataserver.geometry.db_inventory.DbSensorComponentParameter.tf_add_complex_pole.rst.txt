@@ -1,0 +1,7 @@
+tf_add_complex_pole
+===================================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbSensorComponentParameter.tf_add_complex_pole
+
+

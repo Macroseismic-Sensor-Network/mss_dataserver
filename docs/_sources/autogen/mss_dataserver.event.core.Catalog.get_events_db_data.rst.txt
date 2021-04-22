@@ -1,0 +1,7 @@
+get_events_db_data
+====================================================
+
+.. currentmodule:: mss_dataserver.event.core
+.. automethod:: Catalog.get_events_db_data
+
+

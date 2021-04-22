@@ -1,0 +1,7 @@
+connect_to_db
+=================================================
+
+.. currentmodule:: mss_dataserver.core.project
+.. automethod:: Project.connect_to_db
+
+

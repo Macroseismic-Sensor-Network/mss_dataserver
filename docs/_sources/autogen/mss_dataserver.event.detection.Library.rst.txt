@@ -1,0 +1,35 @@
+Library
+======================================
+
+.. currentmodule:: mss_dataserver.event.detection
+.. autoclass:: Library
+   :show-inheritance:
+
+
+
+
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~Library.__init__
+      ~Library.add_catalog
+      ~Library.clear
+      ~Library.get_catalogs_in_db
+      ~Library.load_catalog_from_db
+      ~Library.remove_catalog
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.event.detection.Library

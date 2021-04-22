@@ -1,0 +1,49 @@
+MsgCancelPgvTimeseriesPayload
+============================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. autoclass:: MsgCancelPgvTimeseriesPayload
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~MsgCancelPgvTimeseriesPayload.fields
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~MsgCancelPgvTimeseriesPayload.__init__
+      ~MsgCancelPgvTimeseriesPayload.construct
+      ~MsgCancelPgvTimeseriesPayload.copy
+      ~MsgCancelPgvTimeseriesPayload.dict
+      ~MsgCancelPgvTimeseriesPayload.from_orm
+      ~MsgCancelPgvTimeseriesPayload.json
+      ~MsgCancelPgvTimeseriesPayload.parse_file
+      ~MsgCancelPgvTimeseriesPayload.parse_obj
+      ~MsgCancelPgvTimeseriesPayload.parse_raw
+      ~MsgCancelPgvTimeseriesPayload.schema
+      ~MsgCancelPgvTimeseriesPayload.schema_json
+      ~MsgCancelPgvTimeseriesPayload.to_string
+      ~MsgCancelPgvTimeseriesPayload.update_forward_refs
+      ~MsgCancelPgvTimeseriesPayload.validate
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.validation.MsgCancelPgvTimeseriesPayload

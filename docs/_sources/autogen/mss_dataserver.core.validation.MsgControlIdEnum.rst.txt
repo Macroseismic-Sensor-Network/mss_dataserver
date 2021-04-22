@@ -1,0 +1,29 @@
+MsgControlIdEnum
+===============================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. autoclass:: MsgControlIdEnum
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~MsgControlIdEnum.mode
+
+
+
+
+      
+
+
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.validation.MsgControlIdEnum

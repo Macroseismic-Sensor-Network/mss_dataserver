@@ -1,0 +1,7 @@
+__init__
+===============================================
+
+.. currentmodule:: mss_dataserver.event.detection
+.. automethod:: Library.__init__
+
+

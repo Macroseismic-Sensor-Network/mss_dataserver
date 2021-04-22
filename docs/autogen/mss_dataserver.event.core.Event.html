@@ -1,0 +1,215 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Event &#8212; mss_dataserver 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/haiku_maar.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="__init__" href="mss_dataserver.event.core.Event.__init__.html" />
+    <link rel="prev" title="write_to_database" href="mss_dataserver.event.core.Catalog.write_to_database.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../index.html">
+          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>Event</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.event.core.Event.__init__.html" title="__init__"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.event.core.Catalog.write_to_database.html" title="write_to_database"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.event.html" >mss_dataserver.event</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="mss_dataserver.event.core.html" accesskey="U">mss_dataserver.event.core</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Event</a></li> 
+      </ul>
+    </div>
+      </div>
+      <div class="content" role="main">
+        
+        
+  <div class="section" id="event">
+<h1>Event<a class="headerlink" href="#event" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="mss_dataserver.event.core.Event">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.event.core.</span></code><code class="sig-name descname"><span class="pre">Event</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">public_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_type_certainty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comment</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agency_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">creation_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">changed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mss_dataserver/event/core.html#Event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.event.core.Event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A seismic event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_time</strong> (str or <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code>) – The start time of the event. A string that can be parsed
+by <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> or a <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> instance.</p></li>
+<li><p><strong>end_time</strong> (str or <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code>) – The end time of the event. A string that can be parsed
+by <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> or a <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> instance.</p></li>
+<li><p><strong>db_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The database id of the event.</p></li>
+<li><p><strong>public_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The public id of the event.</p></li>
+<li><p><strong>event_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The type of the event.</p></li>
+<li><p><strong>event_type_certainty</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The certainty of the event type.</p></li>
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The description of the event.</p></li>
+<li><p><strong>comment</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The comment to the event.</p></li>
+<li><p><strong>tags</strong> (<em>list of str</em>) – The tags of the event.</p></li>
+<li><p><strong>agency_uri</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The Uniform Resource Identifier of the author agency.</p></li>
+<li><p><strong>author_uri</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The Uniform Resource Identifier of the author.</p></li>
+<li><p><strong>creation_time</strong> (str or <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code>) – The creation time of the event. A string that can be parsed
+by <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> or a <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> instance.</p></li>
+<li><p><strong>parent</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><em>object</em></a>) – The parent object containing the event.</p></li>
+<li><p><strong>changed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Flag indicating if one of the event attributes has changes.</p></li>
+<li><p><strong>detection</strong> (list of <code class="xref py py-class docutils literal notranslate"><span class="pre">mss_dataserver.detection.Detection</span></code>) – The detections associated to the event.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>detection_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The state of the event detection [new, updated, closed].</p></li>
+<li><p><strong>pgv_stream</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.Stream</span></code>) – The PGV stream of the event.</p></li>
+<li><p><strong>detection_data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – A dictionary holding the detection data related to the event.
+The detection data is created during the detection process
+using <a class="reference internal" href="mss_dataserver.event.delaunay_detection.DelaunayDetector.html#mss_dataserver.event.delaunay_detection.DelaunayDetector" title="mss_dataserver.event.delaunay_detection.DelaunayDetector"><code class="xref py py-class docutils literal notranslate"><span class="pre">mss_dataserver.event.delaunay_detection.DelaunayDetector</span></code></a>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="section" id="properties">
+<h2>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">end_time_string</span></code></p></td>
+<td><p>str: The string representation of the end time.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">length</span></code></p></td>
+<td><p>float: The length of the event in seconds.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">max_pgv</span></code></p></td>
+<td><p>float: The maximum PGV of all detections.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">public_id</span></code></p></td>
+<td><p>str: The public ID of the event.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rid</span></code></p></td>
+<td><p>str: The resource ID of the event.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">start_time_string</span></code></p></td>
+<td><p>str: The string representation of the start time.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">triggered_stations</span></code></p></td>
+<td><p>list of tuple of str: The nsl codes of the stations that contributed to a detection.</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.event.core.Event.__init__.html#mss_dataserver.event.core.Event.__init__" title="mss_dataserver.event.core.Event.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(start_time, end_time[, db_id, …])</p></td>
+<td><p>Instance initialization</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.event.core.Event.add_detection.html#mss_dataserver.event.core.Event.add_detection" title="mss_dataserver.event.core.Event.add_detection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_detection</span></code></a>(detection)</p></td>
+<td><p>Add a detection to the event.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.event.core.Event.assign_channel_to_detections.html#mss_dataserver.event.core.Event.assign_channel_to_detections" title="mss_dataserver.event.core.Event.assign_channel_to_detections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assign_channel_to_detections</span></code></a>(inventory)</p></td>
+<td><p>Set the channels according to the rec_stream_ids.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.event.core.Event.from_orm.html#mss_dataserver.event.core.Event.from_orm" title="mss_dataserver.event.core.Event.from_orm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_orm</span></code></a>(db_event, inventory)</p></td>
+<td><p>Convert a database orm mapper event to a event.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.event.core.Event.get_db_orm.html#mss_dataserver.event.core.Event.get_db_orm" title="mss_dataserver.event.core.Event.get_db_orm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_db_orm</span></code></a>(project)</p></td>
+<td><p>Get an orm representation to use it for bulk insertion into the database.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.event.core.Event.get_detection.html#mss_dataserver.event.core.Event.get_detection" title="mss_dataserver.event.core.Event.get_detection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_detection</span></code></a>(stations)</p></td>
+<td><p>Get a detection with the provided stations.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.event.core.Event.get_detection_limits_per_station.html#mss_dataserver.event.core.Event.get_detection_limits_per_station" title="mss_dataserver.event.core.Event.get_detection_limits_per_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_detection_limits_per_station</span></code></a>()</p></td>
+<td><p>Compute the detection start and end times for each station.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.event.core.Event.get_max_pgv_per_station.html#mss_dataserver.event.core.Event.get_max_pgv_per_station" title="mss_dataserver.event.core.Event.get_max_pgv_per_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_max_pgv_per_station</span></code></a>()</p></td>
+<td><p>Compute the maximum PGV of the individual stations that have</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.event.core.Event.has_detection.html#mss_dataserver.event.core.Event.has_detection" title="mss_dataserver.event.core.Event.has_detection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_detection</span></code></a>(stations)</p></td>
+<td><p>Check if a detection is available for a set of stations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.event.core.Event.station_has_triggered.html#mss_dataserver.event.core.Event.station_has_triggered" title="mss_dataserver.event.core.Event.station_has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">station_has_triggered</span></code></a>(station)</p></td>
+<td><p>Check if a detection has been triggered at a station.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.event.core.Event.write_to_database.html#mss_dataserver.event.core.Event.write_to_database" title="mss_dataserver.event.core.Event.write_to_database"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_to_database</span></code></a>(project)</p></td>
+<td><p>Write the event to the database.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="inheritence-diagram">
+<h2>Inheritence diagram<a class="headerlink" href="#inheritence-diagram" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="graphviz"><img src="../_images/inheritance-234a390d4614ad172cdc82da3249110f1184bca4.png" alt="Inheritance diagram of mss_dataserver.event.core.Event" usemap="#inheritance746674fd51" class="inheritance graphviz" /></div>
+<map id="inheritance746674fd51" name="inheritance746674fd51">
+<area shape="rect" id="node1" href="#mss_dataserver.event.core.Event" target="_top" title="A seismic event." alt="" coords="5,5,244,31"/>
+</map></div></blockquote>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.event.core.Event.__init__.html" title="__init__"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.event.core.Catalog.write_to_database.html" title="write_to_database"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.event.html" >mss_dataserver.event</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="mss_dataserver.event.core.html" >mss_dataserver.event.core</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Event</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stefan Mertl.
+      Last updated on 2021-04-22 20:20.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

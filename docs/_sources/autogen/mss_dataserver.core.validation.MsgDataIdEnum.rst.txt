@@ -1,0 +1,39 @@
+MsgDataIdEnum
+============================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. autoclass:: MsgDataIdEnum
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~MsgDataIdEnum.current_pgv
+      ~MsgDataIdEnum.detection_result
+      ~MsgDataIdEnum.event_archive
+      ~MsgDataIdEnum.event_data
+      ~MsgDataIdEnum.event_supplement
+      ~MsgDataIdEnum.event_warning
+      ~MsgDataIdEnum.keydata
+      ~MsgDataIdEnum.pgv_archive
+      ~MsgDataIdEnum.pgv_timeseries
+      ~MsgDataIdEnum.recent_events
+      ~MsgDataIdEnum.station_metadata
+
+
+
+
+      
+
+
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.validation.MsgDataIdEnum

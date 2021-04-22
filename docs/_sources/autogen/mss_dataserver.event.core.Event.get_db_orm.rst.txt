@@ -1,0 +1,7 @@
+get_db_orm
+==========================================
+
+.. currentmodule:: mss_dataserver.event.core
+.. automethod:: Event.get_db_orm
+
+

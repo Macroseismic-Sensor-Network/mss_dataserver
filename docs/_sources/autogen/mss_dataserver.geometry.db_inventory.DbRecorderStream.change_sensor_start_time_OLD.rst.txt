@@ -1,0 +1,7 @@
+change_sensor_start_time_OLD
+==================================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbRecorderStream.change_sensor_start_time_OLD
+
+

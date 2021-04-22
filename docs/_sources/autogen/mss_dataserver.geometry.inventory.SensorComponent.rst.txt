@@ -1,0 +1,46 @@
+SensorComponent
+=================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. autoclass:: SensorComponent
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~SensorComponent.assigned_streams
+      ~SensorComponent.model
+      ~SensorComponent.parent_inventory
+      ~SensorComponent.producer
+      ~SensorComponent.serial
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~SensorComponent.__init__
+      ~SensorComponent.add_parameter
+      ~SensorComponent.change_parameter_end_time
+      ~SensorComponent.change_parameter_start_time
+      ~SensorComponent.get_parameter
+      ~SensorComponent.merge
+      ~SensorComponent.remove_parameter
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.inventory.SensorComponent

@@ -1,0 +1,7 @@
+init_detection_run
+===========================================================================
+
+.. currentmodule:: mss_dataserver.event.delaunay_detection
+.. automethod:: DelaunayDetector.init_detection_run
+
+

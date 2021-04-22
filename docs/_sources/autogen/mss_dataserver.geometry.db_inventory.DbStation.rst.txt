@@ -1,0 +1,56 @@
+DbStation
+==============================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. autoclass:: DbStation
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~DbStation.assigned_recorders
+      ~DbStation.assigned_recorders_string
+      ~DbStation.assigned_sensors_string
+      ~DbStation.available_channels_string
+      ~DbStation.id
+      ~DbStation.location_string
+      ~DbStation.network
+      ~DbStation.nsl
+      ~DbStation.nsl_string
+      ~DbStation.parent_inventory
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~DbStation.__init__
+      ~DbStation.add_channel
+      ~DbStation.as_dict
+      ~DbStation.from_dict
+      ~DbStation.from_inventory_instance
+      ~DbStation.from_sqlalchemy_orm
+      ~DbStation.get_channel
+      ~DbStation.get_lon_lat
+      ~DbStation.get_nslc
+      ~DbStation.get_unique_channel_names
+      ~DbStation.merge
+      ~DbStation.remove_channel_by_instance
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.db_inventory.DbStation

@@ -1,0 +1,7 @@
+raw_decode
+=======================================================================
+
+.. currentmodule:: mss_dataserver.core.json_util
+.. automethod:: SupplementDetectionDataDecoder.raw_decode
+
+

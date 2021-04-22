@@ -1,0 +1,37 @@
+Network
+=========================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. autoclass:: Network
+   :show-inheritance:
+
+
+
+
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~Network.__init__
+      ~Network.add_station
+      ~Network.as_dict
+      ~Network.from_dict
+      ~Network.get_station
+      ~Network.merge
+      ~Network.remove_station
+      ~Network.remove_station_by_instance
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.inventory.Network

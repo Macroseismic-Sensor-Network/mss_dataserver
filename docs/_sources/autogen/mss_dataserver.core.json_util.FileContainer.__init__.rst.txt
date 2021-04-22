@@ -1,0 +1,7 @@
+__init__
+====================================================
+
+.. currentmodule:: mss_dataserver.core.json_util
+.. automethod:: FileContainer.__init__
+
+

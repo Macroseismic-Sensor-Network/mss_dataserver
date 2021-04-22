@@ -1,0 +1,7 @@
+get_detection_catalog_names
+===============================================================
+
+.. currentmodule:: mss_dataserver.core.project
+.. automethod:: Project.get_detection_catalog_names
+
+

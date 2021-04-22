@@ -1,0 +1,6 @@
+mss_dataserver.core.util.load_configuration
+===========================================
+
+.. currentmodule:: mss_dataserver.core.util
+
+.. autofunction:: load_configuration

@@ -1,0 +1,47 @@
+Detection
+========================================
+
+.. currentmodule:: mss_dataserver.event.detection
+.. autoclass:: Detection
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~Detection.absolute_max_pgv
+      ~Detection.end_time_string
+      ~Detection.length
+      ~Detection.nsl
+      ~Detection.nslc
+      ~Detection.rid
+      ~Detection.start_time_string
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~Detection.__init__
+      ~Detection.from_orm
+      ~Detection.get_db_orm
+      ~Detection.set_channel_from_inventory
+      ~Detection.update
+      ~Detection.write_to_database
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.event.detection.Detection

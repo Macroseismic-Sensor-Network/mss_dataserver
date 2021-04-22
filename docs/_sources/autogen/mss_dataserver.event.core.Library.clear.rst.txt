@@ -1,0 +1,7 @@
+clear
+=======================================
+
+.. currentmodule:: mss_dataserver.event.core
+.. automethod:: Library.clear
+
+

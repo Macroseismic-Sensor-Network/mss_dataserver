@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mss_dataserver.geometry.util &#8212; mss_dataserver 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/haiku_maar.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
+          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>mss_dataserver.geometry.util</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../geometry.html" accesskey="U">mss_dataserver.geometry</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.geometry.util</a></li> 
+      </ul>
+    </div>
+      </div>
+      <div class="content" role="main">
+        
+        
+  <h1>Source code for mss_dataserver.geometry.util</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">##############################################################################</span>
+ <span class="c1"># LICENSE</span>
+ <span class="c1">#</span>
+ <span class="c1"># This file is part of mss_dataserver.</span>
+ <span class="c1"># </span>
+ <span class="c1"># If you use mss_dataserver in any program or publication, please inform and</span>
+ <span class="c1"># acknowledge its authors.</span>
+ <span class="c1"># </span>
+ <span class="c1"># mss_dataserver is free software: you can redistribute it and/or modify</span>
+ <span class="c1"># it under the terms of the GNU General Public License as published by</span>
+ <span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+ <span class="c1"># (at your option) any later version.</span>
+ <span class="c1"># </span>
+ <span class="c1"># mss_dataserver is distributed in the hope that it will be useful,</span>
+ <span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+ <span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+ <span class="c1"># GNU General Public License for more details.</span>
+ <span class="c1"># </span>
+ <span class="c1"># You should have received a copy of the GNU General Public License</span>
+ <span class="c1"># along with mss_dataserver. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+ <span class="c1">#</span>
+ <span class="c1"># Copyright 2019 Stefan Mertl</span>
+<span class="c1">##############################################################################</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">The geometry util module.</span>
+
+<span class="sd">This module contains helper functions used in the geometry package.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<div class="viewcode-block" id="lon2UtmZone"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.util.lon2UtmZone.html#mss_dataserver.geometry.util.lon2UtmZone">[docs]</a><span class="k">def</span> <span class="nf">lon2UtmZone</span><span class="p">(</span><span class="n">lon</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Convert a longitude to the UTM zone.</span>
+
+<span class="sd">    The formula is based on the wikipedia description:</span>
+<span class="sd">    The UTM system divides the surface of Earth between 80S and 84N latitude </span>
+<span class="sd">    into 60 zones, each 6 of longitude in width. Zone 1 covers longitude 180 </span>
+<span class="sd">    to 174 W; zone numbering increases eastward to zone 60 that covers </span>
+<span class="sd">    longitude 174 to 180 East.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">lon</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">180</span> <span class="ow">or</span> <span class="n">lon</span> <span class="o">&gt;</span> <span class="mi">180</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The longitude must be between -180 and 180.&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="nb">int</span><span class="p">((</span><span class="mi">180</span> <span class="o">+</span> <span class="n">lon</span><span class="p">)</span> <span class="o">/</span> <span class="mf">6.0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">60</span></div>
+
+
+<div class="viewcode-block" id="zone2UtmCentralMeridian"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.util.zone2UtmCentralMeridian.html#mss_dataserver.geometry.util.zone2UtmCentralMeridian">[docs]</a><span class="k">def</span> <span class="nf">zone2UtmCentralMeridian</span><span class="p">(</span><span class="n">zone</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Compute the middle meridian of a given UTM zone.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">zone</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">zone</span> <span class="o">&gt;</span> <span class="mi">60</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The zone must be between 1 and 60.&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">zone</span> <span class="o">*</span> <span class="mi">6</span> <span class="o">-</span> <span class="mi">180</span> <span class="o">-</span> <span class="mi">3</span></div>
+
+<div class="viewcode-block" id="epsg_from_srs"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.util.epsg_from_srs.html#mss_dataserver.geometry.util.epsg_from_srs">[docs]</a><span class="k">def</span> <span class="nf">epsg_from_srs</span><span class="p">(</span><span class="n">srs</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Extract the epsg code from a proj srs string.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">srs</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;+&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s1">&#39;init&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">v</span></div>
+
+
+<div class="viewcode-block" id="get_epsg_dict"><a class="viewcode-back" href="../../../autogen/mss_dataserver.geometry.util.get_epsg_dict.html#mss_dataserver.geometry.util.get_epsg_dict">[docs]</a><span class="k">def</span> <span class="nf">get_epsg_dict</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39; Create a dictionary for mapping proj projection arguments to epsg codes.</span>
+
+<span class="sd">    This function is a modified version of the one included in mpl_toolkits.basemap.</span>
+<span class="sd">    It reads the epsg file in the matplotlib data directory and creates a dictionary </span>
+<span class="sd">    with the epsg codes as the keys and the responding proj projection arguments as </span>
+<span class="sd">    the values.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1"># create dictionary that maps epsg codes to Basemap kwargs.</span>
+    <span class="kn">import</span> <span class="nn">os</span>
+    <span class="n">epsgf</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;epsg&#39;</span><span class="p">))</span>
+    <span class="n">epsg_dict</span><span class="o">=</span><span class="p">{}</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">epsgf</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;&lt;&gt;&quot;</span><span class="p">)</span>
+        <span class="n">parms</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">_kw_args</span><span class="o">=</span><span class="p">{}</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">k</span><span class="o">==</span><span class="s1">&#39;proj&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="s1">&#39;longlat&#39;</span><span class="p">:</span> <span class="n">v</span> <span class="o">=</span> <span class="s1">&#39;cyl&#39;</span>
+                <span class="n">k</span><span class="o">=</span><span class="s1">&#39;projection&#39;</span>
+            <span class="k">if</span> <span class="n">k</span><span class="o">==</span><span class="s1">&#39;k&#39;</span><span class="p">:</span>
+                <span class="n">k</span><span class="o">=</span><span class="s1">&#39;k_0&#39;</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;projection&#39;</span><span class="p">,</span><span class="s1">&#39;lat_1&#39;</span><span class="p">,</span><span class="s1">&#39;lat_2&#39;</span><span class="p">,</span><span class="s1">&#39;lon_0&#39;</span><span class="p">,</span><span class="s1">&#39;lat_0&#39;</span><span class="p">,</span>\
+                     <span class="s1">&#39;a&#39;</span><span class="p">,</span><span class="s1">&#39;b&#39;</span><span class="p">,</span><span class="s1">&#39;k_0&#39;</span><span class="p">,</span><span class="s1">&#39;lat_ts&#39;</span><span class="p">,</span><span class="s1">&#39;ellps&#39;</span><span class="p">,</span><span class="s1">&#39;datum&#39;</span><span class="p">,</span> <span class="s1">&#39;zone&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;projection&#39;</span><span class="p">,</span><span class="s1">&#39;ellps&#39;</span><span class="p">,</span><span class="s1">&#39;datum&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">]:</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                <span class="n">_kw_args</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">v</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_kw_args</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="s1">&#39;projection&#39;</span> <span class="ow">in</span> <span class="n">_kw_args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;a&#39;</span> <span class="ow">in</span> <span class="n">_kw_args</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;b&#39;</span> <span class="ow">in</span> <span class="n">_kw_args</span><span class="p">:</span>
+                    <span class="n">_kw_args</span><span class="p">[</span><span class="s1">&#39;rsphere&#39;</span><span class="p">]</span><span class="o">=</span><span class="p">(</span><span class="n">_kw_args</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">],</span><span class="n">_kw_args</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">])</span>
+                    <span class="k">del</span> <span class="n">_kw_args</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">_kw_args</span><span class="p">[</span><span class="s1">&#39;rsphere&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">_kw_args</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span>
+                <span class="k">del</span> <span class="n">_kw_args</span><span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s1">&#39;datum&#39;</span> <span class="ow">in</span> <span class="n">_kw_args</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">_kw_args</span><span class="p">[</span><span class="s1">&#39;datum&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;NAD83&#39;</span><span class="p">:</span>
+                    <span class="n">_kw_args</span><span class="p">[</span><span class="s1">&#39;ellps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;GRS80&#39;</span>
+                <span class="k">elif</span> <span class="n">_kw_args</span><span class="p">[</span><span class="s1">&#39;datum&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;NAD27&#39;</span><span class="p">:</span>
+                    <span class="n">_kw_args</span><span class="p">[</span><span class="s1">&#39;ellps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;clrk66&#39;</span>
+                <span class="k">elif</span> <span class="n">_kw_args</span><span class="p">[</span><span class="s1">&#39;datum&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;WGS84&#39;</span><span class="p">:</span>
+                    <span class="n">_kw_args</span><span class="p">[</span><span class="s1">&#39;ellps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;WGS84&#39;</span>
+                <span class="k">del</span> <span class="n">_kw_args</span><span class="p">[</span><span class="s1">&#39;datum&#39;</span><span class="p">]</span>
+            <span class="c1"># supported epsg projections.</span>
+            <span class="c1"># omerc not supported yet, since we can&#39;t handle</span>
+            <span class="c1"># alpha,gamma and lonc keywords.</span>
+            <span class="k">if</span> <span class="n">_kw_args</span><span class="p">[</span><span class="s1">&#39;projection&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;omerc&#39;</span><span class="p">:</span>
+                <span class="n">epsg_dict</span><span class="p">[</span><span class="n">code</span><span class="p">]</span><span class="o">=</span><span class="n">_kw_args</span>
+    <span class="n">epsgf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">epsg_dict</span></div>
+
+
+<span class="n">ellipsoids</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">ellipsoids</span><span class="p">[</span><span class="s1">&#39;wgs84&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">6378137</span><span class="p">,</span> <span class="mf">6356752.314245179</span><span class="p">)</span>
+
+
+
+
+</pre></div>
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../geometry.html" >mss_dataserver.geometry</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.geometry.util</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stefan Mertl.
+      Last updated on 2021-04-22 20:20.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

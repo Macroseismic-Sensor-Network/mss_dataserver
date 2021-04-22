@@ -1,0 +1,43 @@
+DbRecorder
+===============================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. autoclass:: DbRecorder
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~DbRecorder.id
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~DbRecorder.__init__
+      ~DbRecorder.add_stream
+      ~DbRecorder.from_inventory_instance
+      ~DbRecorder.from_sqlalchemy_orm
+      ~DbRecorder.get_stream
+      ~DbRecorder.merge
+      ~DbRecorder.pop_stream
+      ~DbRecorder.pop_stream_by_instance
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.db_inventory.DbRecorder

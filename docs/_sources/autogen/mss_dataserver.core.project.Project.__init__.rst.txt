@@ -1,0 +1,7 @@
+__init__
+============================================
+
+.. currentmodule:: mss_dataserver.core.project
+.. automethod:: Project.__init__
+
+

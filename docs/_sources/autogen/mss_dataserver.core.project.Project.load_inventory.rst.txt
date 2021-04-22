@@ -1,0 +1,7 @@
+load_inventory
+==================================================
+
+.. currentmodule:: mss_dataserver.core.project
+.. automethod:: Project.load_inventory
+
+

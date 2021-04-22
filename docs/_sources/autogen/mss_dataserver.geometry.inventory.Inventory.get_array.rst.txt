@@ -1,0 +1,7 @@
+get_array
+=====================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: Inventory.get_array
+
+

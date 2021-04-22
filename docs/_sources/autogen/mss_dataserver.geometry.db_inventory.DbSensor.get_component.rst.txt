@@ -1,0 +1,7 @@
+get_component
+===========================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbSensor.get_component
+
+

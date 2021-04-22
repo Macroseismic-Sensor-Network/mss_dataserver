@@ -1,0 +1,6 @@
+mss_dataserver.geometry.util.lon2UtmZone
+========================================
+
+.. currentmodule:: mss_dataserver.geometry.util
+
+.. autofunction:: lon2UtmZone

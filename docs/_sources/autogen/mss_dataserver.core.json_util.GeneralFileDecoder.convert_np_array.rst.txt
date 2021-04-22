@@ -1,0 +1,7 @@
+convert_np_array
+=================================================================
+
+.. currentmodule:: mss_dataserver.core.json_util
+.. automethod:: GeneralFileDecoder.convert_np_array
+
+

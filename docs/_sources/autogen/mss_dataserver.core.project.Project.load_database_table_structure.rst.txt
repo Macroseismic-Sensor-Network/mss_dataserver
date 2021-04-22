@@ -1,0 +1,7 @@
+load_database_table_structure
+=================================================================
+
+.. currentmodule:: mss_dataserver.core.project
+.. automethod:: Project.load_database_table_structure
+
+

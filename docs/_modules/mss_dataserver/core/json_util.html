@@ -1,0 +1,834 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mss_dataserver.core.json_util &#8212; mss_dataserver 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/haiku_maar.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
+          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>mss_dataserver.core.json_util</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.core.json_util</a></li> 
+      </ul>
+    </div>
+      </div>
+      <div class="content" role="main">
+        
+        
+  <h1>Source code for mss_dataserver.core.json_util</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">##############################################################################</span>
+ <span class="c1"># LICENSE</span>
+ <span class="c1">#</span>
+ <span class="c1"># This file is part of mss_dataserver.</span>
+ <span class="c1"># </span>
+ <span class="c1"># If you use mss_dataserver in any program or publication, please inform and</span>
+ <span class="c1"># acknowledge its authors.</span>
+ <span class="c1"># </span>
+ <span class="c1"># mss_dataserver is free software: you can redistribute it and/or modify</span>
+ <span class="c1"># it under the terms of the GNU General Public License as published by</span>
+ <span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+ <span class="c1"># (at your option) any later version.</span>
+ <span class="c1"># </span>
+ <span class="c1"># mss_dataserver is distributed in the hope that it will be useful,</span>
+ <span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+ <span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+ <span class="c1"># GNU General Public License for more details.</span>
+ <span class="c1"># </span>
+ <span class="c1"># You should have received a copy of the GNU General Public License</span>
+ <span class="c1"># along with mss_dataserver. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+ <span class="c1">#</span>
+ <span class="c1"># Copyright 2019 Stefan Mertl</span>
+<span class="c1">##############################################################################</span>
+
+<span class="sd">&#39;&#39;&#39; Utilities for handling JSON import and export.</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">obspy</span>
+
+<span class="kn">import</span> <span class="nn">mss_dataserver.core.util</span> <span class="k">as</span> <span class="nn">util</span>
+<span class="kn">import</span> <span class="nn">mss_dataserver.geometry</span> <span class="k">as</span> <span class="nn">geom</span>
+<span class="kn">import</span> <span class="nn">mss_dataserver.geometry.inventory</span>
+
+
+<div class="viewcode-block" id="object_to_dict"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.object_to_dict.html#mss_dataserver.core.json_util.object_to_dict">[docs]</a><span class="k">def</span> <span class="nf">object_to_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Copy selected attributes of object to a dictionary.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    obj: :class:`object`</span>
+<span class="sd">        An instance of a python class.</span>
+
+<span class="sd">    attr: list of String</span>
+<span class="sd">        The attributes to copy to the dictionary.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    d: dict</span>
+<span class="sd">        A dictionary with the selected attributes.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">hint_tuples</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a tuple.</span>
+
+<span class="sd">        JSON doesn&#39;t support tuples. Use a custom dictionary</span>
+<span class="sd">        to encode a tuple.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        item: object</span>
+<span class="sd">            The instance to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        item: dict</span>
+<span class="sd">            The dictionary representation of the instance item.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;__tuple__&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;items&#39;</span><span class="p">:</span> <span class="n">item</span><span class="p">}</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">hint_tuples</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">item</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">item</span>
+
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">cur_attr</span> <span class="ow">in</span> <span class="n">attr</span><span class="p">:</span>
+        <span class="n">d</span><span class="p">[</span><span class="n">cur_attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">hint_tuples</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">cur_attr</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">d</span></div>
+
+
+<div class="viewcode-block" id="FileContainer"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.FileContainer.html#mss_dataserver.core.json_util.FileContainer">[docs]</a><span class="k">class</span> <span class="nc">FileContainer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; A container json data.</span>
+
+<span class="sd">    Along with the data, the container holds information about</span>
+<span class="sd">    the file creation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data: dict</span>
+<span class="sd">        The data to write to a JSON file.</span>
+
+<span class="sd">    agency_uri: String</span>
+<span class="sd">        The agency uniform resource identifier.</span>
+
+<span class="sd">    author_uri: String</span>
+<span class="sd">        The author uniform resource identifier</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="FileContainer.__init__"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.FileContainer.__init__.html#mss_dataserver.core.json_util.FileContainer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">agency_uri</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">author_uri</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agency_uri</span> <span class="o">=</span> <span class="n">agency_uri</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">author_uri</span> <span class="o">=</span> <span class="n">author_uri</span></div></div>
+
+
+<div class="viewcode-block" id="GeneralFileEncoder"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileEncoder.html#mss_dataserver.core.json_util.GeneralFileEncoder">[docs]</a><span class="k">class</span> <span class="nc">GeneralFileEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; A JSON encoder for the serialization of general data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    **kwargs: keyword argument</span>
+<span class="sd">        Keyword arguments passed to :class:`json.encoder.JSONEncoder`.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    version: :class:`mss_dataserver.core.util`</span>
+<span class="sd">        The version of the file encoder.</span>
+
+<span class="sd">    logger: logging.Logger</span>
+<span class="sd">        The logging instance.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Version</span><span class="p">(</span><span class="s1">&#39;1.0.0&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GeneralFileEncoder.__init__"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileEncoder.__init__.html#mss_dataserver.core.json_util.GeneralFileEncoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Initialization of the instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">)</span>
+
+        <span class="c1"># The logger.</span>
+        <span class="n">loggerName</span> <span class="o">=</span> <span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">loggerName</span><span class="p">)</span>
+
+        <span class="c1"># File format settings.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indent</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sort_keys</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="GeneralFileEncoder.default"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileEncoder.default.html#mss_dataserver.core.json_util.GeneralFileEncoder.default">[docs]</a>    <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert objects to a dictionary.</span>
+
+<span class="sd">        The instance class, module and base_class relations are stored in </span>
+<span class="sd">        the __class__, __module__ and __base_class__ keys. These are used </span>
+<span class="sd">        by the related file decoder to restore the correct class instances.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj: object</span>
+<span class="sd">            The instance to convert to a dictionary.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">           The dictionary representation of the instance obj.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">obj_class</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="n">base_class</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__bases__</span><span class="p">]</span>
+
+        <span class="c1">#self.logger.debug(&#39;obj_class: %s.&#39;, obj_class)</span>
+        <span class="k">if</span> <span class="n">obj_class</span> <span class="o">==</span> <span class="s1">&#39;FileContainer&#39;</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_filecontainer</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">obj_class</span> <span class="o">==</span> <span class="s1">&#39;Version&#39;</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_version</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">obj_class</span> <span class="o">==</span> <span class="s1">&#39;UTCDateTime&#39;</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_utcdatetime</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">obj_class</span> <span class="o">==</span> <span class="s1">&#39;ndarray&#39;</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_np_ndarray</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">obj_class</span> <span class="o">==</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ERROR&#39;</span><span class="p">:</span> <span class="s1">&#39;MISSING CONVERTER for obj_class </span><span class="si">{obj_class}</span><span class="s1"> with base_class </span><span class="si">{base_class}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj_class</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj_class</span><span class="p">),</span>
+                                                                                                            <span class="n">base_class</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">base_class</span><span class="p">))}</span>
+
+        <span class="c1"># Add the class and module information to the dictionary.</span>
+        <span class="k">if</span> <span class="n">obj_class</span> <span class="o">!=</span> <span class="s1">&#39;FileContainer&#39;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__module__</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__module__</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;__baseclass__&#39;</span><span class="p">:</span> <span class="n">base_class</span><span class="p">,</span>
+                   <span class="s1">&#39;__class__&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                   <span class="s1">&#39;__module__&#39;</span><span class="p">:</span> <span class="n">module</span><span class="p">}</span>
+            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;d: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">d</span></div>
+
+
+<div class="viewcode-block" id="GeneralFileEncoder.convert_filecontainer"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileEncoder.convert_filecontainer.html#mss_dataserver.core.json_util.GeneralFileEncoder.convert_filecontainer">[docs]</a>    <span class="k">def</span> <span class="nf">convert_filecontainer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a filecontainer instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj: FileContainer</span>
+<span class="sd">            The filecontainer to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">           The dictionary representation of the instance obj.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">file_meta</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;file_version&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+                     <span class="s1">&#39;save_date&#39;</span><span class="p">:</span> <span class="n">obspy</span><span class="o">.</span><span class="n">UTCDateTime</span><span class="p">(),</span>
+                     <span class="s1">&#39;agency_uri&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">agency_uri</span><span class="p">,</span>
+                     <span class="s1">&#39;author_uri&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">author_uri</span><span class="p">}</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;file_meta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">file_meta</span>
+        <span class="k">return</span> <span class="n">d</span></div>
+
+
+<div class="viewcode-block" id="GeneralFileEncoder.convert_utcdatetime"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileEncoder.convert_utcdatetime.html#mss_dataserver.core.json_util.GeneralFileEncoder.convert_utcdatetime">[docs]</a>    <span class="k">def</span> <span class="nf">convert_utcdatetime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a UTCDateTime instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj: obspy.utcdatetime.UTCDateTime</span>
+<span class="sd">            The UTCDateTime instance to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            The dictionary representation of obj.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;utcdatetime&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()}</span></div>
+
+
+<div class="viewcode-block" id="GeneralFileEncoder.convert_version"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileEncoder.convert_version.html#mss_dataserver.core.json_util.GeneralFileEncoder.convert_version">[docs]</a>    <span class="k">def</span> <span class="nf">convert_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a UTCDateTime instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj: obspy.utcdatetime.UTCDateTime</span>
+<span class="sd">            The UTCDateTime instance to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            The dictionary representation of obj.</span>
+<span class="sd">        &#39;&#39;&#39;</span>        <span class="s1">&#39;&#39;&#39; Convert a Version instance.</span>
+
+<span class="s1">        Parameters</span>
+<span class="s1">        ----------</span>
+<span class="s1">        obj: mss_dataserver.core.util.Version</span>
+<span class="s1">            The instance to convert.</span>
+
+<span class="s1">        Returns</span>
+<span class="s1">        -------</span>
+<span class="s1">        d: dict</span>
+<span class="s1">            The dictionary representation of obj.</span>
+<span class="s1">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">)}</span></div>
+
+
+<div class="viewcode-block" id="GeneralFileEncoder.convert_np_ndarray"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileEncoder.convert_np_ndarray.html#mss_dataserver.core.json_util.GeneralFileEncoder.convert_np_ndarray">[docs]</a>    <span class="k">def</span> <span class="nf">convert_np_ndarray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a numpy array instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj: numpy.ndarray</span>
+<span class="sd">            The instance to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            The dictionary representation of obj.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">tolist</span><span class="p">()}</span></div></div>
+
+
+
+<div class="viewcode-block" id="GeneralFileDecoder"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileDecoder.html#mss_dataserver.core.json_util.GeneralFileDecoder">[docs]</a><span class="k">class</span> <span class="nc">GeneralFileDecoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONDecoder</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; A JSON decoder for the deserialization of general data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    **kwargs: keyword argument</span>
+<span class="sd">        Keyword arguments passed to :class:`json.encoder.JSONDecoder`.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    version: :class:`mss_dataserver.core.util`</span>
+<span class="sd">        The version of the file decoder.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">version</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Version</span><span class="p">(</span><span class="s1">&#39;1.0.0&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GeneralFileDecoder.__init__"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileDecoder.__init__.html#mss_dataserver.core.json_util.GeneralFileDecoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">JSONDecoder</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_hook</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_dict</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="GeneralFileDecoder.convert_dict"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileDecoder.convert_dict.html#mss_dataserver.core.json_util.GeneralFileDecoder.convert_dict">[docs]</a>    <span class="k">def</span> <span class="nf">convert_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a dictionary to objects.</span>
+
+<span class="sd">        The dictionary to convert should have been with an mss_dataserver</span>
+<span class="sd">        JSON file encoder class. In this case, the dictionaries contains</span>
+<span class="sd">        hints of the original class and module name in the __class__, </span>
+<span class="sd">        __module__ and __base_class__ keys. These are used to convert </span>
+<span class="sd">        the dictionary to instances of the given classes.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            The dictionary to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        inst: object</span>
+<span class="sd">            The object representation of dict d.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="s1">&#39;__class__&#39;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="n">class_name</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;__class__&#39;</span><span class="p">)</span>
+            <span class="n">module_name</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;__module__&#39;</span><span class="p">)</span>
+            <span class="n">base_class</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;__baseclass__&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">class_name</span> <span class="o">==</span> <span class="s1">&#39;Version&#39;</span><span class="p">:</span>
+                <span class="n">inst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_version</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">class_name</span> <span class="o">==</span> <span class="s1">&#39;UTCDateTime&#39;</span><span class="p">:</span>
+                <span class="n">inst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_utcdatetime</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">class_name</span> <span class="o">==</span> <span class="s1">&#39;ndarray&#39;</span><span class="p">:</span>
+                <span class="n">inst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_np_array</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">inst</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ERROR&#39;</span><span class="p">:</span> <span class="s1">&#39;MISSING CONVERTER&#39;</span><span class="p">}</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">inst</span> <span class="o">=</span> <span class="n">d</span>
+
+        <span class="k">return</span> <span class="n">inst</span></div>
+
+
+<div class="viewcode-block" id="GeneralFileDecoder.decode_hinted_tuple"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileDecoder.decode_hinted_tuple.html#mss_dataserver.core.json_util.GeneralFileDecoder.decode_hinted_tuple">[docs]</a>    <span class="k">def</span> <span class="nf">decode_hinted_tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Decode a tuple.</span>
+
+<span class="sd">        JSON doesn&#39;t support tuples. Use a custom dictionary</span>
+<span class="sd">        to decode. If the dictionary contains the __tuple__</span>
+<span class="sd">        attribute, the dictionary is converted to a tuple.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        item: dict</span>
+<span class="sd">            The dictionary to decode.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ------</span>
+<span class="sd">        item: object</span>
+<span class="sd">            The object representation of the item dictionary.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s1">&#39;__tuple__&#39;</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;items&#39;</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">decode_hinted_tuple</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">item</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">item</span></div>
+
+
+<div class="viewcode-block" id="GeneralFileDecoder.convert_version"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileDecoder.convert_version.html#mss_dataserver.core.json_util.GeneralFileDecoder.convert_version">[docs]</a>    <span class="k">def</span> <span class="nf">convert_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a Version dictionary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            The dictionary to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        inst: :class:`mss_dataserver.core.util.Version`</span>
+<span class="sd">            The instance of the converted dictionary.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">inst</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Version</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;version&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">inst</span></div>
+
+
+<div class="viewcode-block" id="GeneralFileDecoder.convert_utcdatetime"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileDecoder.convert_utcdatetime.html#mss_dataserver.core.json_util.GeneralFileDecoder.convert_utcdatetime">[docs]</a>    <span class="k">def</span> <span class="nf">convert_utcdatetime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a UTCDateTime dictionary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            The dictionary to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        d: obspy.UTCDateTime</span>
+<span class="sd">            The instance of the converted dictionary.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">inst</span> <span class="o">=</span> <span class="n">obspy</span><span class="o">.</span><span class="n">UTCDateTime</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;utcdatetime&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">inst</span></div>
+
+
+<div class="viewcode-block" id="GeneralFileDecoder.convert_np_array"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileDecoder.convert_np_array.html#mss_dataserver.core.json_util.GeneralFileDecoder.convert_np_array">[docs]</a>    <span class="k">def</span> <span class="nf">convert_np_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a numpy ndarray dictionary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            The dictionary to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        inst: numpy.ndarray</span>
+<span class="sd">            The instance of the converted dictionary.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">inst</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">inst</span></div></div>
+
+
+
+<div class="viewcode-block" id="SupplementDetectionDataEncoder"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder">[docs]</a><span class="k">class</span> <span class="nc">SupplementDetectionDataEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; A JSON encoder for the event supplement detection data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    **kwargs: keyword argument</span>
+<span class="sd">        Keyword arguments passed to :class:`json.encoder.JSONEncoder`.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    version: :class:`mss_dataserver.core.util`</span>
+<span class="sd">        The version of the file encoder.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">version</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Version</span><span class="p">(</span><span class="s1">&#39;1.0.0&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SupplementDetectionDataEncoder.__init__"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.__init__.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Initialization of the instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">)</span>
+
+        <span class="c1"># The logger.</span>
+        <span class="n">loggerName</span> <span class="o">=</span> <span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">loggerName</span><span class="p">)</span>
+
+        <span class="c1"># File format settings.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indent</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sort_keys</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="SupplementDetectionDataEncoder.default"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.default.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.default">[docs]</a>    <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert objects to a dictionary.</span>
+
+<span class="sd">        The instance class, module and base_class relations are stored in </span>
+<span class="sd">        the __class__, __module__ and __base_class__ keys. These are used </span>
+<span class="sd">        by the related file decoder to restore the correct class instances.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj: object</span>
+<span class="sd">            The instance to convert to a dictionary.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">           The dictionary representation of the instance obj.</span>
+<span class="sd">        &#39;&#39;&#39;</span>        <span class="s1">&#39;&#39;&#39; Convert the detection data instances to dictionaries.</span>
+<span class="s1">        &#39;&#39;&#39;</span>
+        <span class="n">obj_class</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="n">base_class</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__bases__</span><span class="p">]</span>
+        <span class="c1">#print &#39;Converting %s&#39; % obj_class</span>
+
+        <span class="k">if</span> <span class="n">obj_class</span> <span class="o">==</span> <span class="s1">&#39;FileContainer&#39;</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_filecontainer</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">obj_class</span> <span class="o">==</span> <span class="s1">&#39;UTCDateTime&#39;</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_utcdatetime</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">obj_class</span> <span class="o">==</span> <span class="s1">&#39;Version&#39;</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_version</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">obj_class</span> <span class="o">==</span> <span class="s1">&#39;ndarray&#39;</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_np_ndarray</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s1">&#39;Station&#39;</span> <span class="ow">in</span> <span class="n">base_class</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_station</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ERROR&#39;</span><span class="p">:</span> <span class="s1">&#39;MISSING CONVERTER for obj_class </span><span class="si">{obj_class}</span><span class="s1"> with base_class </span><span class="si">{base_class}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj_class</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj_class</span><span class="p">),</span>
+                                                                                                            <span class="n">base_class</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">base_class</span><span class="p">))}</span>
+
+        <span class="c1"># Add the class and module information to the dictionary.</span>
+        <span class="k">if</span> <span class="n">obj_class</span> <span class="o">!=</span> <span class="s1">&#39;FileContainer&#39;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__module__</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">module</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__module__</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;__baseclass__&#39;</span><span class="p">:</span> <span class="n">base_class</span><span class="p">,</span>
+                   <span class="s1">&#39;__class__&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                   <span class="s1">&#39;__module__&#39;</span><span class="p">:</span> <span class="n">module</span><span class="p">}</span>
+            <span class="n">d</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">d</span></div>
+
+<div class="viewcode-block" id="SupplementDetectionDataEncoder.convert_filecontainer"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_filecontainer.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_filecontainer">[docs]</a>    <span class="k">def</span> <span class="nf">convert_filecontainer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a filecontainer instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj: FileContainer</span>
+<span class="sd">            The filecontainer to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">           The dictionary representation of the instance obj.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">file_meta</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;file_version&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+                     <span class="s1">&#39;save_date&#39;</span><span class="p">:</span> <span class="n">obspy</span><span class="o">.</span><span class="n">UTCDateTime</span><span class="p">(),</span>
+                     <span class="s1">&#39;agency_uri&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">agency_uri</span><span class="p">,</span>
+                     <span class="s1">&#39;author_uri&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">author_uri</span><span class="p">}</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;file_meta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">file_meta</span>
+        <span class="k">return</span> <span class="n">d</span></div>
+
+<div class="viewcode-block" id="SupplementDetectionDataEncoder.convert_utcdatetime"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_utcdatetime.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_utcdatetime">[docs]</a>    <span class="k">def</span> <span class="nf">convert_utcdatetime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a UTCDateTime instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj: obspy.utcdatetime.UTCDateTime</span>
+<span class="sd">            The UTCDateTime instance to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            The dictionary representation of obj.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;utcdatetime&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()}</span></div>
+
+<div class="viewcode-block" id="SupplementDetectionDataEncoder.convert_version"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_version.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_version">[docs]</a>    <span class="k">def</span> <span class="nf">convert_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a Version dictionary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            The dictionary to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        inst: :class:`mss_dataserver.core.util.Version`</span>
+<span class="sd">            The instance of the converted dictionary..</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">)}</span></div>
+
+<div class="viewcode-block" id="SupplementDetectionDataEncoder.convert_np_ndarray"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_np_ndarray.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_np_ndarray">[docs]</a>    <span class="k">def</span> <span class="nf">convert_np_ndarray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a numpy ndarray dictionary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            The dictionary to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        inst: numpy.ndarray</span>
+<span class="sd">            The instance of the converted dictionary..</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">tolist</span><span class="p">()}</span></div>
+
+<div class="viewcode-block" id="SupplementDetectionDataEncoder.convert_station"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_station.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_station">[docs]</a>    <span class="k">def</span> <span class="nf">convert_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a Station dictionary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            The dictionary to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        inst: :class:`mss_dataserver.geometry.inventory.Station`</span>
+<span class="sd">            The instance of the converted dictionary.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">attr</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;location&#39;</span><span class="p">,</span> <span class="s1">&#39;network&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;coord_system&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;description&#39;</span><span class="p">,</span> <span class="s1">&#39;author_uri&#39;</span><span class="p">,</span> <span class="s1">&#39;agency_uri&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;creation_time&#39;</span><span class="p">]</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">object_to_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">d</span></div></div>
+
+
+<div class="viewcode-block" id="SupplementDetectionDataDecoder"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder">[docs]</a><span class="k">class</span> <span class="nc">SupplementDetectionDataDecoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONDecoder</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; A JSON decoder for the deserialization of detection supplement data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    **kwargs: keyword argument</span>
+<span class="sd">        Keyword arguments passed to :class:`json.encoder.JSONDecoder`.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    version: :class:`mss_dataserver.core.util`</span>
+<span class="sd">        The version of the file decoder.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Version</span><span class="p">(</span><span class="s1">&#39;1.0.0&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SupplementDetectionDataDecoder.__init__"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.__init__.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Initialize the instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">JSONDecoder</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_hook</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_dict</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">inventory</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">inventory</span><span class="o">.</span><span class="n">Inventory</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;detection_data_import&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SupplementDetectionDataDecoder.convert_dict"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_dict.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_dict">[docs]</a>    <span class="k">def</span> <span class="nf">convert_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a dictionary to objects.</span>
+
+<span class="sd">        The dictionary to convert should have been with an mss_dataserver</span>
+<span class="sd">        JSON file encoder class. In this case, the dictionaries contains</span>
+<span class="sd">        hints of the original class and module name in the __class__, </span>
+<span class="sd">        __module__ and __base_class__ keys. These are used to convert </span>
+<span class="sd">        the dictionary to instances of the given classes.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            The dictionary to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        inst: object</span>
+<span class="sd">            The object representation of dict d.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1">#print &quot;Converting dict: %s.&quot; % str(d)</span>
+        <span class="k">if</span> <span class="s1">&#39;__class__&#39;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="n">class_name</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;__class__&#39;</span><span class="p">)</span>
+            <span class="n">module_name</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;__module__&#39;</span><span class="p">)</span>
+            <span class="n">base_class</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;__baseclass__&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">class_name</span> <span class="o">==</span> <span class="s1">&#39;Version&#39;</span><span class="p">:</span>
+                <span class="n">inst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_version</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">class_name</span> <span class="o">==</span> <span class="s1">&#39;UTCDateTime&#39;</span><span class="p">:</span>
+                <span class="n">inst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_utcdatetime</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">class_name</span> <span class="o">==</span> <span class="s1">&#39;ndarray&#39;</span><span class="p">:</span>
+                <span class="n">inst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_np_array</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="s1">&#39;Station&#39;</span> <span class="ow">in</span> <span class="n">base_class</span><span class="p">:</span>
+                <span class="n">inst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_station</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">inst</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ERROR&#39;</span><span class="p">:</span> <span class="s1">&#39;MISSING CONVERTER&#39;</span><span class="p">}</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">inst</span> <span class="o">=</span> <span class="n">d</span>
+
+        <span class="k">return</span> <span class="n">inst</span></div>
+
+
+<div class="viewcode-block" id="SupplementDetectionDataDecoder.decode_hinted_tuple"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.decode_hinted_tuple.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.decode_hinted_tuple">[docs]</a>    <span class="k">def</span> <span class="nf">decode_hinted_tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Decode a tuple.</span>
+
+<span class="sd">        JSON doesn&#39;t support tuples. Use a custom dictionary</span>
+<span class="sd">        to decode. If the dictionary contains the __tuple__</span>
+<span class="sd">        attribute, the dictionary is converted to a tuple.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        item: dict</span>
+<span class="sd">            The dictionary to decode.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ------</span>
+<span class="sd">        item: object</span>
+<span class="sd">            The object representation of the item dictionary.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s1">&#39;__tuple__&#39;</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;items&#39;</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">decode_hinted_tuple</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">item</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">item</span></div>
+
+
+<div class="viewcode-block" id="SupplementDetectionDataDecoder.convert_version"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_version.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_version">[docs]</a>    <span class="k">def</span> <span class="nf">convert_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a Version dictionary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            The dictionary to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        inst: :class:`mss_dataserver.core.util.Version`</span>
+<span class="sd">            The instance of the converted dictionary.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">inst</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Version</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;version&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">inst</span></div>
+
+
+<div class="viewcode-block" id="SupplementDetectionDataDecoder.convert_utcdatetime"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_utcdatetime.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_utcdatetime">[docs]</a>    <span class="k">def</span> <span class="nf">convert_utcdatetime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a UTCDateTime dictionary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            The dictionary to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        d: obspy.UTCDateTime</span>
+<span class="sd">            The instance of the converted dictionary.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">inst</span> <span class="o">=</span> <span class="n">obspy</span><span class="o">.</span><span class="n">UTCDateTime</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;utcdatetime&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">inst</span></div>
+
+
+<div class="viewcode-block" id="SupplementDetectionDataDecoder.convert_np_array"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_np_array.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_np_array">[docs]</a>    <span class="k">def</span> <span class="nf">convert_np_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a numpy ndarray dictionary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            The dictionary to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        inst: numpy.ndarray</span>
+<span class="sd">            The instance of the converted dictionary.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">inst</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">inst</span></div>
+
+
+<div class="viewcode-block" id="SupplementDetectionDataDecoder.convert_station"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_station.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_station">[docs]</a>    <span class="k">def</span> <span class="nf">convert_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Convert a Station dictionary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            The dictionary to convert.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        inst: mss_dataserver.geometry.inventory.Station</span>
+<span class="sd">            The instance of the converted dictionary.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">cur_station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inventory</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+                                                 <span class="n">location</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">],</span>
+                                                 <span class="n">network</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;network&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_station</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Use the found station.</span>
+            <span class="n">inst</span> <span class="o">=</span> <span class="n">cur_station</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Create a new station and add it to the inventory.</span>
+            <span class="n">inst</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">inventory</span><span class="o">.</span><span class="n">Station</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+                                          <span class="n">location</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;location&#39;</span><span class="p">],</span>
+                                          <span class="n">x</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span>
+                                          <span class="n">y</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span>
+                                          <span class="n">z</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">],</span>
+                                          <span class="n">coord_system</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;coord_system&#39;</span><span class="p">],</span>
+                                          <span class="n">description</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">],</span>
+                                          <span class="n">author_uri</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;author_uri&#39;</span><span class="p">],</span>
+                                          <span class="n">agency_uri</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;agency_uri&#39;</span><span class="p">],</span>
+                                          <span class="n">creation_time</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;creation_time&#39;</span><span class="p">])</span>
+            <span class="n">network_name</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;network&#39;</span><span class="p">]</span>
+            <span class="n">cur_net</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inventory</span><span class="o">.</span><span class="n">get_network</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">network_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_net</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">cur_net</span> <span class="o">=</span> <span class="n">cur_net</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cur_net</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">inventory</span><span class="o">.</span><span class="n">Network</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">network_name</span><span class="p">,</span>
+                                                 <span class="n">author_uri</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;author_uri&#39;</span><span class="p">],</span>
+                                                 <span class="n">agency_uri</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;agency_uri&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inventory</span><span class="o">.</span><span class="n">add_network</span><span class="p">(</span><span class="n">cur_net</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inventory</span><span class="o">.</span><span class="n">add_station</span><span class="p">(</span><span class="n">network_name</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;network&#39;</span><span class="p">],</span>
+                                       <span class="n">station_to_add</span> <span class="o">=</span> <span class="n">inst</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">inst</span></div></div>
+</pre></div>
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.core.json_util</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stefan Mertl.
+      Last updated on 2021-04-22 20:20.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

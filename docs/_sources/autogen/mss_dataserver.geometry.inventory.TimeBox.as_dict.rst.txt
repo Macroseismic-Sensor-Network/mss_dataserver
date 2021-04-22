@@ -1,0 +1,7 @@
+as_dict
+=================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: TimeBox.as_dict
+
+

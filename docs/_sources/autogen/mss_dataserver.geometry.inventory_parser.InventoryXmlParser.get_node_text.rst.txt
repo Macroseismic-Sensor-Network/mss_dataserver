@@ -1,0 +1,7 @@
+get_node_text
+=========================================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory_parser
+.. automethod:: InventoryXmlParser.get_node_text
+
+

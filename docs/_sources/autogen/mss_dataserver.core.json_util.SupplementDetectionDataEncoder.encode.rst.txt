@@ -1,0 +1,7 @@
+encode
+===================================================================
+
+.. currentmodule:: mss_dataserver.core.json_util
+.. automethod:: SupplementDetectionDataEncoder.encode
+
+

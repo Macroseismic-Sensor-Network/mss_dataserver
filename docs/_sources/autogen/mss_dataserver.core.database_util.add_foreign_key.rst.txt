@@ -1,0 +1,6 @@
+mss_dataserver.core.database_util.add_foreign_key
+=================================================
+
+.. currentmodule:: mss_dataserver.core.database_util
+
+.. autofunction:: add_foreign_key

@@ -1,0 +1,30 @@
+MsgRequestIdEnum
+===============================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. autoclass:: MsgRequestIdEnum
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~MsgRequestIdEnum.event_supplement
+      ~MsgRequestIdEnum.pgv_timeseries
+
+
+
+
+      
+
+
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.validation.MsgRequestIdEnum

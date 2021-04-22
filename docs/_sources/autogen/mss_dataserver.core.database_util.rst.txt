@@ -1,0 +1,39 @@
+mss_dataserver.core.database_util
+=================================
+
+.. automodule:: mss_dataserver.core.database_util
+
+
+
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree: .
+   
+      add_column
+      add_foreign_key
+      add_foreign_key_old
+      add_unique_constraint
+      change_column_type
+      compare_column_type
+      db_table_migration
+      remove_column
+      remove_foreign_key
+      remove_unique_constraint
+      update_db_table
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

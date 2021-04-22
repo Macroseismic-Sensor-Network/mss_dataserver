@@ -1,0 +1,7 @@
+set_channel_from_inventory
+===================================================================
+
+.. currentmodule:: mss_dataserver.event.detection
+.. automethod:: Detection.set_channel_from_inventory
+
+

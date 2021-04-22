@@ -1,0 +1,55 @@
+DbRecorderStream
+=====================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. autoclass:: DbRecorderStream
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~DbRecorderStream.assigned_channels
+      ~DbRecorderStream.id
+      ~DbRecorderStream.model
+      ~DbRecorderStream.parent_inventory
+      ~DbRecorderStream.producer
+      ~DbRecorderStream.serial
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~DbRecorderStream.__init__
+      ~DbRecorderStream.add_component
+      ~DbRecorderStream.add_parameter
+      ~DbRecorderStream.as_dict
+      ~DbRecorderStream.change_sensor_end_time_OLD
+      ~DbRecorderStream.change_sensor_start_time_OLD
+      ~DbRecorderStream.from_inventory_instance
+      ~DbRecorderStream.from_sqlalchemy_orm
+      ~DbRecorderStream.get_component
+      ~DbRecorderStream.get_free_component_slot
+      ~DbRecorderStream.get_free_parameter_slot
+      ~DbRecorderStream.get_parameter
+      ~DbRecorderStream.merge
+      ~DbRecorderStream.remove_component_by_instance
+      ~DbRecorderStream.remove_parameter_by_instance
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.db_inventory.DbRecorderStream

@@ -1,0 +1,51 @@
+Project
+===================================
+
+.. currentmodule:: mss_dataserver.core.project
+.. autoclass:: Project
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~Project.inventory
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~Project.__init__
+      ~Project.connect_to_db
+      ~Project.create_database_tables
+      ~Project.create_detection_catalog
+      ~Project.create_event_catalog
+      ~Project.get_db_session
+      ~Project.get_detection_catalog_names
+      ~Project.get_event_catalog
+      ~Project.get_event_catalog_names
+      ~Project.get_events
+      ~Project.load_database_table_structure
+      ~Project.load_detection_catalog
+      ~Project.load_event_by_id
+      ~Project.load_event_catalog
+      ~Project.load_inventory
+      ~Project.load_inventory_from_xml
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.project.Project

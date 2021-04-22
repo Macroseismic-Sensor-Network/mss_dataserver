@@ -1,0 +1,7 @@
+get_channel
+==========================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbStation.get_channel
+
+

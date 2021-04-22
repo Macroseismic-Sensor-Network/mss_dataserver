@@ -1,0 +1,7 @@
+get_network
+=======================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: Inventory.get_network
+
+

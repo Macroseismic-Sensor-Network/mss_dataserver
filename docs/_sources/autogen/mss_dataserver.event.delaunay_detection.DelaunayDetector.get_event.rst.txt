@@ -1,0 +1,7 @@
+get_event
+==================================================================
+
+.. currentmodule:: mss_dataserver.event.delaunay_detection
+.. automethod:: DelaunayDetector.get_event
+
+

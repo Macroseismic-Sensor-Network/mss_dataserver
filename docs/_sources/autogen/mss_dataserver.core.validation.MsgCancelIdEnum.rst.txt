@@ -1,0 +1,29 @@
+MsgCancelIdEnum
+==============================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. autoclass:: MsgCancelIdEnum
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~MsgCancelIdEnum.pgv_timeseries
+
+
+
+
+      
+
+
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.validation.MsgCancelIdEnum

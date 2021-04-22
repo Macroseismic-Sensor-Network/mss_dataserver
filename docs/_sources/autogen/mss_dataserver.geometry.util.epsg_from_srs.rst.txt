@@ -1,0 +1,6 @@
+mss_dataserver.geometry.util.epsg_from_srs
+==========================================
+
+.. currentmodule:: mss_dataserver.geometry.util
+
+.. autofunction:: epsg_from_srs

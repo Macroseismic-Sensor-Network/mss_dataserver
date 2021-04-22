@@ -1,0 +1,7 @@
+from_dict
+===================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: Network.from_dict
+
+

@@ -1,0 +1,7 @@
+get_channel
+=====================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: Station.get_channel
+
+

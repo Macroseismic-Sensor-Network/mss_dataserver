@@ -1,0 +1,7 @@
+add_detection
+=============================================
+
+.. currentmodule:: mss_dataserver.event.core
+.. automethod:: Event.add_detection
+
+

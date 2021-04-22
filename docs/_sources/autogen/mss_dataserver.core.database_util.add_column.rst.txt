@@ -1,0 +1,6 @@
+mss_dataserver.core.database_util.add_column
+============================================
+
+.. currentmodule:: mss_dataserver.core.database_util
+
+.. autofunction:: add_column

@@ -1,0 +1,397 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mss_dataserver.event &#8212; mss_dataserver 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/haiku_maar.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../../index.html">
+          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>mss_dataserver.event</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.event</a></li> 
+      </ul>
+    </div>
+      </div>
+      <div class="content" role="main">
+        
+        
+  <h1>Source code for mss_dataserver.event</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">##############################################################################</span>
+ <span class="c1"># LICENSE</span>
+ <span class="c1">#</span>
+ <span class="c1"># This file is part of mss_dataserver.</span>
+ <span class="c1"># </span>
+ <span class="c1"># If you use mss_dataserver in any program or publication, please inform and</span>
+ <span class="c1"># acknowledge its authors.</span>
+ <span class="c1"># </span>
+ <span class="c1"># mss_dataserver is free software: you can redistribute it and/or modify</span>
+ <span class="c1"># it under the terms of the GNU General Public License as published by</span>
+ <span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+ <span class="c1"># (at your option) any later version.</span>
+ <span class="c1"># </span>
+ <span class="c1"># mss_dataserver is distributed in the hope that it will be useful,</span>
+ <span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+ <span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+ <span class="c1"># GNU General Public License for more details.</span>
+ <span class="c1"># </span>
+ <span class="c1"># You should have received a copy of the GNU General Public License</span>
+ <span class="c1"># along with mss_dataserver. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+ <span class="c1">#</span>
+ <span class="c1"># Copyright 2019 Stefan Mertl</span>
+<span class="c1">##############################################################################</span>
+
+
+<span class="sd">&#39;&#39;&#39; Seismic events and detections.</span>
+
+
+<span class="sd">Database change history.</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="databaseFactory"><a class="viewcode-back" href="../../autogen/mss_dataserver.event.databaseFactory.html#mss_dataserver.event.databaseFactory">[docs]</a><span class="k">def</span> <span class="nf">databaseFactory</span><span class="p">(</span><span class="n">base</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Column</span>
+    <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Integer</span>
+    <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">String</span>
+    <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Text</span>
+    <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">Float</span>
+    <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">ForeignKey</span>
+    <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">UniqueConstraint</span>
+    <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">relationship</span>
+    <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">backref</span>
+
+    <span class="n">tables</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+    <span class="c1">###########################################################################</span>
+    <span class="c1"># EVENT_SET table mapper class</span>
+    <span class="k">class</span> <span class="nc">EventCatalogDb</span><span class="p">(</span><span class="n">base</span><span class="p">):</span>
+        <span class="n">__tablename__</span>  <span class="o">=</span> <span class="s1">&#39;event_catalog&#39;</span>
+        <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
+                          <span class="n">UniqueConstraint</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">),</span>
+                          <span class="p">{</span><span class="s1">&#39;mysql_engine&#39;</span><span class="p">:</span> <span class="s1">&#39;InnoDB&#39;</span><span class="p">}</span>
+                         <span class="p">)</span>
+        <span class="n">_version</span> <span class="o">=</span> <span class="s1">&#39;1.0.0&#39;</span>
+
+        <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">autoincrement</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">191</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Text</span><span class="p">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">agency_uri</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">author_uri</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">creation_time</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">events</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;EventDb&#39;</span><span class="p">,</span>
+                               <span class="n">cascade</span> <span class="o">=</span> <span class="s1">&#39;all&#39;</span><span class="p">,</span>
+                               <span class="n">backref</span> <span class="o">=</span> <span class="s1">&#39;parent&#39;</span><span class="p">,</span>
+                               <span class="n">lazy</span> <span class="o">=</span> <span class="s1">&#39;select&#39;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">agency_uri</span><span class="p">,</span>
+                     <span class="n">author_uri</span><span class="p">,</span> <span class="n">creation_time</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agency_uri</span> <span class="o">=</span> <span class="n">agency_uri</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">author_uri</span> <span class="o">=</span> <span class="n">author_uri</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">creation_time</span> <span class="o">=</span> <span class="n">creation_time</span>
+
+    <span class="n">tables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">EventCatalogDb</span><span class="p">)</span>
+
+
+    <span class="c1">###########################################################################</span>
+    <span class="c1"># EVENT_TYPE table mapper class</span>
+    <span class="k">class</span> <span class="nc">EventTypeDb</span><span class="p">(</span><span class="n">base</span><span class="p">):</span>
+        <span class="n">__tablename__</span>  <span class="o">=</span> <span class="s1">&#39;event_type&#39;</span>
+        <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
+                          <span class="n">UniqueConstraint</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">),</span>
+                          <span class="p">{</span><span class="s1">&#39;mysql_engine&#39;</span><span class="p">:</span> <span class="s1">&#39;InnoDB&#39;</span><span class="p">}</span>
+                         <span class="p">)</span>
+        <span class="n">_version</span> <span class="o">=</span> <span class="s1">&#39;1.0.0&#39;</span>
+
+        <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">autoincrement</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">parent_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span>
+                           <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;event_type.id&#39;</span><span class="p">,</span>
+                                      <span class="n">onupdate</span> <span class="o">=</span> <span class="s1">&#39;cascade&#39;</span><span class="p">,</span>
+                                      <span class="n">ondelete</span> <span class="o">=</span> <span class="s1">&#39;cascade&#39;</span><span class="p">),</span>
+                           <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">191</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Text</span><span class="p">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">agency_uri</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">author_uri</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">creation_time</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">children</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;EventTypeDb&#39;</span><span class="p">,</span>
+                                <span class="n">cascade</span> <span class="o">=</span> <span class="s1">&#39;all&#39;</span><span class="p">,</span>
+                                <span class="n">backref</span> <span class="o">=</span> <span class="n">backref</span><span class="p">(</span><span class="s1">&#39;parent&#39;</span><span class="p">,</span> <span class="n">remote_side</span> <span class="o">=</span> <span class="p">[</span><span class="nb">id</span><span class="p">]))</span>
+
+
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">agency_uri</span><span class="p">,</span>
+                     <span class="n">author_uri</span><span class="p">,</span> <span class="n">creation_time</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agency_uri</span> <span class="o">=</span> <span class="n">agency_uri</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">author_uri</span> <span class="o">=</span> <span class="n">author_uri</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">creation_time</span> <span class="o">=</span> <span class="n">creation_time</span>
+
+    <span class="n">tables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">EventTypeDb</span><span class="p">)</span>
+
+
+
+    <span class="c1">###########################################################################</span>
+    <span class="c1"># EVENT table mapper class</span>
+    <span class="k">class</span> <span class="nc">EventDb</span><span class="p">(</span><span class="n">base</span><span class="p">):</span>
+        <span class="n">__tablename__</span>  <span class="o">=</span> <span class="s1">&#39;event&#39;</span>
+        <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
+                          <span class="p">{</span><span class="s1">&#39;mysql_engine&#39;</span><span class="p">:</span> <span class="s1">&#39;InnoDB&#39;</span><span class="p">}</span>
+                         <span class="p">)</span>
+        <span class="n">_version</span> <span class="o">=</span> <span class="s1">&#39;1.0.1&#39;</span>
+
+        <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">autoincrement</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">ev_catalog_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span>
+                             <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;event_catalog.id&#39;</span><span class="p">,</span>
+                                        <span class="n">onupdate</span> <span class="o">=</span> <span class="s1">&#39;cascade&#39;</span><span class="p">,</span>
+                                        <span class="n">ondelete</span> <span class="o">=</span> <span class="s1">&#39;set null&#39;</span><span class="p">),</span>
+                             <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Float</span><span class="p">(</span><span class="mi">53</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">end_time</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Float</span><span class="p">(</span><span class="mi">53</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">public_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Text</span><span class="p">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">comment</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Text</span><span class="p">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">ev_type_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span>
+                            <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;event_type.id&#39;</span><span class="p">,</span>
+                                       <span class="n">onupdate</span> <span class="o">=</span> <span class="s1">&#39;cascade&#39;</span><span class="p">,</span>
+                                       <span class="n">ondelete</span> <span class="o">=</span> <span class="s1">&#39;set null&#39;</span><span class="p">),</span>
+                            <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">ev_type_certainty</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">50</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">pref_origin_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">pref_magnitude_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">pref_focmec_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">agency_uri</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">author_uri</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">creation_time</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">detections</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;DetectionToEventDb&#39;</span><span class="p">)</span>
+        <span class="n">event_type</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;EventTypeDb&#39;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ev_catalog_id</span><span class="p">,</span> <span class="n">start_time</span><span class="p">,</span> <span class="n">end_time</span><span class="p">,</span>
+                     <span class="n">agency_uri</span><span class="p">,</span> <span class="n">author_uri</span><span class="p">,</span> <span class="n">creation_time</span><span class="p">,</span>
+                     <span class="n">public_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">comment</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="n">tags</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ev_type_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ev_type_certainty</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="n">pref_origin_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">pref_magnitude_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">pref_focmec_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ev_catalog_id</span> <span class="o">=</span> <span class="n">ev_catalog_id</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">start_time</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">end_time</span> <span class="o">=</span> <span class="n">end_time</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">public_id</span> <span class="o">=</span> <span class="n">public_id</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">comment</span> <span class="o">=</span> <span class="n">comment</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="n">tags</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ev_type_id</span> <span class="o">=</span> <span class="n">ev_type_id</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ev_type_certainty</span> <span class="o">=</span> <span class="n">ev_type_certainty</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pref_origin_id</span> <span class="o">=</span> <span class="n">pref_origin_id</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pref_magnitude_id</span> <span class="o">=</span> <span class="n">pref_magnitude_id</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pref_focmec_id</span> <span class="o">=</span> <span class="n">pref_focmec_id</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agency_uri</span> <span class="o">=</span> <span class="n">agency_uri</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">author_uri</span> <span class="o">=</span> <span class="n">author_uri</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">creation_time</span> <span class="o">=</span> <span class="n">creation_time</span>
+
+    <span class="n">tables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">EventDb</span><span class="p">)</span>
+
+
+
+
+
+
+    <span class="c1">###########################################################################</span>
+    <span class="c1"># DETECTION_CATALOG table mapper class</span>
+    <span class="k">class</span> <span class="nc">DetectionCatalogDb</span><span class="p">(</span><span class="n">base</span><span class="p">):</span>
+        <span class="n">__tablename__</span>  <span class="o">=</span> <span class="s1">&#39;detection_catalog&#39;</span>
+        <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
+                          <span class="n">UniqueConstraint</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">),</span>
+                          <span class="p">{</span><span class="s1">&#39;mysql_engine&#39;</span><span class="p">:</span> <span class="s1">&#39;InnoDB&#39;</span><span class="p">}</span>
+                         <span class="p">)</span>
+        <span class="n">_version</span> <span class="o">=</span> <span class="s1">&#39;1.0.0&#39;</span>
+
+        <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">autoincrement</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">191</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Text</span><span class="p">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">agency_uri</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">author_uri</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">creation_time</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">detections</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;DetectionDb&#39;</span><span class="p">,</span>
+                                  <span class="n">cascade</span> <span class="o">=</span> <span class="s1">&#39;all&#39;</span><span class="p">,</span>
+                                  <span class="n">backref</span> <span class="o">=</span> <span class="s1">&#39;parent&#39;</span><span class="p">,</span>
+                                  <span class="n">lazy</span> <span class="o">=</span> <span class="s1">&#39;noload&#39;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">agency_uri</span><span class="p">,</span>
+                     <span class="n">author_uri</span><span class="p">,</span> <span class="n">creation_time</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">description</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agency_uri</span> <span class="o">=</span> <span class="n">agency_uri</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">author_uri</span> <span class="o">=</span> <span class="n">author_uri</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">creation_time</span> <span class="o">=</span> <span class="n">creation_time</span>
+
+
+    <span class="n">tables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">DetectionCatalogDb</span><span class="p">)</span>
+
+
+    <span class="c1">###########################################################################</span>
+    <span class="c1"># DETECTION table mapper class</span>
+    <span class="k">class</span> <span class="nc">DetectionDb</span><span class="p">(</span><span class="n">base</span><span class="p">):</span>
+        <span class="n">__tablename__</span>  <span class="o">=</span> <span class="s1">&#39;detection&#39;</span>
+        <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mysql_engine&#39;</span><span class="p">:</span> <span class="s1">&#39;InnoDB&#39;</span><span class="p">}</span>
+        <span class="n">_version</span> <span class="o">=</span> <span class="s1">&#39;1.0.0&#39;</span>
+
+        <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">autoincrement</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">catalog_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span>
+                            <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;detection_catalog.id&#39;</span><span class="p">,</span>
+                                        <span class="n">onupdate</span> <span class="o">=</span> <span class="s1">&#39;cascade&#39;</span><span class="p">,</span>
+                                        <span class="n">ondelete</span> <span class="o">=</span> <span class="s1">&#39;set null&#39;</span><span class="p">),</span>
+                            <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Float</span><span class="p">(</span><span class="mi">53</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">end_time</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Float</span><span class="p">(</span><span class="mi">53</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">stat1_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span>
+                          <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;geom_station.id&#39;</span><span class="p">,</span>
+                                      <span class="n">onupdate</span> <span class="o">=</span> <span class="s1">&#39;cascade&#39;</span><span class="p">,</span>
+                                      <span class="n">ondelete</span> <span class="o">=</span> <span class="s1">&#39;set null&#39;</span><span class="p">),</span>
+                          <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">stat2_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span>
+                          <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;geom_station.id&#39;</span><span class="p">,</span>
+                                      <span class="n">onupdate</span> <span class="o">=</span> <span class="s1">&#39;cascade&#39;</span><span class="p">,</span>
+                                      <span class="n">ondelete</span> <span class="o">=</span> <span class="s1">&#39;set null&#39;</span><span class="p">),</span>
+                          <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">stat3_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span>
+                          <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;geom_station.id&#39;</span><span class="p">,</span>
+                                      <span class="n">onupdate</span> <span class="o">=</span> <span class="s1">&#39;cascade&#39;</span><span class="p">,</span>
+                                      <span class="n">ondelete</span> <span class="o">=</span> <span class="s1">&#39;set null&#39;</span><span class="p">),</span>
+                          <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">max_pgv1</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Float</span><span class="p">(</span><span class="mi">53</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">max_pgv2</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Float</span><span class="p">(</span><span class="mi">53</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">max_pgv3</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Float</span><span class="p">(</span><span class="mi">53</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">agency_uri</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">author_uri</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">creation_time</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">30</span><span class="p">),</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">stat1</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;GeomStation&#39;</span><span class="p">,</span>
+                             <span class="n">foreign_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">stat1_id</span><span class="p">])</span>
+        <span class="n">stat2</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;GeomStation&#39;</span><span class="p">,</span>
+                             <span class="n">foreign_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">stat2_id</span><span class="p">])</span>
+        <span class="n">stat3</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;GeomStation&#39;</span><span class="p">,</span>
+                             <span class="n">foreign_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">stat3_id</span><span class="p">])</span>
+
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">catalog_id</span><span class="p">,</span>
+                     <span class="n">start_time</span><span class="p">,</span> <span class="n">end_time</span><span class="p">,</span>
+                     <span class="n">stat1_id</span><span class="p">,</span> <span class="n">stat2_id</span><span class="p">,</span> <span class="n">stat3_id</span><span class="p">,</span>
+                     <span class="n">max_pgv1</span><span class="p">,</span> <span class="n">max_pgv2</span><span class="p">,</span> <span class="n">max_pgv3</span><span class="p">,</span>
+                     <span class="n">agency_uri</span><span class="p">,</span> <span class="n">author_uri</span><span class="p">,</span> <span class="n">creation_time</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">catalog_id</span> <span class="o">=</span> <span class="n">catalog_id</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">start_time</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">end_time</span> <span class="o">=</span> <span class="n">end_time</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stat1_id</span> <span class="o">=</span> <span class="n">stat1_id</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stat2_id</span> <span class="o">=</span> <span class="n">stat2_id</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stat3_id</span> <span class="o">=</span> <span class="n">stat3_id</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_pgv1</span> <span class="o">=</span> <span class="n">max_pgv1</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_pgv2</span> <span class="o">=</span> <span class="n">max_pgv2</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_pgv3</span> <span class="o">=</span> <span class="n">max_pgv3</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agency_uri</span> <span class="o">=</span> <span class="n">agency_uri</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">author_uri</span> <span class="o">=</span> <span class="n">author_uri</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">creation_time</span> <span class="o">=</span> <span class="n">creation_time</span>
+
+    <span class="n">tables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">DetectionDb</span><span class="p">)</span>
+
+
+
+    <span class="c1">###########################################################################</span>
+    <span class="c1"># DETECTION_TO_EVENT table mapper class</span>
+    <span class="k">class</span> <span class="nc">DetectionToEventDb</span><span class="p">(</span><span class="n">base</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; The traceheader database table mapper.</span>
+
+<span class="sd">        History</span>
+<span class="sd">        -------</span>
+<span class="sd">        1.1.0 - 2018-03-29</span>
+<span class="sd">        Cascade the deletes of events and detections.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">__tablename__</span>  <span class="o">=</span> <span class="s1">&#39;detection_to_event&#39;</span>
+        <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
+                          <span class="p">{</span><span class="s1">&#39;mysql_engine&#39;</span><span class="p">:</span> <span class="s1">&#39;InnoDB&#39;</span><span class="p">}</span>
+                         <span class="p">)</span>
+        <span class="n">_version</span> <span class="o">=</span> <span class="s1">&#39;1.1.0&#39;</span>
+
+
+
+        <span class="n">ev_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span>
+                       <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;event.id&#39;</span><span class="p">,</span>
+                                   <span class="n">onupdate</span> <span class="o">=</span> <span class="s1">&#39;cascade&#39;</span><span class="p">,</span>
+                                   <span class="n">ondelete</span> <span class="o">=</span> <span class="s1">&#39;cascade&#39;</span><span class="p">),</span>
+                       <span class="n">primary_key</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                       <span class="n">nullable</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">det_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span>
+                        <span class="n">ForeignKey</span><span class="p">(</span><span class="s1">&#39;detection.id&#39;</span><span class="p">,</span>
+                                   <span class="n">onupdate</span> <span class="o">=</span> <span class="s1">&#39;cascade&#39;</span><span class="p">,</span>
+                                   <span class="n">ondelete</span> <span class="o">=</span> <span class="s1">&#39;cascade&#39;</span><span class="p">),</span>
+                        <span class="n">primary_key</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="n">nullable</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">detection</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="s1">&#39;DetectionDb&#39;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">__init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ev_id</span><span class="p">,</span> <span class="n">det_id</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ev_id</span> <span class="o">=</span> <span class="n">ev_id</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">det_id</span> <span class="o">=</span> <span class="n">det_id</span>
+
+    <span class="n">tables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">DetectionToEventDb</span><span class="p">)</span>
+
+
+    <span class="k">return</span> <span class="n">tables</span></div>
+
+</pre></div>
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.event</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stefan Mertl.
+      Last updated on 2021-04-22 20:20.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

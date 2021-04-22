@@ -1,0 +1,7 @@
+station_has_triggered
+=====================================================
+
+.. currentmodule:: mss_dataserver.event.core
+.. automethod:: Event.station_has_triggered
+
+

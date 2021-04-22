@@ -1,0 +1,7 @@
+change_parameter_end_time
+================================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbSensorComponent.change_parameter_end_time
+
+

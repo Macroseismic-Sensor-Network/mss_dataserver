@@ -1,0 +1,7 @@
+parse_raw
+========================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. automethod:: WSMessageHeader.parse_raw
+
+

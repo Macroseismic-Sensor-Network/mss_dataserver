@@ -1,0 +1,30 @@
+MsgControlModeDataModeEnum
+=========================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. autoclass:: MsgControlModeDataModeEnum
+   :show-inheritance:
+
+
+
+
+
+Properties
+----------
+   .. autosummary::
+   
+      ~MsgControlModeDataModeEnum.keydata
+      ~MsgControlModeDataModeEnum.pgv
+
+
+
+
+      
+
+
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.core.validation.MsgControlModeDataModeEnum

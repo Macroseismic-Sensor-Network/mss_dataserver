@@ -1,0 +1,7 @@
+parse_obj
+========================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. automethod:: WSMessageHeader.parse_obj
+
+

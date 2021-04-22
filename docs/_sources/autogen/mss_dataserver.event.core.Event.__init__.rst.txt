@@ -1,0 +1,7 @@
+__init__
+========================================
+
+.. currentmodule:: mss_dataserver.event.core
+.. automethod:: Event.__init__
+
+

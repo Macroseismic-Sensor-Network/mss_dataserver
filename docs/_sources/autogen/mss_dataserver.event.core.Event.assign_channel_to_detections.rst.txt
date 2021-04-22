@@ -1,0 +1,7 @@
+assign_channel_to_detections
+============================================================
+
+.. currentmodule:: mss_dataserver.event.core
+.. automethod:: Event.assign_channel_to_detections
+
+

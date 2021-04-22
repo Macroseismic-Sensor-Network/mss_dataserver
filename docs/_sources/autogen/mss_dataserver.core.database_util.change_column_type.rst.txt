@@ -1,0 +1,6 @@
+mss_dataserver.core.database_util.change_column_type
+====================================================
+
+.. currentmodule:: mss_dataserver.core.database_util
+
+.. autofunction:: change_column_type

@@ -1,0 +1,7 @@
+pop_component
+===========================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbSensor.pop_component
+
+

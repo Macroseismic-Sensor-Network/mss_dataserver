@@ -1,0 +1,7 @@
+load_event_by_id
+==================================================
+
+.. currentmodule:: mss_dataserver.event.core
+.. automethod:: Library.load_event_by_id
+
+

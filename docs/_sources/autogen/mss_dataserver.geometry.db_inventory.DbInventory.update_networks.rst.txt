@@ -1,0 +1,7 @@
+update_networks
+================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbInventory.update_networks
+
+

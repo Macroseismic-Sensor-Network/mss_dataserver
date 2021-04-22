@@ -1,0 +1,35 @@
+Sensor
+========================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. autoclass:: Sensor
+   :show-inheritance:
+
+
+
+
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~Sensor.__init__
+      ~Sensor.add_component
+      ~Sensor.get_component
+      ~Sensor.merge
+      ~Sensor.pop_component
+      ~Sensor.pop_component_by_instance
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.geometry.inventory.Sensor

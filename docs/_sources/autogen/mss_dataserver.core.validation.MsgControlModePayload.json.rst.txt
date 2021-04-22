@@ -1,0 +1,7 @@
+json
+=========================================================
+
+.. currentmodule:: mss_dataserver.core.validation
+.. automethod:: MsgControlModePayload.json
+
+

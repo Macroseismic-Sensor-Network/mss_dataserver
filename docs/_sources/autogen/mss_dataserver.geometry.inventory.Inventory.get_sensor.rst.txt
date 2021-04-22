@@ -1,0 +1,7 @@
+get_sensor
+======================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: Inventory.get_sensor
+
+

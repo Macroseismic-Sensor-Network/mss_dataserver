@@ -1,0 +1,7 @@
+decode_hinted_tuple
+================================================================================
+
+.. currentmodule:: mss_dataserver.core.json_util
+.. automethod:: SupplementDetectionDataDecoder.decode_hinted_tuple
+
+

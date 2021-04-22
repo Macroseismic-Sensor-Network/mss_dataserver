@@ -1,0 +1,7 @@
+add_parameter
+==============================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: RecorderStream.add_parameter
+
+

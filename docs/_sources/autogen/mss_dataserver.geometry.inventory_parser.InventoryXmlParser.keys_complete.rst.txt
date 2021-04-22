@@ -1,0 +1,7 @@
+keys_complete
+=========================================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory_parser
+.. automethod:: InventoryXmlParser.keys_complete
+
+

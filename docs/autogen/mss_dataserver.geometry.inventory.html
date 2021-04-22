@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mss_dataserver.geometry.inventory &#8212; mss_dataserver 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/haiku_maar.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Array" href="mss_dataserver.geometry.inventory.Array.html" />
+    <link rel="prev" title="remove_channel_by_instance" href="mss_dataserver.geometry.db_inventory.DbStation.remove_channel_by_instance.html" /> 
+  </head><body>
+      <div class="header" role="banner"><h1 class="heading"><a href="../index.html">
+          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>mss_dataserver.geometry.inventory</span></h2>
+      </div>
+      <div class="topnav" role="navigation" aria-label="top navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.geometry.inventory.Array.html" title="Array"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.geometry.db_inventory.DbStation.remove_channel_by_instance.html" title="remove_channel_by_instance"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.geometry.html" accesskey="U">mss_dataserver.geometry</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.geometry.inventory</a></li> 
+      </ul>
+    </div>
+      </div>
+      <div class="content" role="main">
+        
+        
+  <div class="section" id="module-mss_dataserver.geometry.inventory">
+<span id="mss-dataserver-geometry-inventory"></span><h1>mss_dataserver.geometry.inventory<a class="headerlink" href="#module-mss_dataserver.geometry.inventory" title="Permalink to this headline">¶</a></h1>
+<p>The inventory module.</p>
+<p>This module contains the classed needed to build a pSysmon geometry
+inventory.</p>
+<p class="rubric">Classes</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Array.html#mss_dataserver.geometry.inventory.Array" title="mss_dataserver.geometry.inventory.Array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Array</span></code></a>(name[, description, author_uri, …])</p></td>
+<td><p>An array holding multiple stations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Channel.html#mss_dataserver.geometry.inventory.Channel" title="mss_dataserver.geometry.inventory.Channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Channel</span></code></a>(name[, description, id, agency_uri, …])</p></td>
+<td><p>A channel of a station.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Inventory.html#mss_dataserver.geometry.inventory.Inventory" title="mss_dataserver.geometry.inventory.Inventory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Inventory</span></code></a>(name[, type])</p></td>
+<td><p>The geometry inventory.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Network.html#mss_dataserver.geometry.inventory.Network" title="mss_dataserver.geometry.inventory.Network"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Network</span></code></a>(name[, description, type, …])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Recorder.html#mss_dataserver.geometry.inventory.Recorder" title="mss_dataserver.geometry.inventory.Recorder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Recorder</span></code></a>(serial, model, producer[, …])</p></td>
+<td><p>A seismic data recorder.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.RecorderStream.html#mss_dataserver.geometry.inventory.RecorderStream" title="mss_dataserver.geometry.inventory.RecorderStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RecorderStream</span></code></a>(name, label[, agency_uri, …])</p></td>
+<td><p>A digital stream of a data recorder.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.RecorderStreamParameter.html#mss_dataserver.geometry.inventory.RecorderStreamParameter" title="mss_dataserver.geometry.inventory.RecorderStreamParameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RecorderStreamParameter</span></code></a>(start_time[, …])</p></td>
+<td><p>Parameters of a recorder stream.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Sensor.html#mss_dataserver.geometry.inventory.Sensor" title="mss_dataserver.geometry.inventory.Sensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Sensor</span></code></a>(serial, model, producer[, …])</p></td>
+<td><p>A seismic sensor.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.SensorComponent.html#mss_dataserver.geometry.inventory.SensorComponent" title="mss_dataserver.geometry.inventory.SensorComponent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SensorComponent</span></code></a>(name[, description, …])</p></td>
+<td><p>A component of a seismic sensor.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.SensorComponentParameter.html#mss_dataserver.geometry.inventory.SensorComponentParameter" title="mss_dataserver.geometry.inventory.SensorComponentParameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SensorComponentParameter</span></code></a>(sensitivity, …[, …])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Station.html#mss_dataserver.geometry.inventory.Station" title="mss_dataserver.geometry.inventory.Station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Station</span></code></a>(name, location, x, y, z[, …])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.TimeBox.html#mss_dataserver.geometry.inventory.TimeBox" title="mss_dataserver.geometry.inventory.TimeBox"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TimeBox</span></code></a>(item, start_time[, end_time, parent])</p></td>
+<td><p>A container to hold an instance with an assigned time-span.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+
+      </div>
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
+      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.geometry.inventory.Array.html" title="Array"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="mss_dataserver.geometry.db_inventory.DbStation.remove_channel_by_instance.html" title="remove_channel_by_instance"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="mss_dataserver.geometry.html" >mss_dataserver.geometry</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">mss_dataserver.geometry.inventory</a></li> 
+      </ul>
+    </div>
+      </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Stefan Mertl.
+      Last updated on 2021-04-22 20:20.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+reset
+==============================================================
+
+.. currentmodule:: mss_dataserver.event.delaunay_detection
+.. automethod:: DelaunayDetector.reset
+
+

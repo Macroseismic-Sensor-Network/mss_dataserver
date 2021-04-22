@@ -1,0 +1,7 @@
+load_catalog_from_db
+======================================================
+
+.. currentmodule:: mss_dataserver.event.core
+.. automethod:: Library.load_catalog_from_db
+
+

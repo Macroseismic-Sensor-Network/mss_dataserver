@@ -1,0 +1,7 @@
+get_max_pgv_per_station
+=======================================================
+
+.. currentmodule:: mss_dataserver.event.core
+.. automethod:: Event.get_max_pgv_per_station
+
+

@@ -1,0 +1,7 @@
+from_inventory_instance
+======================================================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbRecorderStreamParameter.from_inventory_instance
+
+

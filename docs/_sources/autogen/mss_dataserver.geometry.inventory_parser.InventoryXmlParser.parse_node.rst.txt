@@ -1,0 +1,7 @@
+parse_node
+======================================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory_parser
+.. automethod:: InventoryXmlParser.parse_node
+
+

@@ -1,0 +1,7 @@
+get_stream
+======================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: Inventory.get_stream
+
+

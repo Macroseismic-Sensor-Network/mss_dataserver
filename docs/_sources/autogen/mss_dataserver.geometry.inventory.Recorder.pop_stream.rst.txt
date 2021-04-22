@@ -1,0 +1,7 @@
+pop_stream
+=====================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: Recorder.pop_stream
+
+

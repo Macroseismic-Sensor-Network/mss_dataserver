@@ -1,0 +1,7 @@
+tf_add_complex_pole
+==============================================================================
+
+.. currentmodule:: mss_dataserver.geometry.inventory
+.. automethod:: SensorComponentParameter.tf_add_complex_pole
+
+

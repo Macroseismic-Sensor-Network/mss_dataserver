@@ -1,0 +1,7 @@
+get_db_session
+==================================================
+
+.. currentmodule:: mss_dataserver.core.project
+.. automethod:: Project.get_db_session
+
+

@@ -1,0 +1,7 @@
+get_nslc
+=======================================================
+
+.. currentmodule:: mss_dataserver.geometry.db_inventory
+.. automethod:: DbStation.get_nslc
+
+
