@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+''' Managing detections.
+'''
+
 import logging
 
 import mss_dataserver.geometry.db_inventory as db_inventory
