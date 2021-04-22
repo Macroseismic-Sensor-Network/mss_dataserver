@@ -22,6 +22,8 @@
  #
  # Copyright 2019 Stefan Mertl
 ##############################################################################
+''' Event handling with library, catalogs and events.
+'''
 
 from builtins import str
 from builtins import zip
@@ -597,6 +599,38 @@ class Event(object):
 
 
 class Catalog(object):
+    ''' A catalog holding seismic events.
+
+    Parameters
+    ----------
+    name: str
+        The name of the catalog.
+
+    db_id: int
+        The database id of the catalog.
+
+    description: str
+        The description of the catalog.
+
+    agency_uri: str
+        The uniform resource identifier of the author agency.
+
+    author_uri: str
+        The uniform resource identifier of the author.
+
+    creation_time: :obj:`str` or :class:`obspy.UTCDateTime`
+        The creation time of the event. A string that can be parsed
+        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance.
+
+    events: :obj:`list` of :class:`~mss_dataserver.event.core.Event`
+        The events of the catalog.
+
+    
+    Attributes
+    ----------
+    logger: logging.Logger
+        The logger of the instance.
+    '''
 
     def __init__(self, name, db_id = None, description = None, agency_uri = None,
             author_uri = None, creation_time = None, events = None):
@@ -654,10 +688,10 @@ class Catalog(object):
 
         Parameters
         ----------
-        start_time : :class:`~obspy.core.utcdatetime.UTCDateTime`
+        start_time : :class:`obspy.core.utcdatetime.UTCDateTime`
             The minimum starttime of the detections.
 
-        end_time : :class:`~obspy.core.utcdatetime.UTCDateTime`
+        end_time : :class:`obspy.core.utcdatetime.UTCDateTime`
             The maximum end_time of the detections.
 
         nslc : tuple of Strings
@@ -690,6 +724,18 @@ class Catalog(object):
                           only_changed_events = True,
                           bulk_insert = False):
         ''' Write the catalog to the database.
+
+        Attributes
+        ----------
+        project: :class:`~mss_dataserver.core.project.Project`
+            The project used to access the database.
+
+        only_changed_events: bool
+            Write only events that have changed to the database.
+
+        bulk_insert: bool
+            If True, insert all events in one database transaction,
+            otherwise each event is written to the database individually.
 
         '''
         if self.db_id is None:
@@ -760,7 +806,21 @@ class Catalog(object):
                 cur_event.write_to_database(project)
 
     def get_events_db_data(self, project):
-        ''' Get a dictionary to bulk insert into the dabase.
+        ''' Get a list of mapper class instances for bulk insert.
+
+        Attributes
+        ----------
+        project: :class:`~mss_dataserver.core.project.Project`
+            The project used to access the database.
+
+        Returns
+        -------
+        :obj:`list` of :class:`mss_dataserver.event.databaseFactory.EventDb`
+            A list of EventDb mapper class instances.
+
+        See Also
+        --------
+        :meth:`mss_dataserver.event.databaseFactory`
         '''
         db_data = [x.get_db_orm(project) for x in self.events]
         return db_data
@@ -774,11 +834,27 @@ class Catalog(object):
 
         Parameters
         ----------
+        project: :class:`~mss_dataserver.core.project.Project`
+            The project used to access the database.
+
         start_time : :class:`obspy.core.utcdatetime.UTCDateTime`
             The begin of the time-span to load.
 
         end_time : :class:`obspy.core.utcdatetime.UTCDateTime`
             The end of the time-span to load.
+
+        event_id: list of int
+            The database ids of the events to load.
+
+        min_event_length: float
+            The minimum length of the events to load.
+
+        event_types: not yet implemented
+            Not yet implemented.
+
+        event_tags: list of str
+            The tags of an event.
+        
         '''
         if project is None:
             raise RuntimeError("The project is None. Can't query the database without a project.")
@@ -826,6 +902,8 @@ class Catalog(object):
 
     def write_to_csv(self, filepath):
         ''' Write the events in the catalog to CSV file.
+
+        Not yet implemented.
         '''
         pass
 
@@ -836,12 +914,20 @@ class Catalog(object):
 
         Parameters
         ----------
-        db_catalog : SQLAlchemy ORM
-            The ORM of the events catalog database table.
+        db_catalog : :class:`mss_dataserver.event.databaseFactory.EventCatalogDb`
+            The mapper class instance of the event catalog database table.
 
-        load_events : Boolean
+        inventory: :class:`mss_dataserver.geometry.inventory.Inventory`
+            The inventory used to map geometry information to the event.
+
+        load_events : bool
             If true all events contained in the catalog are loaded
             from the database.
+
+        Returns
+        -------
+        :class:`~mss_dataserver.event.core.Catalog`
+            The event catalog instance.
         '''
         catalog = cls(name = db_catalog.name,
                       db_id = db_catalog.id,
