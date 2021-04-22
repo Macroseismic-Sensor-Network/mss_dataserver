@@ -22,6 +22,9 @@
  #
  # Copyright 2019 Stefan Mertl
 ##############################################################################
+''' Seismic event detection using amplitudes of Delaunay triangles in a 
+Voronoi network.
+'''
 
 import copy
 
@@ -38,6 +41,81 @@ import mss_dataserver.event.detection as event_detection
 class DelaunayDetector(object):
     ''' Event detection using amplitudes and Delaunay Triangulation.
 
+    Parameters
+    ----------
+    network_stations: :obj:`list` of :class:`~mss_dataserver.geometry.inventory.Station`
+        All available stations of the network.
+
+    trigger_thr: float
+        The trigger threshold value [m/s].
+
+    window_length: float
+        The length of the detection window [s].
+
+    safety_time: float
+        The length of the timespan used as a safety period when computing
+        the end-time of the detection timespan [s].
+
+    p_vel: float
+        The P-wave velocity used to compute the maximum traveltimes over 
+        the length of a detection triangle [m/s].
+
+    min_trigger_window: float
+        The length of the minimum trigger window [s].
+
+    max_edge_length: float
+        The maximum edge length of a triangle used for the detection [m].
+
+    author_uri: str
+        The uniform resource identifier of the author.
+
+    agency_uri: str
+        The uniform resource identifier of the author agency.
+
+
+    Attributes
+    ----------
+    max_time_window: :class:`numpy.ndarray`
+        The maximum time that a wave needs to pass the detection triangles.
+
+    current_event: :class:`~mss_dataserver.event.core.Event`
+        The currently detected event.
+
+    detect_stations: :obj:`list` of :class:`~mss_dataserver.geometry.inventory.Station`
+        The stations used for the event detection. Stations available in network_stations
+        that don't have data are ignored.
+
+    unused_stations: :obj:`list` of :class:`~mss_dataserver.geometry.inventory.Station`
+        The stations not used for the event detection.
+
+    detect_stream: :class:`obspy.Stream`
+        The stream holding the PGV data used for event detection.
+
+    tri: :class:`scipy.spatial.Delaunay`
+        The detection triangles used for detection.
+
+    edge_length: dict
+        The maximum edge lengths of the detection triangles [m]. The key is a tuple
+        of the NSL codes of the stations of the triangles.
+
+    last_detection_start: :class:`obspy.UTCDateTime`
+        The start time of the data used for the last detection.
+
+    last_detection_end: :class:`obspy.UTCDateTime`
+        The end time of the data used for the last detection.
+
+    trigger_data: :obj:`list` of :obj:`dict`
+        The current event trigger data of the detection triangles.
+
+    detection_run_initialized: bool
+        A new detection run has been initialized.
+
+    event_triggered: bool
+        An event has been triggered.
+
+    new_event_available: bool
+        A new event is available.
+    
     '''
     def __init__(self, network_stations,
                  trigger_thr = 0.01e-3,
@@ -123,6 +201,8 @@ class DelaunayDetector(object):
 
     def reset(self):
         ''' Reset the detector to an initial state.
+
+        Clear all runtime relevant variables.
         '''
         self.max_time_window = None
         self.current_event = None
@@ -142,6 +222,18 @@ class DelaunayDetector(object):
 
     def init_detection_run(self, stream):
         ''' Initialize a new detection run.
+
+        Prepare the detection stream and compute the delaunay triangles.
+
+        Parameters
+        ----------
+        stream: :class:`obspy.Stream`
+            The stream containing the PGV that should be used for the detection.
+
+        See Also
+        --------
+        :meth:`prepare_detection_stream`
+        :meth:`compute_delaunay_triangulation`
         '''
         self.logger.info('Initializing the detection run.')
         self.trigger_data = []
@@ -176,7 +268,22 @@ class DelaunayDetector(object):
             self.max_time_window = np.max(list(edge_length.values())) / self.p_vel
             self.max_time_window = np.ceil(self.max_time_window)
 
+            
     def compute_delaunay_triangulation(self, stations):
+        ''' Compute the Delaunay triangles.
+
+        The Delaunay triangles are comuted using :class:`scipy.spatial.Delaunay`.
+
+        Parameters
+        ----------
+        stations: :obj:`list` of :class:`~mss_dataserver.geometry.inventory.Station`
+            The stations used to compute the Delaunay tesselation.
+
+        Returns
+        -------
+        :class:`scipy.spatial.Delaunay`
+            The result of the Delaunay tesselation.
+        '''
         x = [stat.x_utm for stat in stations]
         y = [stat.y_utm for stat in stations]
         coords = np.array(list(zip(x, y)))
@@ -187,7 +294,30 @@ class DelaunayDetector(object):
             tri = None
         return tri
 
+    
     def compute_edge_length(self, stations, tri, clean_tri = True):
+        ''' Compute the edge length of the detection triangles.
+
+        Parameters
+        ----------
+        stations: :obj:`list` of :class:`~mss_dataserver.geometry.inventory.Station`
+            The stations that have been used to compute the Delaunay tesselation _tri_.
+
+        tri: :class:`scipy.spatial.Delaunay`
+            A Delaunay tesselation computed using _stations_.
+
+        clean_tri: bool
+            Filter the simplices of _tri_ using the maximum edge length of the triangles.
+            Only the simplices with an edge length smaller than _self.max_edge_length_ are 
+            kept.
+
+        Returns
+        -------
+        dict
+            A dictionary with the edge lengths of the detection triangles. The key is 
+            a tuple of the NSL codes of the stations of the triangle.
+
+        '''
         x = [stat.x_utm for stat in stations]
         y = [stat.y_utm for stat in stations]
         coords = np.array(list(zip(x, y)))
@@ -216,6 +346,18 @@ class DelaunayDetector(object):
 
     def prepare_detection_stream(self, stream):
         ''' Prepare the data stream used for the detection run.
+
+        Use the data in :attr:`stream` to compute self.detect_stream. 
+        The :attr:`DelaunayDetector.detect_stream` contains at least the data of the 
+        timespan with length :attr:`DelaunayDetector.window_length`. For computation, the data with the 
+        length :attr:`DelaunayDetector.max_time_window` is prepended. So the passed data stream has 
+        to contain a period of :attr:`DelaunayDetector.window_length` + :attr:`DelaunayDetector.max_time_window`, otherwise
+        the detect stream will not be initialized.
+
+        Parameters
+        ----------
+        stream: :class:`obspy.Stream`
+            The stream containing the PGV that should be used for the detection.
         '''
         self.logger.debug("passed stream: %s", stream.__str__(extended = True))
         max_end_time = np.max([x.stats.endtime for x in stream])
@@ -262,6 +404,34 @@ class DelaunayDetector(object):
 
     def compute_triangle_max_pgv(self, simp):
         ''' Compute the maximal PGV values of a delaunay triangle.
+
+        The indices of :attr:simp are used to build the simplices keys using 
+        the station NSL codes. With these keys, the triangle edge lengths can 
+        be accessed.
+
+        For each triangle, the minimum time, that a seismic wave needs to pass the triangle
+        is computed. This time is used for the lenght of the window used to compute the 
+        maximum PGV. The maximum PGV is computed for overlapping windows with a step of 1 second.
+        
+        With this method, triangles with small edge lengths have a smaller time window and 
+        thus react quicker to changes of the PGV value.
+
+        Parameters
+        ----------
+        simp: :obj:`tuple` of :obj:`int`
+            The simplices indices of the :class:`scipy.spatial.Delaunay` simplices.
+
+        Returns
+        -------
+        time: :class:`numpy.ndarray`
+            The time valus of the computed maximum PGV data.
+
+        pgv: :class:`numpy.ndarray`
+            The maximum PGV data.
+
+        simp_stations: :obj:`list` of :class:`~mss_dataserver.geometry.inventory.Station`
+            The stations at the triangle corners.
+
         '''
         self.logger.debug("Computing the triangle max pgv.")
         offset = self.max_time_window
@@ -389,6 +559,14 @@ class DelaunayDetector(object):
 
     def check_for_event_trigger(self):
         ''' Compute if an event trigger is available.
+
+        Returns
+        -------
+        trigger_start: :class:`obspy.UTCDateTime`
+            The start of the event trigger.
+        
+        trigger_end: :class:`obspy.UTCDateTime`
+            The end of the event trigger.
         '''
         trigger_times = []
         trigger_start = None
@@ -412,6 +590,7 @@ class DelaunayDetector(object):
 
         return trigger_start, trigger_end
 
+    
     def evaluate_event_trigger(self):
         ''' Evaluate the event trigger data and declare or update an event.
         '''
@@ -516,7 +695,12 @@ class DelaunayDetector(object):
 
 
     def get_event(self):
-        ''' Return a copy of the current event.
+        ''' Get a copy of the current event.
+
+        Returns
+        -------
+        :class:`~mss_dataserver.event.core.Event`
+            The copied current event.
         '''
         return copy.copy(self.current_event)
 
@@ -524,7 +708,6 @@ class DelaunayDetector(object):
     def run_detection(self, stream):
         ''' Run the event detection using the passed stream.
 
-        The detection algrithm is run using the passed stream and the state and
-        data of the current event is updated.
+        Not used - will be removed.
         '''
         pass

@@ -23,6 +23,9 @@
  # Copyright 2019 Stefan Mertl
 ##############################################################################
 
+''' MSS Dataserver Project.
+'''
+
 import configparser
 import json
 import logging
@@ -42,6 +45,72 @@ import mss_dataserver.geometry.db_inventory as database_inventory
 
 class Project(object):
     ''' A project holds global configuration and settings.
+
+
+    Parameters
+    ----------
+    kwargs: dict
+        The dictionary created from the configuration file.
+
+
+    Attributes
+    ----------
+    logger: logging.Logger
+        The logger instance.
+
+    project_config: dict
+        The *project* configuration section.
+
+    author_uri: String
+        The Uniform Resource Identifier of the author.
+  
+    agency_uri: String
+        The Uniform Resource Identifier of the author agency.
+
+    config: dict
+        The complete configuration dictionary (kwargs).
+
+    process_config: dict
+        The *process* configuration section.
+
+    db_host: String
+        The URL or IP of the database host.
+
+    db_username: String
+        The database user name.
+
+    db_pwd: String
+        The database password.
+
+    db_dialect: String
+        The dialect of the database.
+
+    db_driver: String
+        The driver of the database.
+
+    db_database_name: String
+        The name of the database.
+
+    db_tables: list
+        The tables loaded from the database.
+
+    db_inventory: :class:`mss_dataserver.geometry.DbInventory`
+        The geometry inventory of the project.
+
+    inventory: :class:`mss_dataserer.geometry.DbInventory`
+        A dynamic property returning db_inventory.
+
+    event_library: :class:`mss_dataserver.event.core.Library`
+        The event library of the project.
+
+    detection_library: :class:`mss_dataserver.detection.Library`
+        The detection library of the project.
+
+    
+    See Also
+    --------
+    :meth:`mss_dataserver.core.util.load_configuration`
+
     '''
 
     def __init__(self, **kwargs):
@@ -101,51 +170,12 @@ class Project(object):
         '''
         return self.db_inventory
 
-    @classmethod
-    def load_configuration(cls, filename):
-        ''' Load the configuration from a file.
-        '''
-        parser = configparser.ConfigParser()
-        parser.read(filename)
-
-        config = {}
-        config['websocket'] = {}
-        config['websocket']['host'] = parser.get('websocket', 'host').strip()
-        config['websocket']['port'] = int(parser.get('websocket', 'port'))
-        config['seedlink'] = {}
-        config['seedlink']['host'] = parser.get('seedlink', 'host').strip()
-        config['seedlink']['port'] = int(parser.get('seedlink', 'port'))
-        config['output'] = {}
-        config['output']['data_dir'] = parser.get('output', 'data_dir').strip()
-        config['output']['event_dir'] = parser.get('output', 'event_dir').strip()
-        config['log'] = {}
-        config['log']['loglevel'] = parser.get('log', 'loglevel').strip()
-        config['project'] = {}
-        config['project']['author_uri'] = parser.get('project', 'author_uri').strip()
-        config['project']['agency_uri'] = parser.get('project', 'agency_uri').strip()
-        config['project']['inventory_file'] = parser.get('project', 'inventory_file').strip()
-        config['database'] = {}
-        config['database']['host'] = parser.get('database', 'host').strip()
-        config['database']['username'] = parser.get('database', 'username').strip()
-        config['database']['password'] = parser.get('database', 'password').strip()
-        config['database']['dialect'] = parser.get('database', 'dialect').strip()
-        config['database']['driver'] = parser.get('database', 'driver').strip()
-        config['database']['database_name'] = parser.get('database', 'database_name').strip()
-        config['process'] = {}
-        config['process']['stations'] = json.loads(parser.get('process', 'stations'))
-        config['process']['interval'] = int(parser.get('process', 'interval'))
-        config['process']['pgv_sps'] = int(parser.get('process', 'pgv_sps'))
-        config['process']['trigger_threshold'] = float(parser.get('process', 'trigger_threshold'))
-        config['process']['warn_threshold'] = float(parser.get('process', 'warn_threshold'))
-        config['process']['valid_event_threshold'] = float(parser.get('process', 'valid_event_threshold'))
-        config['process']['pgv_archive_time'] = int(parser.get('process', 'pgv_archive_time'))
-        config['process']['event_archive_size'] = int(parser.get('process', 'event_archive_size'))
-
-        return config
-
 
     def connect_to_db(self):
         ''' Connect to the database.
+
+        Connect to the database using the parameters specified in 
+        the configuration file.
         '''
         try:
             if self.db_driver is not None:
@@ -218,7 +248,18 @@ class Project(object):
 
 
     def load_inventory(self, update_from_xml = False):
-        ''' Load the geometry inventory from a XML file.
+        ''' Load the geometry inventory.
+
+        Load the geometry inventory from the database. 
+        If specified, read the inventory XML file specified in the 
+        project configuration and update the database with the loaded
+        inventory.
+
+        Parameters
+        ----------
+        update_from_xml: bool
+            If True, the database is updated with the data loaded from 
+            the inventory XML file.
         '''
         # Load the existing inventory from the database.
         try:
@@ -281,6 +322,18 @@ class Project(object):
 
     def get_event_catalog(self, name):
         ''' Get an event catalog.
+
+        If the catalog doesn't exist, a new catalog is created.
+
+        Parameters
+        ----------
+        name: String
+            The name of the catalog to get.
+
+        Returns
+        -------
+        cur_cat: :class:`mss_dataserver.event.core.Catalog`
+            The catalog with name *name*.
         '''
         if name in self.event_library.catalogs.keys():
             self.logger.info("Using an already existing catalog in the library.")
@@ -296,13 +349,33 @@ class Project(object):
                                                   load_events = True)
         return cur_cat
 
+    
     def get_event_catalog_names(self):
         ''' Get the event catalog names available in the database.
+
+        Returns
+        -------
+        cat_names: list of Strings
+            The names of the event catalogs available in the database.
         '''
         return self.event_library.get_catalogs_in_db(project = self)
 
+    
     def create_event_catalog(self, name, description = ''):
         ''' Create an event catalog in the database.
+
+        Parameters
+        ----------
+        name: String
+            The name of the catalog.
+
+        description: String
+            The description of the catalog.
+
+        Returns
+        -------
+        cat: :class:`mss_dataserver.event.core.Catalog`
+            The created catalog.
         '''
         cat = event.core.Catalog(name = name,
                                  description = description,
@@ -312,8 +385,22 @@ class Project(object):
         self.event_library.add_catalog(cat)
         return cat
 
+    
     def load_event_catalog(self, name, load_events = False):
         ''' Load an event catalog from the database.
+
+        Parameters
+        ----------
+        name: String
+            The name of the catalog to load.
+
+        load_events: bool
+            Load the events from the database.
+
+        Returns
+        -------
+        cat: :class:`mss_dataserver.event.core.Catalog`
+            The loaded catalog.
         '''
         self.event_library.load_catalog_from_db(project = self,
                                                 name = name,
@@ -327,6 +414,19 @@ class Project(object):
 
     def load_event_by_id(self, ev_id = None, public_id = None):
         ''' Get an event by event id or public id.
+
+        Parameters
+        ----------
+        ev_id: Integer
+            The database id of the event to load.
+
+        public_id: String
+            The public id of the event to load.
+
+        Returns
+        -------
+        event: :class:`mss_dataserver.event.core.Event`
+            The loaded event.
         '''
         event = self.event_library.load_event_by_id(project = self,
                                                     ev_id = ev_id,
@@ -340,6 +440,9 @@ class Project(object):
 
         Parameters
         ----------
+        catalog_names: List of String
+            The catalog names to load.
+
         start_time : :class:`~obspy.core.utcdatetime.UTCDateTime`
             The minimum starttime of the detections.
 
@@ -349,6 +452,14 @@ class Project(object):
         nslc : tuple of Strings
             The NSLC (network, station, location, channel)code
             of the channel (e.g. ('XX', 'GILA', '00', 'HHZ')).
+
+        kwargs: Keyword arguments
+            Additional keyword arguments passed to :meth:`mss_dataserver.event.core.Library.get_events`.
+
+        Returns
+        -------
+        ret_events: List of :class:`mss_dataserver.event.core.Event`
+            The events found in the library matching the search criterias.
         '''
         ret_events = self.event_library.get_events(catalog_names = catalog_names,
                                                    start_time = start_time,
@@ -356,13 +467,33 @@ class Project(object):
                                                    **kwargs)
         return ret_events
 
+    
     def get_detection_catalog_names(self):
         ''' Get the detection catalog names available in the database.
+
+        Returns
+        -------
+        cat_names: List of String
+            The names of the detection catalogs available in the database.
         '''
         return self.detection_library.get_catalogs_in_db(project = self)
 
+    
     def create_detection_catalog(self, name, description = ''):
         ''' Create an detection catalog in the database.
+
+        Parameters
+        ----------
+        name: String
+            The name of the catalog.
+
+        description: String
+            The description of the catalog.
+
+        Returns
+        -------
+        cat: :class:`mss_dataserver.detection.Catalog`
+            The created catalog.     
         '''
         cat = event.detection.Catalog(name = name,
                                       description = description,
@@ -371,8 +502,22 @@ class Project(object):
         cat.write_to_database(self)
         return cat
 
+    
     def load_detection_catalog(self, name, load_detections = False):
         ''' Load a detection catalog from the database.
+
+        Parameters
+        ----------
+        name: String
+            The name of the detection catalog.
+
+        load_detections: bool
+            Load the detections from the database.
+
+        Returns
+        -------
+        cat: :class:`mss_dataserver.detection.Library.Catalog`
+            The loaded detection catalog.
         '''
         self.detection_library.load_catalog_from_db(project = self,
                                                     name = name,

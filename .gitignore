@@ -24,6 +24,9 @@ build/
 *.so
 *.dll
 
+# Temporary files.
+*.bak
+
 # Ignore the egg installation folder.
 mss_dataserver.egg-info/
 
@@ -31,3 +34,6 @@ mss_dataserver.egg-info/
 *~
 \#*\#
 .#*
+
+# Sphinx autogen files.
+/docsource/source_doc/source/autogen/

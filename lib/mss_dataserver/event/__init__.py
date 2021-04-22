@@ -24,7 +24,9 @@
 ##############################################################################
 
 
-'''
+''' Seismic events and detections.
+
+
 Database change history.
 
 '''

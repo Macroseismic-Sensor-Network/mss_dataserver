@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+''' Managing detections.
+'''
+
 import logging
 
 import mss_dataserver.geometry.db_inventory as db_inventory
@@ -7,6 +10,42 @@ import obspy.core.utcdatetime as utcdatetime
 
 class Detection(object):
     ''' A MSS Delaunay detection.
+
+    Parameters
+    ----------
+    start_time: :class:`obspy.UTCDateTime`
+        The start time of the detection.
+
+    end_time: :class:`obspy.UTCDateTime`
+        The end time of the detection.
+
+    stations: :obj:`list` of :class:`~mss_dataserver.geometry.inventory.Station`
+        3 stations related to the detection. They are the corners of a detection
+        triangle.
+
+    max_pgv: dict
+        The maximum PGV values of the detection timespan. A dictionary of {station.nsl_string: PGV values}.
+
+    db_id: int
+        The database id of the detection.
+
+    catalog_id: int
+        The database id of the detection catalog which contains the detection.
+
+    agency_uri: str
+        The uniform resource identifier of the author agency.
+
+    author_uri: str
+        The uniform resource identifier of the author.
+
+    creation_time: :class:`obspy.UTCDateTime`
+        The creation time of the detection.
+
+    parent: :class:`Catalog`
+        The detection catalog holding the detection.
+
+    changed: bool
+        Flag indicating a change of the detection.
     '''
     def __init__(self, start_time, end_time, stations, max_pgv,
                  db_id = None, catalog_id = None,
@@ -65,34 +104,34 @@ class Detection(object):
 
     @property
     def rid(self):
-        ''' The resource ID of the detection.
+        ''' str: The resource ID of the detection.
         '''
         return '/event/' + str(self.db_id)
 
 
     @property
     def start_time_string(self):
-        ''' The string representation of the start time.
+        ''' str: The string representation of the start time.
         '''
         return self.start_time.isoformat()
 
 
     @property
     def end_time_string(self):
-        ''' The string representation of the end time.
+        ''' str: The string representation of the end time.
         '''
         return self.end_time.isoformat()
 
 
     @property
     def length(self):
-        ''' The length of the detection in seconds.
+        ''' float: The length of the detection in seconds.
         '''
         return self.end_time - self.start_time
 
     @property
     def nslc(self):
-        ''' The NSLC code of the related channel.
+        ''' tuple of str: The NSLC code of the related channel.
         '''
         if self.channel is None:
             return None
@@ -102,7 +141,7 @@ class Detection(object):
 
     @property
     def nsl(self):
-        ''' The NSLC code of the related channel.
+        ''' tuple of str: The NSLC code of the related channel.
         '''
         if self.channel is None:
             return None
@@ -114,7 +153,7 @@ class Detection(object):
 
     @property
     def absolute_max_pgv(self):
-        ''' The absolute maximum PGV value.
+        ''' float: The absolute maximum PGV value.
         '''
         return max(self.max_pgv.values())
 
@@ -122,6 +161,18 @@ class Detection(object):
     def update(self, start_time = None, end_time = None,
                max_pgv = None):
         ''' Update the attributes of the detection.
+
+        Parameters
+        ----------
+        start_time: :class:`obspy.UTCDateTime` of :obj:`str`
+            The new start time of the detection.
+
+        end_time: :class:`obspy.UTCDateTime` of :obj:`str`
+            The new end time of the detection.
+
+        max_pgv: dict
+            The new maximum PGV data. A dictionary of {station.nsl_string: PGV values}.
+
         '''
         if start_time is not None:
             self.start_time = utcdatetime.UTCDateTime(start_time)
@@ -138,6 +189,11 @@ class Detection(object):
 
     def set_channel_from_inventory(self, inventory):
         ''' Set the channel matching the recorder stream.
+
+        Parameters
+        ----------
+        inventory: :class:`~mss_dataserver.geometry.inventory.Inventory`
+            The inventory used to match the channels.
         '''
         self.channel = inventory.get_channel_from_stream(start_time = self.start_time,
                                                          end_time = self.end_time)
@@ -145,6 +201,11 @@ class Detection(object):
 
     def write_to_database(self, project):
         ''' Write the detection to the pSysmon database.
+
+        Parameters
+        ----------
+        project: :class:`~mss_dataserver.core.project.Project`
+            The project used to access the database.
         '''
         if self.db_id is None:
             # If the db_id is None, insert a new event.
@@ -205,6 +266,16 @@ class Detection(object):
     def get_db_orm(self, project):
         ''' Get an orm representation to use it for bulk insertion into
         the database.
+
+        Parameters
+        ----------
+        project: :class:`~mss_dataserver.core.project.Project`
+            The project used to access the database.
+
+        Returns
+        -------
+        :class:`mss_dataserver.event.databaseFactory.DetectionDb`
+            The database mapper class instance of the detection.
         '''
         db_detection_orm = project.db_tables['detection']
 
@@ -240,8 +311,11 @@ class Detection(object):
 
         Parameters
         ----------
-        detection_orm : SQLAlchemy ORM
+        detection_orm : :class:`mss_dataserver.event.databaseFactory.DetectionDb`
             The ORM of the detection_orm database table.
+
+        inventory: :class:`~mss_dataserver.geometry.db_inventory.Inventory`
+            The geometry inventory used to retrieve the stations of the detection.
         '''
         stat1 = inventory.get_station(id = detection_orm.stat1_id)[0]
         stat2 = inventory.get_station(id = detection_orm.stat2_id)[0]
@@ -263,6 +337,29 @@ class Detection(object):
 
 class Catalog(object):
     ''' A detection catalog.
+
+    Parameters
+    ----------
+    name: str 
+        The name of the catalog.
+
+    db_id: int
+        The database id of the catalog.
+
+    description: str
+        The description of the catalog.
+
+    agency_uri: str
+        The uniform resource identifier of the author agency.
+
+    author_uri: str
+        The uniform resource identifier of the author.
+
+    creation_time: :class:`obspy.UTCDateTime`
+        The creation time of the detection.
+
+    detections: :obj:`list` of :class:`Detection`
+        The detections of the catalog.
     '''
 
     def __init__(self, name, db_id = None, description = None, agency_uri = None,
@@ -298,7 +395,7 @@ class Catalog(object):
         if detections is None:
             self.detections = []
         else:
-            self.events = detections
+            self.detections = detections
 
 
     def add_detections(self, detections):
@@ -338,23 +435,29 @@ class Catalog(object):
 
         Parameters
         ----------
-        start_time : class:`~obspy.core.utcdatetime.UTCDateTime`
+        start_time : class:`obspy.UTCDateTime`
             The minimum starttime of the detections.
 
-        end_time : class:`~obspy.core.utcdatetime.UTCDateTime`
+        end_time : class:`obspy.UTCDateTime`
             The maximum end_time of the detections.
 
-        start_inside : Boolean
+        start_inside : bool
             If True, select only those detection with a start time
             inside the search window.
 
-        end_inside : Boolean
+        end_inside : bool
             If True, select only those detection with an end time
             inside the search window.
 
-        nslc : tuple of Strings
-            The NSLC code (network, station, location, channel) of
-            the channel (e.g. ('XX', 'GILA', '00', 'HHZ')).
+        Keyword Arguments
+        -----------------
+        nslc: :obj:`tuple` of :obj:`str`
+            The network-station-location-channel code (e.g ('XX', 'DUBA', '00', 'HNormal')).
+
+        Returns
+        -------
+        :class:`Detection`
+            The detection matching the search criteria.
         '''
         ret_detections = self.detections
 
@@ -383,6 +486,11 @@ class Catalog(object):
 
     def assign_channel(self, inventory):
         ''' Set the channels according to the rec_stream_ids.
+
+        Parameters.
+        -----------
+        inventory: :class:`~mss_dataserver.geometry.inventory.Inventory`
+            The inventory used to get the matching channels.
         '''
         # Get the unique stream ids.
         id_list = [x.rec_stream_id for x in self.detections]
@@ -405,11 +513,14 @@ class Catalog(object):
 
         Parameters
         ----------
-        start_time : :class:`obspy.core.utcdatetime.UTCDateTime`
+        start_time : :class:`obspy.UTCDateTime`
             The begin of the time-span to load.
 
-        end_time : :class:`obspy.core.utcdatetime.UTCDateTime`
+        end_time : :class:`obspy.UTCDateTime`
             The end of the time-span to load.
+
+        min_detection_length: float
+            The minimum length of the detection.
         '''
         if project is None:
             raise RuntimeError("The project is None. Can't query the database without a project.")
@@ -451,6 +562,11 @@ class Catalog(object):
 
     def write_to_database(self, project):
         ''' Write the catalog to the database.
+
+        Parameters
+        ----------
+        project: :class:`~mss_dataserver.core.project.Project`
+            The project used to access the database.
 
         '''
         if self.db_id is None:
@@ -508,12 +624,17 @@ class Catalog(object):
 
         Parameters
         ----------
-        db_catalog : SQLAlchemy ORM
-            The ORM of the events catalog database table.
+        db_catalog: :class:`mss_dataserver.event.databaseFactory.DetectionCatalogDb`
+            The table mapperclass of the detection catalog database table.
 
-        load_detections : Boolean
-            If true all events contained in the catalog are loaded
+        load_detections: bool
+            If true all detections contained in the catalog are loaded
             from the database.
+
+        Returns
+        -------
+        :class:`Detection`
+            The detection class created using the database ORM instance.
         '''
         catalog = cls(name = db_catalog.name,
                       db_id = db_catalog.id,
@@ -534,6 +655,16 @@ class Catalog(object):
 
 class Library(object):
     ''' Manage detection catalogs.
+
+    Parameters
+    ----------
+    name: str
+        The name of the library.
+
+    Attributes
+    ----------
+    catalogs: dict
+        The catalogs managed by the library. The key is the name of the catalog. 
     '''
 
     def __init__(self, name):
@@ -551,7 +682,7 @@ class Library(object):
 
         Parameters
         ----------
-        catalog : :class:`Catalog` or list of :class:`Catalog`
+        catalog : :class:`Catalog` or :obj:`list` of :class:`Catalog`
             The catalog(s) to add to the library.
         '''
 

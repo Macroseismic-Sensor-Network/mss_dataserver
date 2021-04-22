@@ -43,19 +43,38 @@ import logging
 from operator import attrgetter
 
 class Inventory(object):
+    ''' The geometry inventory.
+
+    Manage sensors, recorders, stations, networks and arrays of a seismic
+    monitoring network.
+
+    Parameters
+    ----------
+    name : str
+        The name of the inventory.
+
+    type : str
+        The type of the inventory.
+
+
+    Attributes
+    ----------
+    recorders: :obj:`list` of :class:`Recorder`
+        The recorders of the inventory.
+
+    sensors: :obj:`list` of :class:`Sensor`
+        The sensors of the inventory.
+
+    networks: :obj:`list` of :class:`Network`
+        The networks of the inventory.
+    
+    arrays: :obj:`list` of :class:`Array`
+        The arrays of the inventory.
+    '''
 
     def __init__(self, name, type = None):
         ''' Initialize the instance.
-
-        Parameters
-        ----------
-        name : String
-            The name of the inventory.
-
-        type : String
-            The type of the inventory.
         '''
-
         # The logger.
         logger_name = __name__ + "." + self.__class__.__name__
         self.logger = logging.getLogger(logger_name)
@@ -103,6 +122,8 @@ class Inventory(object):
 
 
     def __eq__(self, other):
+        ''' Test for equality.
+        '''
         if type(self) is type(other):
             compare_attributes = ['name', 'type', 'recorders', 'networks', 'arrays']
             for cur_attribute in compare_attributes:
@@ -121,10 +142,15 @@ class Inventory(object):
         self.arrays = []
         self.recorders = []
         self.sensors = []
+        
 
     def as_dict(self, style = None):
         ''' Convert the inventory to a dictionary.
+
+        style: str
+            The style to use for the conversion. Currently not supported.
         '''
+        #TODO: Add the support for the conversioin style.
         export_attributes = ['name', 'type']
         d = {}
         for cur_attr in export_attributes:
@@ -140,6 +166,11 @@ class Inventory(object):
         ----------
         recorder : :class:`Recorder`
             The recorder to add to the inventory.
+
+        Returns
+        -------
+        :class:`Recorder`
+            The recorder that has been added to the inventory.
         '''
         added_recorder = None
 
@@ -156,10 +187,14 @@ class Inventory(object):
 
     def remove_recorder_by_instance(self, recorder):
         ''' Remove a recorder from the inventory.
+
+        Parameters
+        ----------
+        recorder : :class:`Recorder`
+            The recorder to add to the inventory.
         '''
         if recorder in self.recorders:
             self.recorders.remove(recorder)
-
 
 
     def add_station(self, network_name, station_to_add):
@@ -167,11 +202,16 @@ class Inventory(object):
 
         Parameters
         ----------
-        network_name : String
+        network_name : str
             The name of the network to which to add the station.
 
         station_to_add : :class:`Station`
             The station to add to the inventory.
+
+        Returns
+        -------
+        :class:`Station`
+            The station that has been added to the inventory.
         '''
         added_station = None
 
@@ -194,9 +234,14 @@ class Inventory(object):
 
         Parameters
         ----------
-        nsl : tuple (String, String, String)
+        nsl : :obj:`tuple` of :obj:`str`
             The NSL (network, station, location) code of the station to remove
             from the inventory.
+
+        Returns
+        -------
+        :class:`Station`
+            The station that has been removed from the inventory.
         '''
         removed_station = None
 
@@ -217,8 +262,13 @@ class Inventory(object):
 
         Parameters
         ----------
-        sensor_to_add : :class:`Sensor`
+        sensor_to_add: :class:`Sensor`
             The sensor to add to the inventory.
+
+        Returns
+        -------
+        :class:`Sensor`
+            The sensor that has been added to the inventory.
         '''
         added_sensor = None
         if not self.get_sensor(serial = sensor_to_add.serial):
@@ -237,7 +287,7 @@ class Inventory(object):
 
         Parameters
         ----------
-        sensor_to_remove : :class:`Sensor`
+        sensor_to_remove: :class:`Sensor`
             The sensor to remove from the inventory.
         '''
         if sensor_to_remove in self.sensors:
@@ -249,8 +299,13 @@ class Inventory(object):
 
         Parameters
         ----------
-        network : :class:`Network`
+        network: :class:`Network`
             The network to add to the database inventory.
+
+        Returns
+        -------
+        :class:`Network`
+            The network that has been added to the database inventory.
         '''
         added_network = None
 
@@ -265,6 +320,11 @@ class Inventory(object):
 
     def remove_network_by_instance(self, network_to_remove):
         ''' Remove a network instance from the inventory.
+
+        Parameters
+        ----------
+        network: :class:`Network`
+            The network to remove from the database inventory.
         '''
         if network_to_remove in self.networks:
             self.networks.remove(network_to_remove)
@@ -275,8 +335,13 @@ class Inventory(object):
 
         Parameters
         ----------
-        name : String
+        name: str
             The name of the network to remove.
+
+        Returns
+        -------
+        :class:`Network`
+            The network that has been added to the database inventory.
         '''
         removed_network = None
 
@@ -294,6 +359,16 @@ class Inventory(object):
 
     def add_array(self, array):
         ''' Add a new array to the inventory.
+
+        Parameters
+        ----------
+        array: :class:`Array`
+            The array to add to the inventory.
+        
+        Returns
+        -------
+        :class:`Array`
+            The array that has been added to the inventory.
         '''
         added_array = None
 
@@ -309,6 +384,11 @@ class Inventory(object):
 
     def has_changed(self):
         ''' Check if any element in the inventory has been changed.
+
+        Returns
+        -------
+        bool:
+            True if the inventory has changed, False otherwise.
         '''
         for cur_sensor in self.sensors:
             if cur_sensor.has_changed is True:
@@ -330,6 +410,11 @@ class Inventory(object):
 
     def merge(self, merge_inventory):
         ''' Merge two inventories.
+
+        Parameters
+        ----------
+        merge_inventory: :class:`Inventory`
+            The inventory to merge.
         '''
         # Merge the sensors.
         for cur_sensor in merge_inventory.sensors:
@@ -389,14 +474,16 @@ class Inventory(object):
                 exist_array.merge(cur_array)
 
 
-    ## Refresh the inventory networks.
     def update_networks(self):
+        ''' Refresh the inventory networks.
+        '''
         for cur_network in self.networks:
             cur_network.refresh_stations(self.stations)
 
 
-    ## Refresh the inventory recorders.
     def refresh_recorders(self):
+        ''' Refresh the inventory recorders.
+        '''
         for cur_recorder in self.recorders:
             cur_recorder.refresh_sensors()
 
@@ -404,8 +491,14 @@ class Inventory(object):
             self.add_sensor(cur_sensor)
 
 
-    ## Read the inventory from an XML file.
     def import_from_xml(self, filename):
+        ''' Read the inventory from a XML file.
+
+        Parameters
+        ----------
+        filename: str
+            The filepath of the XML to read.
+        '''
         inventory_parser = InventoryXmlParser(self, filename)
         try:
             inventory_parser.parse()
@@ -418,20 +511,20 @@ class Inventory(object):
     def get_recorder(self, **kwargs):
         ''' Get a recorder from the inventory.
 
-        Parameters
-        ----------
-        serial : String
+        Keyword Arguments
+        -----------------
+        serial: str
             The serial number of the recorder.
 
-        model : String
+        model: str
             The recorder model.
 
-        producer : String
+        producer: str
             The recorder producer.
 
         Returns
         -------
-        recorder : List of :class:'~Recorder'
+        :obj:`list` of :class:`Recorder`
             The recorder(s) in the inventory matching the search criteria.
         '''
         ret_recorder = self.recorders
@@ -450,19 +543,25 @@ class Inventory(object):
     def get_stream(self, **kwargs):
         ''' Get a stream of a recorder from the inventory.
 
-        Parameters
-        ----------
-        serial : String
+        Keyword Arguments
+        -----------------
+        serial: str
             The serial number of the recorder containing the stream.
 
-        model : String
+        model: str
             The model of the recorder containing the stream.
 
-        producer : String
+        producer: str
             The producer of the recorder containing the stream.
 
-        name : String
+        name: str
             The name of the component.
+
+        Returns
+        -------
+        :obj:`list` of :class:`RecorderStream`
+            The streams matching the search criteria.
+
         '''
         ret_stream = list(itertools.chain.from_iterable([x.streams for x in self.recorders]))
 
@@ -480,19 +579,24 @@ class Inventory(object):
     def get_sensor(self, **kwargs):
         ''' Get a sensor from the inventory.
 
-        Parameters
-        ----------
-        serial : String
+        Keyword Arguments
+        -----------------
+        serial: str
             The serial number of the sensor.
 
-        model : String
+        model: str
             The model of the sensor.
 
-        producer : String
+        producer: str
             The producer of the sensor.
 
-        label : String
+        label: str
             The label of the sensor
+
+        Returns
+        -------
+        :obj:`list` of :class:`Sensor`
+            The sensors matching the search criteria.
         '''
         ret_sensor = self.sensors
 
@@ -507,26 +611,29 @@ class Inventory(object):
         return ret_sensor
 
 
-
     def get_component(self, **kwargs):
         ''' Get a component of a sensor from the inventory.
 
-        Parameters
-        ----------
-        serial : String
+        Keyword Arguments
+        -----------------
+        serial : str
             The serial number of the sensor containing the component.
 
-        model : String
+        model : str
             The model of the sensor containing the component.
 
-        producer : String
+        producer : str
             The producer of the sensor containing the component.
 
-        name : String
+        name : str
             The name of the component.
+
+        Returns
+        -------
+        :obj:`list` of :class:`SensorComponent`
+            The sensor components matching the search criteria.
         '''
         ret_component = list(itertools.chain.from_iterable([x.components for x in self.sensors]))
-
 
         valid_keys = ['name', 'serial', 'model', 'producer']
 
@@ -542,16 +649,21 @@ class Inventory(object):
     def get_station(self, **kwargs):
         ''' Get a station from the inventory.
 
-        Parameters
-        ----------
-        name : String
+        Keyword Arguments
+        -----------------
+        name : str
             The name (code) of the station.
 
-        network : String
+        network : str
             The name of the network of the station.
 
-        location : String
+        location : str
             The location code of the station.
+
+        Returns
+        -------
+        :obj:`list` of :class:`Station`
+            The stations matching the search criteria.
         '''
         ret_station = list(itertools.chain.from_iterable([x.stations for x in self.networks]))
 
@@ -569,19 +681,24 @@ class Inventory(object):
     def get_channel(self, **kwargs):
         ''' Get a chennel from the inventory.
 
-        Paramters
-        ---------
-        network : String
+        Keyword Arguments
+        -----------------
+        network : str
             The name of the network.
 
-        station : String
+        station : str
             The name (code) of the station.
 
-        station : String
+        station : str
             The location identifier.
 
-        name : String
+        name : str
             The name of the channel.
+
+        Returns
+        -------
+        :obj:`list` of :class:`Channel`
+            The channels matching the search criteria.
         '''
 
         search_dict = {}
@@ -613,6 +730,19 @@ class Inventory(object):
 
     def get_channel_from_stream(self, start_time = None, end_time = None, **kwargs):
         ''' Get the channels to which a stream is assigned to.
+
+        Parameters
+        ----------
+        start_time: :class:`obspy.UTCDateTime`
+            The start time of the stream assignement.
+        
+        end_time: :class:`obspy.UTCDateTime`
+            The end time of the stream assignment.
+
+        Keyword Arguments
+        -----------------
+        kwargs
+            The Keyword arguments passed to :meth:`get_stream`.
         '''
         ret_channel = list(itertools.chain.from_iterable(x.channels for x in self.get_station()))
 
@@ -625,13 +755,18 @@ class Inventory(object):
     def get_network(self, **kwargs):
         ''' Get a network from the inventory.
 
-        Parameters
-        ----------
-        name : String
+        Keyword arguments
+        -----------------
+        name: str
             The name of the network.
 
-        type : String
+        type: str
             The type of the network.
+
+        Returns
+        -------
+        :obj:`list` of :class:`Network`
+            The networks matching the search criteria.
         '''
         ret_network = self.networks
 
@@ -648,10 +783,15 @@ class Inventory(object):
     def get_array(self, **kwargs):
         ''' Get an array from the inventory.
 
-        Parameters
-        ----------
-        name : String
+        Keyword Arguments
+        -----------------
+        name: str
             The name of the array.
+
+        Returns
+        -------
+        :obj:`list` of :class:`Array`
+            The arrays matching the search criteria.
         '''
         ret_array = self.arrays
 
@@ -667,6 +807,15 @@ class Inventory(object):
 
     def get_utm_epsg(self):
         ''' Compute a the epsg code of the best fitting UTM coordinate system.
+
+        Returns
+        -------
+        tuple
+            A tuple of the epsg code (code, projection parameters).
+
+        See Also
+        --------
+        :meth:`mss_dataserver.geometry.util.get_epsg_dict`
         '''
         # Get the lon/lat limits of the inventory.
         lonLat = []
@@ -699,6 +848,8 @@ class Inventory(object):
         return code
 
     def compute_utm_coordinates(self):
+        ''' Compute the UTM coordinates of all stations in the inventory.
+        '''
         code = self.get_utm_epsg()
         proj = pyproj.Proj(init = 'epsg:' + code[0][0])
 
@@ -711,6 +862,8 @@ class Inventory(object):
 
     @classmethod
     def from_db_inventory(cls, db_inventory):
+        ''' Not yet implemented.
+        '''
         pass
 
 
@@ -719,6 +872,15 @@ class Inventory(object):
         ''' Create an inventory from a dictionary.
 
         The dictionary has to be in a form returned by the as_dict method.
+
+        Parameters
+        ----------
+        d: dict
+            Dictionary representation of the inventory.
+
+        See Also
+        --------
+        :meth:`as_dict`
         '''
         inventory = cls(name = d['name'],
                         type = d['type'])
