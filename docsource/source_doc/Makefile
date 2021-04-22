@@ -38,8 +38,12 @@ clean:
 	-rm -rf $(BUILDDIR)/*
 	-rm -rf source/autogen/*
 
+github-clean:
+	-rm -rf ../../docs/*
+
 github:
 	@make html
+	@make github-clean
 	@cp -a build/html/. ../../docs
 
 html:
