@@ -12,6 +12,7 @@ MSS DataServer Modules
 
    mss_dataserver.core
    mss_dataserver.event
+   mss_dataserver.geometry
    
    .. comment to end block
 
