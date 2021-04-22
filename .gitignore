@@ -37,3 +37,6 @@ mss_dataserver.egg-info/
 
 # Sphinx autogen files.
 /docsource/source_doc/source/autogen/
+
+# Sphinx build files.
+/docs/.buildinfo
