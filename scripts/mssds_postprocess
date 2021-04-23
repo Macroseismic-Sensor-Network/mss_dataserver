@@ -183,19 +183,32 @@ def create_maps(ctx, public_id, no_db,
 
     # Create the pgv map.
     if pgv_map:
-        plotter.create_event_pgv_map()
-
-    # Create the detection sequence images and movie.
-    if detection_sequence:
-        plotter.create_detection_sequence_movie()
-
-    # Create the pgv contour sequence images and movie.
-    if pgv_contour_sequence:
-        plotter.create_pgv_contour_sequence_movie()
+        try:
+            plotter.create_event_pgv_map()
+        except Exception:
+            logger.exception("Error creating the PGV map.")
 
     # Create the pgv contour map of the event.
     if pgv_contour_map:
-        plotter.create_pgv_contour_map()
+        try:
+            plotter.create_pgv_contour_map()
+        except Exception:
+            logger.exception("Error creating the PGV contour map.")
+
+    # Create the detection sequence images and movie.
+    if detection_sequence:
+        try:
+            plotter.create_detection_sequence_movie()
+        except Exception:
+            logger.exception("Error creating the detection sequence.")
+
+    # Create the pgv contour sequence images and movie.
+    if pgv_contour_sequence:
+        try:
+            plotter.create_pgv_contour_sequence_movie()
+        except Exception:
+            logger.exception("Error creating the PGV contour sequence.")
+
 
 
 @cli.command()
