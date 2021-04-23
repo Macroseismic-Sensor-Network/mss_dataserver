@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Usage &mdash; mss_dataserver 0.0.1 documentation</title>
+  <title>Installation &mdash; mss_dataserver 0.0.1 documentation</title>
   
 
   
@@ -39,7 +39,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="MSS DataServer Modules" href="../sourcedoc/index.html" />
+    <link rel="next" title="Usage" href="usage.html" />
     <link rel="prev" title="MSS DataServer Documentation" href="../index.html" /> 
 </head>
 
@@ -90,8 +90,10 @@
             
             
               <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../sourcedoc/index.html">MSS DataServer Modules</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="database.html">Database</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sourcedoc/index.html">Modules</a></li>
 </ul>
 
             
@@ -140,13 +142,13 @@
     
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Usage</li>
+      <li>Installation</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/userdoc/index.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/userdoc/installation.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -159,8 +161,17 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="usage">
-<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>To install mss_datasever clone the <a class="reference external" href="https://github.com/Macroseismic-Sensor-Network/mss_dataserver">mss_dataserver Github repository</a>, change into the directory containing the cloned source base directory (usually named mss_dataserver) and install it using pip. The source base directory it the directory containing <code class="docutils literal notranslate"><span class="pre">setup.py</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/Macroseismic-Sensor-Network/mss_dataserver.git
+pip install ./mss_dataserver
+</pre></div>
+</div>
+<p>To install the software in editable mode use the <code class="docutils literal notranslate"><span class="pre">-e</span></code> flag. This installs the software creating links to the source base directory.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install -e ./mss_dataserver
+</pre></div>
+</div>
 </div>
 
 
@@ -169,7 +180,7 @@
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="../sourcedoc/index.html" class="btn btn-neutral float-right" title="MSS DataServer Modules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="usage.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
         <a href="../index.html" class="btn btn-neutral float-left" title="MSS DataServer Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
@@ -179,7 +190,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-23 14:48.
+        Last updated on 2021-04-23 16:37.
       </span>
 
     </p>

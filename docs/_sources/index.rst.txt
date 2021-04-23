@@ -8,7 +8,9 @@ MSS DataServer Documentation
 ----------------------------
 .. toctree::
    :maxdepth: 2
-              
-   userdoc/index
+
+   userdoc/installation
+   userdoc/usage
+   userdoc/database
    sourcedoc/index
    

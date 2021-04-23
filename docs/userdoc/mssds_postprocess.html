@@ -1,0 +1,376 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>mssds_postprocess &mdash; mss_dataserver 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Database" href="database.html" />
+    <link rel="prev" title="mss_dataserver" href="mss_dataserver.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> mss_dataserver
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="usage.html">Usage</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="mss_dataserver.html">mss_dataserver</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">mssds_postprocess</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#options">Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters">Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#commands">Commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#process-event">process-event</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#create-maps">create-maps</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id2">Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#create-seismogram">create-seismogram</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id3">Options</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="database.html">Database</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sourcedoc/index.html">Modules</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">mss_dataserver</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="usage.html">Usage</a> &raquo;</li>
+        
+      <li>mssds_postprocess</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/userdoc/mssds_postprocess.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="mssds-postprocess">
+<h1>mssds_postprocess<a class="headerlink" href="#mssds-postprocess" title="Permalink to this headline">¶</a></h1>
+<p>mssds_postprocess computes the event supplement data in geoJSON format, creates map visualizations
+of the supplement data and seismogram plots of the event data.</p>
+<p>mssds_postprocess is a command line program which accepts several commands and command line arguments.</p>
+<p>The configuration of the input and output settings is specified in the configuration file. A description
+of the configuration file is given in the <a class="reference external" href="https://github.com/Macroseismic-Sensor-Network/mss_dataserver/blob/main/example/mss_dataserver_config.ini">configuration file example</a>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mssds_postprocess <span class="o">[</span>OPTIONS<span class="o">]</span> CONFIG_FILE COMMAND <span class="o">[</span>ARGS<span class="o">]</span>...
+</pre></div>
+</div>
+<div class="section" id="options">
+<h2>Options<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
+<dl class="option-list">
+<dt><kbd><span class="option">--help</span></kbd></dt>
+<dd><p>Show the program help.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>CONFIG_FILE</dt><dd><p>The filepath to the mss_dataserver configuration file.</p>
+</dd>
+<dt>COMMAND</dt><dd><p>The command to execute.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="commands">
+<h2>Commands<a class="headerlink" href="#commands" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>create-maps</dt><dd><p>Create map visualizations of the event metadata.</p>
+</dd>
+<dt>create-seismogram</dt><dd><p>Create seismogram visualizations of the event data.</p>
+</dd>
+<dt>process-event</dt><dd><p>Compute the event supplement data.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="process-event">
+<h2>process-event<a class="headerlink" href="#process-event" title="Permalink to this headline">¶</a></h2>
+<p>Compute the event supplement data.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mssds_postprocess process-event <span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<div class="section" id="id1">
+<h3>Options<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd><span class="option">--public-id</span></kbd></dt>
+<dd><p>The public ID of the event to process.</p>
+</dd>
+<dt><kbd><span class="option">--no-db</span></kbd></dt>
+<dd><p>Don’t use the database to get event or geometry related data.
+All relevant information is loaded from the supplement data.</p>
+</dd>
+<dt><kbd><span class="option">--no-meta</span></kbd></dt>
+<dd><p>Don’t compute the metadata supplement.</p>
+</dd>
+<dt><kbd><span class="option">--no-isoseismal</span></kbd></dt>
+<dd><p>Don’t compute the PGV countours using kriging.</p>
+</dd>
+<dt><kbd><span class="option">--no-pgv-sequence</span></kbd></dt>
+<dd><p>Don’t compute the PGV sequence.</p>
+</dd>
+<dt><kbd><span class="option">--no-detection-sequence</span></kbd></dt>
+<dd><p>Don’t compute the detection sequence.</p>
+</dd>
+<dt><kbd><span class="option">--nopgv-contour-sequence</span></kbd></dt>
+<dd><p>Don’t compute the PGV contour sequence.</p>
+</dd>
+<dt><kbd><span class="option">--help</span></kbd></dt>
+<dd><p>Show the program help.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="create-maps">
+<h2>create-maps<a class="headerlink" href="#create-maps" title="Permalink to this headline">¶</a></h2>
+<p>Compute the map visualizations of the supplement data.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mssds_postprocess create-maps <span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<div class="section" id="id2">
+<h3>Options<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd><span class="option">--public-id</span></kbd></dt>
+<dd><p>The public ID of the event to process.</p>
+</dd>
+<dt><kbd><span class="option">--no-db</span></kbd></dt>
+<dd><p>Don’t use the database to get event or geometry related data.
+All relevant information is loaded from the supplement data.</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>–pgv-map / –no-pgv-map</dt><dd><p>Enable/disable computation of the pgv map [enabled].</p>
+</dd>
+<dt>–detection-sequence / –no-detection-sequence</dt><dd><p>Enable/disable the computation of the detection sequence images and movie [enabled].</p>
+</dd>
+<dt>–pgv-contour-sequence / –no-pgv-contour-sequence</dt><dd><p>Enable/disable the computation of the PGV contour sequence images and movie [disabled].</p>
+</dd>
+<dt>–pgv-contour-map / –no-pgv-contour-map</dt><dd><p>Enable/disable the computation of the PGV contour map.</p>
+</dd>
+</dl>
+<dl class="option-list">
+<dt><kbd><span class="option">--help</span></kbd></dt>
+<dd><p>Show the program help.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="create-seismogram">
+<h2>create-seismogram<a class="headerlink" href="#create-seismogram" title="Permalink to this headline">¶</a></h2>
+<p>Compute the seismogram visualization of the event data.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mssds_postprocess create-seismogram <span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<div class="section" id="id3">
+<h3>Options<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<dl class="option-list">
+<dt><kbd><span class="option">--public-id</span></kbd></dt>
+<dd><p>The public ID of the event to process.</p>
+</dd>
+<dt><kbd><span class="option">--no-db</span></kbd></dt>
+<dd><p>Don’t use the database to get event or geometry related data.
+All relevant information is loaded from the supplement data.</p>
+</dd>
+<dt><kbd><span class="option">--hypocenter</span></kbd></dt>
+<dd><p>The hypocenter coordinates (“LAT [°],LON [°], DEPTH [m]”). e.g. “16.136,47.756,12000”
+If a hypocenter is given, the stations are sorted according to the hypo-distance.
+Otherwise they are sorted alphabetically.</p>
+</dd>
+<dt><kbd><span class="option">--help</span></kbd></dt>
+<dd><p>Show the program help.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="database.html" class="btn btn-neutral float-right" title="Database" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="mss_dataserver.html" class="btn btn-neutral float-left" title="mss_dataserver" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Stefan Mertl.
+      <span class="lastupdated">
+        Last updated on 2021-04-23 16:37.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
