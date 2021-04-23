@@ -241,7 +241,7 @@ man_pages = [
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'http://docs.python.org/': None}
 
-autosummary_generate = ["index.rst"]
+autosummary_generate = ["sourcedoc/index.rst"]
 autoclass_content = "class"
 #autodoc_default_flags=['members', 'special-members', 'no-inherited-members']
 
