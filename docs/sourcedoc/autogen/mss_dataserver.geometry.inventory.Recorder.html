@@ -1,0 +1,293 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Recorder &mdash; mss_dataserver 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="__init__" href="mss_dataserver.geometry.inventory.Recorder.__init__.html" />
+    <link rel="prev" title="remove_station_by_instance" href="mss_dataserver.geometry.inventory.Network.remove_station_by_instance.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> mss_dataserver
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userdoc/index.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">MSS DataServer Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="mss_dataserver.core.html">mss_dataserver.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mss_dataserver.event.html">mss_dataserver.event</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="mss_dataserver.geometry.html">mss_dataserver.geometry</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="mss_dataserver.geometry.databaseFactory.html">mss_dataserver.geometry.databaseFactory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mss_dataserver.geometry.db_inventory.html">mss_dataserver.geometry.db_inventory</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="mss_dataserver.geometry.inventory.html">mss_dataserver.geometry.inventory</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.Array.html">Array</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.Channel.html">Channel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.Inventory.html">Inventory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.Network.html">Network</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Recorder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.RecorderStream.html">RecorderStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.RecorderStreamParameter.html">RecorderStreamParameter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.Sensor.html">Sensor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.SensorComponent.html">SensorComponent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.SensorComponentParameter.html">SensorComponentParameter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.Station.html">Station</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.TimeBox.html">TimeBox</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.html">mss_dataserver.geometry.inventory_parser</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mss_dataserver.geometry.util.html">mss_dataserver.geometry.util</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">mss_dataserver</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">MSS DataServer Modules</a> &raquo;</li>
+        
+          <li><a href="mss_dataserver.geometry.html">mss_dataserver.geometry</a> &raquo;</li>
+        
+          <li><a href="mss_dataserver.geometry.inventory.html">mss_dataserver.geometry.inventory</a> &raquo;</li>
+        
+      <li>Recorder</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/sourcedoc/autogen/mss_dataserver.geometry.inventory.Recorder.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="recorder">
+<h1>Recorder<a class="headerlink" href="#recorder" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="mss_dataserver.geometry.inventory.Recorder">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.geometry.inventory.</span></code><code class="sig-name descname"><span class="pre">Recorder</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">serial</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">producer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_inventory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agency_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">creation_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/geometry/inventory.html#Recorder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.geometry.inventory.Recorder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A seismic data recorder.</p>
+</dd></dl>
+
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Recorder.__init__.html#mss_dataserver.geometry.inventory.Recorder.__init__" title="mss_dataserver.geometry.inventory.Recorder.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(serial, model, producer[, …])</p></td>
+<td><p>Initialize the instance.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Recorder.add_stream.html#mss_dataserver.geometry.inventory.Recorder.add_stream" title="mss_dataserver.geometry.inventory.Recorder.add_stream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_stream</span></code></a>(cur_stream)</p></td>
+<td><p>Add a stream to the recorder.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Recorder.get_stream.html#mss_dataserver.geometry.inventory.Recorder.get_stream" title="mss_dataserver.geometry.inventory.Recorder.get_stream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_stream</span></code></a>(**kwargs)</p></td>
+<td><p>Get a stream from the recorder.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Recorder.merge.html#mss_dataserver.geometry.inventory.Recorder.merge" title="mss_dataserver.geometry.inventory.Recorder.merge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge</span></code></a>(merge_recorder)</p></td>
+<td><p>Merge a recorder with the existing.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Recorder.pop_stream.html#mss_dataserver.geometry.inventory.Recorder.pop_stream" title="mss_dataserver.geometry.inventory.Recorder.pop_stream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pop_stream</span></code></a>(**kwargs)</p></td>
+<td><p>Remove a stream from the recorder.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Recorder.pop_stream_by_instance.html#mss_dataserver.geometry.inventory.Recorder.pop_stream_by_instance" title="mss_dataserver.geometry.inventory.Recorder.pop_stream_by_instance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pop_stream_by_instance</span></code></a>(stream)</p></td>
+<td><p>Remove a component from the sensor using the component instance.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="inheritence-diagram">
+<h2>Inheritence diagram<a class="headerlink" href="#inheritence-diagram" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="graphviz"><img src="../../_images/inheritance-e61795e6b7c6da76283440b6db795b544b9df4ee.png" alt="Inheritance diagram of mss_dataserver.geometry.inventory.Recorder" usemap="#inheritancef8bfd81384" class="inheritance graphviz" /></div>
+<map id="inheritancef8bfd81384" name="inheritancef8bfd81384">
+<area shape="rect" id="node1" href="#mss_dataserver.geometry.inventory.Recorder" target="_top" title="A seismic data recorder." alt="" coords="5,5,320,31"/>
+</map></div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="mss_dataserver.geometry.inventory.Recorder.__init__.html" class="btn btn-neutral float-right" title="__init__" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="mss_dataserver.geometry.inventory.Network.remove_station_by_instance.html" class="btn btn-neutral float-left" title="remove_station_by_instance" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Stefan Mertl.
+      <span class="lastupdated">
+        Last updated on 2021-04-23 14:48.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

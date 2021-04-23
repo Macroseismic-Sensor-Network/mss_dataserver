@@ -4,16 +4,11 @@
    contain the root `toctree` directive.
 
 
-MSS DataServer Modules
-----------------------
-.. autosummary::
-   :toctree: autogen
-   :recursive:
-
-   mss_dataserver.core
-   mss_dataserver.event
-   mss_dataserver.geometry
+MSS DataServer Documentation
+----------------------------
+.. toctree::
+   :maxdepth: 2
+              
+   userdoc/index
+   sourcedoc/index
    
-   .. comment to end block
-
-

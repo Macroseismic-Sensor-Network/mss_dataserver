@@ -1,0 +1,339 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>InventoryXmlParser &mdash; mss_dataserver 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="__init__" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.__init__.html" />
+    <link rel="prev" title="mss_dataserver.geometry.inventory_parser" href="mss_dataserver.geometry.inventory_parser.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> mss_dataserver
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userdoc/index.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">MSS DataServer Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="mss_dataserver.core.html">mss_dataserver.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mss_dataserver.event.html">mss_dataserver.event</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="mss_dataserver.geometry.html">mss_dataserver.geometry</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="mss_dataserver.geometry.databaseFactory.html">mss_dataserver.geometry.databaseFactory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mss_dataserver.geometry.db_inventory.html">mss_dataserver.geometry.db_inventory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mss_dataserver.geometry.inventory.html">mss_dataserver.geometry.inventory</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.html">mss_dataserver.geometry.inventory_parser</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">InventoryXmlParser</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mss_dataserver.geometry.util.html">mss_dataserver.geometry.util</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">mss_dataserver</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">MSS DataServer Modules</a> &raquo;</li>
+        
+          <li><a href="mss_dataserver.geometry.html">mss_dataserver.geometry</a> &raquo;</li>
+        
+          <li><a href="mss_dataserver.geometry.inventory_parser.html">mss_dataserver.geometry.inventory_parser</a> &raquo;</li>
+        
+      <li>InventoryXmlParser</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/sourcedoc/autogen/mss_dataserver.geometry.inventory_parser.InventoryXmlParser.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="inventoryxmlparser">
+<h1>InventoryXmlParser<a class="headerlink" href="#inventoryxmlparser" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="mss_dataserver.geometry.inventory_parser.InventoryXmlParser">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.geometry.inventory_parser.</span></code><code class="sig-name descname"><span class="pre">InventoryXmlParser</span></code><a class="reference internal" href="../../_modules/mss_dataserver/geometry/inventory_parser.html#InventoryXmlParser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.geometry.inventory_parser.InventoryXmlParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Parse a pSysmon inventory XML file.</p>
+</dd></dl>
+
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.__init__.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.__init__" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>()</p></td>
+<td><p>Initialize self.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.check_completeness.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.check_completeness" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.check_completeness"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_completeness</span></code></a>(node, content, node_type)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.clean_time_string.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.clean_time_string" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.clean_time_string"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clean_time_string</span></code></a>(value)</p></td>
+<td><p>Remove running and big bang string from time string.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.export_xml.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.export_xml" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.export_xml"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_xml</span></code></a>(inventory, filename)</p></td>
+<td><p>Export an inventory to xml file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.get_node_text.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.get_node_text" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.get_node_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_node_text</span></code></a>(xml_element, tag)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.handle_element_pz.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.handle_element_pz" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.handle_element_pz"><code class="xref py py-obj docutils literal notranslate"><span class="pre">handle_element_pz</span></code></a>(name, value, root)</p></td>
+<td><p>Convert a list of complex values to a list of xml tree elements.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.instance_to_xml.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.instance_to_xml" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.instance_to_xml"><code class="xref py py-obj docutils literal notranslate"><span class="pre">instance_to_xml</span></code></a>(instance, root, name, …[, …])</p></td>
+<td><p>Translate an inventory object into a xml element.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.keys_complete.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.keys_complete" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.keys_complete"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keys_complete</span></code></a>(node_content, required_keys)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.parse.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.parse" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.parse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse</span></code></a>(filename[, inventory_name])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.parse_node.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.parse_node" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.parse_node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_node</span></code></a>(xml_element)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_arrays.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_arrays" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_arrays"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_arrays</span></code></a>(inventory, arrays)</p></td>
+<td><p>Process the extracted array nodes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_assigned_components.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_assigned_components" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_assigned_components"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_assigned_components</span></code></a>(stream, components)</p></td>
+<td><p>Process the components assigned to a recorder stream.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_assigned_streams.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_assigned_streams" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_assigned_streams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_assigned_streams</span></code></a>(channel, streams)</p></td>
+<td><p>Process the assigned streams of a channel.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_channels.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_channels" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_channels</span></code></a>(station, channels)</p></td>
+<td><p>Process the channel nodes of a station.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_complex_pole.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_complex_pole" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_complex_pole"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_complex_pole</span></code></a>(parameter, poles)</p></td>
+<td><p>Process the complex_poles nodes in a response_paz.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_complex_zero.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_complex_zero" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_complex_zero"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_complex_zero</span></code></a>(parameter, zeros)</p></td>
+<td><p>Process the complex_zero nodes in a response_paz.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_component_parameters.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_component_parameters" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_component_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_component_parameters</span></code></a>(component, …)</p></td>
+<td><p>Process the component_parameter nodes of a component.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_components.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_components" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_components"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_components</span></code></a>(sensor, components)</p></td>
+<td><p>Process the component nodes of a sensor.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_networks.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_networks" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_networks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_networks</span></code></a>(inventory, networks)</p></td>
+<td><p>Process the extracted network nodes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_recorder_streams.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_recorder_streams" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_recorder_streams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_recorder_streams</span></code></a>(recorder, streams)</p></td>
+<td><p>Process the stream nodes of a recorder.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_recorders.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_recorders" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_recorders"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_recorders</span></code></a>(inventory, recorders)</p></td>
+<td><p>Process the extracted recorder nodes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_response_paz.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_response_paz" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_response_paz"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_response_paz</span></code></a>(parameter, response_paz)</p></td>
+<td><p>Process the response_paz nodes of a component_paramter.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_sensors.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_sensors" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_sensors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_sensors</span></code></a>(inventory, sensors)</p></td>
+<td><p>Process the extracted sensor tags.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_stations.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_stations" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_stations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_stations</span></code></a>(network, stations)</p></td>
+<td><p>Process the station nodes of a network.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_stream_parameters.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_stream_parameters" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_stream_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_stream_parameters</span></code></a>(stream, parameters)</p></td>
+<td><p>Process the stream_parameter nodes of a recorder stream.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="inheritence-diagram">
+<h2>Inheritence diagram<a class="headerlink" href="#inheritence-diagram" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="graphviz"><img src="../../_images/inheritance-33f1e47320378ec87a8a9cf373826e14da3adf2f.png" alt="Inheritance diagram of mss_dataserver.geometry.inventory_parser.InventoryXmlParser" usemap="#inheritance04ffe30902" class="inheritance graphviz" /></div>
+<map id="inheritance04ffe30902" name="inheritance04ffe30902">
+<area shape="rect" id="node1" href="#mss_dataserver.geometry.inventory_parser.InventoryXmlParser" target="_top" title="Parse a pSysmon inventory XML file." alt="" coords="5,5,440,31"/>
+</map></div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.__init__.html" class="btn btn-neutral float-right" title="__init__" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="mss_dataserver.geometry.inventory_parser.html" class="btn btn-neutral float-left" title="mss_dataserver.geometry.inventory_parser" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Stefan Mertl.
+      <span class="lastupdated">
+        Last updated on 2021-04-23 14:48.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

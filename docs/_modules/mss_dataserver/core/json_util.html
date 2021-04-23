@@ -1,45 +1,160 @@
 
-<!DOCTYPE html>
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mss_dataserver.core.json_util &#8212; mss_dataserver 0.0.1 documentation</title>
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/haiku_maar.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>mss_dataserver.core.json_util &mdash; mss_dataserver 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
-  </head><body>
-      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
-          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
-        <h2 class="heading"><span>mss_dataserver.core.json_util</span></h2>
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> mss_dataserver
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../userdoc/index.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sourcedoc/index.html">MSS DataServer Modules</a></li>
+</ul>
+
+            
+          
+        </div>
+        
       </div>
-      <div class="topnav" role="navigation" aria-label="top navigation">
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
       
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">mss_dataserver.core.json_util</a></li> 
-      </ul>
-    </div>
-      </div>
-      <div class="content" role="main">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mss_dataserver</a>
         
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>mss_dataserver.core.json_util</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
   <h1>Source code for mss_dataserver.core.json_util</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="c1">##############################################################################</span>
@@ -81,7 +196,7 @@
 <span class="kn">import</span> <span class="nn">mss_dataserver.geometry.inventory</span>
 
 
-<div class="viewcode-block" id="object_to_dict"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.object_to_dict.html#mss_dataserver.core.json_util.object_to_dict">[docs]</a><span class="k">def</span> <span class="nf">object_to_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+<div class="viewcode-block" id="object_to_dict"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.object_to_dict.html#mss_dataserver.core.json_util.object_to_dict">[docs]</a><span class="k">def</span> <span class="nf">object_to_dict</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Copy selected attributes of object to a dictionary.</span>
 
 <span class="sd">    Parameters</span>
@@ -128,7 +243,7 @@
     <span class="k">return</span> <span class="n">d</span></div>
 
 
-<div class="viewcode-block" id="FileContainer"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.FileContainer.html#mss_dataserver.core.json_util.FileContainer">[docs]</a><span class="k">class</span> <span class="nc">FileContainer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="FileContainer"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.FileContainer.html#mss_dataserver.core.json_util.FileContainer">[docs]</a><span class="k">class</span> <span class="nc">FileContainer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; A container json data.</span>
 
 <span class="sd">    Along with the data, the container holds information about</span>
@@ -146,13 +261,13 @@
 <span class="sd">        The author uniform resource identifier</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
-<div class="viewcode-block" id="FileContainer.__init__"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.FileContainer.__init__.html#mss_dataserver.core.json_util.FileContainer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">agency_uri</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">author_uri</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="FileContainer.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.FileContainer.__init__.html#mss_dataserver.core.json_util.FileContainer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">agency_uri</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">author_uri</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">agency_uri</span> <span class="o">=</span> <span class="n">agency_uri</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">author_uri</span> <span class="o">=</span> <span class="n">author_uri</span></div></div>
 
 
-<div class="viewcode-block" id="GeneralFileEncoder"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileEncoder.html#mss_dataserver.core.json_util.GeneralFileEncoder">[docs]</a><span class="k">class</span> <span class="nc">GeneralFileEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
+<div class="viewcode-block" id="GeneralFileEncoder"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.GeneralFileEncoder.html#mss_dataserver.core.json_util.GeneralFileEncoder">[docs]</a><span class="k">class</span> <span class="nc">GeneralFileEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; A JSON encoder for the serialization of general data.</span>
 
 <span class="sd">    Parameters</span>
@@ -170,7 +285,7 @@
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">version</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Version</span><span class="p">(</span><span class="s1">&#39;1.0.0&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="GeneralFileEncoder.__init__"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileEncoder.__init__.html#mss_dataserver.core.json_util.GeneralFileEncoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
+<div class="viewcode-block" id="GeneralFileEncoder.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.GeneralFileEncoder.__init__.html#mss_dataserver.core.json_util.GeneralFileEncoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Initialization of the instance.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">)</span>
@@ -184,7 +299,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">sort_keys</span> <span class="o">=</span> <span class="kc">True</span></div>
 
 
-<div class="viewcode-block" id="GeneralFileEncoder.default"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileEncoder.default.html#mss_dataserver.core.json_util.GeneralFileEncoder.default">[docs]</a>    <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="GeneralFileEncoder.default"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.GeneralFileEncoder.default.html#mss_dataserver.core.json_util.GeneralFileEncoder.default">[docs]</a>    <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert objects to a dictionary.</span>
 
 <span class="sd">        The instance class, module and base_class relations are stored in </span>
@@ -234,7 +349,7 @@
         <span class="k">return</span> <span class="n">d</span></div>
 
 
-<div class="viewcode-block" id="GeneralFileEncoder.convert_filecontainer"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileEncoder.convert_filecontainer.html#mss_dataserver.core.json_util.GeneralFileEncoder.convert_filecontainer">[docs]</a>    <span class="k">def</span> <span class="nf">convert_filecontainer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="GeneralFileEncoder.convert_filecontainer"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.GeneralFileEncoder.convert_filecontainer.html#mss_dataserver.core.json_util.GeneralFileEncoder.convert_filecontainer">[docs]</a>    <span class="k">def</span> <span class="nf">convert_filecontainer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert a filecontainer instance.</span>
 
 <span class="sd">        Parameters</span>
@@ -256,7 +371,7 @@
         <span class="k">return</span> <span class="n">d</span></div>
 
 
-<div class="viewcode-block" id="GeneralFileEncoder.convert_utcdatetime"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileEncoder.convert_utcdatetime.html#mss_dataserver.core.json_util.GeneralFileEncoder.convert_utcdatetime">[docs]</a>    <span class="k">def</span> <span class="nf">convert_utcdatetime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="GeneralFileEncoder.convert_utcdatetime"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.GeneralFileEncoder.convert_utcdatetime.html#mss_dataserver.core.json_util.GeneralFileEncoder.convert_utcdatetime">[docs]</a>    <span class="k">def</span> <span class="nf">convert_utcdatetime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert a UTCDateTime instance.</span>
 
 <span class="sd">        Parameters</span>
@@ -272,7 +387,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;utcdatetime&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()}</span></div>
 
 
-<div class="viewcode-block" id="GeneralFileEncoder.convert_version"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileEncoder.convert_version.html#mss_dataserver.core.json_util.GeneralFileEncoder.convert_version">[docs]</a>    <span class="k">def</span> <span class="nf">convert_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="GeneralFileEncoder.convert_version"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.GeneralFileEncoder.convert_version.html#mss_dataserver.core.json_util.GeneralFileEncoder.convert_version">[docs]</a>    <span class="k">def</span> <span class="nf">convert_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert a UTCDateTime instance.</span>
 
 <span class="sd">        Parameters</span>
@@ -299,7 +414,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">)}</span></div>
 
 
-<div class="viewcode-block" id="GeneralFileEncoder.convert_np_ndarray"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileEncoder.convert_np_ndarray.html#mss_dataserver.core.json_util.GeneralFileEncoder.convert_np_ndarray">[docs]</a>    <span class="k">def</span> <span class="nf">convert_np_ndarray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="GeneralFileEncoder.convert_np_ndarray"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.GeneralFileEncoder.convert_np_ndarray.html#mss_dataserver.core.json_util.GeneralFileEncoder.convert_np_ndarray">[docs]</a>    <span class="k">def</span> <span class="nf">convert_np_ndarray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert a numpy array instance.</span>
 
 <span class="sd">        Parameters</span>
@@ -316,7 +431,7 @@
 
 
 
-<div class="viewcode-block" id="GeneralFileDecoder"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileDecoder.html#mss_dataserver.core.json_util.GeneralFileDecoder">[docs]</a><span class="k">class</span> <span class="nc">GeneralFileDecoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONDecoder</span><span class="p">):</span>
+<div class="viewcode-block" id="GeneralFileDecoder"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.GeneralFileDecoder.html#mss_dataserver.core.json_util.GeneralFileDecoder">[docs]</a><span class="k">class</span> <span class="nc">GeneralFileDecoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONDecoder</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; A JSON decoder for the deserialization of general data.</span>
 
 <span class="sd">    Parameters</span>
@@ -332,11 +447,11 @@
 
     <span class="n">version</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Version</span><span class="p">(</span><span class="s1">&#39;1.0.0&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="GeneralFileDecoder.__init__"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileDecoder.__init__.html#mss_dataserver.core.json_util.GeneralFileDecoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
+<div class="viewcode-block" id="GeneralFileDecoder.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.GeneralFileDecoder.__init__.html#mss_dataserver.core.json_util.GeneralFileDecoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
         <span class="n">json</span><span class="o">.</span><span class="n">JSONDecoder</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_hook</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_dict</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="GeneralFileDecoder.convert_dict"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileDecoder.convert_dict.html#mss_dataserver.core.json_util.GeneralFileDecoder.convert_dict">[docs]</a>    <span class="k">def</span> <span class="nf">convert_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<div class="viewcode-block" id="GeneralFileDecoder.convert_dict"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.GeneralFileDecoder.convert_dict.html#mss_dataserver.core.json_util.GeneralFileDecoder.convert_dict">[docs]</a>    <span class="k">def</span> <span class="nf">convert_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert a dictionary to objects.</span>
 
 <span class="sd">        The dictionary to convert should have been with an mss_dataserver</span>
@@ -375,7 +490,7 @@
         <span class="k">return</span> <span class="n">inst</span></div>
 
 
-<div class="viewcode-block" id="GeneralFileDecoder.decode_hinted_tuple"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileDecoder.decode_hinted_tuple.html#mss_dataserver.core.json_util.GeneralFileDecoder.decode_hinted_tuple">[docs]</a>    <span class="k">def</span> <span class="nf">decode_hinted_tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+<div class="viewcode-block" id="GeneralFileDecoder.decode_hinted_tuple"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.GeneralFileDecoder.decode_hinted_tuple.html#mss_dataserver.core.json_util.GeneralFileDecoder.decode_hinted_tuple">[docs]</a>    <span class="k">def</span> <span class="nf">decode_hinted_tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Decode a tuple.</span>
 
 <span class="sd">        JSON doesn&#39;t support tuples. Use a custom dictionary</span>
@@ -401,7 +516,7 @@
             <span class="k">return</span> <span class="n">item</span></div>
 
 
-<div class="viewcode-block" id="GeneralFileDecoder.convert_version"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileDecoder.convert_version.html#mss_dataserver.core.json_util.GeneralFileDecoder.convert_version">[docs]</a>    <span class="k">def</span> <span class="nf">convert_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<div class="viewcode-block" id="GeneralFileDecoder.convert_version"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.GeneralFileDecoder.convert_version.html#mss_dataserver.core.json_util.GeneralFileDecoder.convert_version">[docs]</a>    <span class="k">def</span> <span class="nf">convert_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert a Version dictionary.</span>
 
 <span class="sd">        Parameters</span>
@@ -418,7 +533,7 @@
         <span class="k">return</span> <span class="n">inst</span></div>
 
 
-<div class="viewcode-block" id="GeneralFileDecoder.convert_utcdatetime"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileDecoder.convert_utcdatetime.html#mss_dataserver.core.json_util.GeneralFileDecoder.convert_utcdatetime">[docs]</a>    <span class="k">def</span> <span class="nf">convert_utcdatetime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<div class="viewcode-block" id="GeneralFileDecoder.convert_utcdatetime"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.GeneralFileDecoder.convert_utcdatetime.html#mss_dataserver.core.json_util.GeneralFileDecoder.convert_utcdatetime">[docs]</a>    <span class="k">def</span> <span class="nf">convert_utcdatetime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert a UTCDateTime dictionary.</span>
 
 <span class="sd">        Parameters</span>
@@ -435,7 +550,7 @@
         <span class="k">return</span> <span class="n">inst</span></div>
 
 
-<div class="viewcode-block" id="GeneralFileDecoder.convert_np_array"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.GeneralFileDecoder.convert_np_array.html#mss_dataserver.core.json_util.GeneralFileDecoder.convert_np_array">[docs]</a>    <span class="k">def</span> <span class="nf">convert_np_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<div class="viewcode-block" id="GeneralFileDecoder.convert_np_array"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.GeneralFileDecoder.convert_np_array.html#mss_dataserver.core.json_util.GeneralFileDecoder.convert_np_array">[docs]</a>    <span class="k">def</span> <span class="nf">convert_np_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert a numpy ndarray dictionary.</span>
 
 <span class="sd">        Parameters</span>
@@ -453,7 +568,7 @@
 
 
 
-<div class="viewcode-block" id="SupplementDetectionDataEncoder"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder">[docs]</a><span class="k">class</span> <span class="nc">SupplementDetectionDataEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
+<div class="viewcode-block" id="SupplementDetectionDataEncoder"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder">[docs]</a><span class="k">class</span> <span class="nc">SupplementDetectionDataEncoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; A JSON encoder for the event supplement detection data.</span>
 
 <span class="sd">    Parameters</span>
@@ -469,7 +584,7 @@
 
     <span class="n">version</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Version</span><span class="p">(</span><span class="s1">&#39;1.0.0&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="SupplementDetectionDataEncoder.__init__"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.__init__.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
+<div class="viewcode-block" id="SupplementDetectionDataEncoder.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.__init__.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Initialization of the instance.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">)</span>
@@ -483,7 +598,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">sort_keys</span> <span class="o">=</span> <span class="kc">True</span></div>
 
 
-<div class="viewcode-block" id="SupplementDetectionDataEncoder.default"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.default.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.default">[docs]</a>    <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="SupplementDetectionDataEncoder.default"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.default.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.default">[docs]</a>    <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert objects to a dictionary.</span>
 
 <span class="sd">        The instance class, module and base_class relations are stored in </span>
@@ -532,7 +647,7 @@
 
         <span class="k">return</span> <span class="n">d</span></div>
 
-<div class="viewcode-block" id="SupplementDetectionDataEncoder.convert_filecontainer"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_filecontainer.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_filecontainer">[docs]</a>    <span class="k">def</span> <span class="nf">convert_filecontainer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="SupplementDetectionDataEncoder.convert_filecontainer"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_filecontainer.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_filecontainer">[docs]</a>    <span class="k">def</span> <span class="nf">convert_filecontainer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert a filecontainer instance.</span>
 
 <span class="sd">        Parameters</span>
@@ -553,7 +668,7 @@
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;file_meta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">file_meta</span>
         <span class="k">return</span> <span class="n">d</span></div>
 
-<div class="viewcode-block" id="SupplementDetectionDataEncoder.convert_utcdatetime"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_utcdatetime.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_utcdatetime">[docs]</a>    <span class="k">def</span> <span class="nf">convert_utcdatetime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="SupplementDetectionDataEncoder.convert_utcdatetime"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_utcdatetime.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_utcdatetime">[docs]</a>    <span class="k">def</span> <span class="nf">convert_utcdatetime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert a UTCDateTime instance.</span>
 
 <span class="sd">        Parameters</span>
@@ -568,7 +683,7 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;utcdatetime&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()}</span></div>
 
-<div class="viewcode-block" id="SupplementDetectionDataEncoder.convert_version"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_version.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_version">[docs]</a>    <span class="k">def</span> <span class="nf">convert_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="SupplementDetectionDataEncoder.convert_version"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_version.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_version">[docs]</a>    <span class="k">def</span> <span class="nf">convert_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert a Version dictionary.</span>
 
 <span class="sd">        Parameters</span>
@@ -583,7 +698,7 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">)}</span></div>
 
-<div class="viewcode-block" id="SupplementDetectionDataEncoder.convert_np_ndarray"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_np_ndarray.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_np_ndarray">[docs]</a>    <span class="k">def</span> <span class="nf">convert_np_ndarray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="SupplementDetectionDataEncoder.convert_np_ndarray"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_np_ndarray.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_np_ndarray">[docs]</a>    <span class="k">def</span> <span class="nf">convert_np_ndarray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert a numpy ndarray dictionary.</span>
 
 <span class="sd">        Parameters</span>
@@ -598,7 +713,7 @@
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">tolist</span><span class="p">()}</span></div>
 
-<div class="viewcode-block" id="SupplementDetectionDataEncoder.convert_station"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_station.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_station">[docs]</a>    <span class="k">def</span> <span class="nf">convert_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="SupplementDetectionDataEncoder.convert_station"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_station.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_station">[docs]</a>    <span class="k">def</span> <span class="nf">convert_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert a Station dictionary.</span>
 
 <span class="sd">        Parameters</span>
@@ -619,7 +734,7 @@
         <span class="k">return</span> <span class="n">d</span></div></div>
 
 
-<div class="viewcode-block" id="SupplementDetectionDataDecoder"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder">[docs]</a><span class="k">class</span> <span class="nc">SupplementDetectionDataDecoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONDecoder</span><span class="p">):</span>
+<div class="viewcode-block" id="SupplementDetectionDataDecoder"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder">[docs]</a><span class="k">class</span> <span class="nc">SupplementDetectionDataDecoder</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">JSONDecoder</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; A JSON decoder for the deserialization of detection supplement data.</span>
 
 <span class="sd">    Parameters</span>
@@ -634,7 +749,7 @@
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">version</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">Version</span><span class="p">(</span><span class="s1">&#39;1.0.0&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="SupplementDetectionDataDecoder.__init__"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.__init__.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
+<div class="viewcode-block" id="SupplementDetectionDataDecoder.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.__init__.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwarg</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Initialize the instance.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">json</span><span class="o">.</span><span class="n">JSONDecoder</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_hook</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_dict</span><span class="p">)</span>
@@ -642,7 +757,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">inventory</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">inventory</span><span class="o">.</span><span class="n">Inventory</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;detection_data_import&#39;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="SupplementDetectionDataDecoder.convert_dict"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_dict.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_dict">[docs]</a>    <span class="k">def</span> <span class="nf">convert_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<div class="viewcode-block" id="SupplementDetectionDataDecoder.convert_dict"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_dict.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_dict">[docs]</a>    <span class="k">def</span> <span class="nf">convert_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert a dictionary to objects.</span>
 
 <span class="sd">        The dictionary to convert should have been with an mss_dataserver</span>
@@ -684,7 +799,7 @@
         <span class="k">return</span> <span class="n">inst</span></div>
 
 
-<div class="viewcode-block" id="SupplementDetectionDataDecoder.decode_hinted_tuple"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.decode_hinted_tuple.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.decode_hinted_tuple">[docs]</a>    <span class="k">def</span> <span class="nf">decode_hinted_tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+<div class="viewcode-block" id="SupplementDetectionDataDecoder.decode_hinted_tuple"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.decode_hinted_tuple.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.decode_hinted_tuple">[docs]</a>    <span class="k">def</span> <span class="nf">decode_hinted_tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Decode a tuple.</span>
 
 <span class="sd">        JSON doesn&#39;t support tuples. Use a custom dictionary</span>
@@ -710,7 +825,7 @@
             <span class="k">return</span> <span class="n">item</span></div>
 
 
-<div class="viewcode-block" id="SupplementDetectionDataDecoder.convert_version"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_version.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_version">[docs]</a>    <span class="k">def</span> <span class="nf">convert_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<div class="viewcode-block" id="SupplementDetectionDataDecoder.convert_version"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_version.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_version">[docs]</a>    <span class="k">def</span> <span class="nf">convert_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert a Version dictionary.</span>
 
 <span class="sd">        Parameters</span>
@@ -727,7 +842,7 @@
         <span class="k">return</span> <span class="n">inst</span></div>
 
 
-<div class="viewcode-block" id="SupplementDetectionDataDecoder.convert_utcdatetime"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_utcdatetime.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_utcdatetime">[docs]</a>    <span class="k">def</span> <span class="nf">convert_utcdatetime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<div class="viewcode-block" id="SupplementDetectionDataDecoder.convert_utcdatetime"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_utcdatetime.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_utcdatetime">[docs]</a>    <span class="k">def</span> <span class="nf">convert_utcdatetime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert a UTCDateTime dictionary.</span>
 
 <span class="sd">        Parameters</span>
@@ -744,7 +859,7 @@
         <span class="k">return</span> <span class="n">inst</span></div>
 
 
-<div class="viewcode-block" id="SupplementDetectionDataDecoder.convert_np_array"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_np_array.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_np_array">[docs]</a>    <span class="k">def</span> <span class="nf">convert_np_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<div class="viewcode-block" id="SupplementDetectionDataDecoder.convert_np_array"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_np_array.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_np_array">[docs]</a>    <span class="k">def</span> <span class="nf">convert_np_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert a numpy ndarray dictionary.</span>
 
 <span class="sd">        Parameters</span>
@@ -761,7 +876,7 @@
         <span class="k">return</span> <span class="n">inst</span></div>
 
 
-<div class="viewcode-block" id="SupplementDetectionDataDecoder.convert_station"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_station.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_station">[docs]</a>    <span class="k">def</span> <span class="nf">convert_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<div class="viewcode-block" id="SupplementDetectionDataDecoder.convert_station"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_station.html#mss_dataserver.core.json_util.SupplementDetectionDataDecoder.convert_station">[docs]</a>    <span class="k">def</span> <span class="nf">convert_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert a Station dictionary.</span>
 
 <span class="sd">        Parameters</span>
@@ -806,29 +921,50 @@
         <span class="k">return</span> <span class="n">inst</span></div></div>
 </pre></div>
 
-      </div>
-      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
-      
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">mss_dataserver.core.json_util</a></li> 
-      </ul>
-    </div>
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Stefan Mertl.
+      <span class="lastupdated">
+        Last updated on 2021-04-23 14:48.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
       </div>
 
-    <div class="footer" role="contentinfo">
-        &#169; Copyright 2021, Stefan Mertl.
-      Last updated on 2021-04-22 20:20.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
-    </div>
-  </body>
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
 </html>

@@ -1,0 +1,326 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>SupplementDetectionDataEncoder &mdash; mss_dataserver 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="__init__" href="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.__init__.html" />
+    <link rel="prev" title="raw_decode" href="mss_dataserver.core.json_util.SupplementDetectionDataDecoder.raw_decode.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> mss_dataserver
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userdoc/index.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">MSS DataServer Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="mss_dataserver.core.html">mss_dataserver.core</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="mss_dataserver.core.database_util.html">mss_dataserver.core.database_util</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="mss_dataserver.core.json_util.html">mss_dataserver.core.json_util</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.core.json_util.object_to_dict.html">mss_dataserver.core.json_util.object_to_dict</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.core.json_util.FileContainer.html">FileContainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.core.json_util.GeneralFileDecoder.html">GeneralFileDecoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.core.json_util.GeneralFileEncoder.html">GeneralFileEncoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.core.json_util.SupplementDetectionDataDecoder.html">SupplementDetectionDataDecoder</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">SupplementDetectionDataEncoder</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mss_dataserver.core.project.html">mss_dataserver.core.project</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mss_dataserver.core.util.html">mss_dataserver.core.util</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mss_dataserver.core.validation.html">mss_dataserver.core.validation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mss_dataserver.event.html">mss_dataserver.event</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mss_dataserver.geometry.html">mss_dataserver.geometry</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">mss_dataserver</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">MSS DataServer Modules</a> &raquo;</li>
+        
+          <li><a href="mss_dataserver.core.html">mss_dataserver.core</a> &raquo;</li>
+        
+          <li><a href="mss_dataserver.core.json_util.html">mss_dataserver.core.json_util</a> &raquo;</li>
+        
+      <li>SupplementDetectionDataEncoder</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/sourcedoc/autogen/mss_dataserver.core.json_util.SupplementDetectionDataEncoder.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="supplementdetectiondataencoder">
+<h1>SupplementDetectionDataEncoder<a class="headerlink" href="#supplementdetectiondataencoder" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="mss_dataserver.core.json_util.SupplementDetectionDataEncoder">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.core.json_util.</span></code><code class="sig-name descname"><span class="pre">SupplementDetectionDataEncoder</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwarg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/core/json_util.html#SupplementDetectionDataEncoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.core.json_util.SupplementDetectionDataEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">json.encoder.JSONEncoder</span></code></p>
+<p>A JSON encoder for the event supplement detection data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> (<em>keyword argument</em>) – Keyword arguments passed to <code class="xref py py-class docutils literal notranslate"><span class="pre">json.encoder.JSONEncoder</span></code>.</p>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><p><strong>version</strong> (<a class="reference internal" href="mss_dataserver.core.util.html#module-mss_dataserver.core.util" title="mss_dataserver.core.util"><code class="xref py py-class docutils literal notranslate"><span class="pre">mss_dataserver.core.util</span></code></a>) – The version of the file encoder.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="section" id="properties">
+<h2>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">item_separator</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">key_separator</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">version</span></code></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.__init__.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.__init__" title="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(**kwarg)</p></td>
+<td><p>Initialization of the instance.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_filecontainer.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_filecontainer" title="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_filecontainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert_filecontainer</span></code></a>(obj)</p></td>
+<td><p>Convert a filecontainer instance.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_np_ndarray.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_np_ndarray" title="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_np_ndarray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert_np_ndarray</span></code></a>(obj)</p></td>
+<td><p>Convert a numpy ndarray dictionary.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_station.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_station" title="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert_station</span></code></a>(obj)</p></td>
+<td><p>Convert a Station dictionary.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_utcdatetime.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_utcdatetime" title="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_utcdatetime"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert_utcdatetime</span></code></a>(obj)</p></td>
+<td><p>Convert a UTCDateTime instance.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_version.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_version" title="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.convert_version"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert_version</span></code></a>(obj)</p></td>
+<td><p>Convert a Version dictionary.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.default.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.default" title="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.default"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default</span></code></a>(obj)</p></td>
+<td><p>Convert objects to a dictionary.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.encode.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.encode" title="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.encode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">encode</span></code></a>(o)</p></td>
+<td><p>Return a JSON string representation of a Python data structure.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.iterencode.html#mss_dataserver.core.json_util.SupplementDetectionDataEncoder.iterencode" title="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.iterencode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iterencode</span></code></a>(o[, _one_shot])</p></td>
+<td><p>Encode the given object and yield each string representation as available.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="inheritence-diagram">
+<h2>Inheritence diagram<a class="headerlink" href="#inheritence-diagram" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="graphviz"><img src="../../_images/inheritance-7be8dafc7caaa2e10ebd28eab9a2ab51331c06b4.png" alt="Inheritance diagram of mss_dataserver.core.json_util.SupplementDetectionDataEncoder" usemap="#inheritancec545c28029" class="inheritance graphviz" /></div>
+<map id="inheritancec545c28029" name="inheritancec545c28029">
+<area shape="rect" id="node2" href="#mss_dataserver.core.json_util.SupplementDetectionDataEncoder" target="_top" title="A JSON encoder for the event supplement detection data." alt="" coords="5,79,449,104"/>
+</map></div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="mss_dataserver.core.json_util.SupplementDetectionDataEncoder.__init__.html" class="btn btn-neutral float-right" title="__init__" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="mss_dataserver.core.json_util.SupplementDetectionDataDecoder.raw_decode.html" class="btn btn-neutral float-left" title="raw_decode" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Stefan Mertl.
+      <span class="lastupdated">
+        Last updated on 2021-04-23 14:48.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

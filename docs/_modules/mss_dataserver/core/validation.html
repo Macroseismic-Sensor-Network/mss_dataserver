@@ -1,45 +1,160 @@
 
-<!DOCTYPE html>
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mss_dataserver.core.validation &#8212; mss_dataserver 0.0.1 documentation</title>
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/haiku_maar.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>mss_dataserver.core.validation &mdash; mss_dataserver 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
-  </head><body>
-      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
-          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
-        <h2 class="heading"><span>mss_dataserver.core.validation</span></h2>
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> mss_dataserver
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../userdoc/index.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sourcedoc/index.html">MSS DataServer Modules</a></li>
+</ul>
+
+            
+          
+        </div>
+        
       </div>
-      <div class="topnav" role="navigation" aria-label="top navigation">
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
       
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">mss_dataserver.core.validation</a></li> 
-      </ul>
-    </div>
-      </div>
-      <div class="content" role="main">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mss_dataserver</a>
         
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>mss_dataserver.core.validation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
   <h1>Source code for mss_dataserver.core.validation</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="c1">##############################################################################</span>
@@ -91,7 +206,7 @@
 <span class="p">)</span>
 
 
-<div class="viewcode-block" id="Event"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.validation.Event.html#mss_dataserver.core.validation.Event">[docs]</a><span class="k">class</span> <span class="nc">Event</span><span class="p">(</span><span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">):</span>
+<div class="viewcode-block" id="Event"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.validation.Event.html#mss_dataserver.core.validation.Event">[docs]</a><span class="k">class</span> <span class="nc">Event</span><span class="p">(</span><span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; The Event validation model.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">db_id</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">PositiveInt</span><span class="p">]</span>
@@ -107,7 +222,7 @@
     <span class="n">state</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">constr</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">20</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
-<div class="viewcode-block" id="MsgClassEnum"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.validation.MsgClassEnum.html#mss_dataserver.core.validation.MsgClassEnum">[docs]</a><span class="k">class</span> <span class="nc">MsgClassEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<div class="viewcode-block" id="MsgClassEnum"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.validation.MsgClassEnum.html#mss_dataserver.core.validation.MsgClassEnum">[docs]</a><span class="k">class</span> <span class="nc">MsgClassEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; The websocket message class enumeration.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">control</span> <span class="o">=</span> <span class="s1">&#39;control&#39;</span>
@@ -117,33 +232,33 @@
     <span class="n">cancel</span> <span class="o">=</span> <span class="s1">&#39;cancel&#39;</span></div>
 
 
-<div class="viewcode-block" id="MsgControlIdEnum"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.validation.MsgControlIdEnum.html#mss_dataserver.core.validation.MsgControlIdEnum">[docs]</a><span class="k">class</span> <span class="nc">MsgControlIdEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<div class="viewcode-block" id="MsgControlIdEnum"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.validation.MsgControlIdEnum.html#mss_dataserver.core.validation.MsgControlIdEnum">[docs]</a><span class="k">class</span> <span class="nc">MsgControlIdEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; The control message id enumeration.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;mode&#39;</span></div>
 
 
-<div class="viewcode-block" id="MsgRequestIdEnum"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.validation.MsgRequestIdEnum.html#mss_dataserver.core.validation.MsgRequestIdEnum">[docs]</a><span class="k">class</span> <span class="nc">MsgRequestIdEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<div class="viewcode-block" id="MsgRequestIdEnum"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.validation.MsgRequestIdEnum.html#mss_dataserver.core.validation.MsgRequestIdEnum">[docs]</a><span class="k">class</span> <span class="nc">MsgRequestIdEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; The request message id enumeration.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">event_supplement</span> <span class="o">=</span> <span class="s1">&#39;event_supplement&#39;</span>
     <span class="n">pgv_timeseries</span> <span class="o">=</span> <span class="s1">&#39;pgv_timeseries&#39;</span></div>
 
 
-<div class="viewcode-block" id="MsgCancelIdEnum"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.validation.MsgCancelIdEnum.html#mss_dataserver.core.validation.MsgCancelIdEnum">[docs]</a><span class="k">class</span> <span class="nc">MsgCancelIdEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<div class="viewcode-block" id="MsgCancelIdEnum"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.validation.MsgCancelIdEnum.html#mss_dataserver.core.validation.MsgCancelIdEnum">[docs]</a><span class="k">class</span> <span class="nc">MsgCancelIdEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; The cancel message id enumeration.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">pgv_timeseries</span> <span class="o">=</span> <span class="s1">&#39;pgv_timeseries&#39;</span></div>
 
 
-<div class="viewcode-block" id="MsgSohIdEnum"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.validation.MsgSohIdEnum.html#mss_dataserver.core.validation.MsgSohIdEnum">[docs]</a><span class="k">class</span> <span class="nc">MsgSohIdEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<div class="viewcode-block" id="MsgSohIdEnum"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.validation.MsgSohIdEnum.html#mss_dataserver.core.validation.MsgSohIdEnum">[docs]</a><span class="k">class</span> <span class="nc">MsgSohIdEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; The SOH message id enumeration.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">connection</span> <span class="o">=</span> <span class="s1">&#39;connection&#39;</span>
     <span class="n">server_state</span> <span class="o">=</span> <span class="s1">&#39;server_state&#39;</span></div>
 
 
-<div class="viewcode-block" id="MsgDataIdEnum"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.validation.MsgDataIdEnum.html#mss_dataserver.core.validation.MsgDataIdEnum">[docs]</a><span class="k">class</span> <span class="nc">MsgDataIdEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<div class="viewcode-block" id="MsgDataIdEnum"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.validation.MsgDataIdEnum.html#mss_dataserver.core.validation.MsgDataIdEnum">[docs]</a><span class="k">class</span> <span class="nc">MsgDataIdEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; The data message id enumeration.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">current_pgv</span> <span class="o">=</span> <span class="s1">&#39;current_pgv&#39;</span>
@@ -159,7 +274,7 @@
     <span class="n">station_metadata</span> <span class="o">=</span> <span class="s1">&#39;station_metadata&#39;</span></div>
 
 
-<div class="viewcode-block" id="WSMessageHeader"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.validation.WSMessageHeader.html#mss_dataserver.core.validation.WSMessageHeader">[docs]</a><span class="k">class</span> <span class="nc">WSMessageHeader</span><span class="p">(</span><span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">):</span>
+<div class="viewcode-block" id="WSMessageHeader"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.validation.WSMessageHeader.html#mss_dataserver.core.validation.WSMessageHeader">[docs]</a><span class="k">class</span> <span class="nc">WSMessageHeader</span><span class="p">(</span><span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; The websocket message header model.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">msg_class</span><span class="p">:</span> <span class="n">MsgClassEnum</span>
@@ -169,7 +284,7 @@
                   <span class="n">MsgRequestIdEnum</span><span class="p">]</span>
     <span class="n">server_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">constr</span><span class="p">(</span><span class="n">regex</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;\d</span><span class="si">{4}</span><span class="s1">-\d</span><span class="si">{2}</span><span class="s1">-\d</span><span class="si">{2}</span><span class="s1">T\d</span><span class="si">{2}</span><span class="s1">:\d</span><span class="si">{2}</span><span class="s1">:\d</span><span class="si">{2}</span><span class="s1">(\.\d</span><span class="si">{6}</span><span class="s1">)?&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="WSMessageHeader.check_msg_id"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.validation.WSMessageHeader.check_msg_id.html#mss_dataserver.core.validation.WSMessageHeader.check_msg_id">[docs]</a>    <span class="nd">@validator</span><span class="p">(</span><span class="s1">&#39;msg_id&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="WSMessageHeader.check_msg_id"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.validation.WSMessageHeader.check_msg_id.html#mss_dataserver.core.validation.WSMessageHeader.check_msg_id">[docs]</a>    <span class="nd">@validator</span><span class="p">(</span><span class="s1">&#39;msg_id&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">check_msg_id</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Check if the msg_id is in the allowed values for the related msg_class.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -192,27 +307,27 @@
         <span class="k">return</span> <span class="n">v</span></div></div>
 
 
-<div class="viewcode-block" id="WSMessage"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.validation.WSMessage.html#mss_dataserver.core.validation.WSMessage">[docs]</a><span class="k">class</span> <span class="nc">WSMessage</span><span class="p">(</span><span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">):</span>
+<div class="viewcode-block" id="WSMessage"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.validation.WSMessage.html#mss_dataserver.core.validation.WSMessage">[docs]</a><span class="k">class</span> <span class="nc">WSMessage</span><span class="p">(</span><span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; The websocket message model.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">header</span><span class="p">:</span> <span class="n">WSMessageHeader</span>
     <span class="n">payload</span><span class="p">:</span> <span class="nb">dict</span></div>
 
 
-<div class="viewcode-block" id="MsgControlModeDataModeEnum"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.validation.MsgControlModeDataModeEnum.html#mss_dataserver.core.validation.MsgControlModeDataModeEnum">[docs]</a><span class="k">class</span> <span class="nc">MsgControlModeDataModeEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<div class="viewcode-block" id="MsgControlModeDataModeEnum"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.validation.MsgControlModeDataModeEnum.html#mss_dataserver.core.validation.MsgControlModeDataModeEnum">[docs]</a><span class="k">class</span> <span class="nc">MsgControlModeDataModeEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; The control:datamode enumeration.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">pgv</span> <span class="o">=</span> <span class="s1">&#39;pgv&#39;</span>
     <span class="n">keydata</span> <span class="o">=</span> <span class="s1">&#39;keydata&#39;</span></div>
 
 
-<div class="viewcode-block" id="MsgControlModePayload"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.validation.MsgControlModePayload.html#mss_dataserver.core.validation.MsgControlModePayload">[docs]</a><span class="k">class</span> <span class="nc">MsgControlModePayload</span><span class="p">(</span><span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">):</span>
+<div class="viewcode-block" id="MsgControlModePayload"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.validation.MsgControlModePayload.html#mss_dataserver.core.validation.MsgControlModePayload">[docs]</a><span class="k">class</span> <span class="nc">MsgControlModePayload</span><span class="p">(</span><span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; The control:mode message model.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">data_mode</span><span class="p">:</span> <span class="n">MsgControlModeDataModeEnum</span></div>
 
 
-<div class="viewcode-block" id="MsgRequestEventSupplementNameEnum"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.validation.MsgRequestEventSupplementNameEnum.html#mss_dataserver.core.validation.MsgRequestEventSupplementNameEnum">[docs]</a><span class="k">class</span> <span class="nc">MsgRequestEventSupplementNameEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<div class="viewcode-block" id="MsgRequestEventSupplementNameEnum"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.validation.MsgRequestEventSupplementNameEnum.html#mss_dataserver.core.validation.MsgRequestEventSupplementNameEnum">[docs]</a><span class="k">class</span> <span class="nc">MsgRequestEventSupplementNameEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; The request:event_supplement_name enumeration.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">pgvstation</span> <span class="o">=</span> <span class="s1">&#39;pgvstation&#39;</span>
@@ -221,7 +336,7 @@
     <span class="n">isoseismalfilledcontours</span> <span class="o">=</span> <span class="s1">&#39;isoseismalfilledcontours&#39;</span></div>
 
 
-<div class="viewcode-block" id="MsgRequestEventSupplementCategoryEnum"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.validation.MsgRequestEventSupplementCategoryEnum.html#mss_dataserver.core.validation.MsgRequestEventSupplementCategoryEnum">[docs]</a><span class="k">class</span> <span class="nc">MsgRequestEventSupplementCategoryEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+<div class="viewcode-block" id="MsgRequestEventSupplementCategoryEnum"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.validation.MsgRequestEventSupplementCategoryEnum.html#mss_dataserver.core.validation.MsgRequestEventSupplementCategoryEnum">[docs]</a><span class="k">class</span> <span class="nc">MsgRequestEventSupplementCategoryEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; The request:event_supplement_category enumeration.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">eventpgv</span> <span class="o">=</span> <span class="s1">&#39;eventpgv&#39;</span>
@@ -229,13 +344,13 @@
     <span class="n">detectionsequence</span> <span class="o">=</span> <span class="s1">&#39;detectionsequence&#39;</span></div>
 
 
-<div class="viewcode-block" id="MsgRequestEventSupplementPayload"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.validation.MsgRequestEventSupplementPayload.html#mss_dataserver.core.validation.MsgRequestEventSupplementPayload">[docs]</a><span class="k">class</span> <span class="nc">MsgRequestEventSupplementPayload</span><span class="p">(</span><span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">):</span>
+<div class="viewcode-block" id="MsgRequestEventSupplementPayload"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.validation.MsgRequestEventSupplementPayload.html#mss_dataserver.core.validation.MsgRequestEventSupplementPayload">[docs]</a><span class="k">class</span> <span class="nc">MsgRequestEventSupplementPayload</span><span class="p">(</span><span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; The request:event_supplement message payload model.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">public_id</span><span class="p">:</span> <span class="n">constr</span><span class="p">(</span><span class="n">regex</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;^\w+_\w+_\d</span><span class="si">{4}</span><span class="s1">-\d</span><span class="si">{2}</span><span class="s1">-\d</span><span class="si">{2}</span><span class="s1">T\d{6,12}&#39;</span><span class="p">)</span>
     <span class="n">selection</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span>
 
-<div class="viewcode-block" id="MsgRequestEventSupplementPayload.check_selection"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.validation.MsgRequestEventSupplementPayload.check_selection.html#mss_dataserver.core.validation.MsgRequestEventSupplementPayload.check_selection">[docs]</a>    <span class="nd">@validator</span><span class="p">(</span><span class="s1">&#39;selection&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="MsgRequestEventSupplementPayload.check_selection"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.validation.MsgRequestEventSupplementPayload.check_selection.html#mss_dataserver.core.validation.MsgRequestEventSupplementPayload.check_selection">[docs]</a>    <span class="nd">@validator</span><span class="p">(</span><span class="s1">&#39;selection&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">check_selection</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Check if the dictionary contains valid category and name entries.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
@@ -247,41 +362,62 @@
         <span class="k">return</span> <span class="n">v</span></div></div>
 
 
-<div class="viewcode-block" id="MsgRequestPgvTimeseriesPayload"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.validation.MsgRequestPgvTimeseriesPayload.html#mss_dataserver.core.validation.MsgRequestPgvTimeseriesPayload">[docs]</a><span class="k">class</span> <span class="nc">MsgRequestPgvTimeseriesPayload</span><span class="p">(</span><span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">):</span>
+<div class="viewcode-block" id="MsgRequestPgvTimeseriesPayload"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.validation.MsgRequestPgvTimeseriesPayload.html#mss_dataserver.core.validation.MsgRequestPgvTimeseriesPayload">[docs]</a><span class="k">class</span> <span class="nc">MsgRequestPgvTimeseriesPayload</span><span class="p">(</span><span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; The request:pgv_timeseries message payload model.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">nsl_code</span><span class="p">:</span> <span class="n">constr</span><span class="p">(</span><span class="n">regex</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;^\w{1,10}:\w{1,10}:\w{1,4}&#39;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="MsgCancelPgvTimeseriesPayload"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.validation.MsgCancelPgvTimeseriesPayload.html#mss_dataserver.core.validation.MsgCancelPgvTimeseriesPayload">[docs]</a><span class="k">class</span> <span class="nc">MsgCancelPgvTimeseriesPayload</span><span class="p">(</span><span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">):</span>
+<div class="viewcode-block" id="MsgCancelPgvTimeseriesPayload"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.validation.MsgCancelPgvTimeseriesPayload.html#mss_dataserver.core.validation.MsgCancelPgvTimeseriesPayload">[docs]</a><span class="k">class</span> <span class="nc">MsgCancelPgvTimeseriesPayload</span><span class="p">(</span><span class="n">pydantic</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; The cancel:pgv_timeseries message payload model.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">nsl_code</span><span class="p">:</span> <span class="n">constr</span><span class="p">(</span><span class="n">regex</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;^\w{1,10}:\w{1,10}:\w{1,4}&#39;</span><span class="p">)</span></div>
 </pre></div>
 
-      </div>
-      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
-      
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">mss_dataserver.core.validation</a></li> 
-      </ul>
-    </div>
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Stefan Mertl.
+      <span class="lastupdated">
+        Last updated on 2021-04-23 14:48.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
       </div>
 
-    <div class="footer" role="contentinfo">
-        &#169; Copyright 2021, Stefan Mertl.
-      Last updated on 2021-04-22 20:20.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
-    </div>
-  </body>
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
 </html>

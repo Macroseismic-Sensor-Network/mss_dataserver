@@ -1,0 +1,295 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>mss_dataserver.geometry.inventory &mdash; mss_dataserver 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Array" href="mss_dataserver.geometry.inventory.Array.html" />
+    <link rel="prev" title="remove_channel_by_instance" href="mss_dataserver.geometry.db_inventory.DbStation.remove_channel_by_instance.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> mss_dataserver
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userdoc/index.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">MSS DataServer Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="mss_dataserver.core.html">mss_dataserver.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mss_dataserver.event.html">mss_dataserver.event</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="mss_dataserver.geometry.html">mss_dataserver.geometry</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="mss_dataserver.geometry.databaseFactory.html">mss_dataserver.geometry.databaseFactory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mss_dataserver.geometry.db_inventory.html">mss_dataserver.geometry.db_inventory</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mss_dataserver.geometry.inventory</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.Array.html">Array</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.Channel.html">Channel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.Inventory.html">Inventory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.Network.html">Network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.Recorder.html">Recorder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.RecorderStream.html">RecorderStream</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.RecorderStreamParameter.html">RecorderStreamParameter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.Sensor.html">Sensor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.SensorComponent.html">SensorComponent</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.SensorComponentParameter.html">SensorComponentParameter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.Station.html">Station</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.geometry.inventory.TimeBox.html">TimeBox</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.html">mss_dataserver.geometry.inventory_parser</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mss_dataserver.geometry.util.html">mss_dataserver.geometry.util</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">mss_dataserver</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">MSS DataServer Modules</a> &raquo;</li>
+        
+          <li><a href="mss_dataserver.geometry.html">mss_dataserver.geometry</a> &raquo;</li>
+        
+      <li>mss_dataserver.geometry.inventory</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/sourcedoc/autogen/mss_dataserver.geometry.inventory.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-mss_dataserver.geometry.inventory">
+<span id="mss-dataserver-geometry-inventory"></span><h1>mss_dataserver.geometry.inventory<a class="headerlink" href="#module-mss_dataserver.geometry.inventory" title="Permalink to this headline">¶</a></h1>
+<p>The inventory module.</p>
+<p>This module contains the classed needed to build a pSysmon geometry
+inventory.</p>
+<p class="rubric">Classes</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Array.html#mss_dataserver.geometry.inventory.Array" title="mss_dataserver.geometry.inventory.Array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Array</span></code></a>(name[, description, author_uri, …])</p></td>
+<td><p>An array holding multiple stations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Channel.html#mss_dataserver.geometry.inventory.Channel" title="mss_dataserver.geometry.inventory.Channel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Channel</span></code></a>(name[, description, id, agency_uri, …])</p></td>
+<td><p>A channel of a station.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Inventory.html#mss_dataserver.geometry.inventory.Inventory" title="mss_dataserver.geometry.inventory.Inventory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Inventory</span></code></a>(name[, type])</p></td>
+<td><p>The geometry inventory.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Network.html#mss_dataserver.geometry.inventory.Network" title="mss_dataserver.geometry.inventory.Network"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Network</span></code></a>(name[, description, type, …])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Recorder.html#mss_dataserver.geometry.inventory.Recorder" title="mss_dataserver.geometry.inventory.Recorder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Recorder</span></code></a>(serial, model, producer[, …])</p></td>
+<td><p>A seismic data recorder.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.RecorderStream.html#mss_dataserver.geometry.inventory.RecorderStream" title="mss_dataserver.geometry.inventory.RecorderStream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RecorderStream</span></code></a>(name, label[, agency_uri, …])</p></td>
+<td><p>A digital stream of a data recorder.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.RecorderStreamParameter.html#mss_dataserver.geometry.inventory.RecorderStreamParameter" title="mss_dataserver.geometry.inventory.RecorderStreamParameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RecorderStreamParameter</span></code></a>(start_time[, …])</p></td>
+<td><p>Parameters of a recorder stream.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Sensor.html#mss_dataserver.geometry.inventory.Sensor" title="mss_dataserver.geometry.inventory.Sensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Sensor</span></code></a>(serial, model, producer[, …])</p></td>
+<td><p>A seismic sensor.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.SensorComponent.html#mss_dataserver.geometry.inventory.SensorComponent" title="mss_dataserver.geometry.inventory.SensorComponent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SensorComponent</span></code></a>(name[, description, …])</p></td>
+<td><p>A component of a seismic sensor.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.SensorComponentParameter.html#mss_dataserver.geometry.inventory.SensorComponentParameter" title="mss_dataserver.geometry.inventory.SensorComponentParameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SensorComponentParameter</span></code></a>(sensitivity, …[, …])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Station.html#mss_dataserver.geometry.inventory.Station" title="mss_dataserver.geometry.inventory.Station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Station</span></code></a>(name, location, x, y, z[, …])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.TimeBox.html#mss_dataserver.geometry.inventory.TimeBox" title="mss_dataserver.geometry.inventory.TimeBox"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TimeBox</span></code></a>(item, start_time[, end_time, parent])</p></td>
+<td><p>A container to hold an instance with an assigned time-span.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="mss_dataserver.geometry.inventory.Array.html" class="btn btn-neutral float-right" title="Array" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="mss_dataserver.geometry.db_inventory.DbStation.remove_channel_by_instance.html" class="btn btn-neutral float-left" title="remove_channel_by_instance" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Stefan Mertl.
+      <span class="lastupdated">
+        Last updated on 2021-04-23 14:48.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

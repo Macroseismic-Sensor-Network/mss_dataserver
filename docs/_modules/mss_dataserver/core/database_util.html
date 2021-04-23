@@ -1,45 +1,160 @@
 
-<!DOCTYPE html>
 
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mss_dataserver.core.database_util &#8212; mss_dataserver 0.0.1 documentation</title>
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/haiku_maar.css" type="text/css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>mss_dataserver.core.database_util &mdash; mss_dataserver 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
-  </head><body>
-      <div class="header" role="banner"><h1 class="heading"><a href="../../../index.html">
-          <span>mss_dataserver 0.0.1 documentation</span></a></h1>
-        <h2 class="heading"><span>mss_dataserver.core.database_util</span></h2>
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> mss_dataserver
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../userdoc/index.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sourcedoc/index.html">MSS DataServer Modules</a></li>
+</ul>
+
+            
+          
+        </div>
+        
       </div>
-      <div class="topnav" role="navigation" aria-label="top navigation">
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
       
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">mss_dataserver.core.database_util</a></li> 
-      </ul>
-    </div>
-      </div>
-      <div class="content" role="main">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mss_dataserver</a>
         
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>mss_dataserver.core.database_util</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
   <h1>Source code for mss_dataserver.core.database_util</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="c1">##############################################################################</span>
@@ -85,7 +200,7 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">logger_name</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="db_table_migration"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.db_table_migration.html#mss_dataserver.core.database_util.db_table_migration">[docs]</a><span class="k">def</span> <span class="nf">db_table_migration</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
+<div class="viewcode-block" id="db_table_migration"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.database_util.db_table_migration.html#mss_dataserver.core.database_util.db_table_migration">[docs]</a><span class="k">def</span> <span class="nf">db_table_migration</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Check if a database table migration is needed and apply the changes.</span>
 
 <span class="sd">    Check the table definition of the database with the one from defined </span>
@@ -133,7 +248,7 @@
     <span class="k">return</span> <span class="n">migrate_success</span></div>
 
 
-<div class="viewcode-block" id="update_db_table"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.update_db_table.html#mss_dataserver.core.database_util.update_db_table">[docs]</a><span class="k">def</span> <span class="nf">update_db_table</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
+<div class="viewcode-block" id="update_db_table"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.database_util.update_db_table.html#mss_dataserver.core.database_util.update_db_table">[docs]</a><span class="k">def</span> <span class="nf">update_db_table</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Update the table structure to the new schema.</span>
 
 <span class="sd">    Parameters</span>
@@ -265,7 +380,7 @@
     <span class="k">return</span> <span class="n">table_updated</span></div>
 
 
-<div class="viewcode-block" id="add_column"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.add_column.html#mss_dataserver.core.database_util.add_column">[docs]</a><span class="k">def</span> <span class="nf">add_column</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
+<div class="viewcode-block" id="add_column"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.database_util.add_column.html#mss_dataserver.core.database_util.add_column">[docs]</a><span class="k">def</span> <span class="nf">add_column</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Add a column to a database table.</span>
 
 <span class="sd">    Parameters</span>
@@ -299,7 +414,7 @@
                         <span class="n">target</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">cur_key</span><span class="o">.</span><span class="n">target_fullname</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="remove_column"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.remove_column.html#mss_dataserver.core.database_util.remove_column">[docs]</a><span class="k">def</span> <span class="nf">remove_column</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
+<div class="viewcode-block" id="remove_column"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.database_util.remove_column.html#mss_dataserver.core.database_util.remove_column">[docs]</a><span class="k">def</span> <span class="nf">remove_column</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Remove a column from the database table.</span>
 
 <span class="sd">    Parameters</span>
@@ -319,7 +434,7 @@
     <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;ALTER TABLE </span><span class="si">%s</span><span class="s1"> DROP COLUMN </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">column</span><span class="o">.</span><span class="n">name</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="change_column_type"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.change_column_type.html#mss_dataserver.core.database_util.change_column_type">[docs]</a><span class="k">def</span> <span class="nf">change_column_type</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
+<div class="viewcode-block" id="change_column_type"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.database_util.change_column_type.html#mss_dataserver.core.database_util.change_column_type">[docs]</a><span class="k">def</span> <span class="nf">change_column_type</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Change the type of a database table column.</span>
 
 <span class="sd">    Parameters</span>
@@ -338,7 +453,7 @@
     <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;ALTER TABLE </span><span class="si">%s</span><span class="s1"> MODIFY </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">column</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">column_type</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="add_foreign_key"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.add_foreign_key.html#mss_dataserver.core.database_util.add_foreign_key">[docs]</a><span class="k">def</span> <span class="nf">add_foreign_key</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">target_table</span><span class="p">,</span> <span class="n">target_columns</span><span class="p">,</span> <span class="n">on_update</span><span class="p">,</span> <span class="n">on_delete</span><span class="p">):</span>
+<div class="viewcode-block" id="add_foreign_key"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.database_util.add_foreign_key.html#mss_dataserver.core.database_util.add_foreign_key">[docs]</a><span class="k">def</span> <span class="nf">add_foreign_key</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">target_table</span><span class="p">,</span> <span class="n">target_columns</span><span class="p">,</span> <span class="n">on_update</span><span class="p">,</span> <span class="n">on_delete</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Add a foreign key constraint.</span>
 
 <span class="sd">    Parameters</span>
@@ -379,7 +494,7 @@
                                                                               <span class="n">on_delete</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="add_foreign_key_old"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.add_foreign_key_old.html#mss_dataserver.core.database_util.add_foreign_key_old">[docs]</a><span class="k">def</span> <span class="nf">add_foreign_key_old</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">on_update</span><span class="p">,</span> <span class="n">on_delete</span><span class="p">):</span>
+<div class="viewcode-block" id="add_foreign_key_old"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.database_util.add_foreign_key_old.html#mss_dataserver.core.database_util.add_foreign_key_old">[docs]</a><span class="k">def</span> <span class="nf">add_foreign_key_old</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">on_update</span><span class="p">,</span> <span class="n">on_delete</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Add a foreign key to the column.</span>
 
 <span class="sd">    This is an old function definition. Will be removed.</span>
@@ -391,7 +506,7 @@
     <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;ALTER TABLE </span><span class="si">%s</span><span class="s1"> ADD FOREIGN KEY (</span><span class="si">%s</span><span class="s1">) REFERENCES </span><span class="si">%s</span><span class="s1">(</span><span class="si">%s</span><span class="s1">) ON_DELETE </span><span class="si">%s</span><span class="s1"> ON_UPDATE </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">column</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">target_table</span><span class="p">,</span> <span class="n">target_column</span><span class="p">,</span> <span class="n">on_update</span><span class="p">,</span> <span class="n">on_delete</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="remove_foreign_key"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.remove_foreign_key.html#mss_dataserver.core.database_util.remove_foreign_key">[docs]</a><span class="k">def</span> <span class="nf">remove_foreign_key</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">fk_symbol</span><span class="p">):</span>
+<div class="viewcode-block" id="remove_foreign_key"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.database_util.remove_foreign_key.html#mss_dataserver.core.database_util.remove_foreign_key">[docs]</a><span class="k">def</span> <span class="nf">remove_foreign_key</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">fk_symbol</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Remove a foreign key.</span>
 
 <span class="sd">    Parameters</span>
@@ -409,7 +524,7 @@
     <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;ALTER TABLE </span><span class="si">%s</span><span class="s1"> DROP FOREIGN KEY </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">fk_symbol</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="add_unique_constraint"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.add_unique_constraint.html#mss_dataserver.core.database_util.add_unique_constraint">[docs]</a><span class="k">def</span> <span class="nf">add_unique_constraint</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">constraint</span><span class="p">):</span>
+<div class="viewcode-block" id="add_unique_constraint"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.database_util.add_unique_constraint.html#mss_dataserver.core.database_util.add_unique_constraint">[docs]</a><span class="k">def</span> <span class="nf">add_unique_constraint</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">constraint</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Add a unique constraint to the table.</span>
 
 <span class="sd">    Parameters</span>
@@ -435,7 +550,7 @@
     <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_cmd</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="remove_unique_constraint"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.remove_unique_constraint.html#mss_dataserver.core.database_util.remove_unique_constraint">[docs]</a><span class="k">def</span> <span class="nf">remove_unique_constraint</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<div class="viewcode-block" id="remove_unique_constraint"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.database_util.remove_unique_constraint.html#mss_dataserver.core.database_util.remove_unique_constraint">[docs]</a><span class="k">def</span> <span class="nf">remove_unique_constraint</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Remove a unique constraint from the table using the constraint name.</span>
 
 <span class="sd">    Parameters</span>
@@ -453,7 +568,7 @@
     <span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;ALTER TABLE </span><span class="si">%s</span><span class="s1"> DROP INDEX </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="compare_column_type"><a class="viewcode-back" href="../../../autogen/mss_dataserver.core.database_util.compare_column_type.html#mss_dataserver.core.database_util.compare_column_type">[docs]</a><span class="k">def</span> <span class="nf">compare_column_type</span><span class="p">(</span><span class="n">col1</span><span class="p">,</span> <span class="n">col2</span><span class="p">):</span>
+<div class="viewcode-block" id="compare_column_type"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.core.database_util.compare_column_type.html#mss_dataserver.core.database_util.compare_column_type">[docs]</a><span class="k">def</span> <span class="nf">compare_column_type</span><span class="p">(</span><span class="n">col1</span><span class="p">,</span> <span class="n">col2</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Compare the type of two columns.</span>
 
 <span class="sd">    Parameters</span>
@@ -500,29 +615,50 @@
     <span class="k">return</span> <span class="n">is_equal</span></div>
 </pre></div>
 
-      </div>
-      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
-      
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">mss_dataserver 0.0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">mss_dataserver.core.database_util</a></li> 
-      </ul>
-    </div>
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Stefan Mertl.
+      <span class="lastupdated">
+        Last updated on 2021-04-23 14:48.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
       </div>
 
-    <div class="footer" role="contentinfo">
-        &#169; Copyright 2021, Stefan Mertl.
-      Last updated on 2021-04-22 20:20.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
-    </div>
-  </body>
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
 </html>
