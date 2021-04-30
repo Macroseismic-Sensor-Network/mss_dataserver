@@ -1,0 +1,7 @@
+select_stream
+======================================================================
+
+.. currentmodule:: mss_dataserver.monitorclient.monitorclient
+.. automethod:: MonitorClient.select_stream
+
+

@@ -1,0 +1,7 @@
+get_pgv_timeseries_archive
+===================================================================================
+
+.. currentmodule:: mss_dataserver.monitorclient.monitorclient
+.. automethod:: MonitorClient.get_pgv_timeseries_archive
+
+

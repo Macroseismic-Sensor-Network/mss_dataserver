@@ -1,0 +1,7 @@
+__init__
+========================================================================
+
+.. currentmodule:: mss_dataserver.postprocess.seismogram_plotter
+.. automethod:: SeismogramPlotter.__init__
+
+

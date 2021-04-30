@@ -1,0 +1,7 @@
+add_station_amplification
+=========================================================================================
+
+.. currentmodule:: mss_dataserver.postprocess.postprocess_event
+.. automethod:: EventPostProcessor.add_station_amplification
+
+

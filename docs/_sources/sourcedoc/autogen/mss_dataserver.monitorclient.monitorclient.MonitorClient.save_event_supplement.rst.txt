@@ -1,0 +1,7 @@
+save_event_supplement
+==============================================================================
+
+.. currentmodule:: mss_dataserver.monitorclient.monitorclient
+.. automethod:: MonitorClient.save_event_supplement
+
+

@@ -1,0 +1,7 @@
+create_pgv_contour_sequence_movie
+===================================================================================
+
+.. currentmodule:: mss_dataserver.postprocess.map_plotter
+.. automethod:: MapPlotter.create_pgv_contour_sequence_movie
+
+

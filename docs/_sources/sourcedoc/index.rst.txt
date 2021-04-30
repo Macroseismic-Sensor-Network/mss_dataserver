@@ -13,6 +13,9 @@ Modules
    mss_dataserver.core
    mss_dataserver.event
    mss_dataserver.geometry
+   mss_dataserver.monitorclient
+   mss_dataserver.postprocess
+   mss_dataserver.test
    
    .. comment to end block
 

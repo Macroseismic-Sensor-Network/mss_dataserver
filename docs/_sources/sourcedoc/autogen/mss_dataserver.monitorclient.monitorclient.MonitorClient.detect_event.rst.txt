@@ -1,0 +1,7 @@
+detect_event
+=====================================================================
+
+.. currentmodule:: mss_dataserver.monitorclient.monitorclient
+.. automethod:: MonitorClient.detect_event
+
+

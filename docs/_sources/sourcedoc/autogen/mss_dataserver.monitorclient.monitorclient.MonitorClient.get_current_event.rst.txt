@@ -1,0 +1,7 @@
+get_current_event
+==========================================================================
+
+.. currentmodule:: mss_dataserver.monitorclient.monitorclient
+.. automethod:: MonitorClient.get_current_event
+
+

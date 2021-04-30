@@ -1,0 +1,7 @@
+get_recorder_mappings
+==============================================================================
+
+.. currentmodule:: mss_dataserver.monitorclient.monitorclient
+.. automethod:: MonitorClient.get_recorder_mappings
+
+

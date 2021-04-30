@@ -1,0 +1,6 @@
+mss_dataserver.postprocess.util.contourset_to_shapely
+=====================================================
+
+.. currentmodule:: mss_dataserver.postprocess.util
+
+.. autofunction:: contourset_to_shapely

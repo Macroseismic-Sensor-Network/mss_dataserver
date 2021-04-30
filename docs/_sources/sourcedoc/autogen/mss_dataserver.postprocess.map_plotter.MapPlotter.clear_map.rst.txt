@@ -1,0 +1,7 @@
+clear_map
+===========================================================
+
+.. currentmodule:: mss_dataserver.postprocess.map_plotter
+.. automethod:: MapPlotter.clear_map
+
+

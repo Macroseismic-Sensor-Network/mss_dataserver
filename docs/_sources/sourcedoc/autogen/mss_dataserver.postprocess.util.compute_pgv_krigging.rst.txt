@@ -1,0 +1,6 @@
+mss_dataserver.postprocess.util.compute_pgv_krigging
+====================================================
+
+.. currentmodule:: mss_dataserver.postprocess.util
+
+.. autofunction:: compute_pgv_krigging

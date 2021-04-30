@@ -1,0 +1,7 @@
+draw_simplices
+================================================================
+
+.. currentmodule:: mss_dataserver.postprocess.map_plotter
+.. automethod:: MapPlotter.draw_simplices
+
+

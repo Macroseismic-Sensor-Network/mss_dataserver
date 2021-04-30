@@ -1,0 +1,7 @@
+load_from_archive
+==========================================================================
+
+.. currentmodule:: mss_dataserver.monitorclient.monitorclient
+.. automethod:: MonitorClient.load_from_archive
+
+

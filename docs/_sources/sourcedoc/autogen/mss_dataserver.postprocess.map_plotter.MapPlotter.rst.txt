@@ -1,0 +1,50 @@
+MapPlotter
+=================================================
+
+.. currentmodule:: mss_dataserver.postprocess.map_plotter
+.. autoclass:: MapPlotter
+   :show-inheritance:
+
+
+
+
+
+
+
+
+      
+
+
+
+Methods
+-------
+.. autosummary::
+   :toctree: .
+   
+      ~MapPlotter.__init__
+      ~MapPlotter.clear_map
+      ~MapPlotter.create_detection_sequence_movie
+      ~MapPlotter.create_event_pgv_map
+      ~MapPlotter.create_movie
+      ~MapPlotter.create_pgv_contour_map
+      ~MapPlotter.create_pgv_contour_sequence_movie
+      ~MapPlotter.draw_attribution_note
+      ~MapPlotter.draw_boundary
+      ~MapPlotter.draw_contours
+      ~MapPlotter.draw_contours_working
+      ~MapPlotter.draw_detection_pgv_level
+      ~MapPlotter.draw_detection_stations
+      ~MapPlotter.draw_pgv_colorbar
+      ~MapPlotter.draw_pgv_level
+      ~MapPlotter.draw_simplices
+      ~MapPlotter.draw_station_pgv
+      ~MapPlotter.draw_time_marker
+      ~MapPlotter.draw_voronoi_cells
+      ~MapPlotter.init_map
+      ~MapPlotter.set_event
+
+
+
+Inheritence diagram
+-------------------
+    .. inheritance-diagram:: mss_dataserver.postprocess.map_plotter.MapPlotter

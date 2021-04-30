@@ -1,0 +1,329 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>mss_dataserver.test.util &mdash; mss_dataserver 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> mss_dataserver
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../userdoc/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userdoc/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userdoc/database.html">Database</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sourcedoc/index.html">Modules</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mss_dataserver</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>mss_dataserver.test.util</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for mss_dataserver.test.util</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">##############################################################################</span>
+ <span class="c1"># LICENSE</span>
+ <span class="c1">#</span>
+ <span class="c1"># This file is part of mss_dataserver.</span>
+ <span class="c1"># </span>
+ <span class="c1"># If you use mss_dataserver in any program or publication, please inform and</span>
+ <span class="c1"># acknowledge its authors.</span>
+ <span class="c1"># </span>
+ <span class="c1"># mss_dataserver is free software: you can redistribute it and/or modify</span>
+ <span class="c1"># it under the terms of the GNU General Public License as published by</span>
+ <span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+ <span class="c1"># (at your option) any later version.</span>
+ <span class="c1"># </span>
+ <span class="c1"># mss_dataserver is distributed in the hope that it will be useful,</span>
+ <span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+ <span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+ <span class="c1"># GNU General Public License for more details.</span>
+ <span class="c1"># </span>
+ <span class="c1"># You should have received a copy of the GNU General Public License</span>
+ <span class="c1"># along with mss_dataserver. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+ <span class="c1">#</span>
+ <span class="c1"># Copyright 2019 Stefan Mertl</span>
+<span class="c1">##############################################################################</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">mss_dataserver</span>
+<span class="kn">import</span> <span class="nn">mss_dataserver.core.project</span>
+
+
+<div class="viewcode-block" id="clear_database_tables"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.test.util.clear_database_tables.html#mss_dataserver.test.util.clear_database_tables">[docs]</a><span class="k">def</span> <span class="nf">clear_database_tables</span><span class="p">(</span><span class="n">db_dialect</span><span class="p">,</span> <span class="n">db_driver</span><span class="p">,</span> <span class="n">db_user</span><span class="p">,</span>
+                          <span class="n">db_pwd</span><span class="p">,</span> <span class="n">db_host</span><span class="p">,</span> <span class="n">db_name</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">MetaData</span>
+
+    <span class="k">if</span> <span class="n">db_driver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dialect_string</span> <span class="o">=</span> <span class="n">db_dialect</span> <span class="o">+</span> <span class="s2">&quot;+&quot;</span> <span class="o">+</span> <span class="n">db_driver</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dialect_string</span> <span class="o">=</span> <span class="n">db_dialect</span>
+
+    <span class="k">if</span> <span class="n">db_pwd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">engine_string</span> <span class="o">=</span> <span class="n">dialect_string</span> <span class="o">+</span> <span class="s2">&quot;://&quot;</span> <span class="o">+</span> <span class="n">db_user</span> <span class="o">+</span> <span class="s2">&quot;:&quot;</span> <span class="o">+</span> <span class="n">db_pwd</span> <span class="o">+</span> <span class="s2">&quot;@&quot;</span> <span class="o">+</span> <span class="n">db_host</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">db_name</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">engine_string</span> <span class="o">=</span> <span class="n">dialect_string</span> <span class="o">+</span> <span class="s2">&quot;://&quot;</span> <span class="o">+</span> <span class="n">db_user</span> <span class="o">+</span> <span class="s2">&quot;@&quot;</span> <span class="o">+</span> <span class="n">db_host</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">db_name</span>
+
+    <span class="n">db_engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">engine_string</span><span class="p">)</span>
+    <span class="n">db_engine</span><span class="o">.</span><span class="n">echo</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">db_metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="n">db_engine</span><span class="p">)</span>
+
+    <span class="n">db_metadata</span><span class="o">.</span><span class="n">reflect</span><span class="p">(</span><span class="n">db_engine</span><span class="p">)</span>
+    <span class="n">tables_to_clear</span> <span class="o">=</span> <span class="p">[</span><span class="n">table</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">db_metadata</span><span class="o">.</span><span class="n">sorted_tables</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">cur_table</span> <span class="ow">in</span> <span class="n">tables_to_clear</span><span class="p">:</span>
+        <span class="n">db_engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">cur_table</span><span class="o">.</span><span class="n">delete</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="drop_database_tables"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.test.util.drop_database_tables.html#mss_dataserver.test.util.drop_database_tables">[docs]</a><span class="k">def</span> <span class="nf">drop_database_tables</span><span class="p">(</span><span class="n">db_dialect</span><span class="p">,</span> <span class="n">db_driver</span><span class="p">,</span> <span class="n">db_user</span><span class="p">,</span>
+                         <span class="n">db_pwd</span><span class="p">,</span> <span class="n">db_host</span><span class="p">,</span> <span class="n">db_name</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">MetaData</span>
+
+    <span class="k">if</span> <span class="n">db_driver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dialect_string</span> <span class="o">=</span> <span class="n">db_dialect</span> <span class="o">+</span> <span class="s2">&quot;+&quot;</span> <span class="o">+</span> <span class="n">db_driver</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dialect_string</span> <span class="o">=</span> <span class="n">db_dialect</span>
+
+    <span class="k">if</span> <span class="n">db_pwd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">engine_string</span> <span class="o">=</span> <span class="n">dialect_string</span> <span class="o">+</span> <span class="s2">&quot;://&quot;</span> <span class="o">+</span> <span class="n">db_user</span> <span class="o">+</span> <span class="s2">&quot;:&quot;</span> <span class="o">+</span> <span class="n">db_pwd</span> <span class="o">+</span> <span class="s2">&quot;@&quot;</span> <span class="o">+</span> <span class="n">db_host</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">db_name</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">engine_string</span> <span class="o">=</span> <span class="n">dialect_string</span> <span class="o">+</span> <span class="s2">&quot;://&quot;</span> <span class="o">+</span> <span class="n">db_user</span> <span class="o">+</span> <span class="s2">&quot;@&quot;</span> <span class="o">+</span> <span class="n">db_host</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">db_name</span>
+
+    <span class="n">db_engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">engine_string</span><span class="p">)</span>
+    <span class="n">db_engine</span><span class="o">.</span><span class="n">echo</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">db_metadata</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="n">db_engine</span><span class="p">)</span>
+
+    <span class="n">db_metadata</span><span class="o">.</span><span class="n">reflect</span><span class="p">(</span><span class="n">db_engine</span><span class="p">)</span>
+    <span class="n">tables_to_drop</span> <span class="o">=</span> <span class="p">[</span><span class="n">table</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">db_metadata</span><span class="o">.</span><span class="n">sorted_tables</span><span class="p">)]</span>
+    <span class="n">db_metadata</span><span class="o">.</span><span class="n">drop_all</span><span class="p">(</span><span class="n">tables</span> <span class="o">=</span> <span class="n">tables_to_drop</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="drop_project_database_tables"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.test.util.drop_project_database_tables.html#mss_dataserver.test.util.drop_project_database_tables">[docs]</a><span class="k">def</span> <span class="nf">drop_project_database_tables</span><span class="p">(</span><span class="n">project</span><span class="p">):</span>
+    <span class="n">project</span><span class="o">.</span><span class="n">connect_to_db</span><span class="p">()</span>
+    <span class="n">project</span><span class="o">.</span><span class="n">db_metadata</span><span class="o">.</span><span class="n">reflect</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">db_engine</span><span class="p">)</span>
+    <span class="n">tables_to_remove</span> <span class="o">=</span> <span class="p">[</span><span class="n">table</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">table</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">db_metadata</span><span class="o">.</span><span class="n">tables</span><span class="o">.</span><span class="n">items</span><span class="p">())]</span>
+    <span class="n">project</span><span class="o">.</span><span class="n">db_metadata</span><span class="o">.</span><span class="n">drop_all</span><span class="p">(</span><span class="n">tables</span> <span class="o">=</span> <span class="n">tables_to_remove</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="clear_project_database_tables"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.test.util.clear_project_database_tables.html#mss_dataserver.test.util.clear_project_database_tables">[docs]</a><span class="k">def</span> <span class="nf">clear_project_database_tables</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">tables</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="n">project</span><span class="o">.</span><span class="n">connect_to_db</span><span class="p">()</span>
+    <span class="n">project</span><span class="o">.</span><span class="n">db_metadata</span><span class="o">.</span><span class="n">reflect</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">db_engine</span><span class="p">)</span>
+    <span class="n">tables_to_clear</span> <span class="o">=</span> <span class="p">[</span><span class="n">table</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">db_metadata</span><span class="o">.</span><span class="n">sorted_tables</span><span class="p">)]</span>
+
+    <span class="k">if</span> <span class="n">tables</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tables_to_clear</span> <span class="o">=</span> <span class="p">[</span><span class="n">table</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">tables_to_clear</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">cur_table</span> <span class="ow">in</span> <span class="n">tables_to_clear</span><span class="p">:</span>
+        <span class="n">project</span><span class="o">.</span><span class="n">db_engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">cur_table</span><span class="o">.</span><span class="n">delete</span><span class="p">())</span></div>
+        <span class="c1"># TODO: Reseting the auto_increment value blocked the execution. Don&#39;t</span>
+        <span class="c1"># know, why this happens.</span>
+        <span class="c1">#cmd = &#39;alter table {0:s} AUTO_INCREMENT = 1;&#39;.format(str(cur_table))</span>
+        <span class="c1">#with project.db_engine.connect() as con:</span>
+        <span class="c1">#    con.execute(cmd)</span>
+
+
+<div class="viewcode-block" id="create_db_test_project"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.test.util.create_db_test_project.html#mss_dataserver.test.util.create_db_test_project">[docs]</a><span class="k">def</span> <span class="nf">create_db_test_project</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39; Create a project with a database connection to the unit_test database.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">base_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">mss_dataserver</span><span class="o">.</span><span class="vm">__file__</span><span class="p">))</span>
+    <span class="n">config_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;config&#39;</span><span class="p">,</span> <span class="s1">&#39;mss_dataserver_unittest.ini&#39;</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">mss_dataserver</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">Project</span><span class="o">.</span><span class="n">load_configuration</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+    <span class="c1"># Update the configuration filepaths.</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">][</span><span class="s1">&#39;inventory_file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">][</span><span class="s1">&#39;inventory_file&#39;</span><span class="p">])</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">][</span><span class="s1">&#39;data_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">][</span><span class="s1">&#39;data_dir&#39;</span><span class="p">])</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">][</span><span class="s1">&#39;event_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">][</span><span class="s1">&#39;event_dir&#39;</span><span class="p">])</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="n">mss_dataserver</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">Project</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">drop_project_database_tables</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error when dropping the database tables.&quot;</span><span class="p">)</span>
+    <span class="n">project</span><span class="o">.</span><span class="n">connect_to_db</span><span class="p">()</span>
+    <span class="n">project</span><span class="o">.</span><span class="n">create_database_tables</span><span class="p">()</span>
+    <span class="n">project</span><span class="o">.</span><span class="n">load_inventory</span><span class="p">(</span><span class="n">update_from_xml</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">project</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Stefan Mertl.
+      <span class="lastupdated">
+        Last updated on 2021-04-30 14:28.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

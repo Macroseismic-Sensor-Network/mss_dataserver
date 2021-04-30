@@ -1,0 +1,6 @@
+mss_dataserver.postprocess.util.read_geojson
+============================================
+
+.. currentmodule:: mss_dataserver.postprocess.util
+
+.. autofunction:: read_geojson

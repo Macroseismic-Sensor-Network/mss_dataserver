@@ -1,0 +1,345 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>mss_dataserver.postprocess.voronoi &mdash; mss_dataserver 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> mss_dataserver
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../userdoc/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userdoc/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userdoc/database.html">Database</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sourcedoc/index.html">Modules</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mss_dataserver</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>mss_dataserver.postprocess.voronoi</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for mss_dataserver.postprocess.voronoi</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pyproj</span>
+<span class="kn">import</span> <span class="nn">scipy</span>
+<span class="kn">import</span> <span class="nn">scipy.spatial</span>
+<span class="kn">import</span> <span class="nn">shapely</span>
+
+
+<div class="viewcode-block" id="voronoi_finite_polygons_2d"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.voronoi.voronoi_finite_polygons_2d.html#mss_dataserver.postprocess.voronoi.voronoi_finite_polygons_2d">[docs]</a><span class="k">def</span> <span class="nf">voronoi_finite_polygons_2d</span><span class="p">(</span><span class="n">vor</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reconstruct infinite voronoi regions in a 2D diagram to finite</span>
+<span class="sd">    regions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vor : Voronoi</span>
+<span class="sd">        Input diagram</span>
+<span class="sd">    radius : float, optional</span>
+<span class="sd">        Distance to &#39;points at infinity&#39;.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    regions : list of tuples</span>
+<span class="sd">        Indices of vertices in each revised Voronoi regions.</span>
+<span class="sd">    vertices : list of tuples</span>
+<span class="sd">        Coordinates for revised Voronoi vertices. Same as coordinates</span>
+<span class="sd">        of input vertices, with &#39;points at infinity&#39; appended to the</span>
+<span class="sd">        end.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">vor</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Requires 2D input&quot;</span><span class="p">)</span>
+
+    <span class="n">new_regions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">new_vertices</span> <span class="o">=</span> <span class="n">vor</span><span class="o">.</span><span class="n">vertices</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="n">center</span> <span class="o">=</span> <span class="n">vor</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">radius</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">radius</span> <span class="o">=</span> <span class="n">vor</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">ptp</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+    <span class="c1"># Construct a map containing all ridges for a given point</span>
+    <span class="n">all_ridges</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">),</span> <span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">vor</span><span class="o">.</span><span class="n">ridge_points</span><span class="p">,</span> <span class="n">vor</span><span class="o">.</span><span class="n">ridge_vertices</span><span class="p">):</span>
+        <span class="n">all_ridges</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">p2</span><span class="p">,</span> <span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">))</span>
+        <span class="n">all_ridges</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">p2</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">p1</span><span class="p">,</span> <span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">))</span>
+
+    <span class="c1"># Reconstruct infinite regions</span>
+    <span class="k">for</span> <span class="n">p1</span><span class="p">,</span> <span class="n">region</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vor</span><span class="o">.</span><span class="n">point_region</span><span class="p">):</span>
+        <span class="n">vertices</span> <span class="o">=</span> <span class="n">vor</span><span class="o">.</span><span class="n">regions</span><span class="p">[</span><span class="n">region</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">v</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vertices</span><span class="p">):</span>
+            <span class="c1"># finite region</span>
+            <span class="n">new_regions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vertices</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># reconstruct a non-finite region</span>
+        <span class="n">ridges</span> <span class="o">=</span> <span class="n">all_ridges</span><span class="p">[</span><span class="n">p1</span><span class="p">]</span>
+        <span class="n">new_region</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vertices</span> <span class="k">if</span> <span class="n">v</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">p2</span><span class="p">,</span> <span class="n">v1</span><span class="p">,</span> <span class="n">v2</span> <span class="ow">in</span> <span class="n">ridges</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">v2</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">v1</span><span class="p">,</span> <span class="n">v2</span> <span class="o">=</span> <span class="n">v2</span><span class="p">,</span> <span class="n">v1</span>
+            <span class="k">if</span> <span class="n">v1</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># finite ridge: already in the region</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Compute the missing endpoint of an infinite ridge</span>
+
+            <span class="n">t</span> <span class="o">=</span> <span class="n">vor</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="n">p2</span><span class="p">]</span> <span class="o">-</span> <span class="n">vor</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="n">p1</span><span class="p">]</span>  <span class="c1"># tangent</span>
+            <span class="n">t</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>  <span class="c1"># normal</span>
+
+            <span class="n">midpoint</span> <span class="o">=</span> <span class="n">vor</span><span class="o">.</span><span class="n">points</span><span class="p">[[</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">]]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">direction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">midpoint</span> <span class="o">-</span> <span class="n">center</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span> <span class="o">*</span> <span class="n">n</span>
+            <span class="n">far_point</span> <span class="o">=</span> <span class="n">vor</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="n">v2</span><span class="p">]</span> <span class="o">+</span> <span class="n">direction</span> <span class="o">*</span> <span class="n">radius</span>
+
+            <span class="n">new_region</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">new_vertices</span><span class="p">))</span>
+            <span class="n">new_vertices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">far_point</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+
+        <span class="c1"># sort region counterclockwise</span>
+        <span class="n">vs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">new_vertices</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">new_region</span><span class="p">])</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">vs</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">vs</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">vs</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">new_region</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new_region</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">angles</span><span class="p">)]</span>
+
+        <span class="c1"># finish</span>
+        <span class="n">new_regions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_region</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+
+    <span class="k">return</span> <span class="n">new_regions</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">new_vertices</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="compute_wgs84_coordinates"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.voronoi.compute_wgs84_coordinates.html#mss_dataserver.postprocess.voronoi.compute_wgs84_coordinates">[docs]</a><span class="k">def</span> <span class="nf">compute_wgs84_coordinates</span><span class="p">(</span><span class="n">coord</span><span class="p">):</span>
+    <span class="n">src_proj</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">Proj</span><span class="p">(</span><span class="n">init</span> <span class="o">=</span> <span class="s1">&#39;epsg:32633&#39;</span><span class="p">)</span>
+    <span class="n">dst_proj</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">Proj</span><span class="p">(</span><span class="n">init</span> <span class="o">=</span> <span class="s1">&#39;epsg:4326&#39;</span><span class="p">)</span>
+
+    <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">src_proj</span><span class="p">,</span>
+                                <span class="n">dst_proj</span><span class="p">,</span>
+                                <span class="n">coord</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+                                <span class="n">coord</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">coord_wgs84</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">lon</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
+                             <span class="n">lat</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">coord_wgs84</span></div>
+
+
+<div class="viewcode-block" id="compute_voronoi_geometry"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.voronoi.compute_voronoi_geometry.html#mss_dataserver.postprocess.voronoi.compute_voronoi_geometry">[docs]</a><span class="k">def</span> <span class="nf">compute_voronoi_geometry</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">boundary</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Compute the Voronoi cells of the pgv data.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">has_data</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">pgv</span><span class="p">)</span>
+    <span class="n">coord_utm</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">[</span><span class="s1">&#39;x_utm&#39;</span><span class="p">,</span> <span class="s1">&#39;y_utm&#39;</span><span class="p">]]</span>
+    <span class="n">coord</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">]]</span>
+    <span class="n">coord</span> <span class="o">=</span> <span class="n">coord</span><span class="p">[</span><span class="n">has_data</span><span class="p">]</span>
+    <span class="n">vor</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">spatial</span><span class="o">.</span><span class="n">Voronoi</span><span class="p">(</span><span class="n">coord_utm</span><span class="p">[</span><span class="n">has_data</span><span class="p">])</span>
+    <span class="n">regions</span><span class="p">,</span> <span class="n">vertices</span> <span class="o">=</span> <span class="n">voronoi_finite_polygons_2d</span><span class="p">(</span><span class="n">vor</span><span class="p">,</span> <span class="n">radius</span> <span class="o">=</span> <span class="mi">100000</span><span class="p">)</span>
+    <span class="n">vertices_wgs84</span> <span class="o">=</span> <span class="n">compute_wgs84_coordinates</span><span class="p">(</span><span class="n">vertices</span><span class="p">)</span>
+
+    <span class="n">region_id</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">regions</span><span class="p">))</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;region_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">has_data</span><span class="p">),</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">has_data</span><span class="p">,</span> <span class="s1">&#39;region_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">region_id</span>
+
+    <span class="c1"># Compute the region polygons.</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">cur_region</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">regions</span><span class="p">):</span>
+        <span class="n">cur_poly</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Polygon</span><span class="p">(</span><span class="n">vertices_wgs84</span><span class="p">[</span><span class="n">cur_region</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">boundary</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cur_poly</span> <span class="o">=</span> <span class="n">cur_poly</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">boundary</span><span class="p">)</span>
+
+        <span class="n">df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">coord</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s1">&#39;geom_vor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_poly</span>
+
+    <span class="n">voronoi_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;regions&#39;</span><span class="p">:</span> <span class="n">regions</span><span class="p">,</span>
+        <span class="s1">&#39;vertices&#39;</span><span class="p">:</span> <span class="n">vertices</span><span class="p">,</span>
+        <span class="s1">&#39;vertices_wgs84&#39;</span><span class="p">:</span> <span class="n">vertices_wgs84</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">voronoi_dict</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Stefan Mertl.
+      <span class="lastupdated">
+        Last updated on 2021-04-30 14:28.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

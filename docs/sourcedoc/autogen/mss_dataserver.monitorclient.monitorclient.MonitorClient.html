@@ -1,0 +1,429 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>MonitorClient &mdash; mss_dataserver 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="__init__" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.__init__.html" />
+    <link rel="prev" title="mss_dataserver.monitorclient.monitorclient" href="mss_dataserver.monitorclient.monitorclient.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> mss_dataserver
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../userdoc/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../userdoc/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../userdoc/database.html">Database</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Modules</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="mss_dataserver.core.html">mss_dataserver.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mss_dataserver.event.html">mss_dataserver.event</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mss_dataserver.geometry.html">mss_dataserver.geometry</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="mss_dataserver.monitorclient.html">mss_dataserver.monitorclient</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.html">mss_dataserver.monitorclient.monitorclient</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">MonitorClient</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.EasySeedLinkClientException.html">mss_dataserver.monitorclient.monitorclient.EasySeedLinkClientException</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="mss_dataserver.postprocess.html">mss_dataserver.postprocess</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mss_dataserver.test.html">mss_dataserver.test</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">mss_dataserver</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Modules</a> &raquo;</li>
+        
+          <li><a href="mss_dataserver.monitorclient.html">mss_dataserver.monitorclient</a> &raquo;</li>
+        
+          <li><a href="mss_dataserver.monitorclient.monitorclient.html">mss_dataserver.monitorclient.monitorclient</a> &raquo;</li>
+        
+      <li>MonitorClient</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../../_sources/sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="monitorclient">
+<h1>MonitorClient<a class="headerlink" href="#monitorclient" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="mss_dataserver.monitorclient.monitorclient.MonitorClient">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.monitorclient.monitorclient.</span></code><code class="sig-name descname"><span class="pre">MonitorClient</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">monitor_stream</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream_lock</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">process_interval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asyncio_loop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pgv_sps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autoconnect</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pgv_archive_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1800</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_thr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warn_thr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valid_event_thr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">felt_thr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_archive_timespan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">48</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_event_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_event_detections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/monitorclient/monitorclient.html#MonitorClient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.monitorclient.monitorclient.MonitorClient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.clients.seedlink.easyseedlink.EasySeedLinkClient</span></code></p>
+<p>A custom SeedLink client</p>
+</dd></dl>
+
+<div class="section" id="properties">
+<h2>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">capabilities</span></code></p></td>
+<td><p>The server’s capabilities, parsed from <code class="docutils literal notranslate"><span class="pre">INFO:CAPABILITIES</span></code> (cached).</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.__init__.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.__init__" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(project, server_url, stations, …)</p></td>
+<td><p>Initialize the instance.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.close.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.close" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">close</span></code></a>()</p></td>
+<td><p>Close the SeedLink connection.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.compute_pgv.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.compute_pgv" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.compute_pgv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_pgv</span></code></a>(stream)</p></td>
+<td><p>Compute the PGV values of the stream.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.compute_pgv_res.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.compute_pgv_res" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.compute_pgv_res"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_pgv_res</span></code></a>()</p></td>
+<td><p>Compute the resultant of the peak-ground-velocity.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.connect.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.connect" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.connect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">connect</span></code></a>()</p></td>
+<td><p>Connect to the SeedLink server.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.convert_to_physical_units.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.convert_to_physical_units" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.convert_to_physical_units"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert_to_physical_units</span></code></a>(stream)</p></td>
+<td><p>Convert the counts to physical units.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.detect_event.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.detect_event" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.detect_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">detect_event</span></code></a>()</p></td>
+<td><p>Run the Voronoi event detection.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.detect_event_warning.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.detect_event_warning" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.detect_event_warning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">detect_event_warning</span></code></a>()</p></td>
+<td><p>Run the Voronoi detection with the most recent PGV data only.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.export_event.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.export_event" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.export_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_event</span></code></a>(export_event)</p></td>
+<td><p>Save the event.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_current_event.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_current_event" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_current_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_current_event</span></code></a>()</p></td>
+<td><p>Return the current event in serializable form.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_current_pgv.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_current_pgv" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_current_pgv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_current_pgv</span></code></a>()</p></td>
+<td><p>Get the current PGV data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_equal_length_traces.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_equal_length_traces" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_equal_length_traces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_equal_length_traces</span></code></a>()</p></td>
+<td><p>Get a stream containing traces with equal length per station.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_by_id.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_by_id" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_by_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_event_by_id</span></code></a>([ev_id, public_id])</p></td>
+<td><p>Get an event by event id or public id.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_supplement.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_supplement" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_supplement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_event_supplement</span></code></a>(public_id, selection)</p></td>
+<td><p>Get the detailed data of an event.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_supplement_dir.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_supplement_dir" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_supplement_dir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_event_supplement_dir</span></code></a>(public_id[, category])</p></td>
+<td><p>Get the supplement directory of an event.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_warning.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_warning" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_warning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_event_warning</span></code></a>()</p></td>
+<td><p>Return the current event warning in serializable form.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_info.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_info" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_info</span></code></a>(level)</p></td>
+<td><p>Send a SeedLink <code class="docutils literal notranslate"><span class="pre">INFO</span></code> command and retrieve response.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_keydata.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_keydata" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_keydata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_keydata</span></code></a>()</p></td>
+<td><p>Return the keydata.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_pgv_timeseries.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_pgv_timeseries" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_pgv_timeseries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pgv_timeseries</span></code></a>()</p></td>
+<td><p>Get the latest PGV timeseries data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_pgv_timeseries_archive.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_pgv_timeseries_archive" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_pgv_timeseries_archive"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pgv_timeseries_archive</span></code></a>([nsl_code])</p></td>
+<td><p>Get the archived PGV timeseries data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_recent_events.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_recent_events" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_recent_events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_recent_events</span></code></a>()</p></td>
+<td><p>Return the recent events in serializable form.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_recorder_mappings.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_recorder_mappings" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_recorder_mappings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_recorder_mappings</span></code></a>([station_nsl])</p></td>
+<td><p>Get the mappings of the requested NSLC.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_station_metadata.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_station_metadata" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_station_metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_metadata</span></code></a>()</p></td>
+<td><p>Get the metadata of the available stations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_triggered_event_stations.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_triggered_event_stations" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_triggered_event_stations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggered_event_stations</span></code></a>()</p></td>
+<td><p>Get the stations which have triggered during the last event.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_triggered_stations.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_triggered_stations" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.get_triggered_stations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggered_stations</span></code></a>()</p></td>
+<td><p>Get the stations which have a PGV exceeding the threshold value.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.has_capability.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.has_capability" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.has_capability"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_capability</span></code></a>(capability)</p></td>
+<td><p>Check if the SeedLink server has a certain capability.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.has_info_capability.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.has_info_capability" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.has_info_capability"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_info_capability</span></code></a>(capability)</p></td>
+<td><p>A shortcut for checking for <code class="docutils literal notranslate"><span class="pre">INFO</span></code> capabilities.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.load_archive_catalogs.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.load_archive_catalogs" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.load_archive_catalogs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_archive_catalogs</span></code></a>([hours])</p></td>
+<td><p>Load the event catalogs of the specified last days.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.load_archive_file.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.load_archive_file" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.load_archive_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_archive_file</span></code></a>()</p></td>
+<td><p>Load data from the JSON archive file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.load_from_archive.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.load_from_archive" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.load_from_archive"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_from_archive</span></code></a>()</p></td>
+<td><p>Load data from a saved archive.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.on_data.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.on_data" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.on_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_data</span></code></a>(trace)</p></td>
+<td><p>Override the on_data callback</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.on_seedlink_error.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.on_seedlink_error" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.on_seedlink_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_seedlink_error</span></code></a>()</p></td>
+<td><p>Handle client errors.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.on_terminate.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.on_terminate" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.on_terminate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_terminate</span></code></a>()</p></td>
+<td><p>Handle termination of the client.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.process_monitor_stream.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.process_monitor_stream" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.process_monitor_stream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_monitor_stream</span></code></a>()</p></td>
+<td><p>Process the data in the monitor stream.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.reconnect.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.reconnect" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.reconnect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reconnect</span></code></a>()</p></td>
+<td><p>Reconnect to the server.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.reset.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.reset" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.reset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code></a>()</p></td>
+<td><p>Reset the monitorclient to an initial state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.run.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.run" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>()</p></td>
+<td><p>Start streaming data from the SeedLink server.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.save_event_supplement.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.save_event_supplement" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.save_event_supplement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_event_supplement</span></code></a>(export_event)</p></td>
+<td><p>Save the supplement data of the event.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_detection_data.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_detection_data" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_detection_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_supplement_detection_data</span></code></a>(event, output_dir)</p></td>
+<td><p>Save the detection data of the event.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_inventory.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_inventory" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_inventory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_supplement_inventory</span></code></a>(event, output_dir)</p></td>
+<td><p>Save the supplement inventory data to a json file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_metadata.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_metadata" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_supplement_metadata</span></code></a>(event, pgv_stream, …)</p></td>
+<td><p>Save the supplement metadata to a json file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_pgv.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_pgv" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_pgv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_supplement_pgv</span></code></a>(event, pre_win, …)</p></td>
+<td><p>Save the PGV data supplement.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_vel.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_vel" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_vel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_supplement_vel</span></code></a>(event, pre_win, …)</p></td>
+<td><p>Save the velocity data supplement.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.save_to_archive.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.save_to_archive" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.save_to_archive"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_to_archive</span></code></a>(key)</p></td>
+<td><p>Save data to the JSON archive.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.seedlink_connect.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.seedlink_connect" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.seedlink_connect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seedlink_connect</span></code></a>()</p></td>
+<td><p>Connect to the seedlink server.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.select_stream.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.select_stream" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.select_stream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">select_stream</span></code></a>(net, station[, selector])</p></td>
+<td><p>Select a stream for data transfer.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.task_timer.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.task_timer" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.task_timer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">task_timer</span></code></a>(callback)</p></td>
+<td><p>A timer executing a task at regular intervals.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.trim_archive.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.trim_archive" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.trim_archive"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trim_archive</span></code></a>()</p></td>
+<td><p>Crop the archive to a specified length.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.monitorclient.monitorclient.MonitorClient.trim_archive_catalogs.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.trim_archive_catalogs" title="mss_dataserver.monitorclient.monitorclient.MonitorClient.trim_archive_catalogs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trim_archive_catalogs</span></code></a>([hours])</p></td>
+<td><p>Trim the catalogs in the library to the given timespan.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="inheritence-diagram">
+<h2>Inheritence diagram<a class="headerlink" href="#inheritence-diagram" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><div class="graphviz"><img src="../../_images/inheritance-e463599567c388d80107ec07732a49cc6f936ecd.png" alt="Inheritance diagram of mss_dataserver.monitorclient.monitorclient.MonitorClient" usemap="#inheritanceb68fad10df" class="inheritance graphviz" /></div>
+<map id="inheritanceb68fad10df" name="inheritanceb68fad10df">
+<area shape="rect" id="node1" href="#mss_dataserver.monitorclient.monitorclient.MonitorClient" target="_top" title="A custom SeedLink client" alt="" coords="5,79,404,104"/>
+</map></div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="mss_dataserver.monitorclient.monitorclient.MonitorClient.__init__.html" class="btn btn-neutral float-right" title="__init__" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="mss_dataserver.monitorclient.monitorclient.html" class="btn btn-neutral float-left" title="mss_dataserver.monitorclient.monitorclient" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Stefan Mertl.
+      <span class="lastupdated">
+        Last updated on 2021-04-30 14:28.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

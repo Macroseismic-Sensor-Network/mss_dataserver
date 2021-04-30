@@ -1,0 +1,7 @@
+set_event
+===========================================================
+
+.. currentmodule:: mss_dataserver.postprocess.map_plotter
+.. automethod:: MapPlotter.set_event
+
+

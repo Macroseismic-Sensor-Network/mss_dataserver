@@ -1,0 +1,7 @@
+has_info_capability
+============================================================================
+
+.. currentmodule:: mss_dataserver.monitorclient.monitorclient
+.. automethod:: MonitorClient.has_info_capability
+
+

@@ -1,0 +1,1024 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>mss_dataserver.postprocess.postprocess_event &mdash; mss_dataserver 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> mss_dataserver
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../userdoc/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userdoc/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userdoc/database.html">Database</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sourcedoc/index.html">Modules</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mss_dataserver</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>mss_dataserver.postprocess.postprocess_event</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for mss_dataserver.postprocess.postprocess_event</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">##############################################################################</span>
+<span class="c1"># LICENSE</span>
+<span class="c1">#</span>
+<span class="c1"># This file is part of mss_dataserver.</span>
+<span class="c1"># </span>
+<span class="c1"># If you use mss_dataserver in any program or publication, please inform and</span>
+<span class="c1"># acknowledge its authors.</span>
+<span class="c1"># </span>
+<span class="c1"># mss_dataserver is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1"># </span>
+<span class="c1"># mss_dataserver is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1"># </span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with mss_dataserver. If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright 2021 Stefan Mertl</span>
+<span class="c1">##############################################################################</span>
+
+<span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">obspy</span>
+<span class="kn">import</span> <span class="nn">pyproj</span>
+<span class="kn">import</span> <span class="nn">shapely</span>
+
+<span class="kn">import</span> <span class="nn">mss_dataserver.postprocess.util</span> <span class="k">as</span> <span class="nn">util</span>
+<span class="kn">import</span> <span class="nn">mss_dataserver.postprocess.voronoi</span> <span class="k">as</span> <span class="nn">voronoi</span>
+
+<span class="c1"># Ignore Geoseries.notna() warning.</span>
+<span class="c1"># GeoSeries.notna() previously returned False for both missing (None)</span>
+<span class="c1"># and empty geometries. Now, it only returns False for missing values.</span>
+<span class="c1"># Since the calling GeoSeries contains empty geometries, the result has</span>
+<span class="c1"># changed compared to previous versions of GeoPandas.</span>
+<span class="c1"># Given a GeoSeries &#39;s&#39;, you can use &#39;~s.is_empty &amp; s.notna()&#39; to get back</span>
+<span class="c1"># the old behaviour.</span>
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="s1">&#39;GeoSeries.notna&#39;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="EventPostProcessor"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.postprocess_event.EventPostProcessor.html#mss_dataserver.postprocess.postprocess_event.EventPostProcessor">[docs]</a><span class="k">class</span> <span class="nc">EventPostProcessor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Process a detected event.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="EventPostProcessor.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.postprocess_event.EventPostProcessor.__init__.html#mss_dataserver.postprocess.postprocess_event.EventPostProcessor.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Initialize the instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">logger_name</span> <span class="o">=</span> <span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">logger_name</span><span class="p">)</span>
+
+
+        <span class="c1"># mss_dataserver project.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">project</span> <span class="o">=</span> <span class="n">project</span>
+
+        <span class="c1"># The author information.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">author_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">author_uri</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agency_uri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">agency_uri</span>
+
+        <span class="c1"># The event to process.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># The supplement directory.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">supplement_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;output&#39;</span><span class="p">][</span><span class="s1">&#39;event_dir&#39;</span><span class="p">]</span>
+
+        <span class="c1"># The map data directory.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">map_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;postprocess&#39;</span><span class="p">][</span><span class="s1">&#39;map_dir&#39;</span><span class="p">]</span>
+
+        <span class="c1"># The common data directory.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;postprocess&#39;</span><span class="p">][</span><span class="s1">&#39;data_dir&#39;</span><span class="p">]</span>
+
+        <span class="c1"># Compute the UTM coordinates of the stations.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">inventory</span><span class="o">.</span><span class="n">compute_utm_coordinates</span><span class="p">()</span>
+
+        <span class="c1"># Load common data.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">network_boundary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_network_boundary</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">station_amp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_station_amplification</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sup_map</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">get_supplement_map</span><span class="p">()</span>
+
+        <span class="c1"># The event detection supplement data.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pgv_stream</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_detection_data</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">meta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Load the metadata supplement.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Load the event metadata from the supplement file.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">get_supplement_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">event_public_id</span><span class="p">,</span>
+                                                  <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;detectiondata&#39;</span><span class="p">,</span>
+                                                  <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;metadata&#39;</span><span class="p">,</span>
+                                                  <span class="n">directory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supplement_dir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="EventPostProcessor.set_event"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.postprocess_event.EventPostProcessor.set_event.html#mss_dataserver.postprocess.postprocess_event.EventPostProcessor.set_event">[docs]</a>    <span class="k">def</span> <span class="nf">set_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">public_id</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Set the event to process.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1">#self.event = self.project.load_event_by_id(public_id = public_id)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">event_public_id</span> <span class="o">=</span> <span class="n">public_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pgv_stream</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_detection_data</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="EventPostProcessor.load_network_boundary"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.postprocess_event.EventPostProcessor.load_network_boundary.html#mss_dataserver.postprocess.postprocess_event.EventPostProcessor.load_network_boundary">[docs]</a>    <span class="k">def</span> <span class="nf">load_network_boundary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Load the boundary of the MSS network.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># Load the MSS boundary.</span>
+        <span class="n">boundary_filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;postprocess&#39;</span><span class="p">][</span><span class="s1">&#39;boundary_filename&#39;</span><span class="p">]</span>
+        <span class="n">boundary_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">map_dir</span><span class="p">,</span>
+                                         <span class="n">boundary_filename</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span><span class="n">boundary_filepath</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EventPostProcessor.load_station_amplification"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.postprocess_event.EventPostProcessor.load_station_amplification.html#mss_dataserver.postprocess.postprocess_event.EventPostProcessor.load_station_amplification">[docs]</a>    <span class="k">def</span> <span class="nf">load_station_amplification</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Load the station amplification data.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">sa_filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;postprocess&#39;</span><span class="p">][</span><span class="s1">&#39;station_amplification_filename&#39;</span><span class="p">]</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span><span class="p">,</span>
+                                <span class="n">sa_filename</span><span class="p">)</span>
+        <span class="n">station_amp</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csv_file</span><span class="p">:</span>
+            <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">csv_file</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">cur_row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
+                <span class="n">cur_serial</span> <span class="o">=</span> <span class="n">cur_row</span><span class="p">[</span><span class="s1">&#39;serial&#39;</span><span class="p">]</span>
+                <span class="n">cur_amp</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">cur_row</span><span class="p">[</span><span class="s1">&#39;amplification&#39;</span><span class="p">])</span>
+                <span class="n">cur_snl</span> <span class="o">=</span> <span class="n">cur_row</span><span class="p">[</span><span class="s1">&#39;snl&#39;</span><span class="p">]</span>
+                <span class="n">cur_snl</span> <span class="o">=</span> <span class="n">cur_snl</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
+                <span class="n">cur_nsl</span> <span class="o">=</span> <span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">cur_snl</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">cur_snl</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cur_snl</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
+                <span class="n">station_amp</span><span class="p">[</span><span class="n">cur_nsl</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;serial&#39;</span><span class="p">:</span> <span class="n">cur_serial</span><span class="p">,</span>
+                                        <span class="s1">&#39;amp&#39;</span><span class="p">:</span> <span class="n">cur_amp</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">station_amp</span></div>
+
+<div class="viewcode-block" id="EventPostProcessor.add_station_amplification"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.postprocess_event.EventPostProcessor.add_station_amplification.html#mss_dataserver.postprocess.postprocess_event.EventPostProcessor.add_station_amplification">[docs]</a>    <span class="k">def</span> <span class="nf">add_station_amplification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Apply the station amplification values to a dataframe.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">station_amp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">station_amp</span>
+        <span class="n">sorted_sa</span> <span class="o">=</span> <span class="p">[</span><span class="n">station_amp</span><span class="p">[</span><span class="n">row</span><span class="o">.</span><span class="n">nsl</span><span class="p">][</span><span class="s1">&#39;amp&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">row</span><span class="o">.</span><span class="n">nsl</span> <span class="ow">in</span> <span class="n">station_amp</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()]</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;sa&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sorted_sa</span></div>
+
+<div class="viewcode-block" id="EventPostProcessor.compute_pgv_df"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.postprocess_event.EventPostProcessor.compute_pgv_df.html#mss_dataserver.postprocess.postprocess_event.EventPostProcessor.compute_pgv_df">[docs]</a>    <span class="k">def</span> <span class="nf">compute_pgv_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meta</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a dataframe of pgv values with station coordinates.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">inventory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">inventory</span>
+        <span class="n">triggered_nsl</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;max_event_pgv&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">untriggered_nsl</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;max_network_pgv&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">untriggered_nsl</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">untriggered_nsl</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">triggered_nsl</span><span class="p">]</span>
+        <span class="n">nodata_nsl</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">nsl_string</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">inventory</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span> <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">nsl_string</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">triggered_nsl</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">nsl_string</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">untriggered_nsl</span><span class="p">)]</span>
+
+        <span class="n">pgv_data</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">cur_nsl</span> <span class="ow">in</span> <span class="n">triggered_nsl</span><span class="p">:</span>
+            <span class="n">cur_station</span> <span class="o">=</span> <span class="n">inventory</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">nsl_string</span> <span class="o">=</span> <span class="n">cur_nsl</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">cur_pgv</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;max_event_pgv&#39;</span><span class="p">][</span><span class="n">cur_nsl</span><span class="p">]</span>
+            <span class="n">cur_trigger</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">cur_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">cur_nsl</span><span class="p">,</span> <span class="n">cur_station</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">cur_station</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+                        <span class="n">cur_station</span><span class="o">.</span><span class="n">x_utm</span><span class="p">,</span> <span class="n">cur_station</span><span class="o">.</span><span class="n">y_utm</span><span class="p">,</span>
+                        <span class="n">cur_pgv</span><span class="p">,</span> <span class="n">cur_trigger</span><span class="p">]</span>
+            <span class="n">pgv_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_data</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cur_nsl</span> <span class="ow">in</span> <span class="n">untriggered_nsl</span><span class="p">:</span>
+            <span class="n">cur_station</span> <span class="o">=</span> <span class="n">inventory</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">nsl_string</span> <span class="o">=</span> <span class="n">cur_nsl</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">cur_pgv</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;max_network_pgv&#39;</span><span class="p">][</span><span class="n">cur_nsl</span><span class="p">]</span>
+            <span class="n">cur_trigger</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">cur_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">cur_nsl</span><span class="p">,</span> <span class="n">cur_station</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">cur_station</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+                        <span class="n">cur_station</span><span class="o">.</span><span class="n">x_utm</span><span class="p">,</span> <span class="n">cur_station</span><span class="o">.</span><span class="n">y_utm</span><span class="p">,</span>
+                        <span class="n">cur_pgv</span><span class="p">,</span> <span class="n">cur_trigger</span><span class="p">]</span>
+            <span class="n">pgv_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_data</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cur_nsl</span> <span class="ow">in</span> <span class="n">nodata_nsl</span><span class="p">:</span>
+            <span class="n">cur_station</span> <span class="o">=</span> <span class="n">inventory</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">nsl_string</span> <span class="o">=</span> <span class="n">cur_nsl</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">cur_pgv</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">cur_trigger</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">cur_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">cur_nsl</span><span class="p">,</span> <span class="n">cur_station</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">cur_station</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+                        <span class="n">cur_station</span><span class="o">.</span><span class="n">x_utm</span><span class="p">,</span> <span class="n">cur_station</span><span class="o">.</span><span class="n">y_utm</span><span class="p">,</span>
+                        <span class="n">cur_pgv</span><span class="p">,</span> <span class="n">cur_trigger</span><span class="p">]</span>
+            <span class="n">pgv_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_data</span><span class="p">)</span>
+
+        <span class="n">x_coord</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pgv_data</span><span class="p">]</span>
+        <span class="n">y_coord</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pgv_data</span><span class="p">]</span>
+        <span class="n">pgv_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;geom_stat&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x_coord</span><span class="p">,</span> <span class="n">y_coord</span><span class="p">)],</span>
+                    <span class="s1">&#39;geom_vor&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Polygon</span><span class="p">([])]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">pgv_data</span><span class="p">),</span>
+                    <span class="s1">&#39;nsl&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pgv_data</span><span class="p">],</span>
+                    <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x_coord</span><span class="p">,</span>
+                    <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y_coord</span><span class="p">,</span>
+                    <span class="s1">&#39;x_utm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pgv_data</span><span class="p">],</span>
+                    <span class="s1">&#39;y_utm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pgv_data</span><span class="p">],</span>
+                    <span class="s1">&#39;pgv&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pgv_data</span><span class="p">],</span>
+                    <span class="s1">&#39;triggered&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pgv_data</span><span class="p">]}</span>
+
+        <span class="n">df</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">pgv_data</span><span class="p">,</span>
+                              <span class="n">crs</span> <span class="o">=</span> <span class="s1">&#39;epsg:4326&#39;</span><span class="p">,</span>
+                              <span class="n">geometry</span> <span class="o">=</span> <span class="s1">&#39;geom_stat&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">df</span></div>
+
+
+<div class="viewcode-block" id="EventPostProcessor.compute_detection_data_df"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.postprocess_event.EventPostProcessor.compute_detection_data_df.html#mss_dataserver.postprocess.postprocess_event.EventPostProcessor.compute_detection_data_df">[docs]</a>    <span class="k">def</span> <span class="nf">compute_detection_data_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trigger_data</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Compute the detection frames for a common time.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">cur_data</span> <span class="ow">in</span> <span class="n">trigger_data</span><span class="p">:</span>
+            <span class="n">cur_coord</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;simplices_stations&#39;</span><span class="p">]]</span>
+            <span class="n">cur_nsl</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">nsl_string</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;simplices_stations&#39;</span><span class="p">]]</span>
+            <span class="n">cur_nsl</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cur_nsl</span><span class="p">)</span>
+            <span class="n">cur_simp_poly</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Polygon</span><span class="p">(</span><span class="n">cur_coord</span><span class="p">)</span>
+            <span class="n">cur_time</span> <span class="o">=</span> <span class="p">[</span><span class="n">util</span><span class="o">.</span><span class="n">isoformat_tz</span><span class="p">(</span><span class="n">obspy</span><span class="o">.</span><span class="n">UTCDateTime</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">)))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]]</span>
+            <span class="n">cur_added_to_event</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cur_time</span><span class="p">),</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">)</span>
+            <span class="c1">#tmp = np.where(cur_data[&#39;trigger&#39;])[0]</span>
+            <span class="c1">#if len(tmp) &gt; 0:</span>
+            <span class="c1">#    cur_first_trigger = int(tmp[0])</span>
+            <span class="c1">#    cur_added_to_event[cur_first_trigger:] = True</span>
+            <span class="n">cur_df</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">({</span><span class="s1">&#39;geom_simp&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">cur_simp_poly</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]),</span>
+                                       <span class="s1">&#39;nsl&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">cur_nsl</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]),</span>
+                                       <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">cur_time</span><span class="p">,</span>
+                                       <span class="s1">&#39;pgv&#39;</span><span class="p">:</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">a</span><span class="p">],</span> <span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;pgv&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()),</span>
+                                       <span class="s1">&#39;pgv_min&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;pgv&#39;</span><span class="p">],</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">),</span>
+                                       <span class="s1">&#39;pgv_max&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;pgv&#39;</span><span class="p">],</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span><span class="p">),</span>
+                                       <span class="s1">&#39;triggered&#39;</span><span class="p">:</span> <span class="n">cur_data</span><span class="p">[</span><span class="s1">&#39;trigger&#39;</span><span class="p">],</span>
+                                       <span class="s1">&#39;added_to_event&#39;</span><span class="p">:</span> <span class="n">cur_added_to_event</span><span class="p">},</span>
+                                      <span class="n">crs</span> <span class="o">=</span> <span class="s2">&quot;epsg:4326&quot;</span><span class="p">,</span>
+                                      <span class="n">geometry</span> <span class="o">=</span> <span class="s1">&#39;geom_simp&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">cur_df</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_df</span><span class="p">,</span>
+                               <span class="n">ignore_index</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span>
+                            <span class="n">ignore_index</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">df</span></div>
+
+
+<div class="viewcode-block" id="EventPostProcessor.compute_event_metadata_supplement"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.postprocess_event.EventPostProcessor.compute_event_metadata_supplement.html#mss_dataserver.postprocess.postprocess_event.EventPostProcessor.compute_event_metadata_supplement">[docs]</a>    <span class="k">def</span> <span class="nf">compute_event_metadata_supplement</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Compute the supplement data based on the event metadata.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># Load the event metadata from the supplement file.</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span>
+
+        <span class="c1"># Compute a PGV geodataframe using the event metadata.</span>
+        <span class="n">pgv_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_pgv_df</span><span class="p">(</span><span class="n">meta</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_station_amplification</span><span class="p">(</span><span class="n">pgv_df</span><span class="p">)</span>
+
+        <span class="c1"># Compute the voronoi cells and add them as a geometry to the dataframe.</span>
+        <span class="c1"># Compute the boundary clipping using shapely because geopandas clipping </span>
+        <span class="c1"># throws exceptions e.g. because of None values.</span>
+        <span class="n">voronoi</span><span class="o">.</span><span class="n">compute_voronoi_geometry</span><span class="p">(</span><span class="n">pgv_df</span><span class="p">,</span>
+                                         <span class="n">boundary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">network_boundary</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+
+        <span class="c1"># Get some event properties to add to the properties of the feature collections.</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;db_id&#39;</span><span class="p">:</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;db_id&#39;</span><span class="p">],</span>
+                 <span class="s1">&#39;event_start&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">isoformat_tz</span><span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">]),</span>
+                 <span class="s1">&#39;event_end&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">isoformat_tz</span><span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;end_time&#39;</span><span class="p">]),</span>
+                 <span class="s1">&#39;author_uri&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">author_uri</span><span class="p">,</span>
+                 <span class="s1">&#39;agency_uri&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">agency_uri</span><span class="p">}</span>
+
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">save_supplement</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">event_public_id</span><span class="p">,</span>
+                                        <span class="n">pgv_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">[</span><span class="s1">&#39;geom_stat&#39;</span><span class="p">,</span> <span class="s1">&#39;nsl&#39;</span><span class="p">,</span>
+                                                       <span class="s1">&#39;pgv&#39;</span><span class="p">,</span> <span class="s1">&#39;sa&#39;</span><span class="p">,</span> <span class="s1">&#39;triggered&#39;</span><span class="p">]],</span>
+                                        <span class="n">output_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supplement_dir</span><span class="p">,</span>
+                                        <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;eventpgv&#39;</span><span class="p">,</span>
+                                        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;pgvstation&#39;</span><span class="p">,</span>
+                                        <span class="n">props</span> <span class="o">=</span> <span class="n">props</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Saved station pgv points to file </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+
+        <span class="n">pgv_df</span> <span class="o">=</span> <span class="n">pgv_df</span><span class="o">.</span><span class="n">set_geometry</span><span class="p">(</span><span class="s1">&#39;geom_vor&#39;</span><span class="p">)</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">save_supplement</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">event_public_id</span><span class="p">,</span>
+                                        <span class="n">pgv_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">[</span><span class="s1">&#39;geom_vor&#39;</span><span class="p">,</span> <span class="s1">&#39;nsl&#39;</span><span class="p">,</span>
+                                                       <span class="s1">&#39;pgv&#39;</span><span class="p">,</span> <span class="s1">&#39;sa&#39;</span><span class="p">,</span> <span class="s1">&#39;triggered&#39;</span><span class="p">]],</span>
+                                        <span class="n">output_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supplement_dir</span><span class="p">,</span>
+                                        <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;eventpgv&#39;</span><span class="p">,</span>
+                                        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;pgvvoronoi&#39;</span><span class="p">,</span>
+                                        <span class="n">props</span> <span class="o">=</span> <span class="n">props</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Saved station pgv voronoi cells to file </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span>
+                         <span class="n">filepath</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EventPostProcessor.compute_pgv_sequence_supplement"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.postprocess_event.EventPostProcessor.compute_pgv_sequence_supplement.html#mss_dataserver.postprocess.postprocess_event.EventPostProcessor.compute_pgv_sequence_supplement">[docs]</a>    <span class="k">def</span> <span class="nf">compute_pgv_sequence_supplement</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Compute the supplement data representing the PGV sequence.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># Load the event metadata from the supplement file.</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span>
+
+        <span class="c1"># Load the PGV data stream.</span>
+        <span class="n">pgv_stream</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">get_supplement_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">event_public_id</span><span class="p">,</span>
+                                                  <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;detectiondata&#39;</span><span class="p">,</span>
+                                                  <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;pgv&#39;</span><span class="p">,</span>
+                                                  <span class="n">directory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supplement_dir</span><span class="p">)</span>
+
+        <span class="c1"># Trim the stream.</span>
+        <span class="n">pgv_stream</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">starttime</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">6</span><span class="p">,</span>
+                        <span class="n">endtime</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;end_time&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">6</span><span class="p">,</span>
+                        <span class="n">pad</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">inventory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">inventory</span>
+
+        <span class="n">station_nsl</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;MSSNet&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">station</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">location</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pgv_stream</span><span class="p">]</span>
+        <span class="n">station_nsl</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">station_nsl</span><span class="p">]</span>
+        <span class="n">stations</span> <span class="o">=</span> <span class="p">[</span><span class="n">inventory</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">nsl_string</span> <span class="o">=</span> <span class="n">x</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">station_nsl</span><span class="p">]</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="n">pgv_stream</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">times</span><span class="p">(</span><span class="s2">&quot;utcdatetime&quot;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">data</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pgv_stream</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+
+        <span class="c1"># Get the stations with no available data.</span>
+        <span class="n">available_stations</span> <span class="o">=</span> <span class="n">inventory</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span>
+        <span class="n">no_data_stations</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">available_stations</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">nsl_string</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">station_nsl</span><span class="p">]</span>
+
+        <span class="n">detection_limits</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;detection_limits&#39;</span><span class="p">]</span>
+
+        <span class="n">sequence_df</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)):</span>
+            <span class="n">cur_time</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">triggered</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">cur_station</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">cur_station</span><span class="o">.</span><span class="n">nsl_string</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">detection_limits</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">cur_trigger</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">cur_detection_limit</span> <span class="o">=</span> <span class="n">detection_limits</span><span class="p">[</span><span class="n">cur_station</span><span class="o">.</span><span class="n">nsl_string</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">cur_time</span> <span class="o">&gt;=</span> <span class="n">cur_detection_limit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">cur_time</span> <span class="o">&lt;=</span> <span class="n">cur_detection_limit</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                        <span class="n">cur_trigger</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">cur_trigger</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">triggered</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_trigger</span><span class="p">)</span>
+
+            <span class="n">cur_points</span> <span class="o">=</span> <span class="p">[</span><span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">]</span>
+            <span class="n">cur_df</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">({</span><span class="s1">&#39;geom_vor&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Polygon</span><span class="p">([])]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">stations</span><span class="p">),</span>
+                                       <span class="s1">&#39;geom_stat&#39;</span><span class="p">:</span> <span class="n">cur_points</span><span class="p">,</span>
+                                       <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">util</span><span class="o">.</span><span class="n">isoformat_tz</span><span class="p">(</span><span class="n">cur_time</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">stations</span><span class="p">),</span>
+                                       <span class="s1">&#39;nsl&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">nsl_string</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">],</span>
+                                       <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">],</span>
+                                       <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">y</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">],</span>
+                                       <span class="s1">&#39;x_utm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">x_utm</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">],</span>
+                                       <span class="s1">&#39;y_utm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">y_utm</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">],</span>
+                                       <span class="s1">&#39;pgv&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="p">:],</span>
+                                       <span class="s1">&#39;triggered&#39;</span><span class="p">:</span> <span class="n">triggered</span><span class="p">},</span>
+                                      <span class="n">crs</span> <span class="o">=</span> <span class="s2">&quot;epsg:4326&quot;</span><span class="p">,</span>
+                                      <span class="n">geometry</span> <span class="o">=</span> <span class="s1">&#39;geom_stat&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Add the station amplification factors.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_station_amplification</span><span class="p">(</span><span class="n">cur_df</span><span class="p">)</span>
+
+            <span class="c1"># Compute the voronoi cells and add them as a geometry to the dataframe.</span>
+            <span class="c1"># Compute the boundary clipping using shapely because geopandas clipping </span>
+            <span class="c1"># throws exceptions e.g. because of None values.</span>
+            <span class="n">voronoi</span><span class="o">.</span><span class="n">compute_voronoi_geometry</span><span class="p">(</span><span class="n">cur_df</span><span class="p">,</span>
+                                             <span class="n">boundary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">network_boundary</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+
+            <span class="c1"># Add the no-data stations</span>
+            <span class="n">cur_nd_points</span> <span class="o">=</span> <span class="p">[</span><span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">no_data_stations</span><span class="p">]</span>
+            <span class="n">cur_nd_df</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">({</span><span class="s1">&#39;geom_vor&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Polygon</span><span class="p">([])]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">no_data_stations</span><span class="p">),</span>
+                                          <span class="s1">&#39;geom_stat&#39;</span><span class="p">:</span> <span class="n">cur_nd_points</span><span class="p">,</span>
+                                          <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">util</span><span class="o">.</span><span class="n">isoformat_tz</span><span class="p">(</span><span class="n">cur_time</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">no_data_stations</span><span class="p">),</span>
+                                          <span class="s1">&#39;nsl&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">nsl_string</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">no_data_stations</span><span class="p">],</span>
+                                          <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">no_data_stations</span><span class="p">],</span>
+                                          <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">y</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">no_data_stations</span><span class="p">],</span>
+                                          <span class="s1">&#39;x_utm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">x_utm</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">no_data_stations</span><span class="p">],</span>
+                                          <span class="s1">&#39;y_utm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">y_utm</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">no_data_stations</span><span class="p">],</span>
+                                          <span class="s1">&#39;pgv&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">no_data_stations</span><span class="p">),</span>
+                                          <span class="s1">&#39;triggered&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">no_data_stations</span><span class="p">)},</span>
+                                         <span class="n">crs</span> <span class="o">=</span> <span class="s2">&quot;epsg:4326&quot;</span><span class="p">,</span>
+                                         <span class="n">geometry</span> <span class="o">=</span> <span class="s1">&#39;geom_stat&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Add the station amplification factors to the no-data stations.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_station_amplification</span><span class="p">(</span><span class="n">cur_nd_df</span><span class="p">)</span>
+
+            <span class="c1"># Append the no-data stations.</span>
+            <span class="n">cur_df</span> <span class="o">=</span> <span class="n">cur_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_nd_df</span><span class="p">)</span>
+
+            <span class="c1"># Add the dataframe to the sequence.</span>
+            <span class="k">if</span> <span class="n">sequence_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">sequence_df</span> <span class="o">=</span> <span class="n">cur_df</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sequence_df</span> <span class="o">=</span> <span class="n">sequence_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_df</span><span class="p">)</span>
+
+        <span class="c1"># Get some event properties to add to the properties of the feature collections.</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;db_id&#39;</span><span class="p">:</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;db_id&#39;</span><span class="p">],</span>
+                 <span class="s1">&#39;event_start&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">isoformat_tz</span><span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">]),</span>
+                 <span class="s1">&#39;event_end&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">isoformat_tz</span><span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;end_time&#39;</span><span class="p">]),</span>
+                 <span class="s1">&#39;sequence_start&#39;</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="n">sequence_df</span><span class="o">.</span><span class="n">time</span><span class="p">),</span>
+                 <span class="s1">&#39;sequence_end&#39;</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">sequence_df</span><span class="o">.</span><span class="n">time</span><span class="p">),</span>
+                 <span class="s1">&#39;author_uri&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">author_uri</span><span class="p">,</span>
+                 <span class="s1">&#39;agency_uri&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">agency_uri</span><span class="p">}</span>
+
+        <span class="c1"># Write the voronoi dataframe to a geojson file.</span>
+        <span class="n">sequence_df</span> <span class="o">=</span> <span class="n">sequence_df</span><span class="o">.</span><span class="n">set_geometry</span><span class="p">(</span><span class="s1">&#39;geom_vor&#39;</span><span class="p">)</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">save_supplement</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">event_public_id</span><span class="p">,</span>
+                                        <span class="n">sequence_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">[</span><span class="s1">&#39;geom_vor&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;nsl&#39;</span><span class="p">,</span>
+                                                            <span class="s1">&#39;pgv&#39;</span><span class="p">,</span> <span class="s1">&#39;sa&#39;</span><span class="p">,</span> <span class="s1">&#39;triggered&#39;</span><span class="p">]],</span>
+                                        <span class="n">output_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supplement_dir</span><span class="p">,</span>
+                                        <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;pgvsequence&#39;</span><span class="p">,</span>
+                                        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;pgvvoronoi&#39;</span><span class="p">,</span>
+                                        <span class="n">props</span> <span class="o">=</span> <span class="n">props</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Saved pgv voronoi sequence to file </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+
+        <span class="n">sequence_df</span> <span class="o">=</span> <span class="n">sequence_df</span><span class="o">.</span><span class="n">set_geometry</span><span class="p">(</span><span class="s1">&#39;geom_stat&#39;</span><span class="p">)</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">save_supplement</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">event_public_id</span><span class="p">,</span>
+                                        <span class="n">sequence_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">[</span><span class="s1">&#39;geom_stat&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;nsl&#39;</span><span class="p">,</span>
+                                                            <span class="s1">&#39;pgv&#39;</span><span class="p">,</span> <span class="s1">&#39;sa&#39;</span><span class="p">,</span> <span class="s1">&#39;triggered&#39;</span><span class="p">]],</span>
+                                        <span class="n">output_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supplement_dir</span><span class="p">,</span>
+                                        <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;pgvsequence&#39;</span><span class="p">,</span>
+                                        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;pgvstation&#39;</span><span class="p">,</span>
+                                        <span class="n">props</span> <span class="o">=</span> <span class="n">props</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Saved pgv station marker sequence to file </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span>
+                         <span class="n">filepath</span><span class="p">)</span></div>
+
+        
+<div class="viewcode-block" id="EventPostProcessor.compute_pgv_contour_sequence_supplement"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.postprocess_event.EventPostProcessor.compute_pgv_contour_sequence_supplement.html#mss_dataserver.postprocess.postprocess_event.EventPostProcessor.compute_pgv_contour_sequence_supplement">[docs]</a>    <span class="k">def</span> <span class="nf">compute_pgv_contour_sequence_supplement</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Compute the supplement data representing the PGV sequence.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># Load the event metadata from the supplement file.</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span>
+
+        <span class="c1"># Load the PGV data stream.</span>
+        <span class="n">pgv_stream</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">get_supplement_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">event_public_id</span><span class="p">,</span>
+                                                  <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;detectiondata&#39;</span><span class="p">,</span>
+                                                  <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;pgv&#39;</span><span class="p">,</span>
+                                                  <span class="n">directory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supplement_dir</span><span class="p">)</span>
+
+        <span class="c1"># Trim the stream.</span>
+        <span class="n">pgv_stream</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">starttime</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">6</span><span class="p">,</span>
+                        <span class="n">endtime</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;end_time&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">6</span><span class="p">,</span>
+                        <span class="n">pad</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">inventory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">inventory</span>
+
+        <span class="n">station_nsl</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;MSSNet&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">station</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">location</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pgv_stream</span><span class="p">]</span>
+        <span class="n">station_nsl</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">station_nsl</span><span class="p">]</span>
+        <span class="n">stations</span> <span class="o">=</span> <span class="p">[</span><span class="n">inventory</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">nsl_string</span> <span class="o">=</span> <span class="n">x</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">station_nsl</span><span class="p">]</span>
+        <span class="n">times</span> <span class="o">=</span> <span class="n">pgv_stream</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">times</span><span class="p">(</span><span class="s2">&quot;utcdatetime&quot;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">data</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pgv_stream</span><span class="p">])</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+
+        <span class="n">detection_limits</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;detection_limits&#39;</span><span class="p">]</span>
+
+        <span class="n">sequence_df</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">last_pgv_df</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">last_krig_z</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">no_change_cnt</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)):</span>
+            <span class="n">cur_time</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Computing frame </span><span class="si">{time}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cur_time</span><span class="p">)))</span>
+            <span class="n">triggered</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">cur_station</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">cur_station</span><span class="o">.</span><span class="n">nsl_string</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">detection_limits</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">cur_trigger</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">cur_detection_limit</span> <span class="o">=</span> <span class="n">detection_limits</span><span class="p">[</span><span class="n">cur_station</span><span class="o">.</span><span class="n">nsl_string</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">cur_time</span> <span class="o">&gt;=</span> <span class="n">cur_detection_limit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">cur_time</span> <span class="o">&lt;=</span> <span class="n">cur_detection_limit</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                        <span class="n">cur_trigger</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">cur_trigger</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">triggered</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_trigger</span><span class="p">)</span>
+
+            <span class="n">cur_points</span> <span class="o">=</span> <span class="p">[</span><span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">]</span>
+            <span class="n">cur_df</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">({</span><span class="s1">&#39;geom_vor&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Polygon</span><span class="p">([])]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">stations</span><span class="p">),</span>
+                                       <span class="s1">&#39;geom_stat&#39;</span><span class="p">:</span> <span class="n">cur_points</span><span class="p">,</span>
+                                       <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">util</span><span class="o">.</span><span class="n">isoformat_tz</span><span class="p">(</span><span class="n">cur_time</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">stations</span><span class="p">),</span>
+                                       <span class="s1">&#39;nsl&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">nsl_string</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">],</span>
+                                       <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">],</span>
+                                       <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">y</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">],</span>
+                                       <span class="s1">&#39;x_utm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">x_utm</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">],</span>
+                                       <span class="s1">&#39;y_utm&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">y_utm</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">],</span>
+                                       <span class="s1">&#39;pgv&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="p">:],</span>
+                                       <span class="s1">&#39;triggered&#39;</span><span class="p">:</span> <span class="n">triggered</span><span class="p">},</span>
+                                      <span class="n">crs</span> <span class="o">=</span> <span class="s2">&quot;epsg:4326&quot;</span><span class="p">,</span>
+                                      <span class="n">geometry</span> <span class="o">=</span> <span class="s1">&#39;geom_stat&#39;</span><span class="p">)</span>
+           
+            <span class="c1"># Add the station amplification factors.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_station_amplification</span><span class="p">(</span><span class="n">cur_df</span><span class="p">)</span>
+
+            <span class="c1"># Compute the corrected pgv values.</span>
+            <span class="n">cur_df</span><span class="p">[</span><span class="s1">&#39;pgv_corr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_df</span><span class="o">.</span><span class="n">pgv</span> <span class="o">/</span> <span class="n">cur_df</span><span class="o">.</span><span class="n">sa</span>
+
+            <span class="c1"># Use only the stations with a valid corrected pgv.</span>
+            <span class="n">cur_df</span> <span class="o">=</span> <span class="n">cur_df</span><span class="p">[</span><span class="n">cur_df</span><span class="p">[</span><span class="s1">&#39;pgv_corr&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">notna</span><span class="p">()]</span>
+            <span class="n">cur_df</span> <span class="o">=</span> <span class="n">cur_df</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+            <span class="c1"># Update the pgv values to keep the event maximum pgv.</span>
+            <span class="c1"># Track changes of the event maximum pgv.</span>
+            <span class="k">if</span> <span class="n">last_pgv_df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Use the current PGV values only, if they are higher than</span>
+                <span class="c1"># the last ones.</span>
+                <span class="c1">#</span>
+                <span class="c1"># Update the last_pgv_df with the current df. It is possible, that</span>
+                <span class="c1"># rows are missing or new ones are available.</span>
+                <span class="c1"># Remove the rows, that are not present in the cur_df.</span>
+                <span class="n">tmp_df</span> <span class="o">=</span> <span class="n">last_pgv_df</span><span class="p">[</span><span class="n">last_pgv_df</span><span class="o">.</span><span class="n">nsl</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">cur_df</span><span class="o">.</span><span class="n">nsl</span><span class="p">)]</span>
+                <span class="c1"># Add the rows, that are not present in the last_pgv_df.</span>
+                <span class="n">mask_df</span> <span class="o">=</span> <span class="n">tmp_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_df</span><span class="p">[</span><span class="o">~</span><span class="n">cur_df</span><span class="o">.</span><span class="n">nsl</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">last_pgv_df</span><span class="o">.</span><span class="n">nsl</span><span class="p">)],</span>
+                                        <span class="n">ignore_index</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">cur_df</span><span class="o">.</span><span class="n">pgv_corr</span> <span class="o">&lt;</span> <span class="n">mask_df</span><span class="o">.</span><span class="n">pgv_corr</span>
+                    
+                <span class="n">cur_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="s1">&#39;pgv_corr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="s1">&#39;pgv_corr&#39;</span><span class="p">]</span>
+                
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
+                    <span class="n">no_change_cnt</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">no_change_cnt</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;no_change_cnt: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">no_change_cnt</span><span class="p">))</span>
+
+            <span class="c1"># Exit if the was no change of the max event pgv data for some time.</span>
+            <span class="k">if</span> <span class="n">no_change_cnt</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;No change for some time, stop computation of contours.&#39;</span><span class="p">)</span>
+                <span class="k">break</span>
+
+            <span class="c1"># Keep the last pgv dataframe.</span>
+            <span class="c1"># Get the rows, that are not available in cur_df and keep them.</span>
+            <span class="k">if</span> <span class="n">last_pgv_df</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">tmp_df</span> <span class="o">=</span> <span class="n">last_pgv_df</span><span class="p">[</span><span class="o">~</span><span class="n">last_pgv_df</span><span class="o">.</span><span class="n">nsl</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">cur_df</span><span class="o">.</span><span class="n">nsl</span><span class="p">)]</span>
+                <span class="n">last_pgv_df</span> <span class="o">=</span> <span class="n">cur_df</span>
+                <span class="n">last_pgv_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_df</span><span class="p">,</span> <span class="n">ignore_index</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">last_pgv_df</span> <span class="o">=</span> <span class="n">cur_df</span>
+           
+            <span class="c1"># Interpolate to a regular grid using ordinary kriging.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Interpolate&quot;</span><span class="p">)</span>
+            <span class="n">krig_z</span><span class="p">,</span> <span class="n">krig_sigmasq</span><span class="p">,</span> <span class="n">grid_x</span><span class="p">,</span> <span class="n">grid_y</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">compute_pgv_krigging</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="n">cur_df</span><span class="o">.</span><span class="n">x_utm</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                                                                             <span class="n">y</span> <span class="o">=</span> <span class="n">cur_df</span><span class="o">.</span><span class="n">y_utm</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                                                                             <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">cur_df</span><span class="o">.</span><span class="n">pgv_corr</span><span class="p">),</span>
+                                                                             <span class="n">nlags</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+                                                                             <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                                                                             <span class="n">enable_plotting</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                                                                             <span class="n">weight</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+            <span class="c1"># Update the interpolated pgv values only if they are higher than the last ones.</span>
+            <span class="c1">#if last_krig_z is not None:</span>
+            <span class="c1">#    cur_mask = krig_z &lt; last_krig_z</span>
+            <span class="c1">#    krig_z[cur_mask] = last_krig_z[cur_mask]</span>
+            <span class="c1">#last_krig_z = krig_z</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Contours&quot;</span><span class="p">)</span>
+            <span class="c1"># Compute the contours.</span>
+            <span class="n">intensity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mf">8.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+            <span class="c1"># Add lower and upper limits to catch all the data below or </span>
+            <span class="c1"># above the desired intensity range.</span>
+            <span class="n">intensity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([[</span><span class="o">-</span><span class="mi">10</span><span class="p">],</span> <span class="n">intensity</span><span class="p">,</span> <span class="p">[</span><span class="mi">20</span><span class="p">]])</span>
+            <span class="n">intensity_pgv</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">intensity_to_pgv</span><span class="p">(</span><span class="n">intensity</span> <span class="o">=</span> <span class="n">intensity</span><span class="p">)</span>
+
+            <span class="c1"># Create and delete a figure to prevent pyplot from plotting the</span>
+            <span class="c1"># contours.</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+            <span class="n">cs</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">grid_x</span><span class="p">,</span> <span class="n">grid_y</span><span class="p">,</span> <span class="n">krig_z</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">intensity_pgv</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]),</span>
+                             <span class="n">vmin</span> <span class="o">=</span> <span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">contours</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">contourset_to_shapely</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+            <span class="k">del</span> <span class="n">ax</span>
+            <span class="k">del</span> <span class="n">fig</span>
+            <span class="k">del</span> <span class="n">cs</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;dataframe&#39;</span><span class="p">)</span>
+            <span class="c1"># Create a geodataframe of the contour polygons.</span>
+            <span class="n">cont_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                         <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                         <span class="s1">&#39;intensity&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                         <span class="s1">&#39;pgv&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+
+            <span class="k">for</span> <span class="n">cur_level</span><span class="p">,</span> <span class="n">cur_poly</span> <span class="ow">in</span> <span class="n">contours</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">cur_intensity</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">pgv_to_intensity</span><span class="p">(</span><span class="n">pgv</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="o">**</span><span class="n">cur_level</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_poly</span><span class="p">))</span>
+                <span class="n">cont_data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">util</span><span class="o">.</span><span class="n">isoformat_tz</span><span class="p">(</span><span class="n">cur_time</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_poly</span><span class="p">))</span>
+                <span class="n">cont_data</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cur_poly</span><span class="p">)</span>
+                <span class="n">cont_data</span><span class="p">[</span><span class="s1">&#39;intensity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cur_intensity</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+                <span class="n">cont_data</span><span class="p">[</span><span class="s1">&#39;pgv&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="mi">10</span><span class="o">**</span><span class="n">cur_level</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_poly</span><span class="p">))</span>
+            <span class="n">cur_cont_df</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">cont_data</span><span class="p">)</span>
+
+            <span class="c1"># Convert the polygon coordinates to EPSG:4326.</span>
+            <span class="n">src_proj</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">Proj</span><span class="p">(</span><span class="n">init</span> <span class="o">=</span> <span class="s1">&#39;epsg:&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">inventory</span><span class="o">.</span><span class="n">get_utm_epsg</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">dst_proj</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">Proj</span><span class="p">(</span><span class="n">init</span> <span class="o">=</span> <span class="s1">&#39;epsg:4326&#39;</span><span class="p">)</span>
+            <span class="n">cur_cont_df</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">reproject_polygons</span><span class="p">(</span><span class="n">df</span> <span class="o">=</span> <span class="n">cur_cont_df</span><span class="p">,</span>
+                                                  <span class="n">src_proj</span> <span class="o">=</span> <span class="n">src_proj</span><span class="p">,</span>
+                                                  <span class="n">dst_proj</span> <span class="o">=</span> <span class="n">dst_proj</span><span class="p">)</span>
+
+            <span class="c1"># Clip to the network boundary.</span>
+            <span class="c1"># Clipping a polygon may created multiple polygons.</span>
+            <span class="c1"># Therefore create a new dataframe to have only one polygon per,</span>
+            <span class="c1"># entry. Thus avoiding possible problems due to a mixture of </span>
+            <span class="c1"># multipolygons and polygons.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Clipping.&#39;</span><span class="p">)</span>
+            <span class="n">cont_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                         <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                         <span class="s1">&#39;intensity&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                         <span class="s1">&#39;pgv&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+            <span class="k">for</span> <span class="n">cur_id</span><span class="p">,</span> <span class="n">cur_row</span> <span class="ow">in</span> <span class="n">cur_cont_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                <span class="n">cur_poly</span> <span class="o">=</span> <span class="n">cur_row</span><span class="o">.</span><span class="n">geometry</span>
+                <span class="n">clipped_poly</span> <span class="o">=</span> <span class="n">cur_poly</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">network_boundary</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">clipped_poly</span><span class="p">))</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clipped_poly</span><span class="p">,</span> <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">multipolygon</span><span class="o">.</span><span class="n">MultiPolygon</span><span class="p">):</span>
+                    <span class="n">cont_data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">cur_row</span><span class="o">.</span><span class="n">time</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">clipped_poly</span><span class="p">))</span>
+                    <span class="n">cont_data</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">clipped_poly</span><span class="p">])</span>
+                    <span class="n">cont_data</span><span class="p">[</span><span class="s1">&#39;intensity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">cur_row</span><span class="o">.</span><span class="n">intensity</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">clipped_poly</span><span class="p">))</span>
+                    <span class="n">cont_data</span><span class="p">[</span><span class="s1">&#39;pgv&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">cur_row</span><span class="o">.</span><span class="n">pgv</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">clipped_poly</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">cont_data</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_row</span><span class="o">.</span><span class="n">time</span><span class="p">)</span>
+                    <span class="n">cont_data</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">clipped_poly</span><span class="p">)</span>
+                    <span class="n">cont_data</span><span class="p">[</span><span class="s1">&#39;intensity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_row</span><span class="o">.</span><span class="n">intensity</span><span class="p">)</span>
+                    <span class="n">cont_data</span><span class="p">[</span><span class="s1">&#39;pgv&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_row</span><span class="o">.</span><span class="n">pgv</span><span class="p">)</span>
+            <span class="n">cur_cont_df</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">cont_data</span><span class="p">)</span>
+
+            <span class="c1"># Remove rows having an empty geometry.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">cur_cont_df</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+            <span class="n">cur_cont_df</span> <span class="o">=</span> <span class="n">cur_cont_df</span><span class="p">[</span><span class="o">~</span><span class="n">cur_cont_df</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">is_empty</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">cur_cont_df</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Appending to sequence.&#39;</span><span class="p">)</span>
+            <span class="c1"># Add the dataframe to the sequence.</span>
+            <span class="k">if</span> <span class="n">sequence_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">sequence_df</span> <span class="o">=</span> <span class="n">cur_cont_df</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sequence_df</span> <span class="o">=</span> <span class="n">sequence_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_cont_df</span><span class="p">)</span>
+
+        <span class="c1"># Get some event properties to add to the properties of the feature collections.</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;db_id&#39;</span><span class="p">:</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;db_id&#39;</span><span class="p">],</span>
+                 <span class="s1">&#39;event_start&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">isoformat_tz</span><span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">]),</span>
+                 <span class="s1">&#39;event_end&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">isoformat_tz</span><span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;end_time&#39;</span><span class="p">]),</span>
+                 <span class="s1">&#39;sequence_start&#39;</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="n">sequence_df</span><span class="o">.</span><span class="n">time</span><span class="p">),</span>
+                 <span class="s1">&#39;sequence_end&#39;</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">sequence_df</span><span class="o">.</span><span class="n">time</span><span class="p">),</span>
+                 <span class="s1">&#39;author_uri&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">author_uri</span><span class="p">,</span>
+                 <span class="s1">&#39;agency_uri&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">agency_uri</span><span class="p">,</span>
+                 <span class="s1">&#39;station_correction_applied&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+
+        <span class="c1"># Write the voronoi dataframe to a geojson file.</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">save_supplement</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">event_public_id</span><span class="p">,</span>
+                                        <span class="n">sequence_df</span><span class="p">,</span>
+                                        <span class="n">output_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supplement_dir</span><span class="p">,</span>
+                                        <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;pgvsequence&#39;</span><span class="p">,</span>
+                                        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;pgvcontour&#39;</span><span class="p">,</span>
+                                        <span class="n">props</span> <span class="o">=</span> <span class="n">props</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Saved pgv contour sequence to file </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EventPostProcessor.compute_detection_sequence_supplement"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.postprocess_event.EventPostProcessor.compute_detection_sequence_supplement.html#mss_dataserver.postprocess.postprocess_event.EventPostProcessor.compute_detection_sequence_supplement">[docs]</a>    <span class="k">def</span> <span class="nf">compute_detection_sequence_supplement</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Compute the supplement data representing the detection sequence triangles.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># Load the event detection data from the supplement file.</span>
+        <span class="n">detection_data</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">get_supplement_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">event_public_id</span><span class="p">,</span>
+                                                  <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;detectiondata&#39;</span><span class="p">,</span>
+                                                  <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;detectiondata&#39;</span><span class="p">,</span>
+                                                  <span class="n">directory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supplement_dir</span><span class="p">)</span>
+        <span class="n">detection_data</span> <span class="o">=</span> <span class="n">detection_data</span><span class="p">[</span><span class="s1">&#39;detection_data&#39;</span><span class="p">]</span>
+
+        <span class="c1"># Load the event metadata from the supplement file.</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span>
+
+        <span class="c1"># Compute the dataframe using the trigger data.</span>
+        <span class="n">sequence_df</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">cur_pw_key</span><span class="p">,</span> <span class="n">cur_process_window</span> <span class="ow">in</span> <span class="n">detection_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">trigger_data</span> <span class="o">=</span> <span class="n">cur_process_window</span><span class="p">[</span><span class="s1">&#39;trigger_data&#39;</span><span class="p">]</span>
+            <span class="n">cur_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_detection_data_df</span><span class="p">(</span><span class="n">trigger_data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sequence_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">sequence_df</span> <span class="o">=</span> <span class="n">cur_df</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sequence_df</span> <span class="o">=</span> <span class="n">sequence_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_df</span><span class="p">,</span>
+                                                 <span class="n">ignore_index</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Set the added_to_event flag of the whole sequence.</span>
+        <span class="c1"># From the first triggered time, the flag is set to true.</span>
+        <span class="n">simp_groups</span> <span class="o">=</span> <span class="n">sequence_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;nsl&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cur_name</span><span class="p">,</span> <span class="n">cur_group</span> <span class="ow">in</span> <span class="n">simp_groups</span><span class="p">:</span>
+            <span class="n">cur_added_to_event</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cur_group</span><span class="p">),</span> <span class="n">dtype</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">)</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cur_group</span><span class="p">[</span><span class="s1">&#39;triggered&#39;</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">cur_first_trigger</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">cur_added_to_event</span><span class="p">[</span><span class="n">cur_first_trigger</span><span class="p">:]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">sequence_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">sequence_df</span><span class="p">[</span><span class="s1">&#39;nsl&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">cur_name</span><span class="p">,</span> <span class="s1">&#39;added_to_event&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_added_to_event</span>
+
+        <span class="c1"># Limit the data to the event timespan.</span>
+        <span class="n">pre_window</span> <span class="o">=</span> <span class="mi">6</span>
+        <span class="n">end_window</span> <span class="o">=</span> <span class="mi">6</span>
+        <span class="n">win_start</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">pre_window</span>
+        <span class="n">win_end</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;end_time&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">end_window</span>
+        <span class="n">df_utctime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">obspy</span><span class="o">.</span><span class="n">UTCDateTime</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">sequence_df</span><span class="o">.</span><span class="n">time</span><span class="p">])</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_utctime</span> <span class="o">&gt;=</span> <span class="n">win_start</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df_utctime</span> <span class="o">&lt;=</span> <span class="n">win_end</span><span class="p">)</span>
+        <span class="n">sequence_df</span> <span class="o">=</span> <span class="n">sequence_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="c1"># Get some event properties to add to the properties of the feature collections.</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;db_id&#39;</span><span class="p">:</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;db_id&#39;</span><span class="p">],</span>
+                 <span class="s1">&#39;event_start&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">isoformat_tz</span><span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">]),</span>
+                 <span class="s1">&#39;event_end&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">isoformat_tz</span><span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;end_time&#39;</span><span class="p">]),</span>
+                 <span class="s1">&#39;sequence_start&#39;</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="n">sequence_df</span><span class="o">.</span><span class="n">time</span><span class="p">),</span>
+                 <span class="s1">&#39;sequence_end&#39;</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">sequence_df</span><span class="o">.</span><span class="n">time</span><span class="p">),</span>
+                 <span class="s1">&#39;author_uri&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">author_uri</span><span class="p">,</span>
+                 <span class="s1">&#39;agency_uri&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">agency_uri</span><span class="p">}</span>
+
+        <span class="c1"># Write the sequence dataframe to a geojson file.</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">save_supplement</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">event_public_id</span><span class="p">,</span>
+                                        <span class="n">sequence_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">[</span><span class="s1">&#39;geom_simp&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;pgv&#39;</span><span class="p">,</span>
+                                                            <span class="s1">&#39;pgv_min&#39;</span><span class="p">,</span> <span class="s1">&#39;pgv_max&#39;</span><span class="p">,</span> <span class="s1">&#39;triggered&#39;</span><span class="p">,</span>
+                                                            <span class="s1">&#39;added_to_event&#39;</span><span class="p">]],</span>
+                                        <span class="n">output_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supplement_dir</span><span class="p">,</span>
+                                        <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;detectionsequence&#39;</span><span class="p">,</span>
+                                        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;simplices&#39;</span><span class="p">,</span>
+                                        <span class="n">props</span> <span class="o">=</span> <span class="n">props</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Saved detectioin sequence simplices to file </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span>
+                         <span class="n">filepath</span><span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="EventPostProcessor.compute_isoseismal_supplement"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.postprocess_event.EventPostProcessor.compute_isoseismal_supplement.html#mss_dataserver.postprocess.postprocess_event.EventPostProcessor.compute_isoseismal_supplement">[docs]</a>    <span class="k">def</span> <span class="nf">compute_isoseismal_supplement</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Compute the isoseismal contour lines using kriging.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># Load the event metadata from the supplement file.</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span>
+
+        <span class="c1"># Compute a PGV geodataframe using the event metadata.</span>
+        <span class="n">pgv_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_pgv_df</span><span class="p">(</span><span class="n">meta</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_station_amplification</span><span class="p">(</span><span class="n">pgv_df</span><span class="p">)</span>
+
+        <span class="n">pgv_df</span><span class="p">[</span><span class="s1">&#39;pgv_corr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pgv_df</span><span class="o">.</span><span class="n">pgv</span> <span class="o">/</span> <span class="n">pgv_df</span><span class="o">.</span><span class="n">sa</span>
+
+        <span class="c1"># Use only data with valid pgv data.</span>
+        <span class="n">pgv_df</span> <span class="o">=</span> <span class="n">pgv_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">pgv_df</span><span class="o">.</span><span class="n">pgv_corr</span><span class="o">.</span><span class="n">notna</span><span class="p">(),</span> <span class="p">:]</span>
+
+        <span class="c1"># Interpolate to a regular grid using ordinary kriging.</span>
+        <span class="n">krig_z</span><span class="p">,</span> <span class="n">krig_sigmasq</span><span class="p">,</span> <span class="n">grid_x</span><span class="p">,</span> <span class="n">grid_y</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">compute_pgv_krigging</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="n">pgv_df</span><span class="o">.</span><span class="n">x_utm</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                                                                         <span class="n">y</span> <span class="o">=</span> <span class="n">pgv_df</span><span class="o">.</span><span class="n">y_utm</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                                                                         <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">pgv_df</span><span class="o">.</span><span class="n">pgv_corr</span><span class="p">),</span>
+                                                                         <span class="n">nlags</span> <span class="o">=</span> <span class="mi">40</span><span class="p">,</span>
+                                                                         <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                                                                         <span class="n">enable_plotting</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                                                                         <span class="n">weight</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Compute the contours.</span>
+        <span class="n">intensity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mf">8.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+        <span class="c1"># Add lower and upper limits to catch all the data below or </span>
+        <span class="c1"># above the desired intensity range.</span>
+        <span class="n">intensity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([[</span><span class="o">-</span><span class="mi">10</span><span class="p">],</span> <span class="n">intensity</span><span class="p">,</span> <span class="p">[</span><span class="mi">20</span><span class="p">]])</span>
+        <span class="n">intensity_pgv</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">intensity_to_pgv</span><span class="p">(</span><span class="n">intensity</span> <span class="o">=</span> <span class="n">intensity</span><span class="p">)</span>
+
+        <span class="c1"># Create and delete a figure to prevent pyplot from plotting the</span>
+        <span class="c1"># contours.</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+        <span class="n">cs</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">grid_x</span><span class="p">,</span> <span class="n">grid_y</span><span class="p">,</span> <span class="n">krig_z</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">intensity_pgv</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]),</span>
+                         <span class="n">vmin</span> <span class="o">=</span> <span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="n">vmax</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">contours</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">contourset_to_shapely</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">ax</span>
+        <span class="k">del</span> <span class="n">fig</span>
+        <span class="k">del</span> <span class="n">cs</span>
+
+        <span class="c1"># Create a geodataframe of the contour polygons.</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s1">&#39;intensity&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s1">&#39;pgv&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+
+        <span class="k">for</span> <span class="n">cur_level</span><span class="p">,</span> <span class="n">cur_poly</span> <span class="ow">in</span> <span class="n">contours</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">cur_intensity</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">pgv_to_intensity</span><span class="p">(</span><span class="n">pgv</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="o">**</span><span class="n">cur_level</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_poly</span><span class="p">))</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cur_poly</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;intensity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cur_intensity</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;pgv&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="mi">10</span><span class="o">**</span><span class="n">cur_level</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_poly</span><span class="p">))</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">)</span>
+
+        <span class="c1"># Convert the polygon coordinates to EPSG:4326.</span>
+        <span class="n">src_proj</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">Proj</span><span class="p">(</span><span class="n">init</span> <span class="o">=</span> <span class="s1">&#39;epsg:&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">inventory</span><span class="o">.</span><span class="n">get_utm_epsg</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">dst_proj</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">Proj</span><span class="p">(</span><span class="n">init</span> <span class="o">=</span> <span class="s1">&#39;epsg:4326&#39;</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">reproject_polygons</span><span class="p">(</span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">,</span>
+                                     <span class="n">src_proj</span> <span class="o">=</span> <span class="n">src_proj</span><span class="p">,</span>
+                                     <span class="n">dst_proj</span> <span class="o">=</span> <span class="n">dst_proj</span><span class="p">)</span>
+
+        <span class="c1"># Clip to the network boundary.</span>
+        <span class="c1"># Clipping a polygon may created multiple polygons.</span>
+        <span class="c1"># Therefore create a new dataframe to have only one polygon per,</span>
+        <span class="c1"># entry. Thus avoiding possible problems due to a mixture of </span>
+        <span class="c1"># multipolygons and polygons.</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s1">&#39;intensity&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s1">&#39;pgv&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+        <span class="k">for</span> <span class="n">cur_id</span><span class="p">,</span> <span class="n">cur_row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">cur_poly</span> <span class="o">=</span> <span class="n">cur_row</span><span class="o">.</span><span class="n">geometry</span>
+            <span class="n">clipped_poly</span> <span class="o">=</span> <span class="n">cur_poly</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">network_boundary</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">clipped_poly</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">clipped_poly</span><span class="p">,</span> <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">multipolygon</span><span class="o">.</span><span class="n">MultiPolygon</span><span class="p">):</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">clipped_poly</span><span class="p">])</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">&#39;intensity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">cur_row</span><span class="o">.</span><span class="n">intensity</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">clipped_poly</span><span class="p">))</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">&#39;pgv&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">cur_row</span><span class="o">.</span><span class="n">pgv</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">clipped_poly</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">clipped_poly</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">&#39;intensity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_row</span><span class="o">.</span><span class="n">intensity</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">&#39;pgv&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_row</span><span class="o">.</span><span class="n">pgv</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">)</span>
+
+        <span class="n">props</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;db_id&#39;</span><span class="p">:</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;db_id&#39;</span><span class="p">],</span>
+                 <span class="s1">&#39;event_start&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">isoformat_tz</span><span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">]),</span>
+                 <span class="s1">&#39;event_end&#39;</span><span class="p">:</span> <span class="n">util</span><span class="o">.</span><span class="n">isoformat_tz</span><span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;end_time&#39;</span><span class="p">]),</span>
+                 <span class="s1">&#39;author_uri&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">author_uri</span><span class="p">,</span>
+                 <span class="s1">&#39;agency_uri&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">agency_uri</span><span class="p">,</span>
+                 <span class="s1">&#39;station_correction_applied&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">save_supplement</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">event_public_id</span><span class="p">,</span>
+                                        <span class="n">df</span><span class="p">,</span>
+                                        <span class="n">output_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supplement_dir</span><span class="p">,</span>
+                                        <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;eventpgv&#39;</span><span class="p">,</span>
+                                        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;isoseismalfilledcontour&#39;</span><span class="p">,</span>
+                                        <span class="n">props</span> <span class="o">=</span> <span class="n">props</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Saved isoseismal contours to file </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">df</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Stefan Mertl.
+      <span class="lastupdated">
+        Last updated on 2021-04-30 14:28.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

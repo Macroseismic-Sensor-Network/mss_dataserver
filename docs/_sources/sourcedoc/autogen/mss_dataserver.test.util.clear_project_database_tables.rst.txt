@@ -1,0 +1,6 @@
+mss_dataserver.test.util.clear_project_database_tables
+======================================================
+
+.. currentmodule:: mss_dataserver.test.util
+
+.. autofunction:: clear_project_database_tables

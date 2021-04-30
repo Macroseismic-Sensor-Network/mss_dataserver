@@ -1,0 +1,7 @@
+save_supplement_inventory
+==================================================================================
+
+.. currentmodule:: mss_dataserver.monitorclient.monitorclient
+.. automethod:: MonitorClient.save_supplement_inventory
+
+

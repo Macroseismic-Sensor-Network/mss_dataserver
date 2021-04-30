@@ -1,0 +1,7 @@
+create_figure
+=============================================================================
+
+.. currentmodule:: mss_dataserver.postprocess.seismogram_plotter
+.. automethod:: SeismogramPlotter.create_figure
+
+

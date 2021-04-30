@@ -1,0 +1,7 @@
+compute_hypodistance
+====================================================================================
+
+.. currentmodule:: mss_dataserver.postprocess.seismogram_plotter
+.. automethod:: SeismogramPlotter.compute_hypodistance
+
+

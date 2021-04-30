@@ -1,0 +1,583 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>mss_dataserver.postprocess.util &mdash; mss_dataserver 0.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> mss_dataserver
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../userdoc/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userdoc/usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../userdoc/database.html">Database</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sourcedoc/index.html">Modules</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mss_dataserver</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>mss_dataserver.postprocess.util</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for mss_dataserver.postprocess.util</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">geojson</span>
+<span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="nn">gpd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">obspy</span>
+<span class="kn">import</span> <span class="nn">pykrige</span> <span class="k">as</span> <span class="nn">pk</span>
+<span class="kn">import</span> <span class="nn">pyproj</span>
+<span class="kn">import</span> <span class="nn">shapely</span>
+
+<span class="kn">import</span> <span class="nn">mss_dataserver.core.json_util</span> <span class="k">as</span> <span class="nn">json_util</span>
+
+
+<div class="viewcode-block" id="event_dir_from_publicid"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.util.event_dir_from_publicid.html#mss_dataserver.postprocess.util.event_dir_from_publicid">[docs]</a><span class="k">def</span> <span class="nf">event_dir_from_publicid</span><span class="p">(</span><span class="n">public_id</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Build the event directory from the public id. &#39;&#39;&#39;</span>
+    <span class="n">cur_parts</span> <span class="o">=</span> <span class="n">public_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+    <span class="n">event_time</span> <span class="o">=</span> <span class="n">obspy</span><span class="o">.</span><span class="n">UTCDateTime</span><span class="p">(</span><span class="n">cur_parts</span><span class="p">[</span><span class="mi">2</span><span class="p">][:</span><span class="mi">17</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">cur_parts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">17</span><span class="p">:])</span>
+    <span class="n">year_dir</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{year:04d}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">year</span> <span class="o">=</span> <span class="n">event_time</span><span class="o">.</span><span class="n">year</span><span class="p">)</span>
+    <span class="n">date_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{year:04d}</span><span class="s2">_</span><span class="si">{month:02d}</span><span class="s2">_</span><span class="si">{day:02d}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">year</span> <span class="o">=</span> <span class="n">event_time</span><span class="o">.</span><span class="n">year</span><span class="p">,</span>
+                                                                      <span class="n">month</span> <span class="o">=</span> <span class="n">event_time</span><span class="o">.</span><span class="n">month</span><span class="p">,</span>
+                                                                      <span class="n">day</span> <span class="o">=</span> <span class="n">event_time</span><span class="o">.</span><span class="n">day</span><span class="p">))</span>
+    <span class="n">event_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">year_dir</span><span class="p">,</span>
+                             <span class="n">date_dir</span><span class="p">,</span>
+                             <span class="n">public_id</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">event_dir</span></div>
+
+
+<div class="viewcode-block" id="get_supplement_map"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.util.get_supplement_map.html#mss_dataserver.postprocess.util.get_supplement_map">[docs]</a><span class="k">def</span> <span class="nf">get_supplement_map</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39; Create the dictionary of the supplement data structure.&#39;&#39;&#39;</span>
+    <span class="n">supplement_map</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Category detectiondata.</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;detectiondata&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;detectiondata&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;json&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;subdir&#39;</span><span class="p">:</span> <span class="s1">&#39;detectiondata&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;encoder&#39;</span><span class="p">:</span> <span class="n">json_util</span><span class="o">.</span><span class="n">SupplementDetectionDataDecoder</span><span class="p">},</span>
+           <span class="s1">&#39;geometryinventory&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;geometryinventory&#39;</span><span class="p">,</span>
+                                 <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;json&#39;</span><span class="p">,</span>
+                                 <span class="s1">&#39;subdir&#39;</span><span class="p">:</span> <span class="s1">&#39;detectiondata&#39;</span><span class="p">,</span>
+                                 <span class="s1">&#39;encoder&#39;</span><span class="p">:</span> <span class="n">json_util</span><span class="o">.</span><span class="n">GeneralFileDecoder</span><span class="p">},</span>
+           <span class="s1">&#39;metadata&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;metadata&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;json&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;subdir&#39;</span><span class="p">:</span> <span class="s1">&#39;detectiondata&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;encoder&#39;</span><span class="p">:</span> <span class="n">json_util</span><span class="o">.</span><span class="n">GeneralFileDecoder</span><span class="p">},</span>
+           <span class="s1">&#39;pgv&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;pgv&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;miniseed&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;subdir&#39;</span><span class="p">:</span> <span class="s1">&#39;detectiondata&#39;</span><span class="p">},</span>
+           <span class="s1">&#39;velocity&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;velocity&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;miniseed&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;subdir&#39;</span><span class="p">:</span> <span class="s1">&#39;detectiondata&#39;</span><span class="p">}}</span>
+    <span class="n">supplement_map</span><span class="p">[</span><span class="s1">&#39;detectiondata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span>
+
+    <span class="c1"># Category detectionsequence.</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;simplices&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;simplices&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;geojson&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;subdir&#39;</span><span class="p">:</span> <span class="s1">&#39;detectionsequence&#39;</span><span class="p">}}</span>
+    <span class="n">supplement_map</span><span class="p">[</span><span class="s1">&#39;detectionsequence&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span>
+
+    <span class="c1"># Category eventpgv.</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;pgvstation&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;pgvstation&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;geojson&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;subdir&#39;</span><span class="p">:</span> <span class="s1">&#39;eventpgv&#39;</span><span class="p">},</span>
+           <span class="s1">&#39;pgvvoronoi&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;pgvvoronoi&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;geojson&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;subdir&#39;</span><span class="p">:</span> <span class="s1">&#39;eventpgv&#39;</span><span class="p">},</span>
+           <span class="s1">&#39;isoseismalfilledcontour&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;isoseismalfilledcontour&#39;</span><span class="p">,</span>
+                                       <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;geojson&#39;</span><span class="p">,</span>
+                                       <span class="s1">&#39;subdir&#39;</span><span class="p">:</span> <span class="s1">&#39;eventpgv&#39;</span><span class="p">},</span>
+           <span class="p">}</span>
+    <span class="n">supplement_map</span><span class="p">[</span><span class="s1">&#39;eventpgv&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span>
+
+    <span class="c1"># Category pgvsequence.</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;pgvstation&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;pgvstation&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;geojson&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;subdir&#39;</span><span class="p">:</span> <span class="s1">&#39;pgvsequence&#39;</span><span class="p">},</span>
+           <span class="s1">&#39;pgvvoronoi&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;pgvvoronoi&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;geojson&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;subdir&#39;</span><span class="p">:</span> <span class="s1">&#39;pgvsequence&#39;</span><span class="p">},</span>
+           <span class="s1">&#39;pgvcontour&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;pgvcontour&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;geojson&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;subdir&#39;</span><span class="p">:</span> <span class="s1">&#39;pgvsequence&#39;</span><span class="p">}}</span>
+    <span class="n">supplement_map</span><span class="p">[</span><span class="s1">&#39;pgvsequence&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span>
+
+    <span class="k">return</span> <span class="n">supplement_map</span></div>
+
+
+<div class="viewcode-block" id="get_supplement_data"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.util.get_supplement_data.html#mss_dataserver.postprocess.util.get_supplement_data">[docs]</a><span class="k">def</span> <span class="nf">get_supplement_data</span><span class="p">(</span><span class="n">public_id</span><span class="p">,</span> <span class="n">category</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">directory</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Load the data from a supplement file.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">supplement_map</span> <span class="o">=</span> <span class="n">get_supplement_map</span><span class="p">()</span>
+    <span class="n">event_dir</span> <span class="o">=</span> <span class="n">event_dir_from_publicid</span><span class="p">(</span><span class="n">public_id</span><span class="p">)</span>
+    <span class="n">supp_data</span> <span class="o">=</span> <span class="n">supplement_map</span><span class="p">[</span><span class="n">category</span><span class="p">][</span><span class="n">name</span><span class="p">]</span>
+
+    <span class="n">supplement_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span>
+                                  <span class="n">event_dir</span><span class="p">,</span>
+                                  <span class="n">supp_data</span><span class="p">[</span><span class="s1">&#39;subdir&#39;</span><span class="p">])</span>
+
+    <span class="n">cur_filename</span> <span class="o">=</span> <span class="n">public_id</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">category</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">supp_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">supp_data</span><span class="p">[</span><span class="s1">&#39;format&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;json&#39;</span><span class="p">:</span>
+        <span class="n">cur_filename</span> <span class="o">+=</span> <span class="s1">&#39;.json.gz&#39;</span>
+        <span class="n">cur_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">supplement_dir</span><span class="p">,</span>
+                                    <span class="n">cur_filename</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">cur_filepath</span><span class="p">,</span> <span class="s1">&#39;rt&#39;</span><span class="p">,</span> <span class="n">encoding</span> <span class="o">=</span> <span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_file</span><span class="p">:</span>
+            <span class="n">cur_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">json_file</span><span class="p">,</span>
+                                 <span class="bp">cls</span> <span class="o">=</span> <span class="n">supp_data</span><span class="p">[</span><span class="s1">&#39;encoder&#39;</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">supp_data</span><span class="p">[</span><span class="s1">&#39;format&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;miniseed&#39;</span><span class="p">:</span>
+        <span class="n">cur_filename</span> <span class="o">+=</span> <span class="s1">&#39;.msd.gz&#39;</span>
+        <span class="n">cur_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">supplement_dir</span><span class="p">,</span>
+                                    <span class="n">cur_filename</span><span class="p">)</span>
+        <span class="c1"># obspy handles handle the decompression of the files.</span>
+        <span class="n">cur_data</span> <span class="o">=</span> <span class="n">obspy</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">cur_filepath</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">supp_data</span><span class="p">[</span><span class="s1">&#39;format&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;geojson&#39;</span><span class="p">:</span>
+        <span class="n">cur_filename</span> <span class="o">+=</span> <span class="s1">&#39;.geojson.gz&#39;</span>
+        <span class="n">cur_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">supplement_dir</span><span class="p">,</span>
+                                    <span class="n">cur_filename</span><span class="p">)</span>
+        <span class="n">cur_data</span> <span class="o">=</span> <span class="n">read_geojson</span><span class="p">(</span><span class="n">cur_filepath</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cur_data</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">cur_data</span></div>
+
+
+<div class="viewcode-block" id="read_geojson"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.util.read_geojson.html#mss_dataserver.postprocess.util.read_geojson">[docs]</a><span class="k">def</span> <span class="nf">read_geojson</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Read data from a geojson file.&#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># Read the dta using geojson to get the foreign members.</span>
+    <span class="c1"># Geopandas neglects foreign members.</span>
+    <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rt&#39;</span><span class="p">,</span> <span class="n">encoding</span> <span class="o">=</span> <span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fid</span><span class="p">:</span>
+        <span class="n">full_data</span> <span class="o">=</span> <span class="n">geojson</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fid</span><span class="p">)</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="o">.</span><span class="n">from_features</span><span class="p">(</span><span class="n">full_data</span><span class="p">[</span><span class="s1">&#39;features&#39;</span><span class="p">],</span>
+                                        <span class="n">crs</span><span class="o">=</span><span class="s2">&quot;EPSG:4326&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Add the foreign members to the dataframe attrs dictionary.</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">full_data</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">full_data</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+<div class="viewcode-block" id="write_geojson_file"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.util.write_geojson_file.html#mss_dataserver.postprocess.util.write_geojson_file">[docs]</a><span class="k">def</span> <span class="nf">write_geojson_file</span><span class="p">(</span><span class="n">geojson_instance</span><span class="p">,</span> <span class="n">category</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span>
+                       <span class="n">prefix</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">postfix</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Write a geojson data file. &#39;&#39;&#39;</span>
+    <span class="c1"># Write the feature collection to a geojson file.  </span>
+    <span class="k">if</span> <span class="n">prefix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span>
+
+    <span class="k">if</span> <span class="n">postfix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">postfix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">postfix</span> <span class="o">=</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">postfix</span>
+
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{prefix}{category}</span><span class="s1">_</span><span class="si">{name}{postfix}</span><span class="s1">.geojson.gz&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span><span class="p">,</span>
+                                                                      <span class="n">category</span> <span class="o">=</span> <span class="n">category</span><span class="p">,</span>
+                                                                      <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">,</span>
+                                                                      <span class="n">postfix</span> <span class="o">=</span> <span class="n">postfix</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_dir</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+
+    <span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span>
+                            <span class="n">filename</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;wt&#39;</span><span class="p">,</span> <span class="n">encoding</span> <span class="o">=</span> <span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_file</span><span class="p">:</span>
+        <span class="n">geojson</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">geojson_instance</span><span class="p">,</span> <span class="n">json_file</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">filepath</span></div>
+
+
+<div class="viewcode-block" id="save_supplement"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.util.save_supplement.html#mss_dataserver.postprocess.util.save_supplement">[docs]</a><span class="k">def</span> <span class="nf">save_supplement</span><span class="p">(</span><span class="n">public_id</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span>
+                    <span class="n">category</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">props</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Save a geopandas dataframe to geojson file.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">logger_name</span> <span class="o">=</span> <span class="vm">__name__</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">logger_name</span><span class="p">)</span>
+    <span class="n">event_dir</span> <span class="o">=</span> <span class="n">event_dir_from_publicid</span><span class="p">(</span><span class="n">public_id</span><span class="p">)</span>
+
+    <span class="n">supp_map</span> <span class="o">=</span> <span class="n">get_supplement_map</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">category</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">supp_map</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The category </span><span class="si">%s</span><span class="s1"> was not found in the available categories.&#39;</span><span class="p">,</span> <span class="n">category</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="n">supplement_sub_dir</span> <span class="o">=</span> <span class="n">supp_map</span><span class="p">[</span><span class="n">category</span><span class="p">][</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;subdir&#39;</span><span class="p">]</span>
+    <span class="n">supplement_name</span> <span class="o">=</span> <span class="n">supp_map</span><span class="p">[</span><span class="n">category</span><span class="p">][</span><span class="n">name</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span>
+                              <span class="n">event_dir</span><span class="p">,</span>
+                              <span class="n">supplement_sub_dir</span><span class="p">)</span>
+
+    <span class="n">fc</span> <span class="o">=</span> <span class="n">geojson</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">to_json</span><span class="p">())</span>
+
+    <span class="c1"># Add foreign members to the feature collection.</span>
+    <span class="n">fc</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">supplement_name</span>
+    <span class="n">fc</span><span class="o">.</span><span class="n">properties</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;public_id&#39;</span><span class="p">:</span> <span class="n">public_id</span><span class="p">,</span>
+        <span class="s1">&#39;computation_time&#39;</span><span class="p">:</span> <span class="n">isoformat_tz</span><span class="p">(</span><span class="n">obspy</span><span class="o">.</span><span class="n">UTCDateTime</span><span class="p">())</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">props</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fc</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">props</span><span class="p">)</span>
+
+    <span class="n">filepath</span> <span class="o">=</span> <span class="n">write_geojson_file</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span>
+                                  <span class="n">category</span> <span class="o">=</span> <span class="n">category</span><span class="p">,</span>
+                                  <span class="n">name</span> <span class="o">=</span> <span class="n">supplement_name</span><span class="p">,</span>
+                                  <span class="n">prefix</span> <span class="o">=</span> <span class="n">public_id</span><span class="p">,</span>
+                                  <span class="n">output_dir</span> <span class="o">=</span> <span class="n">output_dir</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">filepath</span></div>
+
+
+<div class="viewcode-block" id="isoformat_tz"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.util.isoformat_tz.html#mss_dataserver.postprocess.util.isoformat_tz">[docs]</a><span class="k">def</span> <span class="nf">isoformat_tz</span><span class="p">(</span><span class="n">utcdatetime</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Convert a obspy UTCDateTime instance to a isoformat string</span>
+<span class="sd">    including the UTC Timezone specifier +00:00.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">utcdatetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="contourset_to_shapely"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.util.contourset_to_shapely.html#mss_dataserver.postprocess.util.contourset_to_shapely">[docs]</a><span class="k">def</span> <span class="nf">contourset_to_shapely</span><span class="p">(</span><span class="n">cs</span><span class="p">):</span>
+    <span class="n">contours</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># Iterate over all collections. Each collection corresponds to a</span>
+    <span class="c1"># contour level.</span>
+    <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">cur_col</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cs</span><span class="o">.</span><span class="n">collections</span><span class="p">):</span>
+        <span class="n">cur_level</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">levels</span><span class="p">[</span><span class="n">m</span><span class="p">]</span>
+        <span class="n">poly_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># Iterate over the paths in the collection</span>
+        <span class="k">for</span> <span class="n">cur_path</span> <span class="ow">in</span> <span class="n">cur_col</span><span class="o">.</span><span class="n">get_paths</span><span class="p">():</span>
+            <span class="c1"># Convert the path to polygons to handle holes in the polygon.</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">cur_poly_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cur_path</span><span class="o">.</span><span class="n">to_polygons</span><span class="p">()):</span>
+                <span class="n">cur_shape</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Polygon</span><span class="p">(</span><span class="n">cur_poly_path</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">cur_poly</span> <span class="o">=</span> <span class="n">cur_shape</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># If a path contains more than one polygon, treat it as</span>
+                    <span class="c1"># a hole and subtract it from the first polygon.</span>
+                    <span class="n">cur_poly</span> <span class="o">=</span> <span class="n">cur_poly</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">cur_shape</span><span class="p">)</span>
+            <span class="n">poly_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_poly</span><span class="p">)</span>
+
+        <span class="n">contours</span><span class="p">[</span><span class="n">cur_level</span><span class="p">]</span> <span class="o">=</span> <span class="n">poly_list</span>
+
+    <span class="k">return</span> <span class="n">contours</span></div>
+
+
+<div class="viewcode-block" id="reproject_polygons"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.util.reproject_polygons.html#mss_dataserver.postprocess.util.reproject_polygons">[docs]</a><span class="k">def</span> <span class="nf">reproject_polygons</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">src_proj</span><span class="p">,</span> <span class="n">dst_proj</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Reproject the coordinates of shapely polygons.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">cur_id</span><span class="p">,</span> <span class="n">cur_row</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">cur_poly</span> <span class="o">=</span> <span class="n">cur_row</span><span class="o">.</span><span class="n">geometry</span>
+        <span class="c1"># Convert the exterior.</span>
+        <span class="n">cur_xy</span> <span class="o">=</span> <span class="n">cur_poly</span><span class="o">.</span><span class="n">exterior</span><span class="o">.</span><span class="n">xy</span>
+        <span class="n">ext_lon</span><span class="p">,</span> <span class="n">ext_lat</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">src_proj</span><span class="p">,</span>
+                                            <span class="n">dst_proj</span><span class="p">,</span>
+                                            <span class="n">cur_xy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                            <span class="n">cur_xy</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># Convert the interiors.</span>
+        <span class="n">cur_int_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">cur_interior</span> <span class="ow">in</span> <span class="n">cur_poly</span><span class="o">.</span><span class="n">interiors</span><span class="p">:</span>
+            <span class="n">cur_xy</span> <span class="o">=</span> <span class="n">cur_interior</span><span class="o">.</span><span class="n">xy</span>
+            <span class="n">cur_lon</span><span class="p">,</span> <span class="n">cur_lat</span> <span class="o">=</span> <span class="n">pyproj</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">src_proj</span><span class="p">,</span>
+                                                <span class="n">dst_proj</span><span class="p">,</span>
+                                                <span class="n">cur_xy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                                <span class="n">cur_xy</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">cur_ring</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">LinearRing</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">cur_lon</span><span class="p">,</span> <span class="n">cur_lat</span><span class="p">))</span>
+            <span class="n">cur_int_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_ring</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cur_int_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cur_int_list</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">proj_poly</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Polygon</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">ext_lon</span><span class="p">,</span> <span class="n">ext_lat</span><span class="p">),</span>
+                                             <span class="n">holes</span> <span class="o">=</span> <span class="n">cur_int_list</span><span class="p">)</span>
+
+        <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">cur_id</span><span class="p">,</span> <span class="s1">&#39;geometry&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">proj_poly</span>
+
+    <span class="c1"># Set the CRS of the dataframe.</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">set_crs</span><span class="p">(</span><span class="n">dst_proj</span><span class="o">.</span><span class="n">crs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+<div class="viewcode-block" id="intensity_to_pgv"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.util.intensity_to_pgv.html#mss_dataserver.postprocess.util.intensity_to_pgv">[docs]</a><span class="k">def</span> <span class="nf">intensity_to_pgv</span><span class="p">(</span><span class="n">intensity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Compute the pgv and intensity values based on the MSS relationship.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">intensity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">k_low</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">d_low</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span>      <span class="c1"># np.log10(0.00001)</span>
+    <span class="n">k_high</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">d_high</span> <span class="o">=</span> <span class="o">-</span><span class="mi">7</span>
+    <span class="n">kink</span> <span class="o">=</span> <span class="mi">4</span>
+
+    <span class="n">intensity_low</span> <span class="o">=</span> <span class="n">intensity</span><span class="p">[</span><span class="n">intensity</span> <span class="o">&lt;=</span> <span class="n">kink</span><span class="p">]</span>
+    <span class="n">pgv_low</span> <span class="o">=</span> <span class="n">d_low</span> <span class="o">+</span> <span class="n">k_low</span> <span class="o">*</span> <span class="n">intensity_low</span>
+
+    <span class="n">intensity_high</span> <span class="o">=</span> <span class="n">intensity</span><span class="p">[</span><span class="n">intensity</span> <span class="o">&gt;</span> <span class="n">kink</span><span class="p">]</span>
+    <span class="n">pgv_high</span> <span class="o">=</span> <span class="n">d_high</span> <span class="o">+</span> <span class="n">k_high</span> <span class="o">*</span> <span class="n">intensity_high</span>
+
+    <span class="n">intensity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">intensity_low</span><span class="p">,</span> <span class="n">intensity_high</span><span class="p">])</span>
+    <span class="n">intensity_pgv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">pgv_low</span><span class="p">,</span> <span class="n">pgv_high</span><span class="p">])</span>
+    <span class="n">intensity_pgv</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="n">intensity_pgv</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">intensity</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
+                      <span class="n">intensity_pgv</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]])</span></div>
+
+
+<div class="viewcode-block" id="pgv_to_intensity"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.util.pgv_to_intensity.html#mss_dataserver.postprocess.util.pgv_to_intensity">[docs]</a><span class="k">def</span> <span class="nf">pgv_to_intensity</span><span class="p">(</span><span class="n">pgv</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Compute the pgv and intensity values based on the MSS relationship.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">pgv</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">pgv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">pgv</span><span class="p">)</span>
+
+    <span class="n">k_low</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">d_low</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">k_high</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">d_high</span> <span class="o">=</span> <span class="mi">7</span>
+    <span class="n">kink</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="mf">1e-3</span><span class="p">)</span>
+
+    <span class="n">pgv_low</span> <span class="o">=</span> <span class="n">pgv</span><span class="p">[</span><span class="n">pgv</span> <span class="o">&lt;=</span> <span class="n">kink</span><span class="p">]</span>
+    <span class="n">intensity_low</span> <span class="o">=</span> <span class="n">d_low</span> <span class="o">+</span> <span class="n">k_low</span> <span class="o">*</span> <span class="n">pgv_low</span>
+
+    <span class="n">pgv_high</span> <span class="o">=</span> <span class="n">pgv</span><span class="p">[</span><span class="n">pgv</span> <span class="o">&gt;</span> <span class="n">kink</span><span class="p">]</span>
+    <span class="n">intensity_high</span> <span class="o">=</span> <span class="n">d_high</span> <span class="o">+</span> <span class="n">k_high</span> <span class="o">*</span> <span class="n">pgv_high</span>
+
+    <span class="n">pgv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">pgv_low</span><span class="p">,</span> <span class="n">pgv_high</span><span class="p">])</span>
+    <span class="n">intensity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">intensity_low</span><span class="p">,</span> <span class="n">intensity_high</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="mi">10</span><span class="o">**</span><span class="n">pgv</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
+                      <span class="n">intensity</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]])</span></div>
+
+
+<div class="viewcode-block" id="compute_pgv_krigging"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.util.compute_pgv_krigging.html#mss_dataserver.postprocess.util.compute_pgv_krigging">[docs]</a><span class="k">def</span> <span class="nf">compute_pgv_krigging</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span>
+                         <span class="n">nlags</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                         <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">enable_plotting</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Kriging of the pgv data. &#39;&#39;&#39;</span>
+        <span class="n">buffer</span> <span class="o">=</span> <span class="mi">10000</span>
+        <span class="n">x_lims</span> <span class="o">=</span> <span class="p">[</span><span class="mf">548828.0</span><span class="p">,</span> <span class="mf">655078.0</span><span class="p">]</span>
+        <span class="n">y_lims</span> <span class="o">=</span> <span class="p">[</span><span class="mf">5257810.0</span><span class="p">,</span> <span class="mf">5342810.0</span><span class="p">]</span>
+        <span class="n">x_lims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_lims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">buffer</span>
+        <span class="n">x_lims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_lims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">buffer</span>
+        <span class="n">y_lims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_lims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">buffer</span>
+        <span class="n">y_lims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_lims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">buffer</span>
+        <span class="n">grid_delta</span> <span class="o">=</span> <span class="mf">100.0</span>
+        <span class="n">grid_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">x_lims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_lims</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid_delta</span><span class="p">)</span>
+        <span class="n">grid_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">y_lims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y_lims</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">grid_delta</span><span class="p">)</span>
+
+        <span class="n">krig_ok</span> <span class="o">=</span> <span class="n">pk</span><span class="o">.</span><span class="n">ok</span><span class="o">.</span><span class="n">OrdinaryKriging</span><span class="p">(</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">,</span>
+                                        <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">,</span>
+                                        <span class="n">z</span> <span class="o">=</span> <span class="n">z</span><span class="p">,</span>
+                                        <span class="n">variogram_model</span> <span class="o">=</span> <span class="s1">&#39;linear&#39;</span><span class="p">,</span>
+                                        <span class="n">variogram_parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;nugget&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                                                                <span class="s1">&#39;slope&#39;</span><span class="p">:</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">750</span><span class="p">},</span>
+                                        <span class="n">nlags</span> <span class="o">=</span> <span class="n">nlags</span><span class="p">,</span>
+                                        <span class="n">weight</span> <span class="o">=</span> <span class="n">weight</span><span class="p">,</span>
+                                        <span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span><span class="p">,</span>
+                                        <span class="n">enable_plotting</span> <span class="o">=</span> <span class="n">enable_plotting</span><span class="p">,</span>
+                                        <span class="n">exact_values</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                                        <span class="n">pseudo_inv</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">krig_z</span><span class="p">,</span> <span class="n">krig_sigmasq</span> <span class="o">=</span> <span class="n">krig_ok</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">style</span> <span class="o">=</span> <span class="s1">&#39;grid&#39;</span><span class="p">,</span>
+                                               <span class="n">xpoints</span> <span class="o">=</span> <span class="n">grid_x</span><span class="p">,</span>
+                                               <span class="n">ypoints</span> <span class="o">=</span> <span class="n">grid_y</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">krig_z</span><span class="p">,</span> <span class="n">krig_sigmasq</span><span class="p">,</span> <span class="n">grid_x</span><span class="p">,</span> <span class="n">grid_y</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Stefan Mertl.
+      <span class="lastupdated">
+        Last updated on 2021-04-30 14:28.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

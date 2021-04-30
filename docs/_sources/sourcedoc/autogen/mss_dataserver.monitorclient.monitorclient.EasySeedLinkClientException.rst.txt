@@ -1,0 +1,6 @@
+mss_dataserver.monitorclient.monitorclient.EasySeedLinkClientException
+======================================================================
+
+.. currentmodule:: mss_dataserver.monitorclient.monitorclient
+
+.. autoexception:: EasySeedLinkClientException

@@ -1,0 +1,7 @@
+compute_pgv_res
+========================================================================
+
+.. currentmodule:: mss_dataserver.monitorclient.monitorclient
+.. automethod:: MonitorClient.compute_pgv_res
+
+

@@ -1,0 +1,7 @@
+get_triggered_stations
+===============================================================================
+
+.. currentmodule:: mss_dataserver.monitorclient.monitorclient
+.. automethod:: MonitorClient.get_triggered_stations
+
+

@@ -1,0 +1,7 @@
+seedlink_connect
+=========================================================================
+
+.. currentmodule:: mss_dataserver.monitorclient.monitorclient
+.. automethod:: MonitorClient.seedlink_connect
+
+

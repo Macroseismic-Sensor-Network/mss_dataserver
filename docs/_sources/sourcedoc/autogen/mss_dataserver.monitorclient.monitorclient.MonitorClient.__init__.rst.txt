@@ -1,0 +1,7 @@
+__init__
+=================================================================
+
+.. currentmodule:: mss_dataserver.monitorclient.monitorclient
+.. automethod:: MonitorClient.__init__
+
+

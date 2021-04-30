@@ -1,0 +1,6 @@
+mss_dataserver.test.util.drop_database_tables
+=============================================
+
+.. currentmodule:: mss_dataserver.test.util
+
+.. autofunction:: drop_database_tables

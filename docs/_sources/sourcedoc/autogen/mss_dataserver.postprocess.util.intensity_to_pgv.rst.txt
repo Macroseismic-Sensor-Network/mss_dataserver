@@ -1,0 +1,6 @@
+mss_dataserver.postprocess.util.intensity_to_pgv
+================================================
+
+.. currentmodule:: mss_dataserver.postprocess.util
+
+.. autofunction:: intensity_to_pgv

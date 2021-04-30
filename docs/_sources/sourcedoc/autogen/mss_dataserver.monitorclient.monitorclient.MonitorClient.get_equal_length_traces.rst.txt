@@ -1,0 +1,7 @@
+get_equal_length_traces
+================================================================================
+
+.. currentmodule:: mss_dataserver.monitorclient.monitorclient
+.. automethod:: MonitorClient.get_equal_length_traces
+
+

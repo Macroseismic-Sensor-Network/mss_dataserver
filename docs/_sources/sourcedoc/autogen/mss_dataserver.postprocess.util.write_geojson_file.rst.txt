@@ -1,0 +1,6 @@
+mss_dataserver.postprocess.util.write_geojson_file
+==================================================
+
+.. currentmodule:: mss_dataserver.postprocess.util
+
+.. autofunction:: write_geojson_file

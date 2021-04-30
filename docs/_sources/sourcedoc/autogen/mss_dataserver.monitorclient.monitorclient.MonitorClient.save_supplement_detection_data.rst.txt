@@ -1,0 +1,7 @@
+save_supplement_detection_data
+=======================================================================================
+
+.. currentmodule:: mss_dataserver.monitorclient.monitorclient
+.. automethod:: MonitorClient.save_supplement_detection_data
+
+

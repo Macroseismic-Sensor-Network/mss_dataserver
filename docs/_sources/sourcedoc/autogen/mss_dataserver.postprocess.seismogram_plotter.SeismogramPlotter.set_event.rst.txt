@@ -1,0 +1,7 @@
+set_event
+=========================================================================
+
+.. currentmodule:: mss_dataserver.postprocess.seismogram_plotter
+.. automethod:: SeismogramPlotter.set_event
+
+

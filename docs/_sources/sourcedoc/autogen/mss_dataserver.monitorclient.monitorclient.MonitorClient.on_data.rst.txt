@@ -1,0 +1,7 @@
+on_data
+================================================================
+
+.. currentmodule:: mss_dataserver.monitorclient.monitorclient
+.. automethod:: MonitorClient.on_data
+
+

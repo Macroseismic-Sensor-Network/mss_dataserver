@@ -1,0 +1,6 @@
+mss_dataserver.postprocess.util.event_dir_from_publicid
+=======================================================
+
+.. currentmodule:: mss_dataserver.postprocess.util
+
+.. autofunction:: event_dir_from_publicid

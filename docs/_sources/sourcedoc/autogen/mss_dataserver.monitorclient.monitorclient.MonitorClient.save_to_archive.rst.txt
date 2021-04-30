@@ -1,0 +1,7 @@
+save_to_archive
+========================================================================
+
+.. currentmodule:: mss_dataserver.monitorclient.monitorclient
+.. automethod:: MonitorClient.save_to_archive
+
+
