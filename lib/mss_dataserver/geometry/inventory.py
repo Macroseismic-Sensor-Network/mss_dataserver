@@ -1655,6 +1655,33 @@ class RecorderStream(object):
 
 class RecorderStreamParameter(object):
     ''' Parameters of a recorder stream.
+
+    Parameters
+    ----------
+    start_time: str or :class:`~obspy.core.utcdatetime.UTCDateTime`
+        The start time of the timespan to search.
+
+    end_time: str or :class:`~obspy.core.utcdatetime.UTCDateTime`
+        The end time of the timespan to search.
+
+    gain: float
+        The gain of the stream.
+
+    bitweight: float
+        The bitweight of the stream.
+
+    author_uri: string
+        The author_uri of the stream.
+
+    agency_uri: String
+        The agency_uri of the stream.
+
+    creation_time: str or :class:`obspy.UTCDateTime`
+        The creation time of the event. A string that can be parsed
+        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance
+
+    parent_recorder_stream: :class:`RecorderStream`
+        The RecorderStream containing the parameter.
     '''
 
     def __init__(self, start_time, end_time = None,
@@ -1712,6 +1739,8 @@ class RecorderStreamParameter(object):
 
     @property
     def parent_inventory(self):
+        ''' :class:`Inventory`: The inventory containing the parameter.
+        '''
         if self.parent_recorder_stream is not None:
             return self.parent_recorder_stream.parent_inventory
         else:
@@ -1719,6 +1748,8 @@ class RecorderStreamParameter(object):
 
     @property
     def rec_stream_id(self):
+        ''' int: The databases id of the parent recorder stream.
+        '''
         try:
             return self.parent_recorder_stream.id
         except Exception:
@@ -1727,6 +1758,8 @@ class RecorderStreamParameter(object):
 
     @property
     def start_time_string(self):
+        ''' str: The start time of the parameter.
+        '''
         if self.start_time is None:
             return 'big bang'
         else:
@@ -1735,6 +1768,8 @@ class RecorderStreamParameter(object):
 
     @property
     def end_time_string(self):
+        ''' str: The end time of the parameter.
+        '''
         if self.end_time is None:
             return 'running'
         else:
@@ -1747,6 +1782,32 @@ class RecorderStreamParameter(object):
 class Sensor(object):
     ''' A seismic sensor.
 
+    Parameters
+    ----------
+    serial: str
+        The serial number of the sensor.
+
+    model: str
+        The model name or number of the sensor.
+
+    producer: str
+        The name of the producer of the sensor.
+
+    description: str 
+        A description of the sensor.
+
+    author_uri: string
+        The author_uri of the sensor.
+
+    agency_uri: String
+        The agency_uri of the sensor.
+
+    creation_time: str or :class:`obspy.UTCDateTime`
+        The creation time of the event. A string that can be parsed
+        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance
+
+    parent_inventory: :class:`Inventory`
+        The inventory instance containing the sensor.
     '''
 
     def __init__(self, serial, model, producer, description = None,
@@ -1803,8 +1864,12 @@ class Sensor(object):
 
         Parameters
         ----------
-        component_to_add : :class:`SensorComponent`
+        component_to_add: :class:`SensorComponent`
             The component to add to the sensor.
+
+        Returns
+        -------
+        :class:`SensorComponent`: The component added.
         '''
         added_component = None
         if component_to_add not in self.components:
@@ -1828,6 +1893,10 @@ class Sensor(object):
 
         author_uri : string
             The author_uri of the component.
+
+        Returns
+        -------
+        :class:`SensorComponent`: The component matching the search criteria.
         '''
         ret_component = self.components
 
@@ -1844,6 +1913,16 @@ class Sensor(object):
 
     def pop_component_by_instance(self, component):
         ''' Remove a component from the sensor using the component instance.
+
+        Parameters
+        ----------
+        component: :class:`SensorComponent`
+            The component to remove.
+
+        Returns
+        -------
+        :class:`SensorComponent`: The removed component.
+
         '''
         removed_component = None
         if not component.assigned_streams:
@@ -1860,18 +1939,18 @@ class Sensor(object):
 
         Parameters
         ----------
-        name : String
+        name: str 
             The name of the component.
 
-        agency_uri : String
+        agency_uri: str 
             The agency_uri of the component.
 
-        author_uri : string
+        author_uri: str 
             The author_uri of the component.
 
         Returns
         -------
-        components_popped : List of :class:`SensorComponent`
+        components_popped : :obj:`list` of :class:`SensorComponent`
             The removed components.
         '''
         components_popped = []
@@ -1886,6 +1965,11 @@ class Sensor(object):
 
     def merge(self, merge_sensor):
         ''' Merge a sensor to the existing.
+
+        Parameters
+        ----------
+        merge_sensor: :class:`Sensor`
+            The sensor to merge.
         '''
         # Update the attributes.
         self.description = merge_sensor.description
