@@ -894,6 +894,38 @@ class Inventory(object):
 
 class Recorder(object):
     ''' A seismic data recorder.
+
+    Representation of a seismic data recorder which provides a list of data streams.
+
+    Parameters
+    ----------
+    serial: str
+        The serial number of the recorder.
+
+    model: str
+        The model name or number of the recorder.
+
+    producer: str
+        The name of the producer of the recorder.
+
+    description: str 
+        A description of the recorder.
+
+    id: int
+        The database if of the recorder.
+
+    parent_inventory: :class:`Inventory`
+        The inventory instance containing the recorder.
+
+    author_uri: string
+        The author_uri of the stream.
+
+    agency_uri: String
+        The agency_uri of the stream.
+
+    creation_time: str or :class:`obspy.UTCDateTime`
+        The creation time of the event. A string that can be parsed
+        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance
     '''
 
     def __init__(self, serial, model, producer, description = None, id=None, parent_inventory=None,
@@ -974,7 +1006,7 @@ class Recorder(object):
 
         Parameters
         ----------
-        stream : :class:`Stream`
+        stream: :class:`Stream`
             The stream to add to the recorder.
         '''
         added_stream = None
@@ -988,6 +1020,11 @@ class Recorder(object):
 
     def pop_stream_by_instance(self, stream):
         ''' Remove a component from the sensor using the component instance.
+
+        Parameters
+        ----------
+        stream: :class:`Stream`
+            The stream to remove.
         '''
         removed_stream = None
         if not stream.assigned_channels:
@@ -1004,21 +1041,21 @@ class Recorder(object):
 
         Parameters
         ----------
-        name : String
+        name: String
             The name of the stream.
 
-        label : String
+        label: String
             The label of the stream.
 
-        agency_uri : String
+        agency_uri: String
             The agency_uri of the stream.
 
-        author_uri : string
+        author_uri: string
             The author_uri of the stream.
 
         Returns
         -------
-        streams_popped : List of :class:`Stream`
+        streams_popped: List of :class:`Stream`
             The removed streams.
         '''
         streams_popped = []
@@ -1036,17 +1073,23 @@ class Recorder(object):
 
         Parameters
         ----------
-        name : String
+        name: String
             The name of the stream.
 
-        label : String
+        label: String
             The label of the stream.
 
-        agency_uri : String
+        agency_uri: String
             The agency_uri of the stream.
 
-        author_uri : string
+        author_uri: string
             The author_uri of the stream.
+
+        Returns
+        -------
+        :obj:`list` of :class:`RecorderStream`
+            The recorder streams matching the search criteria.
+
         '''
         ret_stream = self.streams
 
@@ -1063,6 +1106,12 @@ class Recorder(object):
 
     def merge(self, merge_recorder):
         ''' Merge a recorder with the existing.
+
+        Parameters
+        ----------
+        merge_recorder: :class:`Recorder`
+            The recorder to merge.
+
         '''
         # Update the attributes.
         self.description = merge_recorder.description
@@ -1083,6 +1132,36 @@ class Recorder(object):
 
 class RecorderStream(object):
     ''' A digital stream of a data recorder.
+
+    Parameters
+    ----------
+    name: str 
+        The name of the stream.
+
+    label: str 
+        The label of the stream.
+
+    author_uri: string
+        The author_uri of the stream.
+
+    agency_uri: String
+        The agency_uri of the stream.
+
+    creation_time: str or :class:`obspy.UTCDateTime`
+        The creation time of the event. A string that can be parsed
+        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance
+
+    parent_recorder: :class:`Recorder`
+        The recorder containing the stream.
+
+    
+    Attributes
+    ----------
+    components: :obj:`list` of :class:`TimeBox`
+        TimeBox instances holding the components assigned to the stream.
+
+    parameters: :obj:`list` of :class:`RecorderStreamParameter`
+        The parameters of the stream.
     '''
 
     def __init__(self, name, label,
@@ -1128,6 +1207,8 @@ class RecorderStream(object):
 
     @property
     def parent_inventory(self):
+        ''' :class:`Inventory`: The inventory containing the stream.
+        '''
         if self.parent_recorder is not None:
             return self.parent_recorder.parent_inventory
         else:
@@ -1136,6 +1217,8 @@ class RecorderStream(object):
 
     @property
     def serial(self):
+        ''' str: The serial number of the parent recorder.
+        '''
         if self.parent_recorder is not None:
             return self.parent_recorder.serial
         else:
@@ -1144,6 +1227,8 @@ class RecorderStream(object):
 
     @property
     def model(self):
+        ''' str: The model of the parent recorder.
+        '''
         if self.parent_recorder is not None:
             return self.parent_recorder.model
         else:
@@ -1151,6 +1236,8 @@ class RecorderStream(object):
 
     @property
     def producer(self):
+        ''' str: The producer of the parent recorder.
+        '''
         if self.parent_recorder is not None:
             return self.parent_recorder.producer
         else:
@@ -1159,6 +1246,8 @@ class RecorderStream(object):
 
     @property
     def assigned_channels(self):
+        ''' :obj:`list` of :class:`Channel`: The channels to which the stream is assigned to.
+        '''
         # The channels to which the stream is assigned to.
         assigned_channels = []
         station_list = self.parent_inventory.get_station()
@@ -1197,6 +1286,12 @@ class RecorderStream(object):
             return False
 
     def as_dict(self, style = None):
+        ''' Get a dictionary representation of the instance.
+
+        Returns
+        -------
+        :obj:`dict`: A dictionary representation of the instance.
+        '''
         export_attributes = ['name', 'label', 'serial', 'model', 'producer',
                              'author_uri', 'agency_uri', 'creation_time']
 
@@ -1215,23 +1310,27 @@ class RecorderStream(object):
 
         Parameters
         ----------
-        serial : String
+        serial:  str
             The serial number of the sensor which holds the component.
 
-        model : String
+        model: str
             The model of the sensor which holds the component.
 
-        producer : String
+        producer: str
             The producer of the sensor which holds the component.
 
-        name : String
+        name: str
             The name of the component.
 
-        start_time : :class:`obspy.core.utcdatetime.UTCDateTime`
+        start_time: :class:`obspy.core.utcdatetime.UTCDateTime`
             The time from which on the sensor has been operating at the station.
 
-        end_time : :class:`obspy.core.utcdatetime.UTCDateTime`
+        end_time: :class:`obspy.core.utcdatetime.UTCDateTime`
             The time up to which the sensor has been operating at the station. "None" if the station is still running.
+
+        Returns
+        -------
+        :class:`SensorComponent`: The sensor component added to the stream.
         '''
         if self.parent_inventory is None:
             raise RuntimeError('The stream needs to be part of an inventory before a sensor can be added.')
@@ -1289,6 +1388,11 @@ class RecorderStream(object):
     def remove_component_by_instance(self, timebox):
         ''' Remove a component from the stream.
 
+        Parameters
+        ----------
+        timebox: :class:`TimeBox`
+            The timebox containing the component to remove.
+
         '''
         if timebox in self.components:
             self.components.remove(timebox)
@@ -1296,27 +1400,36 @@ class RecorderStream(object):
 
     def remove_parameter_by_instance(self, parameter):
         ''' Remove a parameter from the stream.
+
+        Parameters
+        ----------
+        parameter: :class:`RecorderStreamParameter`
+            The parameter to remove.
         '''
         if parameter in self.parameters:
             self.parameters.remove(parameter)
 
 
     def get_component(self, start_time = None, end_time = None, **kwargs):
-        ''' Get a sensor from the stream.
+        ''' Get a component from the stream.
 
         Parameters
         ----------
-        name : String
+        name: str 
             The name of the component.
 
-        serial : String
+        serial: str 
             The serial of the sensor containing the component.
 
-        start_time : :class:`~obspy.core.utcdatetime.UTCDateTime`
+        start_time: :class:`~obspy.core.utcdatetime.UTCDateTime`
             The start time of the timespan to return.
 
-        end_time : :class:`~obspy.core.utcdatetime.UTCDateTime`
+        end_time: :class:`~obspy.core.utcdatetime.UTCDateTime`
             The end time of the timespan to return.
+
+        Returns
+        -------
+        :class:`SensorComponent`: The sensor component matching the search criteria.
 
         '''
         ret_component = self.components
@@ -1343,8 +1456,12 @@ class RecorderStream(object):
 
         Parameters
         ----------
-        parameter_to_add : :class:`RecorderStreamParameter`
+        parameter_to_add: :class:`RecorderStreamParameter`
             The recorder stream parameter to add to the stream.
+
+        Returns
+        -------
+        :class:`RecorderStreamParameter`: The recorder stream parameter added.
         '''
         added_parameter = None
         if not self.get_parameter(start_time = parameter_to_add.start_time,
@@ -1362,6 +1479,17 @@ class RecorderStream(object):
     def get_parameter(self, start_time = None, end_time = None):
         ''' Get parameter for a given timespan.
 
+        Parameters
+        ----------
+        start_time: :class:`~obspy.core.utcdatetime.UTCDateTime`
+            The start time of the timespan to search.
+
+        end_time: :class:`~obspy.core.utcdatetime.UTCDateTime`
+            The end time of the timespan to search.
+
+        Returns
+        -------
+        :class:`RecorderStreamParameter`: The recorder stream parameter matching the search criteria.
         '''
         ret_parameter = self.parameters
 
@@ -1383,6 +1511,10 @@ class RecorderStream(object):
         ----------
         pos : String
             The postion of the list of the next free time slot ('front', 'back', 'both').
+
+        Returns
+        -------
+        :obj:`tuple` of :class:`~obspy.core.utcdatetime.UTCDateTime`: The next free timeslot.
         '''
         if self.parameters:
             last_parameter = sorted(self.parameters, key = attrgetter('start_time'))[-1]
@@ -1420,6 +1552,10 @@ class RecorderStream(object):
         ----------
         pos : String
             The postion of the list of the next free time slot ('front', 'back', 'both').
+
+        Returns
+        -------
+        :obj:`tuple` of :class:`~obspy.core.utcdatetime.UTCDateTime`: The next free timeslot.
         '''
         if self.components:
             last_component = sorted(self.components, key = attrgetter('start_time'))[-1]
@@ -1452,6 +1588,11 @@ class RecorderStream(object):
 
     def merge(self, merge_stream):
         ''' Merge a stream.
+
+        Parameters
+        ----------
+        merge_stream: :class:`RecorderStream`
+            The recorder stream to merge with the existing.
         '''
         # Update the attributes.
         self.label = merge_stream.label
