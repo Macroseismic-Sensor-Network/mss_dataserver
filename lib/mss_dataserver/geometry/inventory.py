@@ -2367,13 +2367,13 @@ class SensorComponentParameter(object):
         The sensor component to which the parameters are related to.
 
     author_uri: string
-        The author_uri of the sensor.
+        The author_uri of the instance.
 
     agency_uri: String
-        The agency_uri of the sensor.
+        The agency_uri of the instance.
 
     creation_time: str or :class:`obspy.UTCDateTime`
-        The creation time of the event. A string that can be parsed
+        The creation time of the instance. A string that can be parsed
         by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance
 
     '''
@@ -2585,14 +2585,56 @@ class SensorComponentParameter(object):
         self.tf_poles.append(pole)
 
 
-
-## The station class.
-#
 class Station(object):
+    ''' A seismic station.
 
-    ## The constructor.
-    #
-    # @param self The object pointer.
+    Parameters
+    ----------
+    name: str 
+        The name of the station.
+
+    location: str 
+        The location of the station.
+
+    x: float
+        The x coordinate of the station.
+
+    y: float
+        The y coordinate of the station.
+
+    z: float
+        The z coordinate of the station.
+
+    parent_network: :class:`Network`
+        The network to which the station is assigned to.
+
+    coord_system: str 
+        The coordinate system in which the x/y/z coordinates are given.
+        The coord_system string should be a valid EPSG code.@n 
+        See http://www.epsg-registry.org/ to find your EPSG code.
+
+    description: str 
+        The description of the station.
+
+    id: int
+        The database id of the station.
+
+    author_uri: string
+        The author_uri of the instance.
+
+    agency_uri: String
+        The agency_uri of the instance.
+
+    creation_time: str or :class:`obspy.UTCDateTime`
+        The creation time of the instance. A string that can be parsed
+        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance    
+
+
+    Attributes
+    ----------
+    channels: :obj:`list` of :class:`Channel`
+        The channels assigend to the station.
+    '''
     def __init__(self, name, location, x, y, z,
             parent_network=None, coord_system=None, description=None, id=None,
             author_uri = None, agency_uri = None, creation_time = None):
@@ -2680,6 +2722,8 @@ class Station(object):
 
     @property
     def network(self):
+        ''' :class:`Network`: The network to which the station is assigend to.
+        '''
         if self.parent_network is not None:
             return self.parent_network.name
         else:
@@ -2687,14 +2731,20 @@ class Station(object):
 
     @property
     def nsl(self):
+        ''' :obj:`tuple` of str: The Network:Station:Location code.
+        '''
         return (self.network, self.name, self.location)
 
     @property
     def nsl_string(self):
+        ''' str: the Network:Station:Location code.
+        '''
         return str.join(':', self.nsl)
 
     @property
     def parent_inventory(self):
+        ''' :class:`Inventory`: The inventory which contains the station.
+        '''
         if self.parent_network is not None:
             return self.parent_network.parent_inventory
         else:
@@ -2702,6 +2752,9 @@ class Station(object):
 
     @property
     def location_string(self):
+        ''' str: The string representation of the location. Returns '--' if the location
+                 is None.
+        '''
         if self.location is None:
             return '--'
         else:
@@ -2709,6 +2762,8 @@ class Station(object):
 
     @property
     def available_channels_string(self):
+        ''' str: The string representatin of the available channels.
+        '''
         if self.channels:
             return str.join(',', sorted([x.name for x in self.channels]))
         else:
@@ -2716,7 +2771,7 @@ class Station(object):
 
     @property
     def assigned_recorders(self):
-        ''' The unique recorders assigned to the station.
+        ''' :obj:`list` of :class:`Recorder`: The unique recorders assigned to the station.
         '''
         recorders = []
         for cur_channel in self.channels:
@@ -2728,6 +2783,8 @@ class Station(object):
 
     @property
     def assigned_recorders_string(self):
+        ''' str: The string representation of the unique recorders assigned to the station.
+        '''
         recorders = []
         for cur_channel in self.channels:
             recorders.extend(cur_channel.assigned_recorders)
@@ -2741,6 +2798,8 @@ class Station(object):
 
     @property
     def assigned_sensors_string(self):
+        ''' str: The string representation of the assigned sensor components.
+        '''
         sensor_components = []
         for cur_channel in self.channels:
             for cur_stream in cur_channel.streams:
@@ -2775,6 +2834,12 @@ class Station(object):
             return False
 
     def as_dict(self, style = None):
+        ''' Get a dictionary representation of the instance.
+
+        Returns
+        -------
+        :obj:`dict`: A dictionary representation of the instance.
+        '''
         export_attributes = ['name', 'location', 'description',
                              'x', 'y', 'z', 'coord_system',
                              'author_uri', 'agency_uri', 'creation_time']
@@ -2794,6 +2859,10 @@ class Station(object):
 
 
     def get_nslc(self):
+        ''' DEPRECATED. This method doesn't work.
+
+        TODO: Check for removal.
+        '''
         nslc = []
         for cur_sensor, start_time, end_time in self.sensors:
             cur_nslc = (self.network, self.station,
@@ -2805,8 +2874,11 @@ class Station(object):
 
 
     def get_lon_lat(self):
-        '''
-        Return the coordinate system as WGS84 longitude latitude tuples.
+        ''' Get the coordinates as WGS84 longitude latitude tuples.
+
+        Returns
+        -------
+        :obj:`tuple` of float: (Longitude, Latitude)
         '''
         # TODO: Add a check for valid epsg string.
 
@@ -2829,8 +2901,12 @@ class Station(object):
 
         Parameters
         ----------
-        cur_channel : :class:`Channel`
+        cur_channel: :class:`Channel`
             The channel to add to the station.
+
+        Returns
+        -------
+        :class:`Channel`: The channel added.
         '''
         added_channel = None
         if not self.get_channel(name = cur_channel.name):
@@ -2844,6 +2920,11 @@ class Station(object):
 
     def remove_channel_by_instance(self, channel):
         ''' Remove a channel instance from the station.
+
+        Parameters
+        ----------
+        channel: :class:`Channel`
+            The channel to remove.
         '''
         if channel in self.channels:
             self.channels.remove(channel)
@@ -2857,6 +2938,10 @@ class Station(object):
         ----------
         name : String
             The name of the channel.
+
+        Returns
+        -------
+        :obj:`list` of :class:`Channle`: The channels matching the search criteria.
         '''
         ret_channel = self.channels
 
@@ -2872,6 +2957,13 @@ class Station(object):
 
 
     def get_unique_channel_names(self):
+        ''' Get a list of unique channel names.
+        
+        Returns
+        -------
+        :obj:`list` of str: The unique channel names.
+        '''
+        
         channel_names = []
 
         for cur_channel, start, end in self.channels:
@@ -2883,6 +2975,11 @@ class Station(object):
 
     def merge(self, merge_station):
         ''' Merge a station into the existing one.
+
+        Parameters
+        ----------
+        merge_station: :class:`Station`
+            The station to merge with the existing instance.
         '''
         # Update the attributes.
         self.description = merge_station.description
