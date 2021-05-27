@@ -1992,6 +1992,48 @@ class Sensor(object):
 
 class SensorComponent(object):
     ''' A component of a seismic sensor.
+
+    A seismic sensor may have multiple components. Usually, one component is
+    related to one spatial direction. A 3-component geophone has 3 sensor 
+    components oriented along an orthogonal coordinate system.
+    
+
+    Parameters
+    ----------
+    name: str 
+        The name of the sensor component.
+
+    description: str 
+        The description of the sensor component.
+
+    input_unit: str 
+        The physical unit of the sensor input domain (e.g. m).
+
+    output_unit: str
+        The physical unit of the sensor output domain (e.g. m/s).
+
+    deliver_unit: str 
+        The unit of the measureable signal which is proportional to the 
+        output unit (e.g. V).
+
+    author_uri: string
+        The author_uri of the sensor.
+
+    agency_uri: String
+        The agency_uri of the sensor.
+
+    creation_time: str or :class:`obspy.UTCDateTime`
+        The creation time of the event. A string that can be parsed
+        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance
+
+    parent_sensor: :class:`Sensor`
+        The sensor containing the component.
+
+
+    Attributes
+    ----------
+    parameters: :obj:list of :class:`SensorComponentParameter`
+        The sensor component parameters.
     '''
 
     def __init__(self, name, description = None,
@@ -2045,6 +2087,8 @@ class SensorComponent(object):
 
     @property
     def parent_inventory(self):
+        ''' :class:`Inventory`: The inventory holding the sensor component.
+        '''
         if self.parent_sensor is not None:
             return self.parent_sensor.parent_inventory
         else:
@@ -2052,6 +2096,8 @@ class SensorComponent(object):
 
     @property
     def serial(self):
+        ''' str: The parent sensor serial.
+        '''
         if self.parent_sensor is not None:
             return self.parent_sensor.serial
         else:
@@ -2059,6 +2105,8 @@ class SensorComponent(object):
 
     @property
     def model(self):
+        ''' str: The parent sensor model.
+        '''
         if self.parent_sensor is not None:
             return self.parent_sensor.model
         else:
@@ -2066,15 +2114,17 @@ class SensorComponent(object):
 
     @property
     def producer(self):
+        ''' str: The parent sensor producer.
+        '''
         if self.parent_sensor is not None:
             return self.parent_sensor.producer
         else:
             return None
 
-
-
     @property
     def assigned_streams(self):
+        ''' :obj:list of :class:`RecorderStream`: The recorder streams to which the component is assigned to.
+        '''
         # Check if the component is assigned to a recorder stream.
         assigned_streams = []
         recorder_list = self.parent_inventory.get_recorder()
@@ -2112,12 +2162,16 @@ class SensorComponent(object):
 
 
     def add_parameter(self, parameter_to_add):
-        ''' Add a sensor paramter instance to the sensor.
+        ''' Add a sensor component paramter instance to the sensor component.
 
         Parameters
         ----------
-        parameter_to_add : :class:`SensorParameter`
-            The sensor parameter instance to be added.
+        parameter_to_add: :class:`SensorComponentParameter`
+            The sensor component parameter instance to be added.
+
+        Returns
+        -------
+        :class:`SensorComponentParameter`: The sensor component parameter added.
         '''
         added_parameter = None
         if not self.get_parameter(start_time = parameter_to_add.start_time,
@@ -2133,17 +2187,30 @@ class SensorComponent(object):
 
     def remove_parameter(self, parameter_to_remove):
         ''' Remove a parameter from the component.
+
+        Parameters
+        ----------
+        parameter_to_remove: :class:`SensorComponentParameter`
+            The sensor component parameter to remove.
         '''
         self.parameters.remove(parameter_to_remove)
 
 
 
     def get_parameter(self, start_time = None, end_time = None):
-        ''' Get a sensor from the recorder.
+        ''' Get sensor component parameters.
 
         Parameters
         ----------
+        start_time: :class:`obspy.UTCDateTime`
+            The start time of the time period to search.
+        
+        end_time: :class:`obspy.UTCDateTime`
+            The end time of the time period to search.
 
+        Returns
+        -------
+        :obj:`list` of :class:`SensorComponentParameter`: The sensor component parameters active during the given time period.
         '''
         parameter = self.parameters
 
@@ -2160,6 +2227,20 @@ class SensorComponent(object):
 
 
     def change_parameter_start_time(self, position, start_time):
+        ''' Change a parameter start time.
+
+        Parameters
+        ----------
+        position: int 
+            The position of the parameter to change in the parameters list.
+
+        start_time: :class:`obspy.UTCDateTime`
+            The new start time of the parameter.
+
+        Returns
+        -------
+        :obj:`tuple` (:class:`obspy.UTCDateTime`, str): The new start time an a message string.)
+        '''
         msg = ''
         cur_row = self.parameters[position]
 
@@ -2182,6 +2263,20 @@ class SensorComponent(object):
 
 
     def change_parameter_end_time(self, position, end_time):
+        ''' Change a parameter end time.
+        
+        Parameters
+        ----------
+        position: int 
+            The position of the parameter to change in the parameters list.
+
+        end_time: :class:`obspy.UTCDateTime`
+            The new end time of the parameter.
+
+        Returns
+        -------
+        :obj:`tuple` (:class:`obspy.UTCDateTime`, str): The new end time an a message string.)
+        '''
         msg = ''
         cur_row = self.parameters[position]
 
@@ -2214,7 +2309,12 @@ class SensorComponent(object):
 
 
     def merge(self, merge_component):
-        ''' Merge the components.
+        ''' Merge two components.
+
+        Parameters
+        ----------
+        merge_component: :class:`SensorComponent`
+            The sensor component to merge with the existing instance.
         '''
         # Update the attributes.
         self.description = merge_component.description
@@ -2228,10 +2328,6 @@ class SensorComponent(object):
 
         for cur_parameter in merge_component.parameters:
             self.add_parameter(cur_parameter)
-
-
-
-
 
 
 
