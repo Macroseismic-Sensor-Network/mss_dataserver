@@ -3933,14 +3933,24 @@ class Array(object):
 class TimeBox(object):
     ''' A container to hold an instance with an assigned time-span.
 
+    Parameters
+    ----------
+    item: object
+        The timebox content.
+
+    start_time: :class:`obspy.UTCDateTime`
+        The start time of the timebox container.
+
+    end_time: :class:`obspy.UTCDateTime`
+        The end time of the timebox container. None if no end exists.
+
+    parent: object
+        The instance containing the timebox.
+
     '''
 
     def __init__(self, item, start_time, end_time = None, parent = None):
         ''' Initialize the instance.
-
-        Parameters
-        ----------
-
         '''
         # The instance holding the time-box.
         self.parent = parent
@@ -3974,6 +3984,8 @@ class TimeBox(object):
 
     @property
     def start_time_string(self):
+        ''' str: The string representation of the start time.
+        '''
         if self.start_time is None:
             return 'big bang'
         else:
@@ -3981,12 +3993,20 @@ class TimeBox(object):
 
     @property
     def end_time_string(self):
+        ''' str: The string representation of the end time.
+        '''
         if self.end_time is None:
             return 'running'
         else:
             return self.end_time.isoformat()
 
     def as_dict(self, style = None):
+        ''' Get a dictionary representation of the instance.
+
+        Returns
+        -------
+        :obj:`dict`: A dictionary representation of the instance.
+        '''
         export_attributes = ['start_time',
                              'end_time']
 
