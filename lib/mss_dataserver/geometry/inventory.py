@@ -2331,12 +2331,52 @@ class SensorComponent(object):
 
 
 
-## The sensor parameter class.
-#
 class SensorComponentParameter(object):
-    ## The constructor.
-    #
-    # @param self The object pointer.
+    ''' The parameters of a sensor component.
+
+    Parameters
+    ----------
+    sensitivity: float
+        The sensor sensitivity.
+
+    start_time: :class:`obspy.UTCDateTime`
+        The start time from which the parameters where active.
+
+    end_time: :class:`obspy.UTCDateTime`
+        The end time to which the parameters where active.
+
+    tf_type: str 
+        DEPRECATED. The type of the transfer function.
+
+    tf_units: str 
+        DEPRECATED. The units of the transfer function.
+
+    tf_normalization_factor: float
+        The normalization factor of the transfer function.
+
+    tf_normalization_frequency: float
+        The frequency where the normalization factor was measured.
+
+    tf_poles: :obj:`list` of :obj:`complex`
+        The pole locations of the transfer function.
+
+    tf_zeros: :obj:`list` of :obj:`complex`
+        The zero locations of the transfer function.
+
+    parent_component: :class:`SensorComponent`
+        The sensor component to which the parameters are related to.
+
+    author_uri: string
+        The author_uri of the sensor.
+
+    agency_uri: String
+        The agency_uri of the sensor.
+
+    creation_time: str or :class:`obspy.UTCDateTime`
+        The creation time of the event. A string that can be parsed
+        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance
+
+    '''
     def __init__(self, sensitivity,
                  start_time, end_time, tf_type=None,
                  tf_units=None, tf_normalization_factor=None,
@@ -2423,6 +2463,8 @@ class SensorComponentParameter(object):
 
     @property
     def parent_inventory(self):
+        ''' :class:`Inventory`: The inventory containing the parameter.
+        '''
         if self.parent_component is not None:
             return self.parent_component.parent_inventory
         else:
@@ -2431,6 +2473,8 @@ class SensorComponentParameter(object):
 
     @property
     def start_time_string(self):
+        ''' str: The start time of the active parameter period.
+        '''
         if self.start_time is None:
             return 'big bang'
         else:
@@ -2439,6 +2483,8 @@ class SensorComponentParameter(object):
 
     @property
     def end_time_string(self):
+        ''' str: The end time of the active parameter period.
+        '''
         if self.end_time is None:
             return 'running'
         else:
@@ -2447,6 +2493,8 @@ class SensorComponentParameter(object):
 
     @property
     def zeros_string(self):
+        ''' str: A string representation of the transfer functin zeros.
+        '''
         zero_str = ''
         if self.tf_zeros:
             for cur_zero in self.tf_zeros:
@@ -2459,6 +2507,8 @@ class SensorComponentParameter(object):
 
     @property
     def poles_string(self):
+        ''' str: A string representation of the transfer function poles.
+        '''
         pole_str = ''
         if self.tf_poles:
             for cur_pole in self.tf_poles:
@@ -2489,6 +2539,19 @@ class SensorComponentParameter(object):
                             tf_normalization_frequency):
         ''' Set the transfer function parameters.
 
+        Parameters
+        ----------
+        tf_type: str 
+            DEPRECATED. The type of the transfer function.
+
+        tf_units: str 
+            DEPRECATED. The units of the transfer function.
+
+        tf_normalization_factor: float
+            The normalization factor of the transfer function.
+
+        tf_normalization_frequency: float
+            The frequency where the normalization factor was measured.
         '''
         self.tf_type = tf_type
         self.tf_units = tf_units
@@ -2497,7 +2560,12 @@ class SensorComponentParameter(object):
 
 
     def tf_add_complex_zero(self, zero):
-        ''' Add a complex zero to the transfer function PAZ.
+        ''' Add a complex zero to the transfer function.
+
+        Parameters
+        ----------
+        zero: :obj:`complex`
+            A complex zero location of the transfer function.
 
         '''
         self.logger.debug('Adding zero %s to parameter %s.', zero, self)
@@ -2506,7 +2574,12 @@ class SensorComponentParameter(object):
         self.logger.debug('len(self.tf_zeros): %s', len(self.tf_zeros))
 
     def tf_add_complex_pole(self, pole):
-        ''' Add a complec pole to the transfer function PAZ.
+        ''' Add a complex pole to the transfer function.
+
+        Parameters
+        ----------
+        pole: :obj:`complex`
+            A complex pole location of the transfer function.
 
         '''
         self.tf_poles.append(pole)
