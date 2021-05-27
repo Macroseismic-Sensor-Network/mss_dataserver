@@ -3668,7 +3668,34 @@ class Network(object):
 
 
 class Array(object):
-    ''' An array holding multiple stations.
+    ''' A seismic array holding multiple stations.
+
+    Parameters
+    ----------
+    name: str 
+        The name of the array.
+
+    description: str 
+        The description of the array.
+
+    author_uri: string
+        The author_uri of the instance.
+
+    agency_uri: String
+        The agency_uri of the instance.
+
+    creation_time: str or :class:`obspy.UTCDateTime`
+        The creation time of the instance. A string that can be parsed
+        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance  
+
+    parent_inventory: :class:`Inventory`
+        The inventory to which the array is assigned to.
+
+
+    Arguments
+    ---------
+    stations: :obj:`list` of :class:`Station`
+        The stations assigned to the array.
     '''
 
     def __init__(self, name, description = None, author_uri = None,
@@ -3733,14 +3760,19 @@ class Array(object):
 
         Parameters
         ----------
-        station : :class:`Station`
+        station: :class:`Station`
             The station instance to add to the network.
 
-        start_time : :class:`obspy.core.utcdatetime.UTCDateTime`
+        start_time: :class:`obspy.UTCDateTime`
             The time from which on the stream has been operating at the channel.
 
-        end_time : :class:`obspy.core.utcdatetime.UTCDateTime`
+        end_time: :class:`obspy.UTCDateTime`
             The time up to which the stream has been operating at the channel. "None" if the channel is still running.
+
+        Returns
+        -------
+        :class:`Station`
+            The added station.
         '''
         if self.parent_inventory != station.parent_inventory:
             raise RuntimeError('The station and the array have to be in the same inventory.')
@@ -3783,6 +3815,11 @@ class Array(object):
 
     def remove_station_by_instance(self, station_timebox):
         ''' Remove a station timebox instance.
+
+        Parameters
+        ----------
+        station_timebox: :class:`Timebox`
+            The timebox containing the station.
         '''
         self.stations.remove(station_timebox)
 
@@ -3792,11 +3829,22 @@ class Array(object):
 
         Parameters
         ----------
-        start_time : :class:`obspy.core.utcdatetime.UTCDateTime`
+        start_time: :class:`obspy.UTCDateTime`
             The time from which on the stream has been operating at the channel.
 
-        end_time : :class:`obspy.core.utcdatetime.UTCDateTime`
+        end_time: :class:`obspy.UTCDateTime`
             The time up to which the stream has been operating at the channel. "None" if the channel is still running.
+
+        Keyword Arguments
+        -----------------
+        kwargs
+            The keyword arguments passed to :meth:`get_station`.
+
+
+        Returns
+        -------
+        :obj:`list` of :class:`Station`
+            The removed stations.
         '''
         stat_to_remove = self.get_station(start_time = start_time,
                                              end_time = end_time,
@@ -3813,26 +3861,31 @@ class Array(object):
 
         Parameters
         ----------
-        start_time : :class:`obspy.core.utcdatetime.UTCDateTime`
+        start_time: :class:`obspy.UTCDateTime`
             The time from which on the stream has been operating at the channel.
 
-        end_time : :class:`obspy.core.utcdatetime.UTCDateTime`
+        end_time: :class:`obspy.UTCDateTime`
             The time up to which the stream has been operating at the channel. "None" if the channel is still running.
 
-        name : String
+        name: String
             The name (code) of the station.
 
-        location : String
+        location: String
             The location code of the station.
 
-        id : Integer
+        id: Integer
             The database id of the station.
 
-        nsl : Tuple (network, station, location)
+        nsl: Tuple (network, station, location)
             The NSL tuple of the station.
 
-        nsl_string : String
+        nsl_string: String
             The NSL string in the format 'station:network:location'.
+
+        Returns
+        -------
+        :obj:`list` of :class:`Station`
+            The removed stations.
         '''
         ret_station = self.stations
 
@@ -3854,17 +3907,22 @@ class Array(object):
         return ret_station
 
 
-    def merge(self, merge_station):
+    def merge(self, merge_array):
         ''' Merge an array with the existing one.
+
+        Parameters
+        ----------
+        merge_array: :class:`Array`
+            The array to merge with the existing instance.
         '''
         # Update the attributes.
-        self.description = merge_station.description
+        self.description = merge_array.description
 
         # Replace the assigned stations with the new ones.
         for cur_station in [x for x in self.stations]:
             self.remove_station_by_instance(cur_station)
 
-        for cur_station in merge_station.stations:
+        for cur_station in merge_array.stations:
             self.add_station(station = cur_station.item,
                              start_time = cur_station.start_time,
                              end_time = cur_station.end_time)
