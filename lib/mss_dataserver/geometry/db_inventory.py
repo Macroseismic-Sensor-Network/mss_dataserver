@@ -24,10 +24,11 @@
 ##############################################################################
 
 '''
-The inventory module. 
+The database inventory module. 
 
-This module contains the classed needed to build a pSysmon geometry 
-inventory.
+This module contains the extension to the Inventory classes used to handle an 
+inventory in a mariaDB database. All classes inherit from the related inventory 
+classes and add functionality to write and retrieve data from the database.
 '''
 
 from obspy.core.utcdatetime import UTCDateTime
@@ -46,6 +47,22 @@ from mss_dataserver.geometry.inventory import RecorderStreamParameter
 
 
 class DbInventory(Inventory):
+    ''' The database inventory.
+
+    Parameters
+    ----------
+    project: :class:`mss_dataserver.core.project.Project`
+        The project used to get the database connection and database
+        session.
+
+    name: str 
+        The name of the inventory.
+
+    Arguments
+    ---------
+    db_session: :class:`sqlalchemy.orm.Session`
+        The session used to communicate with the database.
+    '''
 
     def __init__(self, project, name = 'db_inventory'):
         ''' Initialize the instance.
@@ -77,8 +94,14 @@ class DbInventory(Inventory):
 
         Parameters
         ----------
-        recorder : :class:`~psysmon.packages.geometery.inventory.Recorder`
+        recorder: :class:`mss_dataserver.geometry.inventory.Recorder` or :class:`DbRecorder`
             The recorder to add to the inventory.
+
+        
+        Returns
+        -------
+        :class:`DbRecorder`
+            The recorder added.
         '''
         if recorder.__class__ is Recorder:
             recorder = DbRecorder.from_inventory_instance(self, recorder)
@@ -95,8 +118,14 @@ class DbInventory(Inventory):
 
         Parameters
         ----------
-        sensor : :class:`Sensor`
+        sensor: :class:`mss_dataserver.geometry.inventory.Sensor` or :class:`DbSensor`
             The sensor to add to the inventory.
+
+
+        Returns
+        -------
+        :class:`DbSensor`
+            The sensor added.
         '''
         if sensor.__class__ is Sensor:
             sensor = DbSensor.from_inventory_instance(self, sensor)
@@ -113,8 +142,14 @@ class DbInventory(Inventory):
 
         Parameters
         ----------
-        network : :class:`psysmon.packages.geometry.inventory.Network`
+        network: :class:`mss_dataserver.geometry.inventory.Network` or :class:`DbNetwork`
             The network to add to the database inventory.
+
+
+        Returns
+        -------
+        :class:`DbNetwork`
+            The network added.
         '''
         if network.__class__ is Network:
             network = DbNetwork.from_inventory_instance(self, network)
@@ -131,8 +166,13 @@ class DbInventory(Inventory):
 
         Parameters
         ----------
-        name : String
+        name: str
             The name of the network to remove.
+
+        Returns
+        -------
+        :class:`DbNetwork`
+            The removed network.
         '''
         removed_network = Inventory.remove_network(self, name)
         if removed_network is not None:
@@ -146,8 +186,13 @@ class DbInventory(Inventory):
 
         Parameters
         ----------
-        array : :class:`psysmon.packages.geometry.inventory.Array`
+        array: :class:`mss_dataserver.geometry.inventory.Array` of :class:`DbArray`
             The array to add to the database inventory.
+
+        Returns
+        -------
+        :class:`DbArray`
+            The added array.
         '''
         if array.__class__ is Array:
             array = DbArray.from_inventory_instance(self, array)
@@ -231,6 +276,25 @@ class DbInventory(Inventory):
 
     @classmethod
     def from_inventory_instance(cls, name, project, inventory):
+        ''' Create a :class:`DbInventory` instance from a :class:`mss_data_server.geometry.inventory.Inventory` instance.
+
+        Parameters
+        ----------
+        name: str
+            The name of the inventory.
+
+        project: :class:`mss_data_server.core.project.Project`
+            The project used to communicate with the database.
+
+        inventory: :class:`mss_dataserver.geometry.inventory.Inventory`
+            The inventory to convert to the :class:`DbInventory` instance.
+
+
+        Returns
+        -------
+        :class:`DbInventory`
+            The created instance.
+        '''
         db_inventory = cls(name = name, project = project)
         for cur_sensor in inventory.sensors:
             db_inventory.add_sensor(cur_sensor)
@@ -249,6 +313,13 @@ class DbInventory(Inventory):
 
     @classmethod
     def load_inventory(cls, project):
+        ''' Load an inventory from the database.
+        
+        Parameters
+        ----------
+        project: :class:`mss_data_server.core.project.Project`
+            The project used to communicate with the database.
+        '''
         db_inventory = cls(name = 'db_inventory', project = project)
         db_inventory.load_sensors()
         db_inventory.load_recorders()
@@ -261,9 +332,20 @@ class DbInventory(Inventory):
 
 
 
-
-
 class DbNetwork(Network):
+    ''' The database network.
+
+    Parameters
+    ----------
+    orm: :class:`mss_data_server.geometry.databaseFactory.GeomNetwork`
+        The sqlalchemy table mapper class for the network.
+
+    
+    Keyword Arguments
+    -----------------
+    **kwargs
+        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.Network`.
+    '''
 
     def __init__(self, orm = None, **kwargs):
         Network.__init__(self, **kwargs)
@@ -282,7 +364,7 @@ class DbNetwork(Network):
 
     @property
     def id(self):
-        ''' The database id.
+        ''' int: The database id.
         '''
         if self.orm is not None:
             return self.orm.id
@@ -292,6 +374,21 @@ class DbNetwork(Network):
 
     @classmethod
     def from_sqlalchemy_orm(cls, parent_inventory, orm):
+        ''' Create a :class:`DbNetwork` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomNetwork` table mapper class.
+
+        Parameters
+        ----------
+        parent_inventory: :class:`mss_data_server.geometry.inventory.Inventory`
+            The parent inventory to which the instance is related.
+
+        orm: :class:`mss_data_server.geometry.databaseFactory.GeomNetwork`
+            The sqlalchemy table mapper class for the network.
+        
+        Returns
+        -------
+        :class:`DbNetwork`
+            The created instance.
+        '''
         network = cls(parent_inventory = parent_inventory,
                       name = orm.name,
                       description = orm.description,
@@ -308,6 +405,21 @@ class DbNetwork(Network):
 
     @classmethod
     def from_inventory_instance(cls, parent_inventory, instance):
+        ''' Create a :class:`DbNetwork` instance from a :class:`mss_data_server.geometry.inventory.Network` instance.
+
+        Parameters
+        ----------
+        parent_inventory: :class:`mss_data_server.geometry.inventory.Inventory`
+            The parent inventory to which the DbNetwork is related.
+
+        instance: :class:`mss_data_server.geometry.inventory.Network`
+            The instance used to create the :class:`DbNetwork` instance.
+        
+        Returns
+        -------
+        :class:`DbNetwork`
+            The created instance.
+        '''
         cur_network =  cls(parent_inventory = parent_inventory,
                            name = instance.name,
                            description = instance.description,
@@ -346,8 +458,13 @@ class DbNetwork(Network):
 
         Parameters
         ----------
-        station : :class:`DbStation`
+        station: :class:`DbStation`
             The station instance to add to the network.
+
+        Returns
+        -------
+        :class:`DbStation`
+            The added station.
         '''
         if station.__class__ is Station:
             station = DbStation.from_inventory_instance(self, station)
@@ -366,11 +483,17 @@ class DbNetwork(Network):
 
         Parameters
         ----------
-        name : String
+        name: str 
             The name of the station to remove.
 
-        location : String
+        location: str
             The location of the station to remove.
+
+
+        Returns
+        -------
+        :class:`DbStation`
+            The removed station.
         '''
         removed_station = Network.remove_station(self, name = name, location = location)
 
@@ -384,8 +507,23 @@ class DbNetwork(Network):
 
 
 class DbArray(Array):
+    ''' The database Array.
+    
+    Parameters
+    ----------
+    orm: :class:`mss_data_server.geometry.databaseFactory.GeomArray
+        The sqlalchemy table mapper class for the array.
+
+
+    Keyword Arguments
+    -----------------
+    **kwargs
+        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.Array`.
+    '''
 
     def __init__(self, orm = None, **kwargs):
+        ''' Initialize the instance.
+        '''
         Array.__init__(self, **kwargs)
 
         if orm is None:
@@ -402,6 +540,22 @@ class DbArray(Array):
 
     @classmethod
     def from_sqlalchemy_orm(cls, parent_inventory, orm):
+        ''' Create a :class:`DbArray` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomArray` table mapper class.
+
+        Parameters
+        ----------
+        parent_inventory: :class:`mss_data_server.geometry.inventory.Inventory`
+            The parent inventory to which the instance is related.
+
+        orm: :class:`mss_data_server.geometry.databaseFactory.GeomArray`
+            The sqlalchemy table mapper class for the array.
+
+        Returns
+        -------
+        :class:`DbArray`
+            The created instance.
+
+        '''
         array = cls(parent_inventory = parent_inventory,
                     name = orm.name,
                     description = orm.description,
@@ -424,6 +578,20 @@ class DbArray(Array):
 
     @classmethod
     def from_inventory_instance(cls, parent_inventory, instance):
+        ''' Create a :class:`DbArray` instance from a :class:`mss_data_server.geometry.inventory.Array` instance.
+        Parameters
+        ----------
+        parent_inventory: :class:`mss_data_server.geometry.inventory.Inventory`
+            The parent inventory to which the instance is related.
+
+         instance: :class:`mss_data_server.geometry.inventory.Array`
+            The instance used to create the :class:`DbArray` instance.
+
+        Returns
+        -------
+        :class:`DbArray`
+            The created array.
+        '''
         array = cls(parent_inventory = parent_inventory,
                     name = instance.name,
                     description = instance.description,
@@ -526,7 +694,20 @@ class DbArray(Array):
 
 
 class DbStation(Station):
+    ''' The database station.
 
+    Parameters
+    ----------
+    orm: :class:`mss_data_server.geometry.databaseFactory.GeomStation`
+        The sqlalchemy table mapper class for the network.
+
+    
+    Keyword Arguments
+    -----------------
+    **kwargs
+        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.Station`.
+    '''
+    
     def __init__(self, orm = None, **kwargs):
         Station.__init__(self, **kwargs)
 
@@ -548,7 +729,7 @@ class DbStation(Station):
 
     @property
     def id(self):
-        ''' The database id.
+        ''' int: The database id.
         '''
         if self.orm is not None:
             return self.orm.id
@@ -558,6 +739,21 @@ class DbStation(Station):
 
     @classmethod
     def from_sqlalchemy_orm(cls, parent_network, orm):
+        ''' Create a :class:`DbStation` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomStation` table mapper class.
+
+        Parameters
+        ----------
+        parent_inventory: :class:`mss_data_server.geometry.inventory.Network`
+            The parent network to which the instance is related.
+
+        orm: :class:`mss_data_server.geometry.databaseFactory.GeomStation`
+            The sqlalchemy table mapper class for the network.
+        
+        Returns
+        -------
+        :class:`DbStation`
+            The created instance.
+        '''
         station = cls(parent_network = parent_network,
                       name = orm.name,
                       location = orm.location,
@@ -580,6 +776,21 @@ class DbStation(Station):
 
     @classmethod
     def from_inventory_instance(cls, parent_network, instance):
+        ''' Create a :class:`DbStation` instance from a :class:`mss_data_server.geometry.inventory.Station` instance.
+
+        Parameters
+        ----------
+        parent_network: :class:`mss_data_server.geometry.inventory.Network`
+            The parent network to which the DbStation is related.
+
+        instance: :class:`mss_data_server.geometry.inventory.Station`
+            The instance used to create the :class:`DbStation` instance.
+        
+        Returns
+        -------
+        :class:`DbSation`
+            The created station.
+        '''
         station =  cls(parent_network = parent_network,
                        name = instance.name,
                        location = instance.location,
@@ -627,8 +838,13 @@ class DbStation(Station):
 
         Parameters
         ----------
-        cur_channel : :class:`DbChannel`
+        cur_channel: :class:`DbChannel`
             The channel to add to the station.
+
+        Returns
+        -------
+        :class:`DbChannel`
+            The added channel.
         '''
         if cur_channel.__class__ is Channel:
             cur_channel = DbChannel.from_inventory_instance(self, cur_channel)
@@ -644,6 +860,19 @@ class DbStation(Station):
 
 
 class DbRecorder(Recorder):
+    ''' The database recorder.
+
+    Parameters
+    ----------
+    orm: :class:`mss_data_server.geometry.databaseFactory.GeomRecorder`
+        The sqlalchemy table mapper class.
+
+    
+    Keyword Arguments
+    -----------------
+    **kwargs
+        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.Recorder`.
+    '''
 
     def __init__(self, orm = None, **kwargs):
         Recorder.__init__(self, **kwargs)
@@ -662,7 +891,7 @@ class DbRecorder(Recorder):
 
     @property
     def id(self):
-        ''' The database id.
+        '''int: The database id.
         '''
         if self.orm is not None:
             return self.orm.id
@@ -672,6 +901,21 @@ class DbRecorder(Recorder):
 
     @classmethod
     def from_sqlalchemy_orm(cls, parent_inventory, orm):
+        ''' Create a :class:`DbRecorder` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomRecorder` table mapper class.
+
+        Parameters
+        ----------
+        parent_inventory: :class:`mss_data_server.geometry.inventory.Inventory`
+            The parent inventory to which the instance is related.
+
+        orm: :class:`mss_data_server.geometry.databaseFactory.GeomStation`
+            The sqlalchemy table mapper class for the network.
+        
+        Returns
+        -------
+        :class:`DbRecorder`
+            The created instance.
+        '''
         recorder = cls(parent_inventory = parent_inventory,
                        serial = orm.serial,
                        model = orm.model,
@@ -691,6 +935,21 @@ class DbRecorder(Recorder):
 
     @classmethod
     def from_inventory_instance(cls, parent_inventory, instance):
+        ''' Create a :class:`DbRecorder` instance from a :class:`mss_data_server.geometry.inventory.Recorder` instance.
+
+        Parameters
+        ----------
+        parent_network: :class:`mss_data_server.geometry.inventory.Inventory`
+            The parent inventory to which the DbStation is related.
+
+        instance: :class:`mss_data_server.geometry.inventory.Recorder`
+            The instance used to create the :class:`DbRecorder` instance.
+        
+        Returns
+        -------
+        :class:`DbRecorder`
+            The created recorder.
+        '''
         recorder = cls(parent_inventory = parent_inventory,
                        serial = instance.serial,
                        model = instance.model,
@@ -731,8 +990,13 @@ class DbRecorder(Recorder):
 
         Parameters
         ----------
-        cur_stream : :class:`DbRecorderStream`
+        cur_stream: :class:`DbRecorderStream`
             The stream to add to the recorder.
+
+        Returns
+        -------
+        :class:`DbRecorderStream` or :class:`mss_data_server.geometry.inventory.RecorderStream`
+            The added recorder stream.
         '''
         if cur_stream.__class__ is RecorderStream:
             cur_stream = DbRecorderStream.from_inventory_instance(self, cur_stream)
@@ -746,6 +1010,20 @@ class DbRecorder(Recorder):
 
 
 class DbRecorderStream(RecorderStream):
+    ''' The database recorder stream.
+
+    Parameters
+    ----------
+    orm: :class:`mss_data_server.geometry.databaseFactory.GeomRecorderStream`
+        The sqlalchemy table mapper class.
+
+    
+    Keyword Arguments
+    -----------------
+    **kwargs
+        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.RecorderStream`.
+
+    '''
 
     def __init__(self, orm = None, **kwargs):
         RecorderStream.__init__(self, **kwargs)
