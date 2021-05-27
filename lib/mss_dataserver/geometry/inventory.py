@@ -3024,6 +3024,36 @@ class Station(object):
 
 class Channel(object):
     ''' A channel of a station.
+
+    Parameters
+    ----------
+    name: str 
+        The name of the channel.
+
+    description: str 
+        The description of the channel.
+
+    id: int
+        The database id of the channel.
+
+    author_uri: string
+        The author_uri of the instance.
+
+    agency_uri: String
+        The agency_uri of the instance.
+
+    creation_time: str or :class:`obspy.UTCDateTime`
+        The creation time of the instance. A string that can be parsed
+        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance  
+
+    parent_station: :class:`Station`
+        The station to which the channel is assigned to.
+
+
+    Attributes
+    ----------
+    streams: :obj:`list` of :class:`RecorderStream`
+        The recorder streams assigned to a channel.
     '''
     def __init__(self, name, description = None, id = None,
             agency_uri = None, author_uri = None, creation_time = None,
@@ -3075,6 +3105,8 @@ class Channel(object):
 
     @property
     def parent_inventory(self):
+        ''' :class:`Inventory`: The inventory containing the channel.
+        '''
         if self.parent_station is not None:
             return self.parent_station.parent_inventory
         else:
@@ -3082,6 +3114,8 @@ class Channel(object):
 
     @property
     def nslc(self):
+        ''' :obj:`tuple` of str: The Network:Station:Location:Channel code.
+        '''
         if self.parent_station is not None:
             return (self.parent_station.network,
                     self.parent_station.name,
@@ -3092,14 +3126,24 @@ class Channel(object):
 
     @property
     def nslc_string(self):
+        ''' str: The string representation of the Network:Station:Location:Channel code.
+        '''
         return str.join(':', self.nslc)
 
     @property
     def assigned_recorders(self):
+        ''' :obj:`list` of str: The unique serial numbers of the assigned recorders.
+        '''
         return list(set([x.item.serial for x in self.streams]))
 
 
     def as_dict(self, style = None):
+        ''' Get a dictionary representation of the instance.
+
+        Returns
+        -------
+        :obj:`dict`: A dictionary representation of the instance.
+        '''
         export_attributes = ['name', 'description',
                              'author_uri', 'agency_uri', 'creation_time']
 
@@ -3163,22 +3207,22 @@ class Channel(object):
 
         Parameters
         ----------
-        serial : String
+        serial: str
             The serial number of the recorder containing the stream.
 
-        model : String
+        model: str
             The model of the recorder containing the stream.
 
-        producer : String
+        producer: str 
             The producer of the recorder containing the stream.
 
-        name : String
+        name: str 
             The name of the stream.
 
-        start_time : :class:`obspy.core.utcdatetime.UTCDateTime`
+        start_time: :class:`obspy.core.utcdatetime.UTCDateTime`
             The time from which on the stream has been operating at the channel.
 
-        end_time : :class:`obspy.core.utcdatetime.UTCDateTime`
+        end_time: :class:`obspy.core.utcdatetime.UTCDateTime`
             The time up to which the stream has been operating at the channel. "None" if the channel is still running.
         '''
         if self.parent_inventory is None:
@@ -3238,6 +3282,13 @@ class Channel(object):
 
     def remove_stream_by_instance(self, stream_timebox):
         ''' Remove a stream timebox.
+
+        Remove a stream using a timebox instance.
+
+        Parameters
+        ----------
+        timebox: :class:`TimeBox`
+            The timebox holding a recorder stream to remove.
         '''
         self.streams.remove(stream_timebox)
 
@@ -3245,8 +3296,20 @@ class Channel(object):
     def remove_stream(self, start_time = None, end_time = None, **kwargs):
         ''' Remove a stream from the channel.
 
+        Remove recorder streams matching search criteria.
+
         Parameters
         ----------
+        start_time: :class:`obspy.UTCDateTime`
+            The start time of the time span to remove.
+
+        end_time: :class:`obspy.UTCDateTime`
+            The end time of the time span to remove.
+
+        Keyword Arguments
+        -----------------
+        kwargs
+            The keyword arguments passed to :meth:`get_stream`.
         '''
         stream_tb_to_remove = self.get_stream(start_time = start_time,
                                             end_time = end_time,
@@ -3272,6 +3335,11 @@ class Channel(object):
 
         name : String
             The name of the stream.
+
+        Returns
+        -------
+        :obj:`list` of :class:`RecorderStream`
+            The recorder streams matching the search criteria.
         '''
         ret_stream = self.streams
 
@@ -3294,6 +3362,11 @@ class Channel(object):
 
     def merge(self, merge_channel):
         ''' Merge a channel with the existing one.
+
+        Parameters
+        ----------
+        merge_channel: :class:`Channel`
+            The channel to merge with the existing instance.
         '''
         # Update the attributes.
         self.description = merge_channel.description
