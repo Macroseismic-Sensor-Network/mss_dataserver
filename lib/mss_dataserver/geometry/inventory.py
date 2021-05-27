@@ -3407,6 +3407,39 @@ class Channel(object):
 
 
 class Network(object):
+    ''' A seismic network.
+
+    Parameters
+    ----------
+    name: str 
+        The name of the network.
+
+    description: str 
+        The description of the network.
+
+    type: str 
+        The type of the network.
+
+    author_uri: string
+        The author_uri of the instance.
+
+    agency_uri: String
+        The agency_uri of the instance.
+
+    creation_time: str or :class:`obspy.UTCDateTime`
+        The creation time of the instance. A string that can be parsed
+        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance  
+
+    parent_inventory: :class:`Inventory`
+        The inventory to which the network is assigned to.
+
+    
+    Arguments
+    ---------
+    stations: :obj:`list` of :class:`Station`
+        The stations assigned to the network.
+
+    '''
 
     def __init__(self, name, description=None, type=None, author_uri = None,
             agency_uri = None, creation_time = None, parent_inventory=None):
@@ -3467,6 +3500,12 @@ class Network(object):
             return False
 
     def as_dict(self, style = None):
+        ''' Get a dictionary representation of the instance.
+
+        Returns
+        -------
+        :obj:`dict`: A dictionary representation of the instance.
+        '''
         export_attributes = ['name', 'description', 'type',
                              'author_uri', 'agency_uri', 'creation_time']
         d = {}
@@ -3483,8 +3522,15 @@ class Network(object):
 
         Parameters
         ----------
-        station : :class:`Station`
+        station: :class:`Station`
             The station instance to add to the network.
+
+
+        Returns
+        -------
+        :class:`Station`
+            The station added.
+
         '''
         available_sl = [(x.name, x.location) for x in self.stations]
         if((station.name, station.location) not in available_sl):
@@ -3498,6 +3544,9 @@ class Network(object):
 
     def remove_station_by_instance(self, station_to_remove):
         ''' Remove a station instance from the network.
+
+        station_to_remove: :class:`Station`
+            The station to remove.
         '''
         if station_to_remove in self.stations:
             self.stations.remove(station_to_remove)
@@ -3508,11 +3557,17 @@ class Network(object):
 
         Parameters
         ----------
-        name : String
+        name: str 
             The name of the station to remove.
 
-        location : String
+        location: str 
             The location of the station to remove.
+
+
+        Returns
+        -------
+        :obj:`list` of :class:`Station`
+            The removed stations.
         '''
         station_2_remove = [x for x in self.stations if x.name == name and x.location == location]
 
@@ -3552,6 +3607,12 @@ class Network(object):
 
         nsl_string : String
             The NSL string in the format 'network:station:location'.
+
+
+        Returns
+        -------
+        :obj:`list` of :class:`Station`
+            The stations matching the search criteria.
         '''
         ret_station = self.stations
 
@@ -3568,6 +3629,9 @@ class Network(object):
 
     def merge(self, merge_network):
         ''' Merge a network with the existing.
+
+        merge_network: :class:`Network`
+            The network to merge with the existing instance.
         '''
         # Update the attributes.
         self.description = merge_network.description
