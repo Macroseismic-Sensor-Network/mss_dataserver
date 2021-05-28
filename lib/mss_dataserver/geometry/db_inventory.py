@@ -511,7 +511,7 @@ class DbArray(Array):
     
     Parameters
     ----------
-    orm: :class:`mss_data_server.geometry.databaseFactory.GeomArray
+    orm: :class:`mss_data_server.geometry.databaseFactory.GeomArray`
         The sqlalchemy table mapper class for the array.
 
 
@@ -579,6 +579,7 @@ class DbArray(Array):
     @classmethod
     def from_inventory_instance(cls, parent_inventory, instance):
         ''' Create a :class:`DbArray` instance from a :class:`mss_data_server.geometry.inventory.Array` instance.
+
         Parameters
         ----------
         parent_inventory: :class:`mss_data_server.geometry.inventory.Inventory`
@@ -586,6 +587,7 @@ class DbArray(Array):
 
          instance: :class:`mss_data_server.geometry.inventory.Array`
             The instance used to create the :class:`DbArray` instance.
+
 
         Returns
         -------
@@ -747,7 +749,7 @@ class DbStation(Station):
             The parent network to which the instance is related.
 
         orm: :class:`mss_data_server.geometry.databaseFactory.GeomStation`
-            The sqlalchemy table mapper class for the network.
+            The sqlalchemy table mapper class for the station.
         
         Returns
         -------
@@ -939,7 +941,7 @@ class DbRecorder(Recorder):
 
         Parameters
         ----------
-        parent_network: :class:`mss_data_server.geometry.inventory.Inventory`
+        parent_inventory: :class:`mss_data_server.geometry.inventory.Inventory`
             The parent inventory to which the DbStation is related.
 
         instance: :class:`mss_data_server.geometry.inventory.Recorder`
@@ -1026,6 +1028,8 @@ class DbRecorderStream(RecorderStream):
     '''
 
     def __init__(self, orm = None, **kwargs):
+        ''' Initialize the instance.
+        '''
         RecorderStream.__init__(self, **kwargs)
 
         if orm is None:
@@ -1040,7 +1044,7 @@ class DbRecorderStream(RecorderStream):
 
     @property
     def id(self):
-        ''' The database id.
+        ''' int: The database id.
         '''
         if self.orm is not None:
             return self.orm.id
@@ -1050,6 +1054,21 @@ class DbRecorderStream(RecorderStream):
 
     @classmethod
     def from_sqlalchemy_orm(cls, parent_recorder, orm):
+        ''' Create a :class:`DbRecorderStream` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomRecorderStream` table mapper class.
+
+        Parameters
+        ----------
+        parent_recorder: :class:`mss_data_server.geometry.inventory.DbRecorder`
+            The parent recorder to which the instance is related.
+
+        orm: :class:`mss_data_server.geometry.databaseFactory.GeomRecorderStream`
+            The sqlalchemy table mapper class for the network.
+        
+        Returns
+        -------
+        :class:`DbRecorderStream`
+            The created instance.
+        '''
         stream =  cls(parent_recorder = parent_recorder,
                       name = orm.name,
                       label = orm.label,
@@ -1076,6 +1095,21 @@ class DbRecorderStream(RecorderStream):
 
     @classmethod
     def from_inventory_instance(cls, parent_recorder, instance):
+        ''' Create a :class:`DbRecorderStream` instance from a :class:`mss_data_server.geometry.inventory.RecorderStream` instance.
+
+        Parameters
+        ----------
+        parent_recorder: :class:`mss_data_server.geometry.inventory.DbRecorder`
+            The parent recorder to which the instance is related.
+
+        instance: :class:`mss_data_server.geometry.inventory.RecorderStream`
+            The instance used to create the :class:`DbRecorderStream` instance.
+        
+        Returns
+        -------
+        :class:`DbRecorderStream`
+            The created recorder stream.
+        '''
         cur_stream =  cls(parent_recorder = parent_recorder,
                           name = instance.name,
                           label = instance.label,
@@ -1126,28 +1160,33 @@ class DbRecorderStream(RecorderStream):
 
         Parameters
         ----------
-        serial : String
+        serial: str 
             The serial number of the sensor which holds the component.
 
-        model : String
+        model: str 
             The model of the sensor which holds the component.
 
-        producer : String
+        producer: str 
             The producer of the sensor which holds the component.
 
-        name : String
+        name: str 
             The name of the component.
 
-        start_time : :class:`obspy.core.utcdatetime.UTCDateTime`
+        start_time: :class:`obspy.UTCDateTime`
             The time from which on the sensor has been operating at the station.
 
-        end_time : :class:`obspy.core.utcdatetime.UTCDateTime`
+        end_time: :class:`obspy.UTCDateTime`
             The time up to which the sensor has been operating at the station. "None" if the station is still running.
 
-        ignore_orm : Boolean
+        ignore_orm: bool
             Control if the component assignment is added to the orm or not. This is usefull
             when creating an instance from a orm mapper using the from_sqlalchemy_orm
             class method.
+
+        Returns
+        -------
+        :class:`DbSensorComponent`
+            The added sensor component.
         '''
         added_component = RecorderStream.add_component(self,
                                                        serial = serial,
@@ -1182,6 +1221,16 @@ class DbRecorderStream(RecorderStream):
 
     def add_parameter(self, cur_parameter):
         ''' Add a parameter to the recorder_stream.
+
+        Parameters
+        ----------
+        cur_parameter: :class:`DbRecorderStreamParameter` or :class:`mss_data_server.geometry.inventory.RecorderStreamParameter`
+            The parameter to add.
+
+        Returns
+        -------
+        :class:`DbRecorderStreamParameter`
+            The added recorder stream parameter.
         '''
         if cur_parameter.__class__ is RecorderStreamParameter:
             cur_parameter = DbRecorderStreamParameter.from_inventory_instance(self, cur_parameter)
@@ -1197,6 +1246,11 @@ class DbRecorderStream(RecorderStream):
 
     def remove_parameter_by_instance(self, parameter_to_remove):
         ''' Remove a parameter.
+
+        Parameters
+        ----------
+        parameter_to_remove: :class:`DbRecorderStreamParameter`
+            The recorder stream parameter to remove.
         '''
         RecorderStream.remove_parameter_by_instance(self, parameter_to_remove)
         self.logger.debug('Removing DB parameter %d.', parameter_to_remove.id)
@@ -1206,6 +1260,11 @@ class DbRecorderStream(RecorderStream):
 
     def remove_component_by_instance(self, component_to_remove):
         ''' Remove a component from the stream.
+
+        Parameters
+        ----------
+        component_to_remove: :class:`DbSensorComponent`
+            The component to remove.
         '''
         RecorderStream.remove_component_by_instance(self, component_to_remove)
         try:
@@ -1230,14 +1289,14 @@ class DbRecorderStream(RecorderStream):
 
 
     def change_sensor_start_time_OLD(self, sensor, start_time, end_time, new_start_time):
-        ''' Change the sensor deployment start time
+        ''' DEPRECATED Change the sensor deployment start time
 
         Parameters
         ----------
-        sensor : :class:`Sensor`
+        sensor: :class:`Sensor`
             The sensor which should be changed.
 
-        start_time : :class:`~obspy.core.utcdatetime.UTCDateTime or String
+        start_time: :class:`~obspy.core.utcdatetime.UTCDateTime` or String
             A :class:`~obspy.core.utcdatetime.UTCDateTime` instance or a data-time string which can be used by :class:`~obspy.core.utcdatetime.UTCDateTime`.
         '''
         sensor_2_change = [(s, b, e, k) for k, (s, b, e) in enumerate(self.sensors) if s == sensor and b == start_time and e == end_time]
@@ -1282,7 +1341,7 @@ class DbRecorderStream(RecorderStream):
 
 
     def change_sensor_end_time_OLD(self, sensor, end_time):
-        ''' Change the sensor deployment end time
+        ''' DEPRECATED Change the sensor deployment end time
 
         Parameters
         ----------
@@ -1341,7 +1400,23 @@ class DbRecorderStream(RecorderStream):
 
 
 class DbRecorderStreamParameter(RecorderStreamParameter):
+    ''' The database recorder stream parameter.
+
+    Parameters
+    ----------
+    orm: :class:`mss_data_server.geometry.databaseFactory.GeomRecorderStreamParameter`
+        The sqlalchemy table mapper class.
+
+    
+    Keyword Arguments
+    -----------------
+    **kwargs
+        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.RecorderStreamParameter`.
+
+    '''
     def __init__(self, orm = None, **kwargs):
+        ''' Initialize the instance.
+        '''
         RecorderStreamParameter.__init__(self, **kwargs)
 
         if orm is None:
@@ -1358,7 +1433,7 @@ class DbRecorderStreamParameter(RecorderStreamParameter):
 
     @property
     def id(self):
-        ''' The database id.
+        ''' int: The database id.
         '''
         if self.orm is not None:
             return self.orm.id
@@ -1367,6 +1442,21 @@ class DbRecorderStreamParameter(RecorderStreamParameter):
 
     @classmethod
     def from_inventory_instance(cls, parent_recorder_stream, instance):
+        ''' Create a :class:`DbRecorderStreamParameter` instance from a :class:`mss_data_server.geometry.inventory.RecorderStreamParameter` instance.
+
+        Parameters
+        ----------
+        parent_recorder_stream: :class:`mss_data_server.geometry.inventory.RecorderStream`
+            The parent recorder stream to which the DbRecorderStreamParameter is related.
+
+        instance: :class:`mss_data_server.geometry.inventory.RecorderStreamParameter`
+            The instance used to create the :class:`DbRecorderStreamParameter` instance.
+        
+        Returns
+        -------
+        :class:`DbRecorderStreamParameter`
+            The created recorder stream parameter.
+        '''
         return cls(parent_recorder_stream = parent_recorder_stream,
                    gain = instance.gain,
                    bitweight = instance.bitweight,
@@ -1378,6 +1468,21 @@ class DbRecorderStreamParameter(RecorderStreamParameter):
 
     @classmethod
     def from_sqlalchemy_orm(cls, parent_recorder_stream, orm):
+        ''' Create a :class:`DbRecorderStreamParameter` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomRecorderStreamParameter` table mapper class.
+
+        Parameters
+        ----------
+        parent_recorder_stream: :class:`mss_data_server.geometry.inventory.RecorderStream`
+            The parent recorder stream to which the DbRecorderStreamParameter is related.
+
+        orm: :class:`mss_data_server.geometry.databaseFactory.GeomRecorderStreamParameter`
+            The sqlalchemy table mapper class for the recorder stream parameter.
+        
+        Returns
+        -------
+        :class:`DbRecorderStreamParameter`
+            The created instance.
+        '''
         parameter = cls(parent_recorder_stream = parent_recorder_stream,
                         gain = orm.gain,
                         bitweight = orm.bitweight,
@@ -1417,7 +1522,22 @@ class DbRecorderStreamParameter(RecorderStreamParameter):
 
 
 class DbSensor(Sensor):
+    ''' The database sensor.
+
+    Parameters
+    ----------
+    orm: :class:`mss_data_server.geometry.databaseFactory.GeomSensor`
+        The sqlalchemy table mapper class.
+
+    
+    Keyword Arguments
+    -----------------
+    **kwargs
+        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.Sensor`.
+    '''
     def __init__(self, orm = None, **kwargs):
+        ''' Initialize the instance.
+        '''
         Sensor.__init__(self, **kwargs)
 
         if orm is None:
@@ -1435,7 +1555,7 @@ class DbSensor(Sensor):
 
     @property
     def id(self):
-        ''' The database id.
+        ''' int: The database id.
         '''
         if self.orm is not None:
             return self.orm.id
@@ -1445,6 +1565,21 @@ class DbSensor(Sensor):
 
     @classmethod
     def from_sqlalchemy_orm(cls, parent_inventory, orm):
+        ''' Create a :class:`DbSensor` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomSensor` table mapper class.
+
+        Parameters
+        ----------
+        parent_inventory: :class:`mss_data_server.geometry.inventory.Inventory`
+            The parent inventory to which the instance is related.
+
+        orm: :class:`mss_data_server.geometry.databaseFactory.GeomSensor`
+            The sqlalchemy table mapper class for the sensor.
+        
+        Returns
+        -------
+        :class:`DbSensor`
+            The created instance.
+        '''
         sensor =  cls(parent_inventory = parent_inventory,
                           serial = orm.serial,
                           model = orm.model,
@@ -1462,12 +1597,28 @@ class DbSensor(Sensor):
         return sensor
 
 
-
     @classmethod
     def from_inventory_instance(cls, parent_inventory, instance):
+        ''' Create a :class:`DbSensor` instance from a :class:`mss_data_server.geometry.inventory.Sensor` instance.
+
+        Parameters
+        ----------
+
+        parent_inventory: :class:`mss_data_server.geometry.inventory.Inventory`
+            The parent inventory to which the DbSensor is related.
+
+        instance: :class:`mss_data_server.geometry.inventory.Sensor`
+            The instance used to create the :class:`DbSensor` instance.
+        
+        Returns
+        -------
+        :class:`DbSensor`
+            The created sensor.
+        '''
         sensor =  cls(parent_inventory = parent_inventory,
                       serial = instance.serial,
                       model = instance.model,
+
                       producer = instance.producer,
                       description = instance.description,
                       author_uri = instance.author_uri,
@@ -1504,8 +1655,13 @@ class DbSensor(Sensor):
 
         Parameters
         ----------
-        cur_component : :class:`DbSensorComponent`
-            The stream to add to the recorder.
+        cur_component : :class:`DbSensorComponent` of :class:`mss_data_server.geometry.inventory.SensorComponent`
+            The component to add to the sensor.
+
+        Returns
+        -------
+        :class:`DbSensorComponent`
+            The added component.
         '''
         if cur_component.__class__ is SensorComponent:
             cur_component = DbSensorComponent.from_inventory_instance(self, cur_component)
@@ -1519,8 +1675,23 @@ class DbSensor(Sensor):
 
 
 class DbSensorComponent(SensorComponent):
+    ''' The database sensor component.
+
+    Parameters
+    ----------
+    orm: :class:`mss_data_server.geometry.databaseFactory.GeomSensorComponent`
+        The sqlalchemy table mapper class.
+
+    
+    Keyword Arguments
+    -----------------
+    **kwargs
+        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.SensorComponent`.
+    '''
 
     def __init__(self, orm = None, **kwargs):
+        ''' Initialize the instance.
+        '''
         SensorComponent.__init__(self, **kwargs)
 
         if orm is None:
@@ -1538,7 +1709,7 @@ class DbSensorComponent(SensorComponent):
 
     @property
     def id(self):
-        ''' The database id.
+        ''' int: The database id.
         '''
         if self.orm is not None:
             return self.orm.id
@@ -1548,6 +1719,21 @@ class DbSensorComponent(SensorComponent):
 
     @classmethod
     def from_sqlalchemy_orm(cls, parent_sensor, orm):
+        ''' Create a :class:`DbSensorComponent` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomSensorComponent` table mapper class.
+
+        Parameters
+        ----------
+        parent_sensor: :class:`mss_data_server.geometry.db_inventory.DbSensor`
+            The parent sensor to which the instance is related.
+
+        orm: :class:`mss_data_server.geometry.databaseFactory.GeomSensorComponent`
+            The sqlalchemy table mapper class for the sensor component.
+        
+        Returns
+        -------
+        :class:`DbSensorComponent`
+            The created instance.
+        '''
         component =  cls(parent_sensor = parent_sensor,
                          name = orm.name,
                          description = orm.description,
@@ -1569,6 +1755,21 @@ class DbSensorComponent(SensorComponent):
 
     @classmethod
     def from_inventory_instance(cls, parent_sensor, instance):
+        ''' Create a :class:`DbSensorComponent` instance from a :class:`mss_data_server.geometry.inventory.SensorComponent` instance.
+
+        Parameters
+        ----------
+        parent_sensor: :class:`mss_data_server.geometry.db_inventory.DbSensor`
+            The parent sensor to which the sensor component is related.
+
+        instance: :class:`mss_data_server.geometry.inventory.SensorComponent`
+            The instance used to create the :class:`DbSensorComponent` instance.
+        
+        Returns
+        -------
+        :class:`DbSensorComponent`
+            The created sensor component.
+        '''
         cur_sensor =  cls(parent_sensor = parent_sensor,
                           name = instance.name,
                           description = instance.description,
@@ -1612,8 +1813,14 @@ class DbSensorComponent(SensorComponent):
 
         Parameters
         ----------
-        parameter : :class:`DbSensorComponentParameter`
+        parameter: :class:`DbSensorComponentParameter`
             The parameter to add to the sensor.
+
+
+        Returns
+        -------
+        :class:`DbSensorComponentParameter`
+            The added parameter.
         '''
         if cur_parameter.__class__ is SensorComponentParameter:
             cur_parameter = DbSensorComponentParameter.from_inventory_instance(self, cur_parameter)
@@ -1636,6 +1843,11 @@ class DbSensorComponent(SensorComponent):
 
     def remove_parameter(self, parameter_to_remove):
         ''' Remove a parameter from the component.
+
+        Parameters
+        ----------
+        parameter_to_remove: :class:`DbSensorComponentParameter`
+            The parameter to remove.
         '''
         SensorComponent.remove_parameter(self, parameter_to_remove)
         self.orm.parameters.remove(parameter_to_remove.orm)
@@ -1643,13 +1855,24 @@ class DbSensorComponent(SensorComponent):
 
 
 
-
-
-
 class DbSensorComponentParameter(SensorComponentParameter):
+    ''' The database sensor component parameter.
+
+    Parameters
+    ----------
+    orm: :class:`mss_data_server.geometry.databaseFactory.GeomSensorComponentParameter`
+        The sqlalchemy table mapper class.
+
+    
+    Keyword Arguments
+    -----------------
+    **kwargs
+        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.SensorComponentParameter`.
+    '''
 
     def __init__(self, orm = None, **kwargs):
-
+        ''' Initialize the instance.
+        '''
         SensorComponentParameter.__init__(self, **kwargs)
 
         if orm is None:
@@ -1671,7 +1894,7 @@ class DbSensorComponentParameter(SensorComponentParameter):
 
     @property
     def id(self):
-        ''' The database id.
+        ''' int: The database id.
         '''
         if self.orm is not None:
             return self.orm.id
@@ -1681,6 +1904,21 @@ class DbSensorComponentParameter(SensorComponentParameter):
 
     @classmethod
     def from_inventory_instance(cls, parent_component, instance):
+        ''' Create a :class:`DbSensorComponentParameter` instance from a :class:`mss_data_server.geometry.inventory.SensorComponentParameter` instance.
+
+        Parameters
+        ----------
+        parent_component: :class:`mss_data_server.geometry.db_inventory.DbSensorComponent`
+            The parent sensor component to which the sensor component parameter is related.
+
+        instance: :class:`mss_data_server.geometry.inventory.SensorComponentParameter`
+            The instance used to create the :class:`DbSensorComponentParameter` instance.
+        
+        Returns
+        -------
+        :class:`DbSensorComponentParameter`
+            The created sensor component parameter.
+        '''
         return cls(parent_component = parent_component,
                    start_time = instance.start_time,
                    end_time = instance.end_time,
@@ -1698,7 +1936,21 @@ class DbSensorComponentParameter(SensorComponentParameter):
 
     @classmethod
     def from_sqlalchemy_orm(cls, parent_component, orm):
+        ''' Create a :class:`DbSensorComponentParameter` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomSensorComponentParameter` table mapper class.
 
+        Parameters
+        ----------
+        parent_compoent: :class:`mss_data_server.geometry.db_inventory.DbSensorComponent`
+            The parent sensor component to which the instance is related.
+
+        orm: :class:`mss_data_server.geometry.databaseFactory.GeomSensorComponentParameter`
+            The sqlalchemy table mapper class for the sensor component parameter.
+        
+        Returns
+        -------
+        :class:`DbSensorComponentParameter`
+            The created instance.
+        '''
         if orm.start_time is not None:
             start_time = UTCDateTime(orm.start_time)
         else:
@@ -1761,6 +2013,19 @@ class DbSensorComponentParameter(SensorComponentParameter):
 
 
 class DbChannel(Channel):
+    ''' The database channel.
+
+    Parameters
+    ----------
+    orm: :class:`mss_data_server.geometry.databaseFactory.GeomChannel`
+        The sqlalchemy table mapper class for the channel.
+
+    
+    Keyword Arguments
+    -----------------
+    **kwargs
+        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.Channel`.
+    '''
 
     def __init__(self, orm = None, **kwargs):
         Channel.__init__(self, **kwargs)
@@ -1778,7 +2043,7 @@ class DbChannel(Channel):
 
     @property
     def id(self):
-        ''' The database id.
+        ''' int: The database id.
         '''
         if self.orm is not None:
             return self.orm.id
@@ -1788,6 +2053,21 @@ class DbChannel(Channel):
 
     @classmethod
     def from_sqlalchemy_orm(cls, parent_station, orm):
+        ''' Create a :class:`DbChannel` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomChannel` table mapper class.
+
+        Parameters
+        ----------
+        parent_station: :class:`mss_data_server.geometry.db_inventory.DbStation`
+            The parent station to which the instance is related.
+
+        orm: :class:`mss_data_server.geometry.databaseFactory.GeomChannel`
+            The sqlalchemy table mapper class for the channel.
+        
+        Returns
+        -------
+        :class:`DbChannel`
+            The created instance.
+        '''
         channel =  cls(parent_station = parent_station,
                        name = orm.name,
                        description = orm.description,
@@ -1819,6 +2099,21 @@ class DbChannel(Channel):
 
     @classmethod
     def from_inventory_instance(cls, parent_station, instance):
+        ''' Create a :class:`DbChannel` instance from a :class:`mss_data_server.geometry.inventory.Channel` instance.
+
+        Parameters
+        ----------
+        parent_station: :class:`mss_data_server.geometry.db_inventory.DbStation`
+            The parent station to which the instance is related.
+
+        instance: :class:`mss_data_server.geometry.inventory.Channel`
+            The instance used to create the :class:`DbChannel` instance.
+        
+        Returns
+        -------
+        :class:`DbChannel`
+            The created channel.
+        '''
         channel =  cls(parent_station = parent_station,
                            name = instance.name,
                            description = instance.description,
@@ -1860,28 +2155,33 @@ class DbChannel(Channel):
 
         Parameters
         ----------
-        serial : String
+        serial: str 
             The serial number of the recorder containing the stream.
 
-        model : String
+        model: str 
             The model of the recorder containing the stream.
 
-        producer : String
+        producer: str 
             The producer of the recorder containing the stream.
 
-        name : String
+        name: str 
             The name of the stream.
 
-        start_time : :class:`obspy.core.utcdatetime.UTCDateTime`
+        start_time: :class:`obspy.UTCDateTime`
             The time from which on the stream has been operating at the channel.
 
-        end_time : :class:`obspy.core.utcdatetime.UTCDateTime`
+        end_time: :class:`obspy.UTCDateTime`
             The time up to which the stream has been operating at the channel. "None" if the channel is still running.
 
-        ignore_orm : Boolean
+        ignore_orm: boolean
             Control if the component assignment is added to the orm or not. This is usefull
             when creating an instance from a orm mapper using the from_sqlalchemy_orm
             class method.
+
+        Returns
+        -------
+        :class:`DbRecorderStream`
+            The added recorder stream.
         '''
         added_stream = Channel.add_stream(self,
                                           serial = serial,
@@ -1917,6 +2217,11 @@ class DbChannel(Channel):
 
     def remove_stream_by_instance(self, stream_timebox):
         ''' Remove a stream timebox.
+
+        Parameters
+        ----------
+        stream_timebox: :class:`mss_data_server.geometry.inventory.TimeBox`
+            The timebox instance to remove.
         '''
         Channel.remove_stream_by_instance(self, stream_timebox)
         try:
