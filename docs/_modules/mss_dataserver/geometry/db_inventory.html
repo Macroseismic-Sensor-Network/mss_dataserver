@@ -186,10 +186,11 @@
 <span class="c1">##############################################################################</span>
 
 <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">The inventory module. </span>
+<span class="sd">The database inventory module. </span>
 
-<span class="sd">This module contains the classed needed to build a pSysmon geometry </span>
-<span class="sd">inventory.</span>
+<span class="sd">This module contains the extension to the Inventory classes used to handle an </span>
+<span class="sd">inventory in a mariaDB database. All classes inherit from the related inventory </span>
+<span class="sd">classes and add functionality to write and retrieve data from the database.</span>
 <span class="sd">&#39;&#39;&#39;</span>
 
 <span class="kn">from</span> <span class="nn">obspy.core.utcdatetime</span> <span class="kn">import</span> <span class="n">UTCDateTime</span>
@@ -208,6 +209,22 @@
 
 
 <div class="viewcode-block" id="DbInventory"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbInventory.html#mss_dataserver.geometry.db_inventory.DbInventory">[docs]</a><span class="k">class</span> <span class="nc">DbInventory</span><span class="p">(</span><span class="n">Inventory</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; The database inventory.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    project: :class:`mss_dataserver.core.project.Project`</span>
+<span class="sd">        The project used to get the database connection and database</span>
+<span class="sd">        session.</span>
+
+<span class="sd">    name: str </span>
+<span class="sd">        The name of the inventory.</span>
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    db_session: :class:`sqlalchemy.orm.Session`</span>
+<span class="sd">        The session used to communicate with the database.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="DbInventory.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbInventory.__init__.html#mss_dataserver.geometry.db_inventory.DbInventory.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;db_inventory&#39;</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Initialize the instance.</span>
@@ -239,8 +256,14 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        recorder : :class:`~psysmon.packages.geometery.inventory.Recorder`</span>
+<span class="sd">        recorder: :class:`mss_dataserver.geometry.inventory.Recorder` or :class:`DbRecorder`</span>
 <span class="sd">            The recorder to add to the inventory.</span>
+
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbRecorder`</span>
+<span class="sd">            The recorder added.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">recorder</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">is</span> <span class="n">Recorder</span><span class="p">:</span>
             <span class="n">recorder</span> <span class="o">=</span> <span class="n">DbRecorder</span><span class="o">.</span><span class="n">from_inventory_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recorder</span><span class="p">)</span>
@@ -257,8 +280,14 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        sensor : :class:`Sensor`</span>
+<span class="sd">        sensor: :class:`mss_dataserver.geometry.inventory.Sensor` or :class:`DbSensor`</span>
 <span class="sd">            The sensor to add to the inventory.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbSensor`</span>
+<span class="sd">            The sensor added.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">sensor</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">is</span> <span class="n">Sensor</span><span class="p">:</span>
             <span class="n">sensor</span> <span class="o">=</span> <span class="n">DbSensor</span><span class="o">.</span><span class="n">from_inventory_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sensor</span><span class="p">)</span>
@@ -275,8 +304,14 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        network : :class:`psysmon.packages.geometry.inventory.Network`</span>
+<span class="sd">        network: :class:`mss_dataserver.geometry.inventory.Network` or :class:`DbNetwork`</span>
 <span class="sd">            The network to add to the database inventory.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbNetwork`</span>
+<span class="sd">            The network added.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">network</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">is</span> <span class="n">Network</span><span class="p">:</span>
             <span class="n">network</span> <span class="o">=</span> <span class="n">DbNetwork</span><span class="o">.</span><span class="n">from_inventory_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">network</span><span class="p">)</span>
@@ -293,8 +328,13 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        name : String</span>
+<span class="sd">        name: str</span>
 <span class="sd">            The name of the network to remove.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbNetwork`</span>
+<span class="sd">            The removed network.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">removed_network</span> <span class="o">=</span> <span class="n">Inventory</span><span class="o">.</span><span class="n">remove_network</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">removed_network</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -308,8 +348,13 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        array : :class:`psysmon.packages.geometry.inventory.Array`</span>
+<span class="sd">        array: :class:`mss_dataserver.geometry.inventory.Array` of :class:`DbArray`</span>
 <span class="sd">            The array to add to the database inventory.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbArray`</span>
+<span class="sd">            The added array.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">array</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">is</span> <span class="n">Array</span><span class="p">:</span>
             <span class="n">array</span> <span class="o">=</span> <span class="n">DbArray</span><span class="o">.</span><span class="n">from_inventory_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">array</span><span class="p">)</span>
@@ -393,6 +438,25 @@
 
 <div class="viewcode-block" id="DbInventory.from_inventory_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbInventory.from_inventory_instance.html#mss_dataserver.geometry.db_inventory.DbInventory.from_inventory_instance">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_inventory_instance</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">project</span><span class="p">,</span> <span class="n">inventory</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbInventory` instance from a :class:`mss_data_server.geometry.inventory.Inventory` instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name: str</span>
+<span class="sd">            The name of the inventory.</span>
+
+<span class="sd">        project: :class:`mss_data_server.core.project.Project`</span>
+<span class="sd">            The project used to communicate with the database.</span>
+
+<span class="sd">        inventory: :class:`mss_dataserver.geometry.inventory.Inventory`</span>
+<span class="sd">            The inventory to convert to the :class:`DbInventory` instance.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbInventory`</span>
+<span class="sd">            The created instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">db_inventory</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">,</span> <span class="n">project</span> <span class="o">=</span> <span class="n">project</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">cur_sensor</span> <span class="ow">in</span> <span class="n">inventory</span><span class="o">.</span><span class="n">sensors</span><span class="p">:</span>
             <span class="n">db_inventory</span><span class="o">.</span><span class="n">add_sensor</span><span class="p">(</span><span class="n">cur_sensor</span><span class="p">)</span>
@@ -411,6 +475,13 @@
 
 <div class="viewcode-block" id="DbInventory.load_inventory"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbInventory.load_inventory.html#mss_dataserver.geometry.db_inventory.DbInventory.load_inventory">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">load_inventory</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">project</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Load an inventory from the database.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        project: :class:`mss_data_server.core.project.Project`</span>
+<span class="sd">            The project used to communicate with the database.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">db_inventory</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;db_inventory&#39;</span><span class="p">,</span> <span class="n">project</span> <span class="o">=</span> <span class="n">project</span><span class="p">)</span>
         <span class="n">db_inventory</span><span class="o">.</span><span class="n">load_sensors</span><span class="p">()</span>
         <span class="n">db_inventory</span><span class="o">.</span><span class="n">load_recorders</span><span class="p">()</span>
@@ -423,9 +494,20 @@
 
 
 
-
-
 <div class="viewcode-block" id="DbNetwork"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbNetwork.html#mss_dataserver.geometry.db_inventory.DbNetwork">[docs]</a><span class="k">class</span> <span class="nc">DbNetwork</span><span class="p">(</span><span class="n">Network</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; The database network.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    orm: :class:`mss_data_server.geometry.databaseFactory.GeomNetwork`</span>
+<span class="sd">        The sqlalchemy table mapper class for the network.</span>
+
+<span class="sd">    </span>
+<span class="sd">    Keyword Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.Network`.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="DbNetwork.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbNetwork.__init__.html#mss_dataserver.geometry.db_inventory.DbNetwork.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orm</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">Network</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -444,7 +526,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; The database id.</span>
+        <span class="sd">&#39;&#39;&#39; int: The database id.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">orm</span><span class="o">.</span><span class="n">id</span>
@@ -454,6 +536,21 @@
 
 <div class="viewcode-block" id="DbNetwork.from_sqlalchemy_orm"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbNetwork.from_sqlalchemy_orm.html#mss_dataserver.geometry.db_inventory.DbNetwork.from_sqlalchemy_orm">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_sqlalchemy_orm</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_inventory</span><span class="p">,</span> <span class="n">orm</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbNetwork` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomNetwork` table mapper class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_inventory: :class:`mss_data_server.geometry.inventory.Inventory`</span>
+<span class="sd">            The parent inventory to which the instance is related.</span>
+
+<span class="sd">        orm: :class:`mss_data_server.geometry.databaseFactory.GeomNetwork`</span>
+<span class="sd">            The sqlalchemy table mapper class for the network.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbNetwork`</span>
+<span class="sd">            The created instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">network</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">parent_inventory</span> <span class="o">=</span> <span class="n">parent_inventory</span><span class="p">,</span>
                       <span class="n">name</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                       <span class="n">description</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
@@ -470,6 +567,21 @@
 
 <div class="viewcode-block" id="DbNetwork.from_inventory_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbNetwork.from_inventory_instance.html#mss_dataserver.geometry.db_inventory.DbNetwork.from_inventory_instance">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_inventory_instance</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_inventory</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbNetwork` instance from a :class:`mss_data_server.geometry.inventory.Network` instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_inventory: :class:`mss_data_server.geometry.inventory.Inventory`</span>
+<span class="sd">            The parent inventory to which the DbNetwork is related.</span>
+
+<span class="sd">        instance: :class:`mss_data_server.geometry.inventory.Network`</span>
+<span class="sd">            The instance used to create the :class:`DbNetwork` instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbNetwork`</span>
+<span class="sd">            The created instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">cur_network</span> <span class="o">=</span>  <span class="bp">cls</span><span class="p">(</span><span class="n">parent_inventory</span> <span class="o">=</span> <span class="n">parent_inventory</span><span class="p">,</span>
                            <span class="n">name</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                            <span class="n">description</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
@@ -508,8 +620,13 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        station : :class:`DbStation`</span>
+<span class="sd">        station: :class:`DbStation`</span>
 <span class="sd">            The station instance to add to the network.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbStation`</span>
+<span class="sd">            The added station.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">station</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">is</span> <span class="n">Station</span><span class="p">:</span>
             <span class="n">station</span> <span class="o">=</span> <span class="n">DbStation</span><span class="o">.</span><span class="n">from_inventory_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">)</span>
@@ -528,11 +645,17 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        name : String</span>
+<span class="sd">        name: str </span>
 <span class="sd">            The name of the station to remove.</span>
 
-<span class="sd">        location : String</span>
+<span class="sd">        location: str</span>
 <span class="sd">            The location of the station to remove.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbStation`</span>
+<span class="sd">            The removed station.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">removed_station</span> <span class="o">=</span> <span class="n">Network</span><span class="o">.</span><span class="n">remove_station</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">,</span> <span class="n">location</span> <span class="o">=</span> <span class="n">location</span><span class="p">)</span>
 
@@ -546,8 +669,23 @@
 
 
 <div class="viewcode-block" id="DbArray"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbArray.html#mss_dataserver.geometry.db_inventory.DbArray">[docs]</a><span class="k">class</span> <span class="nc">DbArray</span><span class="p">(</span><span class="n">Array</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; The database Array.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    orm: :class:`mss_data_server.geometry.databaseFactory.GeomArray`</span>
+<span class="sd">        The sqlalchemy table mapper class for the array.</span>
+
+
+<span class="sd">    Keyword Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.Array`.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="DbArray.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbArray.__init__.html#mss_dataserver.geometry.db_inventory.DbArray.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orm</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Initialize the instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">Array</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">orm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -564,6 +702,22 @@
 
 <div class="viewcode-block" id="DbArray.from_sqlalchemy_orm"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbArray.from_sqlalchemy_orm.html#mss_dataserver.geometry.db_inventory.DbArray.from_sqlalchemy_orm">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_sqlalchemy_orm</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_inventory</span><span class="p">,</span> <span class="n">orm</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbArray` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomArray` table mapper class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_inventory: :class:`mss_data_server.geometry.inventory.Inventory`</span>
+<span class="sd">            The parent inventory to which the instance is related.</span>
+
+<span class="sd">        orm: :class:`mss_data_server.geometry.databaseFactory.GeomArray`</span>
+<span class="sd">            The sqlalchemy table mapper class for the array.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbArray`</span>
+<span class="sd">            The created instance.</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">array</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">parent_inventory</span> <span class="o">=</span> <span class="n">parent_inventory</span><span class="p">,</span>
                     <span class="n">name</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                     <span class="n">description</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
@@ -586,6 +740,22 @@
 
 <div class="viewcode-block" id="DbArray.from_inventory_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbArray.from_inventory_instance.html#mss_dataserver.geometry.db_inventory.DbArray.from_inventory_instance">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_inventory_instance</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_inventory</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbArray` instance from a :class:`mss_data_server.geometry.inventory.Array` instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_inventory: :class:`mss_data_server.geometry.inventory.Inventory`</span>
+<span class="sd">            The parent inventory to which the instance is related.</span>
+
+<span class="sd">         instance: :class:`mss_data_server.geometry.inventory.Array`</span>
+<span class="sd">            The instance used to create the :class:`DbArray` instance.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbArray`</span>
+<span class="sd">            The created array.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">array</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">parent_inventory</span> <span class="o">=</span> <span class="n">parent_inventory</span><span class="p">,</span>
                     <span class="n">name</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                     <span class="n">description</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
@@ -688,7 +858,20 @@
 
 
 <div class="viewcode-block" id="DbStation"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbStation.html#mss_dataserver.geometry.db_inventory.DbStation">[docs]</a><span class="k">class</span> <span class="nc">DbStation</span><span class="p">(</span><span class="n">Station</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; The database station.</span>
 
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    orm: :class:`mss_data_server.geometry.databaseFactory.GeomStation`</span>
+<span class="sd">        The sqlalchemy table mapper class for the network.</span>
+
+<span class="sd">    </span>
+<span class="sd">    Keyword Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.Station`.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
 <div class="viewcode-block" id="DbStation.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbStation.__init__.html#mss_dataserver.geometry.db_inventory.DbStation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orm</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">Station</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
@@ -710,7 +893,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; The database id.</span>
+        <span class="sd">&#39;&#39;&#39; int: The database id.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">orm</span><span class="o">.</span><span class="n">id</span>
@@ -720,6 +903,21 @@
 
 <div class="viewcode-block" id="DbStation.from_sqlalchemy_orm"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbStation.from_sqlalchemy_orm.html#mss_dataserver.geometry.db_inventory.DbStation.from_sqlalchemy_orm">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_sqlalchemy_orm</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_network</span><span class="p">,</span> <span class="n">orm</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbStation` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomStation` table mapper class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_inventory: :class:`mss_data_server.geometry.inventory.Network`</span>
+<span class="sd">            The parent network to which the instance is related.</span>
+
+<span class="sd">        orm: :class:`mss_data_server.geometry.databaseFactory.GeomStation`</span>
+<span class="sd">            The sqlalchemy table mapper class for the station.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbStation`</span>
+<span class="sd">            The created instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">station</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">parent_network</span> <span class="o">=</span> <span class="n">parent_network</span><span class="p">,</span>
                       <span class="n">name</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                       <span class="n">location</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">location</span><span class="p">,</span>
@@ -742,6 +940,21 @@
 
 <div class="viewcode-block" id="DbStation.from_inventory_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbStation.from_inventory_instance.html#mss_dataserver.geometry.db_inventory.DbStation.from_inventory_instance">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_inventory_instance</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_network</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbStation` instance from a :class:`mss_data_server.geometry.inventory.Station` instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_network: :class:`mss_data_server.geometry.inventory.Network`</span>
+<span class="sd">            The parent network to which the DbStation is related.</span>
+
+<span class="sd">        instance: :class:`mss_data_server.geometry.inventory.Station`</span>
+<span class="sd">            The instance used to create the :class:`DbStation` instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbSation`</span>
+<span class="sd">            The created station.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">station</span> <span class="o">=</span>  <span class="bp">cls</span><span class="p">(</span><span class="n">parent_network</span> <span class="o">=</span> <span class="n">parent_network</span><span class="p">,</span>
                        <span class="n">name</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                        <span class="n">location</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">location</span><span class="p">,</span>
@@ -789,8 +1002,13 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        cur_channel : :class:`DbChannel`</span>
+<span class="sd">        cur_channel: :class:`DbChannel`</span>
 <span class="sd">            The channel to add to the station.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbChannel`</span>
+<span class="sd">            The added channel.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">cur_channel</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">is</span> <span class="n">Channel</span><span class="p">:</span>
             <span class="n">cur_channel</span> <span class="o">=</span> <span class="n">DbChannel</span><span class="o">.</span><span class="n">from_inventory_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cur_channel</span><span class="p">)</span>
@@ -806,6 +1024,19 @@
 
 
 <div class="viewcode-block" id="DbRecorder"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbRecorder.html#mss_dataserver.geometry.db_inventory.DbRecorder">[docs]</a><span class="k">class</span> <span class="nc">DbRecorder</span><span class="p">(</span><span class="n">Recorder</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; The database recorder.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    orm: :class:`mss_data_server.geometry.databaseFactory.GeomRecorder`</span>
+<span class="sd">        The sqlalchemy table mapper class.</span>
+
+<span class="sd">    </span>
+<span class="sd">    Keyword Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.Recorder`.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="DbRecorder.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbRecorder.__init__.html#mss_dataserver.geometry.db_inventory.DbRecorder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orm</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">Recorder</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -824,7 +1055,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; The database id.</span>
+        <span class="sd">&#39;&#39;&#39;int: The database id.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">orm</span><span class="o">.</span><span class="n">id</span>
@@ -834,6 +1065,21 @@
 
 <div class="viewcode-block" id="DbRecorder.from_sqlalchemy_orm"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbRecorder.from_sqlalchemy_orm.html#mss_dataserver.geometry.db_inventory.DbRecorder.from_sqlalchemy_orm">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_sqlalchemy_orm</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_inventory</span><span class="p">,</span> <span class="n">orm</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbRecorder` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomRecorder` table mapper class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_inventory: :class:`mss_data_server.geometry.inventory.Inventory`</span>
+<span class="sd">            The parent inventory to which the instance is related.</span>
+
+<span class="sd">        orm: :class:`mss_data_server.geometry.databaseFactory.GeomStation`</span>
+<span class="sd">            The sqlalchemy table mapper class for the network.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbRecorder`</span>
+<span class="sd">            The created instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">recorder</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">parent_inventory</span> <span class="o">=</span> <span class="n">parent_inventory</span><span class="p">,</span>
                        <span class="n">serial</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">serial</span><span class="p">,</span>
                        <span class="n">model</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
@@ -853,6 +1099,21 @@
 
 <div class="viewcode-block" id="DbRecorder.from_inventory_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbRecorder.from_inventory_instance.html#mss_dataserver.geometry.db_inventory.DbRecorder.from_inventory_instance">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_inventory_instance</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_inventory</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbRecorder` instance from a :class:`mss_data_server.geometry.inventory.Recorder` instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_inventory: :class:`mss_data_server.geometry.inventory.Inventory`</span>
+<span class="sd">            The parent inventory to which the DbStation is related.</span>
+
+<span class="sd">        instance: :class:`mss_data_server.geometry.inventory.Recorder`</span>
+<span class="sd">            The instance used to create the :class:`DbRecorder` instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbRecorder`</span>
+<span class="sd">            The created recorder.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">recorder</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">parent_inventory</span> <span class="o">=</span> <span class="n">parent_inventory</span><span class="p">,</span>
                        <span class="n">serial</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">serial</span><span class="p">,</span>
                        <span class="n">model</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
@@ -893,8 +1154,13 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        cur_stream : :class:`DbRecorderStream`</span>
+<span class="sd">        cur_stream: :class:`DbRecorderStream`</span>
 <span class="sd">            The stream to add to the recorder.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbRecorderStream` or :class:`mss_data_server.geometry.inventory.RecorderStream`</span>
+<span class="sd">            The added recorder stream.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">cur_stream</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">is</span> <span class="n">RecorderStream</span><span class="p">:</span>
             <span class="n">cur_stream</span> <span class="o">=</span> <span class="n">DbRecorderStream</span><span class="o">.</span><span class="n">from_inventory_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cur_stream</span><span class="p">)</span>
@@ -908,8 +1174,24 @@
 
 
 <div class="viewcode-block" id="DbRecorderStream"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbRecorderStream.html#mss_dataserver.geometry.db_inventory.DbRecorderStream">[docs]</a><span class="k">class</span> <span class="nc">DbRecorderStream</span><span class="p">(</span><span class="n">RecorderStream</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; The database recorder stream.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    orm: :class:`mss_data_server.geometry.databaseFactory.GeomRecorderStream`</span>
+<span class="sd">        The sqlalchemy table mapper class.</span>
+
+<span class="sd">    </span>
+<span class="sd">    Keyword Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.RecorderStream`.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="DbRecorderStream.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbRecorderStream.__init__.html#mss_dataserver.geometry.db_inventory.DbRecorderStream.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orm</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Initialize the instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">RecorderStream</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">orm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -924,7 +1206,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; The database id.</span>
+        <span class="sd">&#39;&#39;&#39; int: The database id.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">orm</span><span class="o">.</span><span class="n">id</span>
@@ -934,6 +1216,21 @@
 
 <div class="viewcode-block" id="DbRecorderStream.from_sqlalchemy_orm"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbRecorderStream.from_sqlalchemy_orm.html#mss_dataserver.geometry.db_inventory.DbRecorderStream.from_sqlalchemy_orm">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_sqlalchemy_orm</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_recorder</span><span class="p">,</span> <span class="n">orm</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbRecorderStream` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomRecorderStream` table mapper class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_recorder: :class:`mss_data_server.geometry.inventory.DbRecorder`</span>
+<span class="sd">            The parent recorder to which the instance is related.</span>
+
+<span class="sd">        orm: :class:`mss_data_server.geometry.databaseFactory.GeomRecorderStream`</span>
+<span class="sd">            The sqlalchemy table mapper class for the network.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbRecorderStream`</span>
+<span class="sd">            The created instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">stream</span> <span class="o">=</span>  <span class="bp">cls</span><span class="p">(</span><span class="n">parent_recorder</span> <span class="o">=</span> <span class="n">parent_recorder</span><span class="p">,</span>
                       <span class="n">name</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                       <span class="n">label</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
@@ -960,6 +1257,21 @@
 
 <div class="viewcode-block" id="DbRecorderStream.from_inventory_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbRecorderStream.from_inventory_instance.html#mss_dataserver.geometry.db_inventory.DbRecorderStream.from_inventory_instance">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_inventory_instance</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_recorder</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbRecorderStream` instance from a :class:`mss_data_server.geometry.inventory.RecorderStream` instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_recorder: :class:`mss_data_server.geometry.inventory.DbRecorder`</span>
+<span class="sd">            The parent recorder to which the instance is related.</span>
+
+<span class="sd">        instance: :class:`mss_data_server.geometry.inventory.RecorderStream`</span>
+<span class="sd">            The instance used to create the :class:`DbRecorderStream` instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbRecorderStream`</span>
+<span class="sd">            The created recorder stream.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">cur_stream</span> <span class="o">=</span>  <span class="bp">cls</span><span class="p">(</span><span class="n">parent_recorder</span> <span class="o">=</span> <span class="n">parent_recorder</span><span class="p">,</span>
                           <span class="n">name</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                           <span class="n">label</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
@@ -1010,28 +1322,33 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        serial : String</span>
+<span class="sd">        serial: str </span>
 <span class="sd">            The serial number of the sensor which holds the component.</span>
 
-<span class="sd">        model : String</span>
+<span class="sd">        model: str </span>
 <span class="sd">            The model of the sensor which holds the component.</span>
 
-<span class="sd">        producer : String</span>
+<span class="sd">        producer: str </span>
 <span class="sd">            The producer of the sensor which holds the component.</span>
 
-<span class="sd">        name : String</span>
+<span class="sd">        name: str </span>
 <span class="sd">            The name of the component.</span>
 
-<span class="sd">        start_time : :class:`obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">        start_time: :class:`obspy.UTCDateTime`</span>
 <span class="sd">            The time from which on the sensor has been operating at the station.</span>
 
-<span class="sd">        end_time : :class:`obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">        end_time: :class:`obspy.UTCDateTime`</span>
 <span class="sd">            The time up to which the sensor has been operating at the station. &quot;None&quot; if the station is still running.</span>
 
-<span class="sd">        ignore_orm : Boolean</span>
+<span class="sd">        ignore_orm: bool</span>
 <span class="sd">            Control if the component assignment is added to the orm or not. This is usefull</span>
 <span class="sd">            when creating an instance from a orm mapper using the from_sqlalchemy_orm</span>
 <span class="sd">            class method.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbSensorComponent`</span>
+<span class="sd">            The added sensor component.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">added_component</span> <span class="o">=</span> <span class="n">RecorderStream</span><span class="o">.</span><span class="n">add_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                                        <span class="n">serial</span> <span class="o">=</span> <span class="n">serial</span><span class="p">,</span>
@@ -1066,6 +1383,16 @@
 
 <div class="viewcode-block" id="DbRecorderStream.add_parameter"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbRecorderStream.add_parameter.html#mss_dataserver.geometry.db_inventory.DbRecorderStream.add_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">add_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cur_parameter</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Add a parameter to the recorder_stream.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cur_parameter: :class:`DbRecorderStreamParameter` or :class:`mss_data_server.geometry.inventory.RecorderStreamParameter`</span>
+<span class="sd">            The parameter to add.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbRecorderStreamParameter`</span>
+<span class="sd">            The added recorder stream parameter.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">cur_parameter</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">is</span> <span class="n">RecorderStreamParameter</span><span class="p">:</span>
             <span class="n">cur_parameter</span> <span class="o">=</span> <span class="n">DbRecorderStreamParameter</span><span class="o">.</span><span class="n">from_inventory_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cur_parameter</span><span class="p">)</span>
@@ -1081,6 +1408,11 @@
 
 <div class="viewcode-block" id="DbRecorderStream.remove_parameter_by_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbRecorderStream.remove_parameter_by_instance.html#mss_dataserver.geometry.db_inventory.DbRecorderStream.remove_parameter_by_instance">[docs]</a>    <span class="k">def</span> <span class="nf">remove_parameter_by_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter_to_remove</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Remove a parameter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parameter_to_remove: :class:`DbRecorderStreamParameter`</span>
+<span class="sd">            The recorder stream parameter to remove.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">RecorderStream</span><span class="o">.</span><span class="n">remove_parameter_by_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter_to_remove</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Removing DB parameter </span><span class="si">%d</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">parameter_to_remove</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
@@ -1090,6 +1422,11 @@
 
 <div class="viewcode-block" id="DbRecorderStream.remove_component_by_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbRecorderStream.remove_component_by_instance.html#mss_dataserver.geometry.db_inventory.DbRecorderStream.remove_component_by_instance">[docs]</a>    <span class="k">def</span> <span class="nf">remove_component_by_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_to_remove</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Remove a component from the stream.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        component_to_remove: :class:`DbSensorComponent`</span>
+<span class="sd">            The component to remove.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">RecorderStream</span><span class="o">.</span><span class="n">remove_component_by_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_to_remove</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
@@ -1114,14 +1451,14 @@
 
 
 <div class="viewcode-block" id="DbRecorderStream.change_sensor_start_time_OLD"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbRecorderStream.change_sensor_start_time_OLD.html#mss_dataserver.geometry.db_inventory.DbRecorderStream.change_sensor_start_time_OLD">[docs]</a>    <span class="k">def</span> <span class="nf">change_sensor_start_time_OLD</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sensor</span><span class="p">,</span> <span class="n">start_time</span><span class="p">,</span> <span class="n">end_time</span><span class="p">,</span> <span class="n">new_start_time</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Change the sensor deployment start time</span>
+        <span class="sd">&#39;&#39;&#39; DEPRECATED Change the sensor deployment start time</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        sensor : :class:`Sensor`</span>
+<span class="sd">        sensor: :class:`Sensor`</span>
 <span class="sd">            The sensor which should be changed.</span>
 
-<span class="sd">        start_time : :class:`~obspy.core.utcdatetime.UTCDateTime or String</span>
+<span class="sd">        start_time: :class:`~obspy.core.utcdatetime.UTCDateTime` or String</span>
 <span class="sd">            A :class:`~obspy.core.utcdatetime.UTCDateTime` instance or a data-time string which can be used by :class:`~obspy.core.utcdatetime.UTCDateTime`.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">sensor_2_change</span> <span class="o">=</span> <span class="p">[(</span><span class="n">s</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sensors</span><span class="p">)</span> <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="n">sensor</span> <span class="ow">and</span> <span class="n">b</span> <span class="o">==</span> <span class="n">start_time</span> <span class="ow">and</span> <span class="n">e</span> <span class="o">==</span> <span class="n">end_time</span><span class="p">]</span>
@@ -1166,7 +1503,7 @@
 
 
 <div class="viewcode-block" id="DbRecorderStream.change_sensor_end_time_OLD"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbRecorderStream.change_sensor_end_time_OLD.html#mss_dataserver.geometry.db_inventory.DbRecorderStream.change_sensor_end_time_OLD">[docs]</a>    <span class="k">def</span> <span class="nf">change_sensor_end_time_OLD</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sensor</span><span class="p">,</span> <span class="n">end_time</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Change the sensor deployment end time</span>
+        <span class="sd">&#39;&#39;&#39; DEPRECATED Change the sensor deployment end time</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1225,7 +1562,23 @@
 
 
 <div class="viewcode-block" id="DbRecorderStreamParameter"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter.html#mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter">[docs]</a><span class="k">class</span> <span class="nc">DbRecorderStreamParameter</span><span class="p">(</span><span class="n">RecorderStreamParameter</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; The database recorder stream parameter.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    orm: :class:`mss_data_server.geometry.databaseFactory.GeomRecorderStreamParameter`</span>
+<span class="sd">        The sqlalchemy table mapper class.</span>
+
+<span class="sd">    </span>
+<span class="sd">    Keyword Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.RecorderStreamParameter`.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
 <div class="viewcode-block" id="DbRecorderStreamParameter.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter.__init__.html#mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orm</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Initialize the instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">RecorderStreamParameter</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">orm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1242,7 +1595,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; The database id.</span>
+        <span class="sd">&#39;&#39;&#39; int: The database id.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">orm</span><span class="o">.</span><span class="n">id</span>
@@ -1251,6 +1604,21 @@
 
 <div class="viewcode-block" id="DbRecorderStreamParameter.from_inventory_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter.from_inventory_instance.html#mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter.from_inventory_instance">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_inventory_instance</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_recorder_stream</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbRecorderStreamParameter` instance from a :class:`mss_data_server.geometry.inventory.RecorderStreamParameter` instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_recorder_stream: :class:`mss_data_server.geometry.inventory.RecorderStream`</span>
+<span class="sd">            The parent recorder stream to which the DbRecorderStreamParameter is related.</span>
+
+<span class="sd">        instance: :class:`mss_data_server.geometry.inventory.RecorderStreamParameter`</span>
+<span class="sd">            The instance used to create the :class:`DbRecorderStreamParameter` instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbRecorderStreamParameter`</span>
+<span class="sd">            The created recorder stream parameter.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">parent_recorder_stream</span> <span class="o">=</span> <span class="n">parent_recorder_stream</span><span class="p">,</span>
                    <span class="n">gain</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">gain</span><span class="p">,</span>
                    <span class="n">bitweight</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">bitweight</span><span class="p">,</span>
@@ -1262,6 +1630,21 @@
 
 <div class="viewcode-block" id="DbRecorderStreamParameter.from_sqlalchemy_orm"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter.from_sqlalchemy_orm.html#mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter.from_sqlalchemy_orm">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_sqlalchemy_orm</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_recorder_stream</span><span class="p">,</span> <span class="n">orm</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbRecorderStreamParameter` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomRecorderStreamParameter` table mapper class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_recorder_stream: :class:`mss_data_server.geometry.inventory.RecorderStream`</span>
+<span class="sd">            The parent recorder stream to which the DbRecorderStreamParameter is related.</span>
+
+<span class="sd">        orm: :class:`mss_data_server.geometry.databaseFactory.GeomRecorderStreamParameter`</span>
+<span class="sd">            The sqlalchemy table mapper class for the recorder stream parameter.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbRecorderStreamParameter`</span>
+<span class="sd">            The created instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">parameter</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">parent_recorder_stream</span> <span class="o">=</span> <span class="n">parent_recorder_stream</span><span class="p">,</span>
                         <span class="n">gain</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">gain</span><span class="p">,</span>
                         <span class="n">bitweight</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">bitweight</span><span class="p">,</span>
@@ -1301,7 +1684,22 @@
 
 
 <div class="viewcode-block" id="DbSensor"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbSensor.html#mss_dataserver.geometry.db_inventory.DbSensor">[docs]</a><span class="k">class</span> <span class="nc">DbSensor</span><span class="p">(</span><span class="n">Sensor</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; The database sensor.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    orm: :class:`mss_data_server.geometry.databaseFactory.GeomSensor`</span>
+<span class="sd">        The sqlalchemy table mapper class.</span>
+
+<span class="sd">    </span>
+<span class="sd">    Keyword Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.Sensor`.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
 <div class="viewcode-block" id="DbSensor.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbSensor.__init__.html#mss_dataserver.geometry.db_inventory.DbSensor.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orm</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Initialize the instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">Sensor</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">orm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1319,7 +1717,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; The database id.</span>
+        <span class="sd">&#39;&#39;&#39; int: The database id.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">orm</span><span class="o">.</span><span class="n">id</span>
@@ -1329,6 +1727,21 @@
 
 <div class="viewcode-block" id="DbSensor.from_sqlalchemy_orm"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbSensor.from_sqlalchemy_orm.html#mss_dataserver.geometry.db_inventory.DbSensor.from_sqlalchemy_orm">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_sqlalchemy_orm</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_inventory</span><span class="p">,</span> <span class="n">orm</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbSensor` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomSensor` table mapper class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_inventory: :class:`mss_data_server.geometry.inventory.Inventory`</span>
+<span class="sd">            The parent inventory to which the instance is related.</span>
+
+<span class="sd">        orm: :class:`mss_data_server.geometry.databaseFactory.GeomSensor`</span>
+<span class="sd">            The sqlalchemy table mapper class for the sensor.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbSensor`</span>
+<span class="sd">            The created instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">sensor</span> <span class="o">=</span>  <span class="bp">cls</span><span class="p">(</span><span class="n">parent_inventory</span> <span class="o">=</span> <span class="n">parent_inventory</span><span class="p">,</span>
                           <span class="n">serial</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">serial</span><span class="p">,</span>
                           <span class="n">model</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
@@ -1346,12 +1759,28 @@
         <span class="k">return</span> <span class="n">sensor</span></div>
 
 
-
 <div class="viewcode-block" id="DbSensor.from_inventory_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbSensor.from_inventory_instance.html#mss_dataserver.geometry.db_inventory.DbSensor.from_inventory_instance">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_inventory_instance</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_inventory</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbSensor` instance from a :class:`mss_data_server.geometry.inventory.Sensor` instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        parent_inventory: :class:`mss_data_server.geometry.inventory.Inventory`</span>
+<span class="sd">            The parent inventory to which the DbSensor is related.</span>
+
+<span class="sd">        instance: :class:`mss_data_server.geometry.inventory.Sensor`</span>
+<span class="sd">            The instance used to create the :class:`DbSensor` instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbSensor`</span>
+<span class="sd">            The created sensor.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">sensor</span> <span class="o">=</span>  <span class="bp">cls</span><span class="p">(</span><span class="n">parent_inventory</span> <span class="o">=</span> <span class="n">parent_inventory</span><span class="p">,</span>
                       <span class="n">serial</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">serial</span><span class="p">,</span>
                       <span class="n">model</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+
                       <span class="n">producer</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">producer</span><span class="p">,</span>
                       <span class="n">description</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
                       <span class="n">author_uri</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">author_uri</span><span class="p">,</span>
@@ -1388,8 +1817,13 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        cur_component : :class:`DbSensorComponent`</span>
-<span class="sd">            The stream to add to the recorder.</span>
+<span class="sd">        cur_component : :class:`DbSensorComponent` of :class:`mss_data_server.geometry.inventory.SensorComponent`</span>
+<span class="sd">            The component to add to the sensor.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbSensorComponent`</span>
+<span class="sd">            The added component.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">cur_component</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">is</span> <span class="n">SensorComponent</span><span class="p">:</span>
             <span class="n">cur_component</span> <span class="o">=</span> <span class="n">DbSensorComponent</span><span class="o">.</span><span class="n">from_inventory_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cur_component</span><span class="p">)</span>
@@ -1403,8 +1837,23 @@
 
 
 <div class="viewcode-block" id="DbSensorComponent"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbSensorComponent.html#mss_dataserver.geometry.db_inventory.DbSensorComponent">[docs]</a><span class="k">class</span> <span class="nc">DbSensorComponent</span><span class="p">(</span><span class="n">SensorComponent</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; The database sensor component.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    orm: :class:`mss_data_server.geometry.databaseFactory.GeomSensorComponent`</span>
+<span class="sd">        The sqlalchemy table mapper class.</span>
+
+<span class="sd">    </span>
+<span class="sd">    Keyword Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.SensorComponent`.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="DbSensorComponent.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbSensorComponent.__init__.html#mss_dataserver.geometry.db_inventory.DbSensorComponent.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orm</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Initialize the instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">SensorComponent</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">orm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1422,7 +1871,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; The database id.</span>
+        <span class="sd">&#39;&#39;&#39; int: The database id.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">orm</span><span class="o">.</span><span class="n">id</span>
@@ -1432,6 +1881,21 @@
 
 <div class="viewcode-block" id="DbSensorComponent.from_sqlalchemy_orm"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbSensorComponent.from_sqlalchemy_orm.html#mss_dataserver.geometry.db_inventory.DbSensorComponent.from_sqlalchemy_orm">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_sqlalchemy_orm</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_sensor</span><span class="p">,</span> <span class="n">orm</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbSensorComponent` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomSensorComponent` table mapper class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_sensor: :class:`mss_data_server.geometry.db_inventory.DbSensor`</span>
+<span class="sd">            The parent sensor to which the instance is related.</span>
+
+<span class="sd">        orm: :class:`mss_data_server.geometry.databaseFactory.GeomSensorComponent`</span>
+<span class="sd">            The sqlalchemy table mapper class for the sensor component.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbSensorComponent`</span>
+<span class="sd">            The created instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">component</span> <span class="o">=</span>  <span class="bp">cls</span><span class="p">(</span><span class="n">parent_sensor</span> <span class="o">=</span> <span class="n">parent_sensor</span><span class="p">,</span>
                          <span class="n">name</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                          <span class="n">description</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
@@ -1453,6 +1917,21 @@
 
 <div class="viewcode-block" id="DbSensorComponent.from_inventory_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbSensorComponent.from_inventory_instance.html#mss_dataserver.geometry.db_inventory.DbSensorComponent.from_inventory_instance">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_inventory_instance</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_sensor</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbSensorComponent` instance from a :class:`mss_data_server.geometry.inventory.SensorComponent` instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_sensor: :class:`mss_data_server.geometry.db_inventory.DbSensor`</span>
+<span class="sd">            The parent sensor to which the sensor component is related.</span>
+
+<span class="sd">        instance: :class:`mss_data_server.geometry.inventory.SensorComponent`</span>
+<span class="sd">            The instance used to create the :class:`DbSensorComponent` instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbSensorComponent`</span>
+<span class="sd">            The created sensor component.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">cur_sensor</span> <span class="o">=</span>  <span class="bp">cls</span><span class="p">(</span><span class="n">parent_sensor</span> <span class="o">=</span> <span class="n">parent_sensor</span><span class="p">,</span>
                           <span class="n">name</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                           <span class="n">description</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
@@ -1496,8 +1975,14 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        parameter : :class:`DbSensorComponentParameter`</span>
+<span class="sd">        parameter: :class:`DbSensorComponentParameter`</span>
 <span class="sd">            The parameter to add to the sensor.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbSensorComponentParameter`</span>
+<span class="sd">            The added parameter.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">cur_parameter</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">is</span> <span class="n">SensorComponentParameter</span><span class="p">:</span>
             <span class="n">cur_parameter</span> <span class="o">=</span> <span class="n">DbSensorComponentParameter</span><span class="o">.</span><span class="n">from_inventory_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cur_parameter</span><span class="p">)</span>
@@ -1520,6 +2005,11 @@
 
 <div class="viewcode-block" id="DbSensorComponent.remove_parameter"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbSensorComponent.remove_parameter.html#mss_dataserver.geometry.db_inventory.DbSensorComponent.remove_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">remove_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter_to_remove</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Remove a parameter from the component.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parameter_to_remove: :class:`DbSensorComponentParameter`</span>
+<span class="sd">            The parameter to remove.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">SensorComponent</span><span class="o">.</span><span class="n">remove_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter_to_remove</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">orm</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">parameter_to_remove</span><span class="o">.</span><span class="n">orm</span><span class="p">)</span>
@@ -1527,13 +2017,24 @@
 
 
 
-
-
-
 <div class="viewcode-block" id="DbSensorComponentParameter"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbSensorComponentParameter.html#mss_dataserver.geometry.db_inventory.DbSensorComponentParameter">[docs]</a><span class="k">class</span> <span class="nc">DbSensorComponentParameter</span><span class="p">(</span><span class="n">SensorComponentParameter</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; The database sensor component parameter.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    orm: :class:`mss_data_server.geometry.databaseFactory.GeomSensorComponentParameter`</span>
+<span class="sd">        The sqlalchemy table mapper class.</span>
+
+<span class="sd">    </span>
+<span class="sd">    Keyword Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.SensorComponentParameter`.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="DbSensorComponentParameter.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbSensorComponentParameter.__init__.html#mss_dataserver.geometry.db_inventory.DbSensorComponentParameter.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orm</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-
+        <span class="sd">&#39;&#39;&#39; Initialize the instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">SensorComponentParameter</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">orm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1555,7 +2056,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; The database id.</span>
+        <span class="sd">&#39;&#39;&#39; int: The database id.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">orm</span><span class="o">.</span><span class="n">id</span>
@@ -1565,6 +2066,21 @@
 
 <div class="viewcode-block" id="DbSensorComponentParameter.from_inventory_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbSensorComponentParameter.from_inventory_instance.html#mss_dataserver.geometry.db_inventory.DbSensorComponentParameter.from_inventory_instance">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_inventory_instance</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_component</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbSensorComponentParameter` instance from a :class:`mss_data_server.geometry.inventory.SensorComponentParameter` instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_component: :class:`mss_data_server.geometry.db_inventory.DbSensorComponent`</span>
+<span class="sd">            The parent sensor component to which the sensor component parameter is related.</span>
+
+<span class="sd">        instance: :class:`mss_data_server.geometry.inventory.SensorComponentParameter`</span>
+<span class="sd">            The instance used to create the :class:`DbSensorComponentParameter` instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbSensorComponentParameter`</span>
+<span class="sd">            The created sensor component parameter.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">parent_component</span> <span class="o">=</span> <span class="n">parent_component</span><span class="p">,</span>
                    <span class="n">start_time</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
                    <span class="n">end_time</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">end_time</span><span class="p">,</span>
@@ -1582,7 +2098,21 @@
 
 <div class="viewcode-block" id="DbSensorComponentParameter.from_sqlalchemy_orm"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbSensorComponentParameter.from_sqlalchemy_orm.html#mss_dataserver.geometry.db_inventory.DbSensorComponentParameter.from_sqlalchemy_orm">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_sqlalchemy_orm</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_component</span><span class="p">,</span> <span class="n">orm</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbSensorComponentParameter` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomSensorComponentParameter` table mapper class.</span>
 
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_compoent: :class:`mss_data_server.geometry.db_inventory.DbSensorComponent`</span>
+<span class="sd">            The parent sensor component to which the instance is related.</span>
+
+<span class="sd">        orm: :class:`mss_data_server.geometry.databaseFactory.GeomSensorComponentParameter`</span>
+<span class="sd">            The sqlalchemy table mapper class for the sensor component parameter.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbSensorComponentParameter`</span>
+<span class="sd">            The created instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">orm</span><span class="o">.</span><span class="n">start_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">start_time</span> <span class="o">=</span> <span class="n">UTCDateTime</span><span class="p">(</span><span class="n">orm</span><span class="o">.</span><span class="n">start_time</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1645,6 +2175,19 @@
 
 
 <div class="viewcode-block" id="DbChannel"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbChannel.html#mss_dataserver.geometry.db_inventory.DbChannel">[docs]</a><span class="k">class</span> <span class="nc">DbChannel</span><span class="p">(</span><span class="n">Channel</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; The database channel.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    orm: :class:`mss_data_server.geometry.databaseFactory.GeomChannel`</span>
+<span class="sd">        The sqlalchemy table mapper class for the channel.</span>
+
+<span class="sd">    </span>
+<span class="sd">    Keyword Arguments</span>
+<span class="sd">    -----------------</span>
+<span class="sd">    **kwargs</span>
+<span class="sd">        The keyword arguments passed to the __init__ method of the parent class :class:`mss_dataserver.geoemetry.inventory.Channel`.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="DbChannel.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbChannel.__init__.html#mss_dataserver.geometry.db_inventory.DbChannel.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orm</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">Channel</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -1662,7 +2205,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; The database id.</span>
+        <span class="sd">&#39;&#39;&#39; int: The database id.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">orm</span><span class="o">.</span><span class="n">id</span>
@@ -1672,6 +2215,21 @@
 
 <div class="viewcode-block" id="DbChannel.from_sqlalchemy_orm"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbChannel.from_sqlalchemy_orm.html#mss_dataserver.geometry.db_inventory.DbChannel.from_sqlalchemy_orm">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_sqlalchemy_orm</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_station</span><span class="p">,</span> <span class="n">orm</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbChannel` instance from a :class:`mss_data_server.geometry.databaseFactory.GeomChannel` table mapper class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_station: :class:`mss_data_server.geometry.db_inventory.DbStation`</span>
+<span class="sd">            The parent station to which the instance is related.</span>
+
+<span class="sd">        orm: :class:`mss_data_server.geometry.databaseFactory.GeomChannel`</span>
+<span class="sd">            The sqlalchemy table mapper class for the channel.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbChannel`</span>
+<span class="sd">            The created instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">channel</span> <span class="o">=</span>  <span class="bp">cls</span><span class="p">(</span><span class="n">parent_station</span> <span class="o">=</span> <span class="n">parent_station</span><span class="p">,</span>
                        <span class="n">name</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                        <span class="n">description</span> <span class="o">=</span> <span class="n">orm</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
@@ -1703,6 +2261,21 @@
 
 <div class="viewcode-block" id="DbChannel.from_inventory_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbChannel.from_inventory_instance.html#mss_dataserver.geometry.db_inventory.DbChannel.from_inventory_instance">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_inventory_instance</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parent_station</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Create a :class:`DbChannel` instance from a :class:`mss_data_server.geometry.inventory.Channel` instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parent_station: :class:`mss_data_server.geometry.db_inventory.DbStation`</span>
+<span class="sd">            The parent station to which the instance is related.</span>
+
+<span class="sd">        instance: :class:`mss_data_server.geometry.inventory.Channel`</span>
+<span class="sd">            The instance used to create the :class:`DbChannel` instance.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbChannel`</span>
+<span class="sd">            The created channel.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">channel</span> <span class="o">=</span>  <span class="bp">cls</span><span class="p">(</span><span class="n">parent_station</span> <span class="o">=</span> <span class="n">parent_station</span><span class="p">,</span>
                            <span class="n">name</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                            <span class="n">description</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
@@ -1744,28 +2317,33 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        serial : String</span>
+<span class="sd">        serial: str </span>
 <span class="sd">            The serial number of the recorder containing the stream.</span>
 
-<span class="sd">        model : String</span>
+<span class="sd">        model: str </span>
 <span class="sd">            The model of the recorder containing the stream.</span>
 
-<span class="sd">        producer : String</span>
+<span class="sd">        producer: str </span>
 <span class="sd">            The producer of the recorder containing the stream.</span>
 
-<span class="sd">        name : String</span>
+<span class="sd">        name: str </span>
 <span class="sd">            The name of the stream.</span>
 
-<span class="sd">        start_time : :class:`obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">        start_time: :class:`obspy.UTCDateTime`</span>
 <span class="sd">            The time from which on the stream has been operating at the channel.</span>
 
-<span class="sd">        end_time : :class:`obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">        end_time: :class:`obspy.UTCDateTime`</span>
 <span class="sd">            The time up to which the stream has been operating at the channel. &quot;None&quot; if the channel is still running.</span>
 
-<span class="sd">        ignore_orm : Boolean</span>
+<span class="sd">        ignore_orm: boolean</span>
 <span class="sd">            Control if the component assignment is added to the orm or not. This is usefull</span>
 <span class="sd">            when creating an instance from a orm mapper using the from_sqlalchemy_orm</span>
 <span class="sd">            class method.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`DbRecorderStream`</span>
+<span class="sd">            The added recorder stream.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">added_stream</span> <span class="o">=</span> <span class="n">Channel</span><span class="o">.</span><span class="n">add_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                           <span class="n">serial</span> <span class="o">=</span> <span class="n">serial</span><span class="p">,</span>
@@ -1801,6 +2379,11 @@
 
 <div class="viewcode-block" id="DbChannel.remove_stream_by_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.db_inventory.DbChannel.remove_stream_by_instance.html#mss_dataserver.geometry.db_inventory.DbChannel.remove_stream_by_instance">[docs]</a>    <span class="k">def</span> <span class="nf">remove_stream_by_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_timebox</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Remove a stream timebox.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        stream_timebox: :class:`mss_data_server.geometry.inventory.TimeBox`</span>
+<span class="sd">            The timebox instance to remove.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">Channel</span><span class="o">.</span><span class="n">remove_stream_by_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_timebox</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
@@ -1834,7 +2417,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

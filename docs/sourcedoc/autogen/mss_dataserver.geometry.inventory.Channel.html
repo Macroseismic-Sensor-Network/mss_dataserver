@@ -203,6 +203,23 @@
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.geometry.inventory.</span></code><code class="sig-name descname"><span class="pre">Channel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agency_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">creation_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_station</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/geometry/inventory.html#Channel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.geometry.inventory.Channel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A channel of a station.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name of the channel.</p></li>
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The description of the channel.</p></li>
+<li><p><strong>id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The database id of the channel.</p></li>
+<li><p><strong>author_uri</strong> (<em>string</em>) – The author_uri of the instance.</p></li>
+<li><p><strong>agency_uri</strong> (<em>String</em>) – The agency_uri of the instance.</p></li>
+<li><p><strong>creation_time</strong> (str or <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code>) – The creation time of the instance. A string that can be parsed
+by <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> or a <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> instance</p></li>
+<li><p><strong>parent_station</strong> (<a class="reference internal" href="mss_dataserver.geometry.inventory.Station.html#mss_dataserver.geometry.inventory.Station" title="mss_dataserver.geometry.inventory.Station"><code class="xref py py-class docutils literal notranslate"><span class="pre">Station</span></code></a>) – The station to which the channel is assigned to.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><p><strong>streams</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference internal" href="mss_dataserver.geometry.inventory.RecorderStream.html#mss_dataserver.geometry.inventory.RecorderStream" title="mss_dataserver.geometry.inventory.RecorderStream"><code class="xref py py-class docutils literal notranslate"><span class="pre">RecorderStream</span></code></a>) – The recorder streams assigned to a channel.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <div class="section" id="properties">
@@ -215,16 +232,16 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">assigned_recorders</span></code></p></td>
-<td><p></p></td>
+<td><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of str: The unique serial numbers of the assigned recorders.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">nslc</span></code></p></td>
-<td><p></p></td>
+<td><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> of str: The Network:Station:Location:Channel code.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">nslc_string</span></code></p></td>
-<td><p></p></td>
+<td><p>str: The string representation of the Network:Station:Location:Channel code.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">parent_inventory</span></code></p></td>
-<td><p></p></td>
+<td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Inventory.html#mss_dataserver.geometry.inventory.Inventory" title="mss_dataserver.geometry.inventory.Inventory"><code class="xref py py-class docutils literal notranslate"><span class="pre">Inventory</span></code></a>: The inventory containing the channel.</p></td>
 </tr>
 </tbody>
 </table>
@@ -245,7 +262,7 @@
 <td><p>Add a stream to the channel.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Channel.as_dict.html#mss_dataserver.geometry.inventory.Channel.as_dict" title="mss_dataserver.geometry.inventory.Channel.as_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">as_dict</span></code></a>([style])</p></td>
-<td><p></p></td>
+<td><p>Get a dictionary representation of the instance.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Channel.from_dict.html#mss_dataserver.geometry.inventory.Channel.from_dict" title="mss_dataserver.geometry.inventory.Channel.from_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_dict</span></code></a>(d)</p></td>
 <td><p>Create a channel from a dictionary.</p></td>
@@ -291,7 +308,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

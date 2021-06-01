@@ -203,6 +203,29 @@
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.geometry.inventory.</span></code><code class="sig-name descname"><span class="pre">SensorComponent</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deliver_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agency_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">creation_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_sensor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/geometry/inventory.html#SensorComponent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.geometry.inventory.SensorComponent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A component of a seismic sensor.</p>
+<p>A seismic sensor may have multiple components. Usually, one component is
+related to one spatial direction. A 3-component geophone has 3 sensor
+components oriented along an orthogonal coordinate system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name of the sensor component.</p></li>
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The description of the sensor component.</p></li>
+<li><p><strong>input_unit</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The physical unit of the sensor input domain (e.g. m).</p></li>
+<li><p><strong>output_unit</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The physical unit of the sensor output domain (e.g. m/s).</p></li>
+<li><p><strong>deliver_unit</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The unit of the measureable signal which is proportional to the
+output unit (e.g. V).</p></li>
+<li><p><strong>author_uri</strong> (<em>string</em>) – The author_uri of the sensor.</p></li>
+<li><p><strong>agency_uri</strong> (<em>String</em>) – The agency_uri of the sensor.</p></li>
+<li><p><strong>creation_time</strong> (str or <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code>) – The creation time of the event. A string that can be parsed
+by <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> or a <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> instance</p></li>
+<li><p><strong>parent_sensor</strong> (<a class="reference internal" href="mss_dataserver.geometry.inventory.Sensor.html#mss_dataserver.geometry.inventory.Sensor" title="mss_dataserver.geometry.inventory.Sensor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sensor</span></code></a>) – The sensor containing the component.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><p><strong>parameters</strong> (:obj:list of <a class="reference internal" href="mss_dataserver.geometry.inventory.SensorComponentParameter.html#mss_dataserver.geometry.inventory.SensorComponentParameter" title="mss_dataserver.geometry.inventory.SensorComponentParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">SensorComponentParameter</span></code></a>) – The sensor component parameters.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <div class="section" id="properties">
@@ -215,19 +238,19 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">assigned_streams</span></code></p></td>
-<td><p></p></td>
+<td><p>:obj:list of <a class="reference internal" href="mss_dataserver.geometry.inventory.RecorderStream.html#mss_dataserver.geometry.inventory.RecorderStream" title="mss_dataserver.geometry.inventory.RecorderStream"><code class="xref py py-class docutils literal notranslate"><span class="pre">RecorderStream</span></code></a>: The recorder streams to which the component is assigned to.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">model</span></code></p></td>
-<td><p></p></td>
+<td><p>str: The parent sensor model.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">parent_inventory</span></code></p></td>
-<td><p></p></td>
+<td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Inventory.html#mss_dataserver.geometry.inventory.Inventory" title="mss_dataserver.geometry.inventory.Inventory"><code class="xref py py-class docutils literal notranslate"><span class="pre">Inventory</span></code></a>: The inventory holding the sensor component.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">producer</span></code></p></td>
-<td><p></p></td>
+<td><p>str: The parent sensor producer.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">serial</span></code></p></td>
-<td><p></p></td>
+<td><p>str: The parent sensor serial.</p></td>
 </tr>
 </tbody>
 </table>
@@ -245,19 +268,19 @@
 <td><p>Initialize the instance.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.SensorComponent.add_parameter.html#mss_dataserver.geometry.inventory.SensorComponent.add_parameter" title="mss_dataserver.geometry.inventory.SensorComponent.add_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_parameter</span></code></a>(parameter_to_add)</p></td>
-<td><p>Add a sensor paramter instance to the sensor.</p></td>
+<td><p>Add a sensor component paramter instance to the sensor component.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.SensorComponent.change_parameter_end_time.html#mss_dataserver.geometry.inventory.SensorComponent.change_parameter_end_time" title="mss_dataserver.geometry.inventory.SensorComponent.change_parameter_end_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_parameter_end_time</span></code></a>(position, end_time)</p></td>
-<td><p></p></td>
+<td><p>Change a parameter end time.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.SensorComponent.change_parameter_start_time.html#mss_dataserver.geometry.inventory.SensorComponent.change_parameter_start_time" title="mss_dataserver.geometry.inventory.SensorComponent.change_parameter_start_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_parameter_start_time</span></code></a>(position, start_time)</p></td>
-<td><p></p></td>
+<td><p>Change a parameter start time.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.SensorComponent.get_parameter.html#mss_dataserver.geometry.inventory.SensorComponent.get_parameter" title="mss_dataserver.geometry.inventory.SensorComponent.get_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_parameter</span></code></a>([start_time, end_time])</p></td>
-<td><p>Get a sensor from the recorder.</p></td>
+<td><p>Get sensor component parameters.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.SensorComponent.merge.html#mss_dataserver.geometry.inventory.SensorComponent.merge" title="mss_dataserver.geometry.inventory.SensorComponent.merge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge</span></code></a>(merge_component)</p></td>
-<td><p>Merge the components.</p></td>
+<td><p>Merge two components.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.SensorComponent.remove_parameter.html#mss_dataserver.geometry.inventory.SensorComponent.remove_parameter" title="mss_dataserver.geometry.inventory.SensorComponent.remove_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_parameter</span></code></a>(parameter_to_remove)</p></td>
 <td><p>Remove a parameter from the component.</p></td>
@@ -291,7 +314,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

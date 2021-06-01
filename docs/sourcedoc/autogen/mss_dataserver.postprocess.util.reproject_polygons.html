@@ -202,6 +202,21 @@
 <dt id="mss_dataserver.postprocess.util.reproject_polygons">
 <code class="sig-prename descclassname"><span class="pre">mss_dataserver.postprocess.util.</span></code><code class="sig-name descname"><span class="pre">reproject_polygons</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_proj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst_proj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/postprocess/util.html#reproject_polygons"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.postprocess.util.reproject_polygons" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reproject the coordinates of shapely polygons.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">geopandas.GeoDataFrame</span></code>) – The dataframe containing the polygons.</p></li>
+<li><p><strong>src_proj</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">pyproj.Proj</span></code>) – The source coordinate system projection.</p></li>
+<li><p><strong>dst_proj</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">pyproj.Proj</span></code>) – The destination coordinate system projection.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The dataframe containing the polygons with the reprojected coordinates.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">geopandas.GeoDataFrame</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -222,7 +237,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

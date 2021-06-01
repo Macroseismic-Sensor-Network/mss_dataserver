@@ -202,6 +202,22 @@
 <dt id="mss_dataserver.postprocess.util.get_supplement_data">
 <code class="sig-prename descclassname"><span class="pre">mss_dataserver.postprocess.util.</span></code><code class="sig-name descname"><span class="pre">get_supplement_data</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">public_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">category</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directory</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/postprocess/util.html#get_supplement_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.postprocess.util.get_supplement_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load the data from a supplement file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>public_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The public id of the event.</p></li>
+<li><p><strong>category</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The supplement data category.</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The supplement data name.</p></li>
+<li><p><strong>directory</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The supplement data base directory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The requested supplement data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">geopandas.GeoDataFrame</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.Stream</span></code> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a></p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -222,7 +238,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

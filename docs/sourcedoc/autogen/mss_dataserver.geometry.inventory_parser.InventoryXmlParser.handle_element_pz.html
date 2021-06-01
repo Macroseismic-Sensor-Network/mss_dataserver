@@ -193,6 +193,16 @@
 <dt id="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.handle_element_pz">
 <code class="sig-prename descclassname"><span class="pre">InventoryXmlParser.</span></code><code class="sig-name descname"><span class="pre">handle_element_pz</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/geometry/inventory_parser.html#InventoryXmlParser.handle_element_pz"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.handle_element_pz" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a list of complex values to a list of xml tree elements.</p>
+<p>The new XML elements are added in place to the root element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name of the XML element.</p></li>
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of complex) – The complex values to convert.</p></li>
+<li><p><strong>root</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">etree.SubElement</span></code>) – The root of the XML element.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -213,7 +223,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

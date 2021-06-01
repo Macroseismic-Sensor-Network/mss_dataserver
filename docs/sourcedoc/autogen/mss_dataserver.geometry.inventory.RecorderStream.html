@@ -203,6 +203,25 @@
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.geometry.inventory.</span></code><code class="sig-name descname"><span class="pre">RecorderStream</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agency_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">creation_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_recorder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/geometry/inventory.html#RecorderStream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.geometry.inventory.RecorderStream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A digital stream of a data recorder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name of the stream.</p></li>
+<li><p><strong>label</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The label of the stream.</p></li>
+<li><p><strong>author_uri</strong> (<em>string</em>) – The author_uri of the stream.</p></li>
+<li><p><strong>agency_uri</strong> (<em>String</em>) – The agency_uri of the stream.</p></li>
+<li><p><strong>creation_time</strong> (str or <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code>) – The creation time of the event. A string that can be parsed
+by <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> or a <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> instance</p></li>
+<li><p><strong>parent_recorder</strong> (<a class="reference internal" href="mss_dataserver.geometry.inventory.Recorder.html#mss_dataserver.geometry.inventory.Recorder" title="mss_dataserver.geometry.inventory.Recorder"><code class="xref py py-class docutils literal notranslate"><span class="pre">Recorder</span></code></a>) – The recorder containing the stream.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>components</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference internal" href="mss_dataserver.geometry.inventory.TimeBox.html#mss_dataserver.geometry.inventory.TimeBox" title="mss_dataserver.geometry.inventory.TimeBox"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimeBox</span></code></a>) – TimeBox instances holding the components assigned to the stream.</p></li>
+<li><p><strong>parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference internal" href="mss_dataserver.geometry.inventory.RecorderStreamParameter.html#mss_dataserver.geometry.inventory.RecorderStreamParameter" title="mss_dataserver.geometry.inventory.RecorderStreamParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">RecorderStreamParameter</span></code></a>) – The parameters of the stream.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <div class="section" id="properties">
@@ -215,19 +234,19 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">assigned_channels</span></code></p></td>
-<td><p></p></td>
+<td><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference internal" href="mss_dataserver.geometry.inventory.Channel.html#mss_dataserver.geometry.inventory.Channel" title="mss_dataserver.geometry.inventory.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a>: The channels to which the stream is assigned to.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">model</span></code></p></td>
-<td><p></p></td>
+<td><p>str: The model of the parent recorder.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">parent_inventory</span></code></p></td>
-<td><p></p></td>
+<td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Inventory.html#mss_dataserver.geometry.inventory.Inventory" title="mss_dataserver.geometry.inventory.Inventory"><code class="xref py py-class docutils literal notranslate"><span class="pre">Inventory</span></code></a>: The inventory containing the stream.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">producer</span></code></p></td>
-<td><p></p></td>
+<td><p>str: The producer of the parent recorder.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">serial</span></code></p></td>
-<td><p></p></td>
+<td><p>str: The serial number of the parent recorder.</p></td>
 </tr>
 </tbody>
 </table>
@@ -251,10 +270,10 @@
 <td><p>Add a paramter to the recorder stream.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.RecorderStream.as_dict.html#mss_dataserver.geometry.inventory.RecorderStream.as_dict" title="mss_dataserver.geometry.inventory.RecorderStream.as_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">as_dict</span></code></a>([style])</p></td>
-<td><p></p></td>
+<td><p>Get a dictionary representation of the instance.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.RecorderStream.get_component.html#mss_dataserver.geometry.inventory.RecorderStream.get_component" title="mss_dataserver.geometry.inventory.RecorderStream.get_component"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_component</span></code></a>([start_time, end_time])</p></td>
-<td><p>Get a sensor from the stream.</p></td>
+<td><p>Get a component from the stream.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.RecorderStream.get_free_component_slot.html#mss_dataserver.geometry.inventory.RecorderStream.get_free_component_slot" title="mss_dataserver.geometry.inventory.RecorderStream.get_free_component_slot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_free_component_slot</span></code></a>([pos])</p></td>
 <td><p>Get a free time slot for a component.</p></td>
@@ -303,7 +322,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

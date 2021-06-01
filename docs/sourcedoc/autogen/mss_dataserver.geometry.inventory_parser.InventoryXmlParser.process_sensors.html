@@ -193,11 +193,12 @@
 <dt id="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_sensors">
 <code class="sig-prename descclassname"><span class="pre">InventoryXmlParser.</span></code><code class="sig-name descname"><span class="pre">process_sensors</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inventory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensors</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/geometry/inventory_parser.html#InventoryXmlParser.process_sensors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_sensors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Process the extracted sensor tags.</p>
+<p>The sensors are added in place to the passed inventory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>inventory</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Inventory</span></code>) – The inventory to which to add the parsed sensors.</p></li>
-<li><p><strong>sensors</strong> (<em>xml sensor nodes</em>) – The xml sensor nodes parsed using the findall method.</p></li>
+<li><p><strong>inventory</strong> (<a class="reference internal" href="mss_dataserver.geometry.inventory.Inventory.html#mss_dataserver.geometry.inventory.Inventory" title="mss_dataserver.geometry.inventory.Inventory"><code class="xref py py-class docutils literal notranslate"><span class="pre">mss_dataserver.geometry.inventory.Inventory</span></code></a>) – The inventory to which to add the parsed sensors.</p></li>
+<li><p><strong>sensors</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <code class="xref py py-class docutils literal notranslate"><span class="pre">etree.SubElement</span></code>) – The xml sensor nodes parsed using the findall method.</p></li>
 </ul>
 </dd>
 </dl>
@@ -221,7 +222,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

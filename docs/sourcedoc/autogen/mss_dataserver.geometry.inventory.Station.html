@@ -202,6 +202,31 @@
 <dt id="mss_dataserver.geometry.inventory.Station">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.geometry.inventory.</span></code><code class="sig-name descname"><span class="pre">Station</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_network</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coord_system</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agency_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">creation_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/geometry/inventory.html#Station"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.geometry.inventory.Station" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A seismic station.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name of the station.</p></li>
+<li><p><strong>location</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The location of the station.</p></li>
+<li><p><strong>x</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The x coordinate of the station.</p></li>
+<li><p><strong>y</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The y coordinate of the station.</p></li>
+<li><p><strong>z</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The z coordinate of the station.</p></li>
+<li><p><strong>parent_network</strong> (<a class="reference internal" href="mss_dataserver.geometry.inventory.Network.html#mss_dataserver.geometry.inventory.Network" title="mss_dataserver.geometry.inventory.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>) – The network to which the station is assigned to.</p></li>
+<li><p><strong>coord_system</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The coordinate system in which the x/y/z coordinates are given.
+The coord_system string should be a valid EPSG code.&#64;n
+See <a class="reference external" href="http://www.epsg-registry.org/">http://www.epsg-registry.org/</a> to find your EPSG code.</p></li>
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The description of the station.</p></li>
+<li><p><strong>id</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The database id of the station.</p></li>
+<li><p><strong>author_uri</strong> (<em>string</em>) – The author_uri of the instance.</p></li>
+<li><p><strong>agency_uri</strong> (<em>String</em>) – The agency_uri of the instance.</p></li>
+<li><p><strong>creation_time</strong> (str or <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code>) – The creation time of the instance. A string that can be parsed
+by <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> or a <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> instance</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><p><strong>channels</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference internal" href="mss_dataserver.geometry.inventory.Channel.html#mss_dataserver.geometry.inventory.Channel" title="mss_dataserver.geometry.inventory.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Channel</span></code></a>) – The channels assigend to the station.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <div class="section" id="properties">
@@ -214,31 +239,31 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">assigned_recorders</span></code></p></td>
-<td><p>The unique recorders assigned to the station.</p></td>
+<td><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference internal" href="mss_dataserver.geometry.inventory.Recorder.html#mss_dataserver.geometry.inventory.Recorder" title="mss_dataserver.geometry.inventory.Recorder"><code class="xref py py-class docutils literal notranslate"><span class="pre">Recorder</span></code></a>: The unique recorders assigned to the station.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">assigned_recorders_string</span></code></p></td>
-<td><p></p></td>
+<td><p>str: The string representation of the unique recorders assigned to the station.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">assigned_sensors_string</span></code></p></td>
-<td><p></p></td>
+<td><p>str: The string representation of the assigned sensor components.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">available_channels_string</span></code></p></td>
-<td><p></p></td>
+<td><p>str: The string representatin of the available channels.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">location_string</span></code></p></td>
-<td><p></p></td>
+<td><p>str: The string representation of the location.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">network</span></code></p></td>
-<td><p></p></td>
+<td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Network.html#mss_dataserver.geometry.inventory.Network" title="mss_dataserver.geometry.inventory.Network"><code class="xref py py-class docutils literal notranslate"><span class="pre">Network</span></code></a>: The network to which the station is assigend to.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">nsl</span></code></p></td>
-<td><p></p></td>
+<td><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> of str: The Network:Station:Location code.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">nsl_string</span></code></p></td>
-<td><p></p></td>
+<td><p>str: the Network:Station:Location code.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">parent_inventory</span></code></p></td>
-<td><p></p></td>
+<td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Inventory.html#mss_dataserver.geometry.inventory.Inventory" title="mss_dataserver.geometry.inventory.Inventory"><code class="xref py py-class docutils literal notranslate"><span class="pre">Inventory</span></code></a>: The inventory which contains the station.</p></td>
 </tr>
 </tbody>
 </table>
@@ -259,7 +284,7 @@
 <td><p>Add a channel to the station</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Station.as_dict.html#mss_dataserver.geometry.inventory.Station.as_dict" title="mss_dataserver.geometry.inventory.Station.as_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">as_dict</span></code></a>([style])</p></td>
-<td><p></p></td>
+<td><p>Get a dictionary representation of the instance.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Station.from_dict.html#mss_dataserver.geometry.inventory.Station.from_dict" title="mss_dataserver.geometry.inventory.Station.from_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_dict</span></code></a>(d)</p></td>
 <td><p>Create a station from a dictionary.</p></td>
@@ -268,13 +293,13 @@
 <td><p>Get a channel from the stream.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Station.get_lon_lat.html#mss_dataserver.geometry.inventory.Station.get_lon_lat" title="mss_dataserver.geometry.inventory.Station.get_lon_lat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_lon_lat</span></code></a>()</p></td>
-<td><p>Return the coordinate system as WGS84 longitude latitude tuples.</p></td>
+<td><p>Get the coordinates as WGS84 longitude latitude tuples.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Station.get_nslc.html#mss_dataserver.geometry.inventory.Station.get_nslc" title="mss_dataserver.geometry.inventory.Station.get_nslc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_nslc</span></code></a>()</p></td>
-<td><p></p></td>
+<td><p>DEPRECATED.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Station.get_unique_channel_names.html#mss_dataserver.geometry.inventory.Station.get_unique_channel_names" title="mss_dataserver.geometry.inventory.Station.get_unique_channel_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_unique_channel_names</span></code></a>()</p></td>
-<td><p></p></td>
+<td><p>Get a list of unique channel names.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Station.merge.html#mss_dataserver.geometry.inventory.Station.merge" title="mss_dataserver.geometry.inventory.Station.merge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge</span></code></a>(merge_station)</p></td>
 <td><p>Merge a station into the existing one.</p></td>
@@ -288,9 +313,9 @@
 <div class="section" id="inheritence-diagram">
 <h2>Inheritence diagram<a class="headerlink" href="#inheritence-diagram" title="Permalink to this headline">¶</a></h2>
 <blockquote>
-<div><div class="graphviz"><img src="../../_images/inheritance-8fd134c4113ef339e09a3a9867fce2af0fb0853c.png" alt="Inheritance diagram of mss_dataserver.geometry.inventory.Station" usemap="#inheritance414f709d35" class="inheritance graphviz" /></div>
+<div><div class="graphviz"><img src="../../_images/inheritance-6e601630099bdfd04b22c738988eddf7133c170e.png" alt="Inheritance diagram of mss_dataserver.geometry.inventory.Station" usemap="#inheritance414f709d35" class="inheritance graphviz" /></div>
 <map id="inheritance414f709d35" name="inheritance414f709d35">
-<area shape="rect" id="node1" href="#mss_dataserver.geometry.inventory.Station" target="_top" title="mss_dataserver.geometry.inventory.Station" alt="" coords="5,5,309,31"/>
+<area shape="rect" id="node1" href="#mss_dataserver.geometry.inventory.Station" target="_top" title="A seismic station." alt="" coords="5,5,309,31"/>
 </map></div></blockquote>
 </div>
 </div>
@@ -311,7 +336,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

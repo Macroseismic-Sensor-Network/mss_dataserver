@@ -201,6 +201,15 @@
 <dt id="mss_dataserver.geometry.db_inventory.DbChannel">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.geometry.db_inventory.</span></code><code class="sig-name descname"><span class="pre">DbChannel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/geometry/db_inventory.html#DbChannel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.geometry.db_inventory.DbChannel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="mss_dataserver.geometry.inventory.Channel.html#mss_dataserver.geometry.inventory.Channel" title="mss_dataserver.geometry.inventory.Channel"><code class="xref py py-class docutils literal notranslate"><span class="pre">mss_dataserver.geometry.inventory.Channel</span></code></a></p>
+<p>The database channel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>orm</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">mss_data_server.geometry.databaseFactory.GeomChannel</span></code>) – The sqlalchemy table mapper class for the channel.</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>**kwargs</strong> – The keyword arguments passed to the __init__ method of the parent class <code class="xref py py-class docutils literal notranslate"><span class="pre">mss_dataserver.geoemetry.inventory.Channel</span></code>.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <div class="section" id="properties">
@@ -213,19 +222,19 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">assigned_recorders</span></code></p></td>
-<td><p></p></td>
+<td><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of str: The unique serial numbers of the assigned recorders.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">id</span></code></p></td>
-<td><p>The database id.</p></td>
+<td><p>int: The database id.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">nslc</span></code></p></td>
-<td><p></p></td>
+<td><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> of str: The Network:Station:Location:Channel code.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">nslc_string</span></code></p></td>
-<td><p></p></td>
+<td><p>str: The string representation of the Network:Station:Location:Channel code.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">parent_inventory</span></code></p></td>
-<td><p></p></td>
+<td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inventory</span></code>: The inventory containing the channel.</p></td>
 </tr>
 </tbody>
 </table>
@@ -246,16 +255,16 @@
 <td><p>Add a stream to the channel.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.db_inventory.DbChannel.as_dict.html#mss_dataserver.geometry.db_inventory.DbChannel.as_dict" title="mss_dataserver.geometry.db_inventory.DbChannel.as_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">as_dict</span></code></a>([style])</p></td>
-<td><p></p></td>
+<td><p>Get a dictionary representation of the instance.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.db_inventory.DbChannel.from_dict.html#mss_dataserver.geometry.db_inventory.DbChannel.from_dict" title="mss_dataserver.geometry.db_inventory.DbChannel.from_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_dict</span></code></a>(d)</p></td>
 <td><p>Create a channel from a dictionary.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.db_inventory.DbChannel.from_inventory_instance.html#mss_dataserver.geometry.db_inventory.DbChannel.from_inventory_instance" title="mss_dataserver.geometry.db_inventory.DbChannel.from_inventory_instance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_inventory_instance</span></code></a>(parent_station, instance)</p></td>
-<td><p></p></td>
+<td><p>Create a <a class="reference internal" href="#mss_dataserver.geometry.db_inventory.DbChannel" title="mss_dataserver.geometry.db_inventory.DbChannel"><code class="xref py py-class docutils literal notranslate"><span class="pre">DbChannel</span></code></a> instance from a <code class="xref py py-class docutils literal notranslate"><span class="pre">mss_data_server.geometry.inventory.Channel</span></code> instance.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.db_inventory.DbChannel.from_sqlalchemy_orm.html#mss_dataserver.geometry.db_inventory.DbChannel.from_sqlalchemy_orm" title="mss_dataserver.geometry.db_inventory.DbChannel.from_sqlalchemy_orm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_sqlalchemy_orm</span></code></a>(parent_station, orm)</p></td>
-<td><p></p></td>
+<td><p>Create a <a class="reference internal" href="#mss_dataserver.geometry.db_inventory.DbChannel" title="mss_dataserver.geometry.db_inventory.DbChannel"><code class="xref py py-class docutils literal notranslate"><span class="pre">DbChannel</span></code></a> instance from a <code class="xref py py-class docutils literal notranslate"><span class="pre">mss_data_server.geometry.databaseFactory.GeomChannel</span></code> table mapper class.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.db_inventory.DbChannel.get_stream.html#mss_dataserver.geometry.db_inventory.DbChannel.get_stream" title="mss_dataserver.geometry.db_inventory.DbChannel.get_stream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_stream</span></code></a>([start_time, end_time])</p></td>
 <td><p>Get a stream from the channel.</p></td>
@@ -275,9 +284,9 @@
 <div class="section" id="inheritence-diagram">
 <h2>Inheritence diagram<a class="headerlink" href="#inheritence-diagram" title="Permalink to this headline">¶</a></h2>
 <blockquote>
-<div><div class="graphviz"><img src="../../_images/inheritance-e9d1ffb7bb934306ab487bffa038a633e36a20ea.png" alt="Inheritance diagram of mss_dataserver.geometry.db_inventory.DbChannel" usemap="#inheritance8cf80cf53d" class="inheritance graphviz" /></div>
+<div><div class="graphviz"><img src="../../_images/inheritance-8b9434698dade2f95b5f6ed5501efa80aeb532b5.png" alt="Inheritance diagram of mss_dataserver.geometry.db_inventory.DbChannel" usemap="#inheritance8cf80cf53d" class="inheritance graphviz" /></div>
 <map id="inheritance8cf80cf53d" name="inheritance8cf80cf53d">
-<area shape="rect" id="node1" href="#mss_dataserver.geometry.db_inventory.DbChannel" target="_top" title="mss_dataserver.geometry.db_inventory.DbChannel" alt="" coords="5,79,357,104"/>
+<area shape="rect" id="node1" href="#mss_dataserver.geometry.db_inventory.DbChannel" target="_top" title="The database channel." alt="" coords="5,79,357,104"/>
 <area shape="rect" id="node2" href="mss_dataserver.geometry.inventory.Channel.html#mss_dataserver.geometry.inventory.Channel" target="_top" title="A channel of a station." alt="" coords="26,5,337,31"/>
 </map></div></blockquote>
 </div>
@@ -299,7 +308,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

@@ -192,6 +192,11 @@
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.postprocess.postprocess_event.</span></code><code class="sig-name descname"><span class="pre">EventPostProcessor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/postprocess/postprocess_event.html#EventPostProcessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.postprocess.postprocess_event.EventPostProcessor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Process a detected event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>project</strong> (<a class="reference internal" href="mss_dataserver.core.project.Project.html#mss_dataserver.core.project.Project" title="mss_dataserver.core.project.Project"><code class="xref py py-class docutils literal notranslate"><span class="pre">mss_dataserver.core.project.Project</span></code></a>) – The mss_dataserver project.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <div class="section" id="properties">
@@ -204,7 +209,7 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">meta</span></code></p></td>
-<td><p>Load the metadata supplement.</p></td>
+<td><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a>: The metadata supplement.</p></td>
 </tr>
 </tbody>
 </table>
@@ -222,7 +227,7 @@
 <td><p>Initialize the instance.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.postprocess.postprocess_event.EventPostProcessor.add_station_amplification.html#mss_dataserver.postprocess.postprocess_event.EventPostProcessor.add_station_amplification" title="mss_dataserver.postprocess.postprocess_event.EventPostProcessor.add_station_amplification"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_station_amplification</span></code></a>(df)</p></td>
-<td><p>Apply the station amplification values to a dataframe.</p></td>
+<td><p>Add the station amplification values to a dataframe.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.postprocess.postprocess_event.EventPostProcessor.compute_detection_data_df.html#mss_dataserver.postprocess.postprocess_event.EventPostProcessor.compute_detection_data_df" title="mss_dataserver.postprocess.postprocess_event.EventPostProcessor.compute_detection_data_df"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_detection_data_df</span></code></a>(trigger_data)</p></td>
 <td><p>Compute the detection frames for a common time.</p></td>
@@ -283,7 +288,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

@@ -202,7 +202,21 @@
 <dt id="mss_dataserver.geometry.inventory.Array">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.geometry.inventory.</span></code><code class="sig-name descname"><span class="pre">Array</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agency_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">creation_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_inventory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/geometry/inventory.html#Array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.geometry.inventory.Array" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>An array holding multiple stations.</p>
+<p>A seismic array holding multiple stations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name of the array.</p></li>
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The description of the array.</p></li>
+<li><p><strong>author_uri</strong> (<em>string</em>) – The author_uri of the instance.</p></li>
+<li><p><strong>agency_uri</strong> (<em>String</em>) – The agency_uri of the instance.</p></li>
+<li><p><strong>creation_time</strong> (str or <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code>) – The creation time of the instance. A string that can be parsed
+by <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> or a <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> instance</p></li>
+<li><p><strong>parent_inventory</strong> (<a class="reference internal" href="mss_dataserver.geometry.inventory.Inventory.html#mss_dataserver.geometry.inventory.Inventory" title="mss_dataserver.geometry.inventory.Inventory"><code class="xref py py-class docutils literal notranslate"><span class="pre">Inventory</span></code></a>) – The inventory to which the array is assigned to.</p></li>
+<li><p><strong>stations</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference internal" href="mss_dataserver.geometry.inventory.Station.html#mss_dataserver.geometry.inventory.Station" title="mss_dataserver.geometry.inventory.Station"><code class="xref py py-class docutils literal notranslate"><span class="pre">Station</span></code></a>) – The stations assigned to the array.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <div class="section" id="methods">
@@ -222,7 +236,7 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Array.get_station.html#mss_dataserver.geometry.inventory.Array.get_station" title="mss_dataserver.geometry.inventory.Array.get_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station</span></code></a>([start_time, end_time])</p></td>
 <td><p>Get a station from the network.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Array.merge.html#mss_dataserver.geometry.inventory.Array.merge" title="mss_dataserver.geometry.inventory.Array.merge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge</span></code></a>(merge_station)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Array.merge.html#mss_dataserver.geometry.inventory.Array.merge" title="mss_dataserver.geometry.inventory.Array.merge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge</span></code></a>(merge_array)</p></td>
 <td><p>Merge an array with the existing one.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Array.remove_station.html#mss_dataserver.geometry.inventory.Array.remove_station" title="mss_dataserver.geometry.inventory.Array.remove_station"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_station</span></code></a>([start_time, end_time])</p></td>
@@ -237,9 +251,9 @@
 <div class="section" id="inheritence-diagram">
 <h2>Inheritence diagram<a class="headerlink" href="#inheritence-diagram" title="Permalink to this headline">¶</a></h2>
 <blockquote>
-<div><div class="graphviz"><img src="../../_images/inheritance-ea2f31653df3ff75290faf60c174557746b95e9a.png" alt="Inheritance diagram of mss_dataserver.geometry.inventory.Array" usemap="#inheritancef59701a504" class="inheritance graphviz" /></div>
+<div><div class="graphviz"><img src="../../_images/inheritance-8e15c179cf7378c1d8ceb0f3a5f9a980603b75be.png" alt="Inheritance diagram of mss_dataserver.geometry.inventory.Array" usemap="#inheritancef59701a504" class="inheritance graphviz" /></div>
 <map id="inheritancef59701a504" name="inheritancef59701a504">
-<area shape="rect" id="node1" href="#mss_dataserver.geometry.inventory.Array" target="_top" title="An array holding multiple stations." alt="" coords="5,5,299,31"/>
+<area shape="rect" id="node1" href="#mss_dataserver.geometry.inventory.Array" target="_top" title="A seismic array holding multiple stations." alt="" coords="5,5,299,31"/>
 </map></div></blockquote>
 </div>
 </div>
@@ -260,7 +274,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

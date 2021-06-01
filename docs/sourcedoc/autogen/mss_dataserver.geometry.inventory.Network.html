@@ -202,6 +202,22 @@
 <dt id="mss_dataserver.geometry.inventory.Network">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.geometry.inventory.</span></code><code class="sig-name descname"><span class="pre">Network</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agency_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">creation_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_inventory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/geometry/inventory.html#Network"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.geometry.inventory.Network" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A seismic network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name of the network.</p></li>
+<li><p><strong>description</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The description of the network.</p></li>
+<li><p><strong>type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The type of the network.</p></li>
+<li><p><strong>author_uri</strong> (<em>string</em>) – The author_uri of the instance.</p></li>
+<li><p><strong>agency_uri</strong> (<em>String</em>) – The agency_uri of the instance.</p></li>
+<li><p><strong>creation_time</strong> (str or <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code>) – The creation time of the instance. A string that can be parsed
+by <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> or a <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> instance</p></li>
+<li><p><strong>parent_inventory</strong> (<a class="reference internal" href="mss_dataserver.geometry.inventory.Inventory.html#mss_dataserver.geometry.inventory.Inventory" title="mss_dataserver.geometry.inventory.Inventory"><code class="xref py py-class docutils literal notranslate"><span class="pre">Inventory</span></code></a>) – The inventory to which the network is assigned to.</p></li>
+<li><p><strong>stations</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference internal" href="mss_dataserver.geometry.inventory.Station.html#mss_dataserver.geometry.inventory.Station" title="mss_dataserver.geometry.inventory.Station"><code class="xref py py-class docutils literal notranslate"><span class="pre">Station</span></code></a>) – The stations assigned to the network.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <div class="section" id="methods">
@@ -219,7 +235,7 @@
 <td><p>Add a station to the network.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Network.as_dict.html#mss_dataserver.geometry.inventory.Network.as_dict" title="mss_dataserver.geometry.inventory.Network.as_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">as_dict</span></code></a>([style])</p></td>
-<td><p></p></td>
+<td><p>Get a dictionary representation of the instance.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Network.from_dict.html#mss_dataserver.geometry.inventory.Network.from_dict" title="mss_dataserver.geometry.inventory.Network.from_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_dict</span></code></a>(d)</p></td>
 <td><p>Create a network from a dictionary.</p></td>
@@ -242,9 +258,9 @@
 <div class="section" id="inheritence-diagram">
 <h2>Inheritence diagram<a class="headerlink" href="#inheritence-diagram" title="Permalink to this headline">¶</a></h2>
 <blockquote>
-<div><div class="graphviz"><img src="../../_images/inheritance-a3144b1b92688038291e86f8555da87bf332fa4c.png" alt="Inheritance diagram of mss_dataserver.geometry.inventory.Network" usemap="#inheritanceee814bad2e" class="inheritance graphviz" /></div>
+<div><div class="graphviz"><img src="../../_images/inheritance-23d4e44edcfe68f7b131fb8cf501c5f5e1b69e0f.png" alt="Inheritance diagram of mss_dataserver.geometry.inventory.Network" usemap="#inheritanceee814bad2e" class="inheritance graphviz" /></div>
 <map id="inheritanceee814bad2e" name="inheritanceee814bad2e">
-<area shape="rect" id="node1" href="#mss_dataserver.geometry.inventory.Network" target="_top" title="mss_dataserver.geometry.inventory.Network" alt="" coords="5,5,319,31"/>
+<area shape="rect" id="node1" href="#mss_dataserver.geometry.inventory.Network" target="_top" title="A seismic network." alt="" coords="5,5,319,31"/>
 </map></div></blockquote>
 </div>
 </div>
@@ -265,7 +281,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

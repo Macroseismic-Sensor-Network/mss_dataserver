@@ -222,8 +222,71 @@
 
 
 <div class="viewcode-block" id="MonitorClient"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.html#mss_dataserver.monitorclient.monitorclient.MonitorClient">[docs]</a><span class="k">class</span> <span class="nc">MonitorClient</span><span class="p">(</span><span class="n">easyseedlink</span><span class="o">.</span><span class="n">EasySeedLinkClient</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A custom SeedLink client</span>
+    <span class="sd">&quot;&quot;&quot; A custom SeedLink client</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    project: :class:`mss_dataserver.core.project.Project`</span>
+<span class="sd">        The mss_dataserver project.</span>
+
+<span class="sd">    server_url: str </span>
+<span class="sd">        The URL of the server.</span>
+
+<span class="sd">    stations: :obj:`list` of :obj:`str`</span>
+<span class="sd">        The stations to request from the seedlink server.</span>
+
+<span class="sd">    monitor_stream: :class:`obspy.Stream`</span>
+<span class="sd">        The stream instance used to save the incoming data.</span>
+
+<span class="sd">    stream_lock: :class:`threading.Lock`</span>
+<span class="sd">        The lock object used to for thread-save access of the stream data.</span>
+
+<span class="sd">    data_dir: str </span>
+<span class="sd">        The data directory.</span>
+
+<span class="sd">    event_dir: str </span>
+<span class="sd">        The event directory.</span>
+
+<span class="sd">    process_interval: float </span>
+<span class="sd">        The time interval [s] used to process the received data.</span>
+
+<span class="sd">    stop_event: :class:`threading.Event`</span>
+<span class="sd">        The event used to signal the stopping of the program execution.</span>
+
+<span class="sd">    asyncio_loop: :class:`asyncio.EventLoop`</span>
+<span class="sd">        The asyncio event loop. Used to stop the loop if an error occurs.</span>
+
+<span class="sd">    pgv_sps: float </span>
+<span class="sd">        The samples per second of the PGV data stream.</span>
+
+<span class="sd">    autoconnect: boolean</span>
+<span class="sd">        The :class:`obspy.easyseedlink.EasySeedLinkClient` autoconnect parameter.</span>
+
+<span class="sd">    pgv_archive_time: float</span>
+<span class="sd">        The length of the archive stream to keep [s].</span>
+
+<span class="sd">    trigger_thr: float </span>
+<span class="sd">        The event trigger threshold [m/s].</span>
+
+<span class="sd">    warn_thr: float </span>
+<span class="sd">        The event warning threshold [m/s].</span>
+
+<span class="sd">    valid_event_thr: float</span>
+<span class="sd">        The threshold to declare an event as a valid event [m/s].</span>
+<span class="sd">    </span>
+<span class="sd">    felt_thr: float </span>
+<span class="sd">        The threshold above which an event is considered as a felt event [m/s].</span>
+
+<span class="sd">    event_archive_timespan: float </span>
+<span class="sd">        The timespan used to load archived events [h].</span>
+
+<span class="sd">    min_event_length: float </span>
+<span class="sd">        The minimum length of an event [s]. Events smaller than this value are </span>
+<span class="sd">        ignored.</span>
+
+<span class="sd">    min_event_detections: int </span>
+<span class="sd">        The minimum number of detections for an event to be saved in the archive.</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="MonitorClient.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.__init__.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project</span><span class="p">,</span> <span class="n">server_url</span><span class="p">,</span> <span class="n">stations</span><span class="p">,</span>
                  <span class="n">monitor_stream</span><span class="p">,</span> <span class="n">stream_lock</span><span class="p">,</span> <span class="n">data_dir</span><span class="p">,</span> <span class="n">event_dir</span><span class="p">,</span>
@@ -398,6 +461,11 @@
 
 <div class="viewcode-block" id="MonitorClient.load_archive_catalogs"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.load_archive_catalogs.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.load_archive_catalogs">[docs]</a>    <span class="k">def</span> <span class="nf">load_archive_catalogs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hours</span> <span class="o">=</span> <span class="mi">48</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Load the event catalogs of the specified last days.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        hours: float </span>
+<span class="sd">            The timespan before now to load [h].</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading archive catalogs for the last </span><span class="si">%d</span><span class="s2"> hours.&quot;</span><span class="p">,</span> <span class="n">hours</span><span class="p">)</span>
         <span class="n">now</span> <span class="o">=</span> <span class="n">utcdatetime</span><span class="o">.</span><span class="n">UTCDateTime</span><span class="p">()</span>
@@ -422,6 +490,11 @@
 
 <div class="viewcode-block" id="MonitorClient.trim_archive_catalogs"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.trim_archive_catalogs.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.trim_archive_catalogs">[docs]</a>    <span class="k">def</span> <span class="nf">trim_archive_catalogs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hours</span> <span class="o">=</span> <span class="mi">48</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Trim the catalogs in the library to the given timespan.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        hours: float </span>
+<span class="sd">            The timespan before now used to trim the catalogs [h].</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Trimming the event catalogs to </span><span class="si">%d</span><span class="s1"> hours from now.&#39;</span><span class="p">,</span>
                          <span class="n">hours</span><span class="p">)</span>
@@ -490,6 +563,11 @@
 
 <div class="viewcode-block" id="MonitorClient.save_to_archive"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.save_to_archive.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.save_to_archive">[docs]</a>    <span class="k">def</span> <span class="nf">save_to_archive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Save data to the JSON archive.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key: str </span>
+<span class="sd">            The data key (&#39;current_event&#39;, &#39;event_archive&#39;)</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">archive_filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span><span class="p">,</span>
                                         <span class="s1">&#39;mss_dataserver_archive.json&#39;</span><span class="p">)</span>
@@ -517,8 +595,17 @@
 <div class="viewcode-block" id="MonitorClient.get_recorder_mappings"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.get_recorder_mappings.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_recorder_mappings">[docs]</a>    <span class="k">def</span> <span class="nf">get_recorder_mappings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_nsl</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Get the mappings of the requested NSLC.</span>
 
-<span class="sd">        Return the matching NSLC codes of the MSS units relating their</span>
-<span class="sd">        serial numbers to the actual station locations.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        station_nsl: :obj:`list` of :obj:`str`</span>
+<span class="sd">            The station NSL codes to process. If None, all available stations</span>
+<span class="sd">            in the inventory are processed.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`dict`</span>
+<span class="sd">            The matching NSLC codes of the MSS units relating their</span>
+<span class="sd">            serial numbers to the actual station locations.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">recorder_map</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">station_nsl</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -561,8 +648,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">select_stream</span><span class="p">(</span><span class="n">cur_station</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cur_station</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">cur_station</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="MonitorClient.on_data"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.on_data.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.on_data">[docs]</a>    <span class="k">def</span> <span class="nf">on_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trace</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Override the on_data callback</span>
+        <span class="sd">&quot;&quot;&quot; Override the on_data callback function.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1">#self.logger.debug(&#39;Received trace:&#39;)</span>
         <span class="c1">#self.logger.debug(str(trace))</span>
@@ -580,8 +666,7 @@
         <span class="c1">#self.logger.debug(&#39;Leaving on_data.&#39;)</span>
 
 <div class="viewcode-block" id="MonitorClient.run"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.run.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Start streaming data from the SeedLink server.</span>
+        <span class="sd">&quot;&quot;&quot; Start streaming data from the SeedLink server.</span>
 
 <span class="sd">        Streams need to be selected using</span>
 <span class="sd">        :meth:`~.EasySeedLinkClient.select_stream` before this is called.</span>
@@ -673,6 +758,11 @@
 
 <div class="viewcode-block" id="MonitorClient.task_timer"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.task_timer.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.task_timer">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">task_timer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; A timer executing a task at regular intervals.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        callback: function</span>
+<span class="sd">            The function to be called after the given process_interval.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting the timer.&#39;</span><span class="p">)</span>
         <span class="n">interval</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">process_interval</span><span class="p">)</span>
@@ -1021,6 +1111,11 @@
 
 <div class="viewcode-block" id="MonitorClient.compute_pgv"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.compute_pgv.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.compute_pgv">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">compute_pgv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Compute the PGV values of the stream.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        stream: :class:`obspy.Stream`</span>
+<span class="sd">            The stream used to compute the PGV data.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Computing the PGV.&#39;</span><span class="p">)</span>
         <span class="n">unique_stations</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">network</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">station</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">location</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">stream</span><span class="p">]</span>
@@ -1123,6 +1218,11 @@
 
 <div class="viewcode-block" id="MonitorClient.convert_to_physical_units"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.convert_to_physical_units.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.convert_to_physical_units">[docs]</a>    <span class="k">def</span> <span class="nf">convert_to_physical_units</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Convert the counts to physical units.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        stream: :class:`obspy.Stream`</span>
+<span class="sd">            The stream to convert.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">for</span> <span class="n">tr</span> <span class="ow">in</span> <span class="n">stream</span><span class="o">.</span><span class="n">traces</span><span class="p">:</span>
             <span class="n">station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inventory</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">network</span> <span class="o">=</span> <span class="n">tr</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">network</span><span class="p">,</span>
@@ -1266,6 +1366,11 @@
 
 <div class="viewcode-block" id="MonitorClient.export_event"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.export_event.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.export_event">[docs]</a>    <span class="k">def</span> <span class="nf">export_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">export_event</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Save the event.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        export_event: :class:`mss_dataserver.event.core.Event`</span>
+<span class="sd">            The event to export.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># Get or create the event catalog and add the event to it.</span>
         <span class="n">cat_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{0:04d}</span><span class="s2">-</span><span class="si">{1:02d}</span><span class="s2">-</span><span class="si">{2:02d}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">export_event</span><span class="o">.</span><span class="n">start_time</span><span class="o">.</span><span class="n">year</span><span class="p">,</span>
@@ -1324,6 +1429,19 @@
 
 <div class="viewcode-block" id="MonitorClient.get_event_supplement_dir"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_supplement_dir.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_supplement_dir">[docs]</a>    <span class="k">def</span> <span class="nf">get_event_supplement_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">public_id</span><span class="p">,</span> <span class="n">category</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Get the supplement directory of an event.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        public_id: str </span>
+<span class="sd">            The public ID of the event.</span>
+
+<span class="sd">        category: str </span>
+<span class="sd">            The supplement data category.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str </span>
+<span class="sd">            The path to the event supplement data.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">event_dir</span> <span class="o">=</span> <span class="n">pp_util</span><span class="o">.</span><span class="n">event_dir_from_publicid</span><span class="p">(</span><span class="n">public_id</span><span class="p">)</span>
         <span class="n">output_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">supplement_dir</span><span class="p">,</span>
@@ -1342,6 +1460,11 @@
 
 <div class="viewcode-block" id="MonitorClient.save_event_supplement"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.save_event_supplement.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.save_event_supplement">[docs]</a>    <span class="k">def</span> <span class="nf">save_event_supplement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">export_event</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Save the supplement data of the event.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        export_event: :class:`mss_dataserver.event.core.Event`</span>
+<span class="sd">            The event for which to export the supplement data.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># Build the output directory.</span>
         <span class="n">output_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_event_supplement_dir</span><span class="p">(</span><span class="n">public_id</span> <span class="o">=</span> <span class="n">export_event</span><span class="o">.</span><span class="n">public_id</span><span class="p">,</span>
@@ -1380,6 +1503,25 @@
 
 <div class="viewcode-block" id="MonitorClient.save_supplement_pgv"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_pgv.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_pgv">[docs]</a>    <span class="k">def</span> <span class="nf">save_supplement_pgv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">pre_win</span><span class="p">,</span> <span class="n">post_win</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Save the PGV data supplement.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        event: :class:`mss_dataserver.event.core.Event`</span>
+<span class="sd">            The event for which to export the PGV data.</span>
+
+<span class="sd">        pre_win: float</span>
+<span class="sd">            The window to add before the start time of the event [s].</span>
+
+<span class="sd">        post_win: float</span>
+<span class="sd">            The window to add after the end time of the event [s].</span>
+
+<span class="sd">        output_dir: str </span>
+<span class="sd">            The path where to save the data.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`obspy.Stream`</span>
+<span class="sd">            The exported PGV data stream.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">start_time</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">start_time</span> <span class="o">-</span> <span class="n">pre_win</span>
         <span class="n">end_time</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">end_time</span> <span class="o">+</span> <span class="n">post_win</span>
@@ -1417,6 +1559,20 @@
 
 <div class="viewcode-block" id="MonitorClient.save_supplement_vel"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_vel.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_vel">[docs]</a>    <span class="k">def</span> <span class="nf">save_supplement_vel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">pre_win</span><span class="p">,</span> <span class="n">post_win</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Save the velocity data supplement.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        event: :class:`mss_dataserver.event.core.Event`</span>
+<span class="sd">            The event for which to export the velocity data.</span>
+
+<span class="sd">        pre_win: float</span>
+<span class="sd">            The window to add before the start time of the event [s].</span>
+
+<span class="sd">        post_win: float</span>
+<span class="sd">            The window to add after the end time of the event [s].</span>
+
+<span class="sd">        output_dir: str </span>
+<span class="sd">            The path where to save the data.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">start_time</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">start_time</span> <span class="o">-</span> <span class="n">pre_win</span>
         <span class="n">end_time</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">end_time</span> <span class="o">+</span> <span class="n">post_win</span>
@@ -1451,6 +1607,14 @@
 
 <div class="viewcode-block" id="MonitorClient.save_supplement_inventory"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_inventory.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_inventory">[docs]</a>    <span class="k">def</span> <span class="nf">save_supplement_inventory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Save the supplement inventory data to a json file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        event: :class:`mss_dataserver.event.core.Event`</span>
+<span class="sd">            The event for which to export the velocity data.</span>
+
+<span class="sd">        output_dir: str </span>
+<span class="sd">            The path where to save the data.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># Write the inventory to a json file.</span>
         <span class="k">try</span><span class="p">:</span>
@@ -1483,6 +1647,17 @@
 
 <div class="viewcode-block" id="MonitorClient.save_supplement_metadata"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_metadata.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">save_supplement_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">pgv_stream</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Save the supplement metadata to a json file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        event: :class:`mss_dataserver.event.core.Event`</span>
+<span class="sd">            The event for which to export the velocity data.</span>
+
+<span class="sd">        pgv_stream: :class:`obspy.Stream`</span>
+<span class="sd">            The PGV data stream of the event.</span>
+
+<span class="sd">        output_dir: str </span>
+<span class="sd">            The path where to save the data.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">pgv_stream</span> <span class="o">=</span> <span class="n">pgv_stream</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">starttime</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
                                       <span class="n">endtime</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">end_time</span><span class="p">)</span>
@@ -1546,6 +1721,14 @@
 
 <div class="viewcode-block" id="MonitorClient.save_supplement_detection_data"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_detection_data.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.save_supplement_detection_data">[docs]</a>    <span class="k">def</span> <span class="nf">save_supplement_detection_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Save the detection data of the event.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        event: :class:`mss_dataserver.event.core.Event`</span>
+<span class="sd">            The event for which to export the velocity data.</span>
+
+<span class="sd">        output_dir: str </span>
+<span class="sd">            The path where to save the data.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># Convert the time array UTCDateTime instances to timestamps to reduce</span>
         <span class="c1"># the size of the json file.</span>
@@ -1584,6 +1767,11 @@
 
 <div class="viewcode-block" id="MonitorClient.get_current_pgv"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.get_current_pgv.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_current_pgv">[docs]</a>    <span class="k">def</span> <span class="nf">get_current_pgv</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Get the current PGV data.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`dict`</span>
+<span class="sd">            The PGV data as a dictionary.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">pgv_data</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1636,6 +1824,11 @@
 
 <div class="viewcode-block" id="MonitorClient.get_pgv_timeseries"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.get_pgv_timeseries.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_pgv_timeseries">[docs]</a>    <span class="k">def</span> <span class="nf">get_pgv_timeseries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Get the latest PGV timeseries data.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`dict`</span>
+<span class="sd">            The PGV timeseries as a dictonary.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">pgv_data</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">cur_trace</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pgv_stream</span><span class="p">:</span>
@@ -1662,6 +1855,16 @@
 
 <div class="viewcode-block" id="MonitorClient.get_pgv_timeseries_archive"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.get_pgv_timeseries_archive.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_pgv_timeseries_archive">[docs]</a>    <span class="k">def</span> <span class="nf">get_pgv_timeseries_archive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsl_code</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Get the archived PGV timeseries data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nsl_code: :obj:`list` of :obj:`str`</span>
+<span class="sd">            A list of NSL codes to process.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`dict`</span>
+<span class="sd">            The PGV data as a dictionary.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">pgv_data</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">archive_lock</span><span class="p">:</span>
@@ -1705,6 +1908,11 @@
 
 <div class="viewcode-block" id="MonitorClient.get_current_event"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.get_current_event.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_current_event">[docs]</a>    <span class="k">def</span> <span class="nf">get_current_event</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Return the current event in serializable form.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`dict`</span>
+<span class="sd">            The current event as a dictionary.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">cur_event</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span><span class="p">:</span>
@@ -1730,6 +1938,11 @@
 
 <div class="viewcode-block" id="MonitorClient.get_event_warning"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_warning.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_warning">[docs]</a>    <span class="k">def</span> <span class="nf">get_event_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Return the current event warning in serializable form.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`dict`</span>
+<span class="sd">            The current event warning as a dictionary.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">cur_warning</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_warning</span><span class="p">:</span>
@@ -1741,6 +1954,11 @@
 
 <div class="viewcode-block" id="MonitorClient.get_recent_events"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.get_recent_events.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_recent_events">[docs]</a>    <span class="k">def</span> <span class="nf">get_recent_events</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Return the recent events in serializable form.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`dict`</span>
+<span class="sd">            The recent events as a dictionary.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">recent_event_timespan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_archive_timespan</span>
         <span class="n">now</span> <span class="o">=</span> <span class="n">utcdatetime</span><span class="o">.</span><span class="n">UTCDateTime</span><span class="p">()</span>
@@ -1772,6 +1990,19 @@
 
 <div class="viewcode-block" id="MonitorClient.get_event_by_id"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_by_id.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_by_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_event_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ev_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">public_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Get an event by event id or public id.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ev_id: int </span>
+<span class="sd">            The event database id.</span>
+
+<span class="sd">        public_id: str </span>
+<span class="sd">            The event public id.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`mss_dataserver.event.core.Event`</span>
+<span class="sd">            The event matching the passed id.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">ev_id</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">public_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Either the id or the public_id of the event have to be specified.&quot;</span><span class="p">)</span>
@@ -1785,6 +2016,20 @@
 
 <div class="viewcode-block" id="MonitorClient.get_event_supplement"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_supplement.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_event_supplement">[docs]</a>    <span class="k">def</span> <span class="nf">get_event_supplement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">public_id</span><span class="p">,</span> <span class="n">selection</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Get the detailed data of an event.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        public_id: str </span>
+<span class="sd">            The public id of the event.</span>
+
+<span class="sd">        selection: :obj:`list` of :obj:`dict`</span>
+<span class="sd">            The supplement data selection (keys: category, name).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`dict`</span>
+<span class="sd">            A dictionary containing the requested event supplement data.</span>
+<span class="sd">            </span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">event_supplement</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">event_supplement</span><span class="p">[</span><span class="s1">&#39;public_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">public_id</span>
@@ -1830,6 +2075,13 @@
 
 <div class="viewcode-block" id="MonitorClient.get_keydata"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.get_keydata.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_keydata">[docs]</a>    <span class="k">def</span> <span class="nf">get_keydata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Return the keydata.</span>
+
+<span class="sd">        Used for the LWZ display.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`dict`</span>
+<span class="sd">            The keydata as a dictionary.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">all_stations</span><span class="p">,</span> <span class="n">triggered_stations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_triggered_stations</span><span class="p">()</span>
         <span class="n">keydata</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1843,6 +2095,11 @@
 
 <div class="viewcode-block" id="MonitorClient.get_station_metadata"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.monitorclient.monitorclient.MonitorClient.get_station_metadata.html#mss_dataserver.monitorclient.monitorclient.MonitorClient.get_station_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_station_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Get the metadata of the available stations.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`dict`</span>
+<span class="sd">            The station metadata as a dictionary.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">stations</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">cur_station</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inventory</span><span class="o">.</span><span class="n">get_station</span><span class="p">():</span>
@@ -1882,7 +2139,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

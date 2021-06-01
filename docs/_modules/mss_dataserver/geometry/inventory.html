@@ -1056,6 +1056,38 @@
 
 <div class="viewcode-block" id="Recorder"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Recorder.html#mss_dataserver.geometry.inventory.Recorder">[docs]</a><span class="k">class</span> <span class="nc">Recorder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; A seismic data recorder.</span>
+
+<span class="sd">    Representation of a seismic data recorder which provides a list of data streams.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    serial: str</span>
+<span class="sd">        The serial number of the recorder.</span>
+
+<span class="sd">    model: str</span>
+<span class="sd">        The model name or number of the recorder.</span>
+
+<span class="sd">    producer: str</span>
+<span class="sd">        The name of the producer of the recorder.</span>
+
+<span class="sd">    description: str </span>
+<span class="sd">        A description of the recorder.</span>
+
+<span class="sd">    id: int</span>
+<span class="sd">        The database if of the recorder.</span>
+
+<span class="sd">    parent_inventory: :class:`Inventory`</span>
+<span class="sd">        The inventory instance containing the recorder.</span>
+
+<span class="sd">    author_uri: string</span>
+<span class="sd">        The author_uri of the stream.</span>
+
+<span class="sd">    agency_uri: String</span>
+<span class="sd">        The agency_uri of the stream.</span>
+
+<span class="sd">    creation_time: str or :class:`obspy.UTCDateTime`</span>
+<span class="sd">        The creation time of the event. A string that can be parsed</span>
+<span class="sd">        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="Recorder.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Recorder.__init__.html#mss_dataserver.geometry.inventory.Recorder.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">serial</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">producer</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parent_inventory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1136,7 +1168,7 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        stream : :class:`Stream`</span>
+<span class="sd">        stream: :class:`Stream`</span>
 <span class="sd">            The stream to add to the recorder.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">added_stream</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1150,6 +1182,11 @@
 
 <div class="viewcode-block" id="Recorder.pop_stream_by_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Recorder.pop_stream_by_instance.html#mss_dataserver.geometry.inventory.Recorder.pop_stream_by_instance">[docs]</a>    <span class="k">def</span> <span class="nf">pop_stream_by_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Remove a component from the sensor using the component instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        stream: :class:`Stream`</span>
+<span class="sd">            The stream to remove.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">removed_stream</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="o">.</span><span class="n">assigned_channels</span><span class="p">:</span>
@@ -1166,21 +1203,21 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        name : String</span>
+<span class="sd">        name: String</span>
 <span class="sd">            The name of the stream.</span>
 
-<span class="sd">        label : String</span>
+<span class="sd">        label: String</span>
 <span class="sd">            The label of the stream.</span>
 
-<span class="sd">        agency_uri : String</span>
+<span class="sd">        agency_uri: String</span>
 <span class="sd">            The agency_uri of the stream.</span>
 
-<span class="sd">        author_uri : string</span>
+<span class="sd">        author_uri: string</span>
 <span class="sd">            The author_uri of the stream.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        streams_popped : List of :class:`Stream`</span>
+<span class="sd">        streams_popped: List of :class:`Stream`</span>
 <span class="sd">            The removed streams.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">streams_popped</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1198,17 +1235,23 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        name : String</span>
+<span class="sd">        name: String</span>
 <span class="sd">            The name of the stream.</span>
 
-<span class="sd">        label : String</span>
+<span class="sd">        label: String</span>
 <span class="sd">            The label of the stream.</span>
 
-<span class="sd">        agency_uri : String</span>
+<span class="sd">        agency_uri: String</span>
 <span class="sd">            The agency_uri of the stream.</span>
 
-<span class="sd">        author_uri : string</span>
+<span class="sd">        author_uri: string</span>
 <span class="sd">            The author_uri of the stream.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`list` of :class:`RecorderStream`</span>
+<span class="sd">            The recorder streams matching the search criteria.</span>
+
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">ret_stream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span>
 
@@ -1225,6 +1268,12 @@
 
 <div class="viewcode-block" id="Recorder.merge"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Recorder.merge.html#mss_dataserver.geometry.inventory.Recorder.merge">[docs]</a>    <span class="k">def</span> <span class="nf">merge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">merge_recorder</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Merge a recorder with the existing.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        merge_recorder: :class:`Recorder`</span>
+<span class="sd">            The recorder to merge.</span>
+
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># Update the attributes.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">merge_recorder</span><span class="o">.</span><span class="n">description</span>
@@ -1245,6 +1294,36 @@
 
 <div class="viewcode-block" id="RecorderStream"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.RecorderStream.html#mss_dataserver.geometry.inventory.RecorderStream">[docs]</a><span class="k">class</span> <span class="nc">RecorderStream</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; A digital stream of a data recorder.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name: str </span>
+<span class="sd">        The name of the stream.</span>
+
+<span class="sd">    label: str </span>
+<span class="sd">        The label of the stream.</span>
+
+<span class="sd">    author_uri: string</span>
+<span class="sd">        The author_uri of the stream.</span>
+
+<span class="sd">    agency_uri: String</span>
+<span class="sd">        The agency_uri of the stream.</span>
+
+<span class="sd">    creation_time: str or :class:`obspy.UTCDateTime`</span>
+<span class="sd">        The creation time of the event. A string that can be parsed</span>
+<span class="sd">        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance</span>
+
+<span class="sd">    parent_recorder: :class:`Recorder`</span>
+<span class="sd">        The recorder containing the stream.</span>
+
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    components: :obj:`list` of :class:`TimeBox`</span>
+<span class="sd">        TimeBox instances holding the components assigned to the stream.</span>
+
+<span class="sd">    parameters: :obj:`list` of :class:`RecorderStreamParameter`</span>
+<span class="sd">        The parameters of the stream.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="RecorderStream.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.RecorderStream.__init__.html#mss_dataserver.geometry.inventory.RecorderStream.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span>
@@ -1290,6 +1369,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">parent_inventory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; :class:`Inventory`: The inventory containing the stream.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_recorder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_recorder</span><span class="o">.</span><span class="n">parent_inventory</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1298,6 +1379,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">serial</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: The serial number of the parent recorder.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_recorder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_recorder</span><span class="o">.</span><span class="n">serial</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1306,6 +1389,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: The model of the parent recorder.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_recorder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_recorder</span><span class="o">.</span><span class="n">model</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1313,6 +1398,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">producer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: The producer of the parent recorder.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_recorder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_recorder</span><span class="o">.</span><span class="n">producer</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1321,6 +1408,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">assigned_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; :obj:`list` of :class:`Channel`: The channels to which the stream is assigned to.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># The channels to which the stream is assigned to.</span>
         <span class="n">assigned_channels</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">station_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_inventory</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span>
@@ -1359,6 +1448,12 @@
             <span class="k">return</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="RecorderStream.as_dict"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.RecorderStream.as_dict.html#mss_dataserver.geometry.inventory.RecorderStream.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Get a dictionary representation of the instance.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`dict`: A dictionary representation of the instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">export_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="s1">&#39;serial&#39;</span><span class="p">,</span> <span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;producer&#39;</span><span class="p">,</span>
                              <span class="s1">&#39;author_uri&#39;</span><span class="p">,</span> <span class="s1">&#39;agency_uri&#39;</span><span class="p">,</span> <span class="s1">&#39;creation_time&#39;</span><span class="p">]</span>
 
@@ -1377,23 +1472,27 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        serial : String</span>
+<span class="sd">        serial:  str</span>
 <span class="sd">            The serial number of the sensor which holds the component.</span>
 
-<span class="sd">        model : String</span>
+<span class="sd">        model: str</span>
 <span class="sd">            The model of the sensor which holds the component.</span>
 
-<span class="sd">        producer : String</span>
+<span class="sd">        producer: str</span>
 <span class="sd">            The producer of the sensor which holds the component.</span>
 
-<span class="sd">        name : String</span>
+<span class="sd">        name: str</span>
 <span class="sd">            The name of the component.</span>
 
-<span class="sd">        start_time : :class:`obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">        start_time: :class:`obspy.core.utcdatetime.UTCDateTime`</span>
 <span class="sd">            The time from which on the sensor has been operating at the station.</span>
 
-<span class="sd">        end_time : :class:`obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">        end_time: :class:`obspy.core.utcdatetime.UTCDateTime`</span>
 <span class="sd">            The time up to which the sensor has been operating at the station. &quot;None&quot; if the station is still running.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`SensorComponent`: The sensor component added to the stream.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_inventory</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;The stream needs to be part of an inventory before a sensor can be added.&#39;</span><span class="p">)</span>
@@ -1451,6 +1550,11 @@
 <div class="viewcode-block" id="RecorderStream.remove_component_by_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.RecorderStream.remove_component_by_instance.html#mss_dataserver.geometry.inventory.RecorderStream.remove_component_by_instance">[docs]</a>    <span class="k">def</span> <span class="nf">remove_component_by_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timebox</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Remove a component from the stream.</span>
 
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        timebox: :class:`TimeBox`</span>
+<span class="sd">            The timebox containing the component to remove.</span>
+
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">timebox</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">timebox</span><span class="p">)</span></div>
@@ -1458,27 +1562,36 @@
 
 <div class="viewcode-block" id="RecorderStream.remove_parameter_by_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.RecorderStream.remove_parameter_by_instance.html#mss_dataserver.geometry.inventory.RecorderStream.remove_parameter_by_instance">[docs]</a>    <span class="k">def</span> <span class="nf">remove_parameter_by_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Remove a parameter from the stream.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parameter: :class:`RecorderStreamParameter`</span>
+<span class="sd">            The parameter to remove.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="RecorderStream.get_component"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.RecorderStream.get_component.html#mss_dataserver.geometry.inventory.RecorderStream.get_component">[docs]</a>    <span class="k">def</span> <span class="nf">get_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Get a sensor from the stream.</span>
+        <span class="sd">&#39;&#39;&#39; Get a component from the stream.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        name : String</span>
+<span class="sd">        name: str </span>
 <span class="sd">            The name of the component.</span>
 
-<span class="sd">        serial : String</span>
+<span class="sd">        serial: str </span>
 <span class="sd">            The serial of the sensor containing the component.</span>
 
-<span class="sd">        start_time : :class:`~obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">        start_time: :class:`~obspy.core.utcdatetime.UTCDateTime`</span>
 <span class="sd">            The start time of the timespan to return.</span>
 
-<span class="sd">        end_time : :class:`~obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">        end_time: :class:`~obspy.core.utcdatetime.UTCDateTime`</span>
 <span class="sd">            The end time of the timespan to return.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`SensorComponent`: The sensor component matching the search criteria.</span>
 
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">ret_component</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span>
@@ -1505,8 +1618,12 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        parameter_to_add : :class:`RecorderStreamParameter`</span>
+<span class="sd">        parameter_to_add: :class:`RecorderStreamParameter`</span>
 <span class="sd">            The recorder stream parameter to add to the stream.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`RecorderStreamParameter`: The recorder stream parameter added.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">added_parameter</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">parameter_to_add</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
@@ -1524,6 +1641,17 @@
 <div class="viewcode-block" id="RecorderStream.get_parameter"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.RecorderStream.get_parameter.html#mss_dataserver.geometry.inventory.RecorderStream.get_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">get_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Get parameter for a given timespan.</span>
 
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        start_time: :class:`~obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">            The start time of the timespan to search.</span>
+
+<span class="sd">        end_time: :class:`~obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">            The end time of the timespan to search.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`RecorderStreamParameter`: The recorder stream parameter matching the search criteria.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">ret_parameter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span>
 
@@ -1545,6 +1673,10 @@
 <span class="sd">        ----------</span>
 <span class="sd">        pos : String</span>
 <span class="sd">            The postion of the list of the next free time slot (&#39;front&#39;, &#39;back&#39;, &#39;both&#39;).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`tuple` of :class:`~obspy.core.utcdatetime.UTCDateTime`: The next free timeslot.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
             <span class="n">last_parameter</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">attrgetter</span><span class="p">(</span><span class="s1">&#39;start_time&#39;</span><span class="p">))[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -1582,6 +1714,10 @@
 <span class="sd">        ----------</span>
 <span class="sd">        pos : String</span>
 <span class="sd">            The postion of the list of the next free time slot (&#39;front&#39;, &#39;back&#39;, &#39;both&#39;).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`tuple` of :class:`~obspy.core.utcdatetime.UTCDateTime`: The next free timeslot.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
             <span class="n">last_component</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">attrgetter</span><span class="p">(</span><span class="s1">&#39;start_time&#39;</span><span class="p">))[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -1614,6 +1750,11 @@
 
 <div class="viewcode-block" id="RecorderStream.merge"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.RecorderStream.merge.html#mss_dataserver.geometry.inventory.RecorderStream.merge">[docs]</a>    <span class="k">def</span> <span class="nf">merge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">merge_stream</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Merge a stream.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        merge_stream: :class:`RecorderStream`</span>
+<span class="sd">            The recorder stream to merge with the existing.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># Update the attributes.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">merge_stream</span><span class="o">.</span><span class="n">label</span>
@@ -1676,6 +1817,33 @@
 
 <div class="viewcode-block" id="RecorderStreamParameter"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.RecorderStreamParameter.html#mss_dataserver.geometry.inventory.RecorderStreamParameter">[docs]</a><span class="k">class</span> <span class="nc">RecorderStreamParameter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Parameters of a recorder stream.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    start_time: str or :class:`~obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">        The start time of the timespan to search.</span>
+
+<span class="sd">    end_time: str or :class:`~obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">        The end time of the timespan to search.</span>
+
+<span class="sd">    gain: float</span>
+<span class="sd">        The gain of the stream.</span>
+
+<span class="sd">    bitweight: float</span>
+<span class="sd">        The bitweight of the stream.</span>
+
+<span class="sd">    author_uri: string</span>
+<span class="sd">        The author_uri of the stream.</span>
+
+<span class="sd">    agency_uri: String</span>
+<span class="sd">        The agency_uri of the stream.</span>
+
+<span class="sd">    creation_time: str or :class:`obspy.UTCDateTime`</span>
+<span class="sd">        The creation time of the event. A string that can be parsed</span>
+<span class="sd">        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance</span>
+
+<span class="sd">    parent_recorder_stream: :class:`RecorderStream`</span>
+<span class="sd">        The RecorderStream containing the parameter.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="RecorderStreamParameter.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.RecorderStreamParameter.__init__.html#mss_dataserver.geometry.inventory.RecorderStreamParameter.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_time</span><span class="p">,</span> <span class="n">end_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1733,6 +1901,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">parent_inventory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; :class:`Inventory`: The inventory containing the parameter.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_recorder_stream</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_recorder_stream</span><span class="o">.</span><span class="n">parent_inventory</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1740,6 +1910,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">rec_stream_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; int: The databases id of the parent recorder stream.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_recorder_stream</span><span class="o">.</span><span class="n">id</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
@@ -1748,6 +1920,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">start_time_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: The start time of the parameter.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="s1">&#39;big bang&#39;</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1756,6 +1930,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">end_time_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: The end time of the parameter.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="s1">&#39;running&#39;</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1768,6 +1944,32 @@
 <div class="viewcode-block" id="Sensor"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Sensor.html#mss_dataserver.geometry.inventory.Sensor">[docs]</a><span class="k">class</span> <span class="nc">Sensor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; A seismic sensor.</span>
 
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    serial: str</span>
+<span class="sd">        The serial number of the sensor.</span>
+
+<span class="sd">    model: str</span>
+<span class="sd">        The model name or number of the sensor.</span>
+
+<span class="sd">    producer: str</span>
+<span class="sd">        The name of the producer of the sensor.</span>
+
+<span class="sd">    description: str </span>
+<span class="sd">        A description of the sensor.</span>
+
+<span class="sd">    author_uri: string</span>
+<span class="sd">        The author_uri of the sensor.</span>
+
+<span class="sd">    agency_uri: String</span>
+<span class="sd">        The agency_uri of the sensor.</span>
+
+<span class="sd">    creation_time: str or :class:`obspy.UTCDateTime`</span>
+<span class="sd">        The creation time of the event. A string that can be parsed</span>
+<span class="sd">        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance</span>
+
+<span class="sd">    parent_inventory: :class:`Inventory`</span>
+<span class="sd">        The inventory instance containing the sensor.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="Sensor.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Sensor.__init__.html#mss_dataserver.geometry.inventory.Sensor.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">serial</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">producer</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1824,8 +2026,12 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        component_to_add : :class:`SensorComponent`</span>
+<span class="sd">        component_to_add: :class:`SensorComponent`</span>
 <span class="sd">            The component to add to the sensor.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`SensorComponent`: The component added.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">added_component</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">component_to_add</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
@@ -1849,6 +2055,10 @@
 
 <span class="sd">        author_uri : string</span>
 <span class="sd">            The author_uri of the component.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`SensorComponent`: The component matching the search criteria.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">ret_component</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span>
 
@@ -1865,6 +2075,16 @@
 
 <div class="viewcode-block" id="Sensor.pop_component_by_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Sensor.pop_component_by_instance.html#mss_dataserver.geometry.inventory.Sensor.pop_component_by_instance">[docs]</a>    <span class="k">def</span> <span class="nf">pop_component_by_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Remove a component from the sensor using the component instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        component: :class:`SensorComponent`</span>
+<span class="sd">            The component to remove.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`SensorComponent`: The removed component.</span>
+
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">removed_component</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">component</span><span class="o">.</span><span class="n">assigned_streams</span><span class="p">:</span>
@@ -1881,18 +2101,18 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        name : String</span>
+<span class="sd">        name: str </span>
 <span class="sd">            The name of the component.</span>
 
-<span class="sd">        agency_uri : String</span>
+<span class="sd">        agency_uri: str </span>
 <span class="sd">            The agency_uri of the component.</span>
 
-<span class="sd">        author_uri : string</span>
+<span class="sd">        author_uri: str </span>
 <span class="sd">            The author_uri of the component.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        components_popped : List of :class:`SensorComponent`</span>
+<span class="sd">        components_popped : :obj:`list` of :class:`SensorComponent`</span>
 <span class="sd">            The removed components.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">components_popped</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1907,6 +2127,11 @@
 
 <div class="viewcode-block" id="Sensor.merge"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Sensor.merge.html#mss_dataserver.geometry.inventory.Sensor.merge">[docs]</a>    <span class="k">def</span> <span class="nf">merge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">merge_sensor</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Merge a sensor to the existing.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        merge_sensor: :class:`Sensor`</span>
+<span class="sd">            The sensor to merge.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># Update the attributes.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">merge_sensor</span><span class="o">.</span><span class="n">description</span>
@@ -1929,6 +2154,48 @@
 
 <div class="viewcode-block" id="SensorComponent"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.SensorComponent.html#mss_dataserver.geometry.inventory.SensorComponent">[docs]</a><span class="k">class</span> <span class="nc">SensorComponent</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; A component of a seismic sensor.</span>
+
+<span class="sd">    A seismic sensor may have multiple components. Usually, one component is</span>
+<span class="sd">    related to one spatial direction. A 3-component geophone has 3 sensor </span>
+<span class="sd">    components oriented along an orthogonal coordinate system.</span>
+<span class="sd">    </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name: str </span>
+<span class="sd">        The name of the sensor component.</span>
+
+<span class="sd">    description: str </span>
+<span class="sd">        The description of the sensor component.</span>
+
+<span class="sd">    input_unit: str </span>
+<span class="sd">        The physical unit of the sensor input domain (e.g. m).</span>
+
+<span class="sd">    output_unit: str</span>
+<span class="sd">        The physical unit of the sensor output domain (e.g. m/s).</span>
+
+<span class="sd">    deliver_unit: str </span>
+<span class="sd">        The unit of the measureable signal which is proportional to the </span>
+<span class="sd">        output unit (e.g. V).</span>
+
+<span class="sd">    author_uri: string</span>
+<span class="sd">        The author_uri of the sensor.</span>
+
+<span class="sd">    agency_uri: String</span>
+<span class="sd">        The agency_uri of the sensor.</span>
+
+<span class="sd">    creation_time: str or :class:`obspy.UTCDateTime`</span>
+<span class="sd">        The creation time of the event. A string that can be parsed</span>
+<span class="sd">        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance</span>
+
+<span class="sd">    parent_sensor: :class:`Sensor`</span>
+<span class="sd">        The sensor containing the component.</span>
+
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters: :obj:list of :class:`SensorComponentParameter`</span>
+<span class="sd">        The sensor component parameters.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="SensorComponent.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.SensorComponent.__init__.html#mss_dataserver.geometry.inventory.SensorComponent.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1982,6 +2249,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">parent_inventory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; :class:`Inventory`: The inventory holding the sensor component.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_sensor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_sensor</span><span class="o">.</span><span class="n">parent_inventory</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1989,6 +2258,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">serial</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: The parent sensor serial.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_sensor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_sensor</span><span class="o">.</span><span class="n">serial</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1996,6 +2267,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: The parent sensor model.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_sensor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_sensor</span><span class="o">.</span><span class="n">model</span>
         <span class="k">else</span><span class="p">:</span>
@@ -2003,15 +2276,17 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">producer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: The parent sensor producer.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_sensor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_sensor</span><span class="o">.</span><span class="n">producer</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
 
-
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">assigned_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; :obj:list of :class:`RecorderStream`: The recorder streams to which the component is assigned to.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># Check if the component is assigned to a recorder stream.</span>
         <span class="n">assigned_streams</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">recorder_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_inventory</span><span class="o">.</span><span class="n">get_recorder</span><span class="p">()</span>
@@ -2049,12 +2324,16 @@
 
 
 <div class="viewcode-block" id="SensorComponent.add_parameter"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.SensorComponent.add_parameter.html#mss_dataserver.geometry.inventory.SensorComponent.add_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">add_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter_to_add</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Add a sensor paramter instance to the sensor.</span>
+        <span class="sd">&#39;&#39;&#39; Add a sensor component paramter instance to the sensor component.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        parameter_to_add : :class:`SensorParameter`</span>
-<span class="sd">            The sensor parameter instance to be added.</span>
+<span class="sd">        parameter_to_add: :class:`SensorComponentParameter`</span>
+<span class="sd">            The sensor component parameter instance to be added.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`SensorComponentParameter`: The sensor component parameter added.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">added_parameter</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">parameter_to_add</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
@@ -2070,17 +2349,30 @@
 
 <div class="viewcode-block" id="SensorComponent.remove_parameter"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.SensorComponent.remove_parameter.html#mss_dataserver.geometry.inventory.SensorComponent.remove_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">remove_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter_to_remove</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Remove a parameter from the component.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parameter_to_remove: :class:`SensorComponentParameter`</span>
+<span class="sd">            The sensor component parameter to remove.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">parameter_to_remove</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="SensorComponent.get_parameter"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.SensorComponent.get_parameter.html#mss_dataserver.geometry.inventory.SensorComponent.get_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">get_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Get a sensor from the recorder.</span>
+        <span class="sd">&#39;&#39;&#39; Get sensor component parameters.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
+<span class="sd">        start_time: :class:`obspy.UTCDateTime`</span>
+<span class="sd">            The start time of the time period to search.</span>
+<span class="sd">        </span>
+<span class="sd">        end_time: :class:`obspy.UTCDateTime`</span>
+<span class="sd">            The end time of the time period to search.</span>
 
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`list` of :class:`SensorComponentParameter`: The sensor component parameters active during the given time period.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">parameter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span>
 
@@ -2097,6 +2389,20 @@
 
 
 <div class="viewcode-block" id="SensorComponent.change_parameter_start_time"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.SensorComponent.change_parameter_start_time.html#mss_dataserver.geometry.inventory.SensorComponent.change_parameter_start_time">[docs]</a>    <span class="k">def</span> <span class="nf">change_parameter_start_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">start_time</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Change a parameter start time.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        position: int </span>
+<span class="sd">            The position of the parameter to change in the parameters list.</span>
+
+<span class="sd">        start_time: :class:`obspy.UTCDateTime`</span>
+<span class="sd">            The new start time of the parameter.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`tuple` (:class:`obspy.UTCDateTime`, str): The new start time an a message string.)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="n">cur_row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">position</span><span class="p">]</span>
 
@@ -2119,6 +2425,20 @@
 
 
 <div class="viewcode-block" id="SensorComponent.change_parameter_end_time"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.SensorComponent.change_parameter_end_time.html#mss_dataserver.geometry.inventory.SensorComponent.change_parameter_end_time">[docs]</a>    <span class="k">def</span> <span class="nf">change_parameter_end_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">end_time</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Change a parameter end time.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        position: int </span>
+<span class="sd">            The position of the parameter to change in the parameters list.</span>
+
+<span class="sd">        end_time: :class:`obspy.UTCDateTime`</span>
+<span class="sd">            The new end time of the parameter.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`tuple` (:class:`obspy.UTCDateTime`, str): The new end time an a message string.)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="n">cur_row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">position</span><span class="p">]</span>
 
@@ -2151,7 +2471,12 @@
 
 
 <div class="viewcode-block" id="SensorComponent.merge"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.SensorComponent.merge.html#mss_dataserver.geometry.inventory.SensorComponent.merge">[docs]</a>    <span class="k">def</span> <span class="nf">merge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">merge_component</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Merge the components.</span>
+        <span class="sd">&#39;&#39;&#39; Merge two components.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        merge_component: :class:`SensorComponent`</span>
+<span class="sd">            The sensor component to merge with the existing instance.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># Update the attributes.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">merge_component</span><span class="o">.</span><span class="n">description</span>
@@ -2168,16 +2493,52 @@
 
 
 
-
-
-
-
-<span class="c1">## The sensor parameter class.</span>
-<span class="c1">#</span>
 <div class="viewcode-block" id="SensorComponentParameter"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.SensorComponentParameter.html#mss_dataserver.geometry.inventory.SensorComponentParameter">[docs]</a><span class="k">class</span> <span class="nc">SensorComponentParameter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="c1">## The constructor.</span>
-    <span class="c1">#</span>
-    <span class="c1"># @param self The object pointer.</span>
+    <span class="sd">&#39;&#39;&#39; The parameters of a sensor component.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sensitivity: float</span>
+<span class="sd">        The sensor sensitivity.</span>
+
+<span class="sd">    start_time: :class:`obspy.UTCDateTime`</span>
+<span class="sd">        The start time from which the parameters where active.</span>
+
+<span class="sd">    end_time: :class:`obspy.UTCDateTime`</span>
+<span class="sd">        The end time to which the parameters where active.</span>
+
+<span class="sd">    tf_type: str </span>
+<span class="sd">        DEPRECATED. The type of the transfer function.</span>
+
+<span class="sd">    tf_units: str </span>
+<span class="sd">        DEPRECATED. The units of the transfer function.</span>
+
+<span class="sd">    tf_normalization_factor: float</span>
+<span class="sd">        The normalization factor of the transfer function.</span>
+
+<span class="sd">    tf_normalization_frequency: float</span>
+<span class="sd">        The frequency where the normalization factor was measured.</span>
+
+<span class="sd">    tf_poles: :obj:`list` of :obj:`complex`</span>
+<span class="sd">        The pole locations of the transfer function.</span>
+
+<span class="sd">    tf_zeros: :obj:`list` of :obj:`complex`</span>
+<span class="sd">        The zero locations of the transfer function.</span>
+
+<span class="sd">    parent_component: :class:`SensorComponent`</span>
+<span class="sd">        The sensor component to which the parameters are related to.</span>
+
+<span class="sd">    author_uri: string</span>
+<span class="sd">        The author_uri of the instance.</span>
+
+<span class="sd">    agency_uri: String</span>
+<span class="sd">        The agency_uri of the instance.</span>
+
+<span class="sd">    creation_time: str or :class:`obspy.UTCDateTime`</span>
+<span class="sd">        The creation time of the instance. A string that can be parsed</span>
+<span class="sd">        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
 <div class="viewcode-block" id="SensorComponentParameter.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.SensorComponentParameter.__init__.html#mss_dataserver.geometry.inventory.SensorComponentParameter.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sensitivity</span><span class="p">,</span>
                  <span class="n">start_time</span><span class="p">,</span> <span class="n">end_time</span><span class="p">,</span> <span class="n">tf_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">tf_units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tf_normalization_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -2264,6 +2625,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">parent_inventory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; :class:`Inventory`: The inventory containing the parameter.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_component</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_component</span><span class="o">.</span><span class="n">parent_inventory</span>
         <span class="k">else</span><span class="p">:</span>
@@ -2272,6 +2635,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">start_time_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: The start time of the active parameter period.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="s1">&#39;big bang&#39;</span>
         <span class="k">else</span><span class="p">:</span>
@@ -2280,6 +2645,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">end_time_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: The end time of the active parameter period.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="s1">&#39;running&#39;</span>
         <span class="k">else</span><span class="p">:</span>
@@ -2288,6 +2655,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">zeros_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: A string representation of the transfer functin zeros.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">zero_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tf_zeros</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">cur_zero</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tf_zeros</span><span class="p">:</span>
@@ -2300,6 +2669,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">poles_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: A string representation of the transfer function poles.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">pole_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tf_poles</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">cur_pole</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tf_poles</span><span class="p">:</span>
@@ -2330,6 +2701,19 @@
                             <span class="n">tf_normalization_frequency</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Set the transfer function parameters.</span>
 
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tf_type: str </span>
+<span class="sd">            DEPRECATED. The type of the transfer function.</span>
+
+<span class="sd">        tf_units: str </span>
+<span class="sd">            DEPRECATED. The units of the transfer function.</span>
+
+<span class="sd">        tf_normalization_factor: float</span>
+<span class="sd">            The normalization factor of the transfer function.</span>
+
+<span class="sd">        tf_normalization_frequency: float</span>
+<span class="sd">            The frequency where the normalization factor was measured.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tf_type</span> <span class="o">=</span> <span class="n">tf_type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tf_units</span> <span class="o">=</span> <span class="n">tf_units</span>
@@ -2338,7 +2722,12 @@
 
 
 <div class="viewcode-block" id="SensorComponentParameter.tf_add_complex_zero"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.SensorComponentParameter.tf_add_complex_zero.html#mss_dataserver.geometry.inventory.SensorComponentParameter.tf_add_complex_zero">[docs]</a>    <span class="k">def</span> <span class="nf">tf_add_complex_zero</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zero</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Add a complex zero to the transfer function PAZ.</span>
+        <span class="sd">&#39;&#39;&#39; Add a complex zero to the transfer function.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        zero: :obj:`complex`</span>
+<span class="sd">            A complex zero location of the transfer function.</span>
 
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Adding zero </span><span class="si">%s</span><span class="s1"> to parameter </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">,</span> <span class="n">zero</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
@@ -2347,20 +2736,67 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;len(self.tf_zeros): </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tf_zeros</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="SensorComponentParameter.tf_add_complex_pole"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.SensorComponentParameter.tf_add_complex_pole.html#mss_dataserver.geometry.inventory.SensorComponentParameter.tf_add_complex_pole">[docs]</a>    <span class="k">def</span> <span class="nf">tf_add_complex_pole</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pole</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Add a complec pole to the transfer function PAZ.</span>
+        <span class="sd">&#39;&#39;&#39; Add a complex pole to the transfer function.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pole: :obj:`complex`</span>
+<span class="sd">            A complex pole location of the transfer function.</span>
 
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tf_poles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pole</span><span class="p">)</span></div></div>
 
 
-
-<span class="c1">## The station class.</span>
-<span class="c1">#</span>
 <div class="viewcode-block" id="Station"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Station.html#mss_dataserver.geometry.inventory.Station">[docs]</a><span class="k">class</span> <span class="nc">Station</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; A seismic station.</span>
 
-    <span class="c1">## The constructor.</span>
-    <span class="c1">#</span>
-    <span class="c1"># @param self The object pointer.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name: str </span>
+<span class="sd">        The name of the station.</span>
+
+<span class="sd">    location: str </span>
+<span class="sd">        The location of the station.</span>
+
+<span class="sd">    x: float</span>
+<span class="sd">        The x coordinate of the station.</span>
+
+<span class="sd">    y: float</span>
+<span class="sd">        The y coordinate of the station.</span>
+
+<span class="sd">    z: float</span>
+<span class="sd">        The z coordinate of the station.</span>
+
+<span class="sd">    parent_network: :class:`Network`</span>
+<span class="sd">        The network to which the station is assigned to.</span>
+
+<span class="sd">    coord_system: str </span>
+<span class="sd">        The coordinate system in which the x/y/z coordinates are given.</span>
+<span class="sd">        The coord_system string should be a valid EPSG code.@n </span>
+<span class="sd">        See http://www.epsg-registry.org/ to find your EPSG code.</span>
+
+<span class="sd">    description: str </span>
+<span class="sd">        The description of the station.</span>
+
+<span class="sd">    id: int</span>
+<span class="sd">        The database id of the station.</span>
+
+<span class="sd">    author_uri: string</span>
+<span class="sd">        The author_uri of the instance.</span>
+
+<span class="sd">    agency_uri: String</span>
+<span class="sd">        The agency_uri of the instance.</span>
+
+<span class="sd">    creation_time: str or :class:`obspy.UTCDateTime`</span>
+<span class="sd">        The creation time of the instance. A string that can be parsed</span>
+<span class="sd">        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance    </span>
+
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    channels: :obj:`list` of :class:`Channel`</span>
+<span class="sd">        The channels assigend to the station.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
 <div class="viewcode-block" id="Station.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Station.__init__.html#mss_dataserver.geometry.inventory.Station.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span>
             <span class="n">parent_network</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coord_system</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">author_uri</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">agency_uri</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">creation_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
@@ -2448,6 +2884,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">network</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; :class:`Network`: The network to which the station is assigend to.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_network</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_network</span><span class="o">.</span><span class="n">name</span>
         <span class="k">else</span><span class="p">:</span>
@@ -2455,14 +2893,20 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nsl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; :obj:`tuple` of str: The Network:Station:Location code.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nsl_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: the Network:Station:Location code.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="nb">str</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsl</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">parent_inventory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; :class:`Inventory`: The inventory which contains the station.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_network</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_network</span><span class="o">.</span><span class="n">parent_inventory</span>
         <span class="k">else</span><span class="p">:</span>
@@ -2470,6 +2914,9 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">location_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: The string representation of the location. Returns &#39;--&#39; if the location</span>
+<span class="sd">                 is None.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="s1">&#39;--&#39;</span>
         <span class="k">else</span><span class="p">:</span>
@@ -2477,6 +2924,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">available_channels_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: The string representatin of the available channels.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">str</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">]))</span>
         <span class="k">else</span><span class="p">:</span>
@@ -2484,7 +2933,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">assigned_recorders</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; The unique recorders assigned to the station.</span>
+        <span class="sd">&#39;&#39;&#39; :obj:`list` of :class:`Recorder`: The unique recorders assigned to the station.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">recorders</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">cur_channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
@@ -2496,6 +2945,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">assigned_recorders_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: The string representation of the unique recorders assigned to the station.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">recorders</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">cur_channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
             <span class="n">recorders</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cur_channel</span><span class="o">.</span><span class="n">assigned_recorders</span><span class="p">)</span>
@@ -2509,6 +2960,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">assigned_sensors_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: The string representation of the assigned sensor components.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">sensor_components</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">cur_channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">cur_stream</span> <span class="ow">in</span> <span class="n">cur_channel</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>
@@ -2543,6 +2996,12 @@
             <span class="k">return</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="Station.as_dict"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Station.as_dict.html#mss_dataserver.geometry.inventory.Station.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Get a dictionary representation of the instance.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`dict`: A dictionary representation of the instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">export_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;location&#39;</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">,</span>
                              <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;coord_system&#39;</span><span class="p">,</span>
                              <span class="s1">&#39;author_uri&#39;</span><span class="p">,</span> <span class="s1">&#39;agency_uri&#39;</span><span class="p">,</span> <span class="s1">&#39;creation_time&#39;</span><span class="p">]</span>
@@ -2562,6 +3021,10 @@
 
 
 <div class="viewcode-block" id="Station.get_nslc"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Station.get_nslc.html#mss_dataserver.geometry.inventory.Station.get_nslc">[docs]</a>    <span class="k">def</span> <span class="nf">get_nslc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; DEPRECATED. This method doesn&#39;t work.</span>
+
+<span class="sd">        TODO: Check for removal.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">nslc</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">cur_sensor</span><span class="p">,</span> <span class="n">start_time</span><span class="p">,</span> <span class="n">end_time</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sensors</span><span class="p">:</span>
             <span class="n">cur_nslc</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">station</span><span class="p">,</span>
@@ -2573,8 +3036,11 @@
 
 
 <div class="viewcode-block" id="Station.get_lon_lat"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Station.get_lon_lat.html#mss_dataserver.geometry.inventory.Station.get_lon_lat">[docs]</a>    <span class="k">def</span> <span class="nf">get_lon_lat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">        Return the coordinate system as WGS84 longitude latitude tuples.</span>
+        <span class="sd">&#39;&#39;&#39; Get the coordinates as WGS84 longitude latitude tuples.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`tuple` of float: (Longitude, Latitude)</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># TODO: Add a check for valid epsg string.</span>
 
@@ -2597,8 +3063,12 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        cur_channel : :class:`Channel`</span>
+<span class="sd">        cur_channel: :class:`Channel`</span>
 <span class="sd">            The channel to add to the station.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`Channel`: The channel added.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">added_channel</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="n">cur_channel</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
@@ -2612,6 +3082,11 @@
 
 <div class="viewcode-block" id="Station.remove_channel_by_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Station.remove_channel_by_instance.html#mss_dataserver.geometry.inventory.Station.remove_channel_by_instance">[docs]</a>    <span class="k">def</span> <span class="nf">remove_channel_by_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Remove a channel instance from the station.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        channel: :class:`Channel`</span>
+<span class="sd">            The channel to remove.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span></div>
@@ -2625,6 +3100,10 @@
 <span class="sd">        ----------</span>
 <span class="sd">        name : String</span>
 <span class="sd">            The name of the channel.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`list` of :class:`Channle`: The channels matching the search criteria.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">ret_channel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span>
 
@@ -2640,6 +3119,13 @@
 
 
 <div class="viewcode-block" id="Station.get_unique_channel_names"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Station.get_unique_channel_names.html#mss_dataserver.geometry.inventory.Station.get_unique_channel_names">[docs]</a>    <span class="k">def</span> <span class="nf">get_unique_channel_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Get a list of unique channel names.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`list` of str: The unique channel names.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        
         <span class="n">channel_names</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">for</span> <span class="n">cur_channel</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
@@ -2651,6 +3137,11 @@
 
 <div class="viewcode-block" id="Station.merge"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Station.merge.html#mss_dataserver.geometry.inventory.Station.merge">[docs]</a>    <span class="k">def</span> <span class="nf">merge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">merge_station</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Merge a station into the existing one.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        merge_station: :class:`Station`</span>
+<span class="sd">            The station to merge with the existing instance.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># Update the attributes.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">merge_station</span><span class="o">.</span><span class="n">description</span>
@@ -2695,6 +3186,36 @@
 
 <div class="viewcode-block" id="Channel"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Channel.html#mss_dataserver.geometry.inventory.Channel">[docs]</a><span class="k">class</span> <span class="nc">Channel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; A channel of a station.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name: str </span>
+<span class="sd">        The name of the channel.</span>
+
+<span class="sd">    description: str </span>
+<span class="sd">        The description of the channel.</span>
+
+<span class="sd">    id: int</span>
+<span class="sd">        The database id of the channel.</span>
+
+<span class="sd">    author_uri: string</span>
+<span class="sd">        The author_uri of the instance.</span>
+
+<span class="sd">    agency_uri: String</span>
+<span class="sd">        The agency_uri of the instance.</span>
+
+<span class="sd">    creation_time: str or :class:`obspy.UTCDateTime`</span>
+<span class="sd">        The creation time of the instance. A string that can be parsed</span>
+<span class="sd">        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance  </span>
+
+<span class="sd">    parent_station: :class:`Station`</span>
+<span class="sd">        The station to which the channel is assigned to.</span>
+
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    streams: :obj:`list` of :class:`RecorderStream`</span>
+<span class="sd">        The recorder streams assigned to a channel.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 <div class="viewcode-block" id="Channel.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Channel.__init__.html#mss_dataserver.geometry.inventory.Channel.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">agency_uri</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">author_uri</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">creation_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -2746,6 +3267,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">parent_inventory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; :class:`Inventory`: The inventory containing the channel.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_station</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_station</span><span class="o">.</span><span class="n">parent_inventory</span>
         <span class="k">else</span><span class="p">:</span>
@@ -2753,6 +3276,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nslc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; :obj:`tuple` of str: The Network:Station:Location:Channel code.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_station</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_station</span><span class="o">.</span><span class="n">network</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">parent_station</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
@@ -2763,14 +3288,24 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nslc_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: The string representation of the Network:Station:Location:Channel code.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="nb">str</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nslc</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">assigned_recorders</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; :obj:`list` of str: The unique serial numbers of the assigned recorders.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">item</span><span class="o">.</span><span class="n">serial</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">]))</span>
 
 
 <div class="viewcode-block" id="Channel.as_dict"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Channel.as_dict.html#mss_dataserver.geometry.inventory.Channel.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Get a dictionary representation of the instance.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`dict`: A dictionary representation of the instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">export_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">,</span>
                              <span class="s1">&#39;author_uri&#39;</span><span class="p">,</span> <span class="s1">&#39;agency_uri&#39;</span><span class="p">,</span> <span class="s1">&#39;creation_time&#39;</span><span class="p">]</span>
 
@@ -2834,22 +3369,22 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        serial : String</span>
+<span class="sd">        serial: str</span>
 <span class="sd">            The serial number of the recorder containing the stream.</span>
 
-<span class="sd">        model : String</span>
+<span class="sd">        model: str</span>
 <span class="sd">            The model of the recorder containing the stream.</span>
 
-<span class="sd">        producer : String</span>
+<span class="sd">        producer: str </span>
 <span class="sd">            The producer of the recorder containing the stream.</span>
 
-<span class="sd">        name : String</span>
+<span class="sd">        name: str </span>
 <span class="sd">            The name of the stream.</span>
 
-<span class="sd">        start_time : :class:`obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">        start_time: :class:`obspy.core.utcdatetime.UTCDateTime`</span>
 <span class="sd">            The time from which on the stream has been operating at the channel.</span>
 
-<span class="sd">        end_time : :class:`obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">        end_time: :class:`obspy.core.utcdatetime.UTCDateTime`</span>
 <span class="sd">            The time up to which the stream has been operating at the channel. &quot;None&quot; if the channel is still running.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_inventory</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -2909,6 +3444,13 @@
 
 <div class="viewcode-block" id="Channel.remove_stream_by_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Channel.remove_stream_by_instance.html#mss_dataserver.geometry.inventory.Channel.remove_stream_by_instance">[docs]</a>    <span class="k">def</span> <span class="nf">remove_stream_by_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream_timebox</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Remove a stream timebox.</span>
+
+<span class="sd">        Remove a stream using a timebox instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        timebox: :class:`TimeBox`</span>
+<span class="sd">            The timebox holding a recorder stream to remove.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">stream_timebox</span><span class="p">)</span></div>
 
@@ -2916,8 +3458,20 @@
 <div class="viewcode-block" id="Channel.remove_stream"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Channel.remove_stream.html#mss_dataserver.geometry.inventory.Channel.remove_stream">[docs]</a>    <span class="k">def</span> <span class="nf">remove_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Remove a stream from the channel.</span>
 
+<span class="sd">        Remove recorder streams matching search criteria.</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
+<span class="sd">        start_time: :class:`obspy.UTCDateTime`</span>
+<span class="sd">            The start time of the time span to remove.</span>
+
+<span class="sd">        end_time: :class:`obspy.UTCDateTime`</span>
+<span class="sd">            The end time of the time span to remove.</span>
+
+<span class="sd">        Keyword Arguments</span>
+<span class="sd">        -----------------</span>
+<span class="sd">        kwargs</span>
+<span class="sd">            The keyword arguments passed to :meth:`get_stream`.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">stream_tb_to_remove</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_stream</span><span class="p">(</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">start_time</span><span class="p">,</span>
                                             <span class="n">end_time</span> <span class="o">=</span> <span class="n">end_time</span><span class="p">,</span>
@@ -2943,6 +3497,11 @@
 
 <span class="sd">        name : String</span>
 <span class="sd">            The name of the stream.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`list` of :class:`RecorderStream`</span>
+<span class="sd">            The recorder streams matching the search criteria.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">ret_stream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span>
 
@@ -2965,6 +3524,11 @@
 
 <div class="viewcode-block" id="Channel.merge"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Channel.merge.html#mss_dataserver.geometry.inventory.Channel.merge">[docs]</a>    <span class="k">def</span> <span class="nf">merge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">merge_channel</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Merge a channel with the existing one.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        merge_channel: :class:`Channel`</span>
+<span class="sd">            The channel to merge with the existing instance.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># Update the attributes.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">merge_channel</span><span class="o">.</span><span class="n">description</span>
@@ -3005,6 +3569,39 @@
 
 
 <div class="viewcode-block" id="Network"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Network.html#mss_dataserver.geometry.inventory.Network">[docs]</a><span class="k">class</span> <span class="nc">Network</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; A seismic network.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name: str </span>
+<span class="sd">        The name of the network.</span>
+
+<span class="sd">    description: str </span>
+<span class="sd">        The description of the network.</span>
+
+<span class="sd">    type: str </span>
+<span class="sd">        The type of the network.</span>
+
+<span class="sd">    author_uri: string</span>
+<span class="sd">        The author_uri of the instance.</span>
+
+<span class="sd">    agency_uri: String</span>
+<span class="sd">        The agency_uri of the instance.</span>
+
+<span class="sd">    creation_time: str or :class:`obspy.UTCDateTime`</span>
+<span class="sd">        The creation time of the instance. A string that can be parsed</span>
+<span class="sd">        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance  </span>
+
+<span class="sd">    parent_inventory: :class:`Inventory`</span>
+<span class="sd">        The inventory to which the network is assigned to.</span>
+
+<span class="sd">    </span>
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    stations: :obj:`list` of :class:`Station`</span>
+<span class="sd">        The stations assigned to the network.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="Network.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Network.__init__.html#mss_dataserver.geometry.inventory.Network.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">author_uri</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">agency_uri</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">creation_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">parent_inventory</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -3065,6 +3662,12 @@
             <span class="k">return</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="Network.as_dict"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Network.as_dict.html#mss_dataserver.geometry.inventory.Network.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Get a dictionary representation of the instance.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`dict`: A dictionary representation of the instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">export_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;description&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span>
                              <span class="s1">&#39;author_uri&#39;</span><span class="p">,</span> <span class="s1">&#39;agency_uri&#39;</span><span class="p">,</span> <span class="s1">&#39;creation_time&#39;</span><span class="p">]</span>
         <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
@@ -3081,8 +3684,15 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        station : :class:`Station`</span>
+<span class="sd">        station: :class:`Station`</span>
 <span class="sd">            The station instance to add to the network.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`Station`</span>
+<span class="sd">            The station added.</span>
+
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">available_sl</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">location</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stations</span><span class="p">]</span>
         <span class="k">if</span><span class="p">((</span><span class="n">station</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">station</span><span class="o">.</span><span class="n">location</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">available_sl</span><span class="p">):</span>
@@ -3096,6 +3706,9 @@
 
 <div class="viewcode-block" id="Network.remove_station_by_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Network.remove_station_by_instance.html#mss_dataserver.geometry.inventory.Network.remove_station_by_instance">[docs]</a>    <span class="k">def</span> <span class="nf">remove_station_by_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_to_remove</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Remove a station instance from the network.</span>
+
+<span class="sd">        station_to_remove: :class:`Station`</span>
+<span class="sd">            The station to remove.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">station_to_remove</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stations</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">station_to_remove</span><span class="p">)</span></div>
@@ -3106,11 +3719,17 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        name : String</span>
+<span class="sd">        name: str </span>
 <span class="sd">            The name of the station to remove.</span>
 
-<span class="sd">        location : String</span>
+<span class="sd">        location: str </span>
 <span class="sd">            The location of the station to remove.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`list` of :class:`Station`</span>
+<span class="sd">            The removed stations.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">station_2_remove</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stations</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">location</span> <span class="o">==</span> <span class="n">location</span><span class="p">]</span>
 
@@ -3150,6 +3769,12 @@
 
 <span class="sd">        nsl_string : String</span>
 <span class="sd">            The NSL string in the format &#39;network:station:location&#39;.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`list` of :class:`Station`</span>
+<span class="sd">            The stations matching the search criteria.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">ret_station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stations</span>
 
@@ -3166,6 +3791,9 @@
 
 <div class="viewcode-block" id="Network.merge"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Network.merge.html#mss_dataserver.geometry.inventory.Network.merge">[docs]</a>    <span class="k">def</span> <span class="nf">merge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">merge_network</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Merge a network with the existing.</span>
+
+<span class="sd">        merge_network: :class:`Network`</span>
+<span class="sd">            The network to merge with the existing instance.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># Update the attributes.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">merge_network</span><span class="o">.</span><span class="n">description</span>
@@ -3202,7 +3830,34 @@
 
 
 <div class="viewcode-block" id="Array"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Array.html#mss_dataserver.geometry.inventory.Array">[docs]</a><span class="k">class</span> <span class="nc">Array</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39; An array holding multiple stations.</span>
+    <span class="sd">&#39;&#39;&#39; A seismic array holding multiple stations.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name: str </span>
+<span class="sd">        The name of the array.</span>
+
+<span class="sd">    description: str </span>
+<span class="sd">        The description of the array.</span>
+
+<span class="sd">    author_uri: string</span>
+<span class="sd">        The author_uri of the instance.</span>
+
+<span class="sd">    agency_uri: String</span>
+<span class="sd">        The agency_uri of the instance.</span>
+
+<span class="sd">    creation_time: str or :class:`obspy.UTCDateTime`</span>
+<span class="sd">        The creation time of the instance. A string that can be parsed</span>
+<span class="sd">        by :class:`obspy.UTCDateTime` or a :class:`obspy.UTCDateTime` instance  </span>
+
+<span class="sd">    parent_inventory: :class:`Inventory`</span>
+<span class="sd">        The inventory to which the array is assigned to.</span>
+
+
+<span class="sd">    Arguments</span>
+<span class="sd">    ---------</span>
+<span class="sd">    stations: :obj:`list` of :class:`Station`</span>
+<span class="sd">        The stations assigned to the array.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="Array.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Array.__init__.html#mss_dataserver.geometry.inventory.Array.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">description</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">author_uri</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -3267,14 +3922,19 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        station : :class:`Station`</span>
+<span class="sd">        station: :class:`Station`</span>
 <span class="sd">            The station instance to add to the network.</span>
 
-<span class="sd">        start_time : :class:`obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">        start_time: :class:`obspy.UTCDateTime`</span>
 <span class="sd">            The time from which on the stream has been operating at the channel.</span>
 
-<span class="sd">        end_time : :class:`obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">        end_time: :class:`obspy.UTCDateTime`</span>
 <span class="sd">            The time up to which the stream has been operating at the channel. &quot;None&quot; if the channel is still running.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`Station`</span>
+<span class="sd">            The added station.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_inventory</span> <span class="o">!=</span> <span class="n">station</span><span class="o">.</span><span class="n">parent_inventory</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;The station and the array have to be in the same inventory.&#39;</span><span class="p">)</span>
@@ -3317,6 +3977,11 @@
 
 <div class="viewcode-block" id="Array.remove_station_by_instance"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Array.remove_station_by_instance.html#mss_dataserver.geometry.inventory.Array.remove_station_by_instance">[docs]</a>    <span class="k">def</span> <span class="nf">remove_station_by_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_timebox</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Remove a station timebox instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        station_timebox: :class:`Timebox`</span>
+<span class="sd">            The timebox containing the station.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stations</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">station_timebox</span><span class="p">)</span></div>
 
@@ -3326,11 +3991,22 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        start_time : :class:`obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">        start_time: :class:`obspy.UTCDateTime`</span>
 <span class="sd">            The time from which on the stream has been operating at the channel.</span>
 
-<span class="sd">        end_time : :class:`obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">        end_time: :class:`obspy.UTCDateTime`</span>
 <span class="sd">            The time up to which the stream has been operating at the channel. &quot;None&quot; if the channel is still running.</span>
+
+<span class="sd">        Keyword Arguments</span>
+<span class="sd">        -----------------</span>
+<span class="sd">        kwargs</span>
+<span class="sd">            The keyword arguments passed to :meth:`get_station`.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`list` of :class:`Station`</span>
+<span class="sd">            The removed stations.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">stat_to_remove</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">start_time</span><span class="p">,</span>
                                              <span class="n">end_time</span> <span class="o">=</span> <span class="n">end_time</span><span class="p">,</span>
@@ -3347,26 +4023,31 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        start_time : :class:`obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">        start_time: :class:`obspy.UTCDateTime`</span>
 <span class="sd">            The time from which on the stream has been operating at the channel.</span>
 
-<span class="sd">        end_time : :class:`obspy.core.utcdatetime.UTCDateTime`</span>
+<span class="sd">        end_time: :class:`obspy.UTCDateTime`</span>
 <span class="sd">            The time up to which the stream has been operating at the channel. &quot;None&quot; if the channel is still running.</span>
 
-<span class="sd">        name : String</span>
+<span class="sd">        name: String</span>
 <span class="sd">            The name (code) of the station.</span>
 
-<span class="sd">        location : String</span>
+<span class="sd">        location: String</span>
 <span class="sd">            The location code of the station.</span>
 
-<span class="sd">        id : Integer</span>
+<span class="sd">        id: Integer</span>
 <span class="sd">            The database id of the station.</span>
 
-<span class="sd">        nsl : Tuple (network, station, location)</span>
+<span class="sd">        nsl: Tuple (network, station, location)</span>
 <span class="sd">            The NSL tuple of the station.</span>
 
-<span class="sd">        nsl_string : String</span>
+<span class="sd">        nsl_string: String</span>
 <span class="sd">            The NSL string in the format &#39;station:network:location&#39;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`list` of :class:`Station`</span>
+<span class="sd">            The removed stations.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">ret_station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stations</span>
 
@@ -3388,17 +4069,22 @@
         <span class="k">return</span> <span class="n">ret_station</span></div>
 
 
-<div class="viewcode-block" id="Array.merge"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Array.merge.html#mss_dataserver.geometry.inventory.Array.merge">[docs]</a>    <span class="k">def</span> <span class="nf">merge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">merge_station</span><span class="p">):</span>
+<div class="viewcode-block" id="Array.merge"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.Array.merge.html#mss_dataserver.geometry.inventory.Array.merge">[docs]</a>    <span class="k">def</span> <span class="nf">merge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">merge_array</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Merge an array with the existing one.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        merge_array: :class:`Array`</span>
+<span class="sd">            The array to merge with the existing instance.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># Update the attributes.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">merge_station</span><span class="o">.</span><span class="n">description</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="n">merge_array</span><span class="o">.</span><span class="n">description</span>
 
         <span class="c1"># Replace the assigned stations with the new ones.</span>
         <span class="k">for</span> <span class="n">cur_station</span> <span class="ow">in</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stations</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">remove_station_by_instance</span><span class="p">(</span><span class="n">cur_station</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">cur_station</span> <span class="ow">in</span> <span class="n">merge_station</span><span class="o">.</span><span class="n">stations</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">cur_station</span> <span class="ow">in</span> <span class="n">merge_array</span><span class="o">.</span><span class="n">stations</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_station</span><span class="p">(</span><span class="n">station</span> <span class="o">=</span> <span class="n">cur_station</span><span class="o">.</span><span class="n">item</span><span class="p">,</span>
                              <span class="n">start_time</span> <span class="o">=</span> <span class="n">cur_station</span><span class="o">.</span><span class="n">start_time</span><span class="p">,</span>
                              <span class="n">end_time</span> <span class="o">=</span> <span class="n">cur_station</span><span class="o">.</span><span class="n">end_time</span><span class="p">)</span></div></div>
@@ -3409,14 +4095,24 @@
 <div class="viewcode-block" id="TimeBox"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.TimeBox.html#mss_dataserver.geometry.inventory.TimeBox">[docs]</a><span class="k">class</span> <span class="nc">TimeBox</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; A container to hold an instance with an assigned time-span.</span>
 
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    item: object</span>
+<span class="sd">        The timebox content.</span>
+
+<span class="sd">    start_time: :class:`obspy.UTCDateTime`</span>
+<span class="sd">        The start time of the timebox container.</span>
+
+<span class="sd">    end_time: :class:`obspy.UTCDateTime`</span>
+<span class="sd">        The end time of the timebox container. None if no end exists.</span>
+
+<span class="sd">    parent: object</span>
+<span class="sd">        The instance containing the timebox.</span>
+
 <span class="sd">    &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="TimeBox.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.TimeBox.__init__.html#mss_dataserver.geometry.inventory.TimeBox.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">start_time</span><span class="p">,</span> <span class="n">end_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">parent</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Initialize the instance.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># The instance holding the time-box.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
@@ -3450,6 +4146,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">start_time_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: The string representation of the start time.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="s1">&#39;big bang&#39;</span>
         <span class="k">else</span><span class="p">:</span>
@@ -3457,12 +4155,20 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">end_time_string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; str: The string representation of the end time.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="s1">&#39;running&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_time</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
 
 <div class="viewcode-block" id="TimeBox.as_dict"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.geometry.inventory.TimeBox.as_dict.html#mss_dataserver.geometry.inventory.TimeBox.as_dict">[docs]</a>    <span class="k">def</span> <span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Get a dictionary representation of the instance.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`dict`: A dictionary representation of the instance.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">export_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">,</span>
                              <span class="s1">&#39;end_time&#39;</span><span class="p">]</span>
 
@@ -3484,7 +4190,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>
