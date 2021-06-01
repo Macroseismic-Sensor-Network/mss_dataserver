@@ -23,3 +23,5 @@
  # Copyright 2019 Stefan Mertl
 ##############################################################################
 
+''' The event postprocessing module.
+'''

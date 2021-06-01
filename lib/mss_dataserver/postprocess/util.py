@@ -1,3 +1,30 @@
+# -*- coding: utf-8 -*-
+##############################################################################
+# LICENSE
+#
+# This file is part of mss_dataserver.
+# 
+# If you use mss_dataserver in any program or publication, please inform and
+# acknowledge its authors.
+# 
+# mss_dataserver is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# mss_dataserver is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with mss_dataserver. If not, see <http://www.gnu.org/licenses/>.
+#
+# Copyright 2021 Stefan Mertl
+##############################################################################
+''' General utilities for the postprocessing.
+'''
+
 import datetime
 import gzip
 import json
@@ -16,7 +43,18 @@ import mss_dataserver.core.json_util as json_util
 
 
 def event_dir_from_publicid(public_id):
-    ''' Build the event directory from the public id. '''
+    ''' Build the event directory from the public id.
+    
+    Parameters
+    ----------
+    public_id: str 
+        The public id of the event.
+
+    Returns
+    -------
+    str 
+        The event directory.
+    '''
     cur_parts = public_id.split('_')
     event_time = obspy.UTCDateTime(cur_parts[2][:17] + '.' + cur_parts[2][17:])
     year_dir = "{year:04d}".format(year = event_time.year)
@@ -31,7 +69,13 @@ def event_dir_from_publicid(public_id):
 
 
 def get_supplement_map():
-    ''' Create the dictionary of the supplement data structure.'''
+    ''' Create the dictionary of the supplement data structure.
+
+    Returns
+    -------
+    :obj:`dict`
+        A dictionary containing the supplement data mappings.
+    '''
     supplement_map = {}
 
     # Category detectiondata.
@@ -91,6 +135,25 @@ def get_supplement_map():
 
 def get_supplement_data(public_id, category, name, directory):
     ''' Load the data from a supplement file.
+
+    Parameters
+    ----------
+    public_id: str 
+        The public id of the event.
+
+    category: str 
+        The supplement data category.
+    
+    name: str 
+        The supplement data name.
+
+    directory: str 
+        The supplement data base directory.
+
+    Returns
+    -------
+    :class:`geopandas.GeoDataFrame` or :class:`obspy.Stream` of :obj:`dict`
+        The requested supplement data.
     '''
     supplement_map = get_supplement_map()
     event_dir = event_dir_from_publicid(public_id)
@@ -127,7 +190,18 @@ def get_supplement_data(public_id, category, name, directory):
 
 
 def read_geojson(filepath):
-    ''' Read data from a geojson file.'''
+    ''' Read data from a geojson file.
+    
+    Parameters
+    ----------
+    filepath: str 
+        The filepath to the geojson file to load.
+
+    Returns
+    -------
+    :class:`geopandas.GeoDataFrame`
+        The data loaded from the geojson file.
+    '''
 
     if not os.path.exists(filepath):
         return None
@@ -149,7 +223,34 @@ def read_geojson(filepath):
 
 def write_geojson_file(geojson_instance, category, name, output_dir,
                        prefix = None, postfix = None):
-    ''' Write a geojson data file. '''
+    ''' Write a geojson data file.
+
+    Parameters
+    ----------
+    geojson_instance:
+        The geojson data.
+
+    category: str 
+        The supplement data category.
+    
+    name: str 
+        The supplement data name.
+
+    output_dir: str 
+        The directory where to save the geojson file.
+
+    prefix: str 
+        The filename prefix.
+
+    postfix: str 
+        The filename postfix.
+
+    Returns
+    -------
+    str
+        The filepath of the saved file.
+
+    '''
     # Write the feature collection to a geojson file.  
     if prefix is None:
         prefix = ''
@@ -181,6 +282,26 @@ def write_geojson_file(geojson_instance, category, name, output_dir,
 def save_supplement(public_id, df, output_dir,
                     category, name, props = None):
     ''' Save a geopandas dataframe to geojson file.
+
+    Parameters
+    ----------
+    public_id: str 
+        The public id of the event.
+
+    df: :class:`geopandas.GeoDataFrame`
+        The data to save.
+
+    output_dir: str 
+        The directory where to save the geojson file.
+
+    category: str 
+        The supplement data category.
+    
+    name: str 
+        The supplement data name.
+
+    props: :obj:`dict`
+        Additional properties written to the feature collection properties.
     '''
     logger_name = __name__
     logger = logging.getLogger(logger_name)
@@ -221,11 +342,24 @@ def save_supplement(public_id, df, output_dir,
 def isoformat_tz(utcdatetime):
     ''' Convert a obspy UTCDateTime instance to a isoformat string
     including the UTC Timezone specifier +00:00.
+
+    Parameters
+    ----------
+    utcdatetime: :class:`obspy.UTCDateTime`
+        The UTCDateTime to convert.
+
+    Returns
+    -------
+    str 
+        The isoformat string with UTC timezone specifier.
     '''
     return utcdatetime.datetime.replace(tzinfo=datetime.timezone.utc).isoformat()
 
 
 def contourset_to_shapely(cs):
+    ''' Convert a matplotlib contourset to shapely data.
+
+    '''
     contours = {}
     # Iterate over all collections. Each collection corresponds to a
     # contour level.
@@ -252,6 +386,22 @@ def contourset_to_shapely(cs):
 
 def reproject_polygons(df, src_proj, dst_proj):
     ''' Reproject the coordinates of shapely polygons.
+
+    Parameters
+    ----------
+    df: :class:`geopandas.GeoDataFrame`
+        The dataframe containing the polygons.
+
+    src_proj: :class:`pyproj.Proj`
+        The source coordinate system projection.
+
+    dst_proj: :class:`pyproj.Proj`
+        The destination coordinate system projection.
+
+    Returns
+    -------
+    :class:`geopandas.GeoDataFrame`
+        The dataframe containing the polygons with the reprojected coordinates.
     '''
     for cur_id, cur_row in df.iterrows():
         cur_poly = cur_row.geometry
@@ -288,6 +438,16 @@ def reproject_polygons(df, src_proj, dst_proj):
 
 def intensity_to_pgv(intensity = None):
     ''' Compute the pgv and intensity values based on the MSS relationship.
+
+    Parameters
+    ----------
+    intensity: :class:`numpy.ndarray`
+        The intensity values for which to compute the PGV values.
+
+    Returns
+    -------
+    :class:`numpy.ndarray`
+        The intensity and the computed PGV values.
     '''
     if intensity is None:
         return
@@ -314,6 +474,16 @@ def intensity_to_pgv(intensity = None):
 
 def pgv_to_intensity(pgv = None):
     ''' Compute the pgv and intensity values based on the MSS relationship.
+
+    Parameters
+    ----------
+    pgv: :class:`numpy.ndarray`
+        The pgv values for which to compute the intensity data.
+
+    Returns
+    -------
+    :class:`numpy.ndarray`
+        The pgv data and the computed intensity values.
     '''
     if pgv is None:
         return
@@ -342,33 +512,59 @@ def pgv_to_intensity(pgv = None):
 def compute_pgv_krigging(x, y, z,
                          nlags = 6, weight = False,
                          verbose = False, enable_plotting = False):
-        ''' Kriging of the pgv data. '''
-        buffer = 10000
-        x_lims = [548828.0, 655078.0]
-        y_lims = [5257810.0, 5342810.0]
-        x_lims[0] = x_lims[0] - buffer
-        x_lims[1] = x_lims[1] + buffer
-        y_lims[0] = y_lims[0] - buffer
-        y_lims[1] = y_lims[1] + buffer
-        grid_delta = 100.0
-        grid_x = np.arange(x_lims[0], x_lims[1], grid_delta)
-        grid_y = np.arange(y_lims[0], y_lims[1], grid_delta)
+    ''' Kriging of the pgv data.
 
-        krig_ok = pk.ok.OrdinaryKriging(x = x,
-                                        y = y,
-                                        z = z,
-                                        variogram_model = 'linear',
-                                        variogram_parameters = {'nugget': 0,
-                                                                'slope': 1 / 750},
-                                        nlags = nlags,
-                                        weight = weight,
-                                        verbose = verbose,
-                                        enable_plotting = enable_plotting,
-                                        exact_values = True,
-                                        pseudo_inv = True)
+    The kriging is done using :class:`pykrige.ok.OrdinaryKriging`.
+        
+    Parameters
+    ----------
+    x: :class:`numpy.ndarray`
+        The x data.
 
-        krig_z, krig_sigmasq = krig_ok.execute(style = 'grid',
-                                               xpoints = grid_x,
-                                               ypoints = grid_y)
+    y: :class:`numpy.ndarray`
+        The y data.
 
-        return krig_z, krig_sigmasq, grid_x, grid_y
+    z: :class:`numpy.ndarray`
+        The z data.
+
+    nlags: int
+        The number of lags used for kriging.
+
+    weight: bool
+        If True, use weights for kriging.
+
+    verbose: bool
+        If True, set the kriging to verbose.
+
+    enable_plotting: bool
+        If True, enable the plotting of some kriging statistics.
+    '''
+    buffer = 10000
+    x_lims = [548828.0, 655078.0]
+    y_lims = [5257810.0, 5342810.0]
+    x_lims[0] = x_lims[0] - buffer
+    x_lims[1] = x_lims[1] + buffer
+    y_lims[0] = y_lims[0] - buffer
+    y_lims[1] = y_lims[1] + buffer
+    grid_delta = 100.0
+    grid_x = np.arange(x_lims[0], x_lims[1], grid_delta)
+    grid_y = np.arange(y_lims[0], y_lims[1], grid_delta)
+    
+    krig_ok = pk.ok.OrdinaryKriging(x = x,
+                                    y = y,
+                                    z = z,
+                                    variogram_model = 'linear',
+                                    variogram_parameters = {'nugget': 0,
+                                                            'slope': 1 / 750},
+                                    nlags = nlags,
+                                    weight = weight,
+                                    verbose = verbose,
+                                    enable_plotting = enable_plotting,
+                                    exact_values = True,
+                                    pseudo_inv = True)
+
+    krig_z, krig_sigmasq = krig_ok.execute(style = 'grid',
+                                           xpoints = grid_x,
+                                           ypoints = grid_y)
+    
+    return krig_z, krig_sigmasq, grid_x, grid_y

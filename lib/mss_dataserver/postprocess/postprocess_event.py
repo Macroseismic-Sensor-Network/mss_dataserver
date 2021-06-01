@@ -22,6 +22,8 @@
 #
 # Copyright 2021 Stefan Mertl
 ##############################################################################
+''' The event postprocessor.
+'''
 
 import csv
 import logging
@@ -51,6 +53,11 @@ warnings.filterwarnings('ignore', 'GeoSeries.notna', UserWarning)
 
 class EventPostProcessor(object):
     ''' Process a detected event.
+
+    Parameters
+    ----------
+    project: :class:`mss_dataserver.core.project.Project`
+        The mss_dataserver project.
     '''
 
     def __init__(self, project):
@@ -94,7 +101,7 @@ class EventPostProcessor(object):
 
     @property
     def meta(self):
-        ''' Load the metadata supplement.
+        ''' :obj:`dict`: The metadata supplement.
         '''
         if self._meta is None:
             # Load the event metadata from the supplement file.
@@ -106,6 +113,11 @@ class EventPostProcessor(object):
 
     def set_event(self, public_id):
         ''' Set the event to process.
+
+        Parameters
+        ----------
+        public_id: str 
+            The public id of the event.
         '''
         #self.event = self.project.load_event_by_id(public_id = public_id)
         self.event_public_id = public_id
@@ -146,7 +158,12 @@ class EventPostProcessor(object):
         return station_amp
 
     def add_station_amplification(self, df):
-        ''' Apply the station amplification values to a dataframe.
+        ''' Add the station amplification values to a dataframe.
+
+        Parameters
+        ----------
+        df: :class:`geopandas.GeoDataFrame`
+            The dataframe to which to add the station amplification factors.
         '''
         station_amp = self.station_amp
         sorted_sa = [station_amp[row.nsl]['amp'] if row.nsl in station_amp.keys() else np.nan for index, row in df.iterrows()]
@@ -154,6 +171,11 @@ class EventPostProcessor(object):
 
     def compute_pgv_df(self, meta):
         ''' Create a dataframe of pgv values with station coordinates.
+
+        Parameters
+        ----------
+        meta: :obj:`dict`
+            The event metadata.
         '''
         inventory = self.project.inventory
         triggered_nsl = list(meta['max_event_pgv'].keys())
@@ -210,6 +232,11 @@ class EventPostProcessor(object):
 
     def compute_detection_data_df(self, trigger_data):
         ''' Compute the detection frames for a common time.
+
+        Parameters
+        ----------
+        trigger_data: :obj:`list`
+            The event trigger data.
         '''
         df = None
 

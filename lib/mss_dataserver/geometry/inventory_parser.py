@@ -47,7 +47,7 @@ from obspy.core.utcdatetime import UTCDateTime
 
 class InventoryXmlParser:
     '''
-    Parse a pSysmon inventory XML file.
+    A parser for a geometry inventory XML file in psysmon format.
     '''
     def __init__(self):
 
@@ -108,6 +108,21 @@ class InventoryXmlParser:
 
 
     def parse(self, filename, inventory_name = 'new xml inventory'):
+        ''' Parse a XML inventory file.
+
+        Parameters
+        ----------
+        filename: str 
+            The path to the inventory XML file.
+
+        inventory_name: str 
+            The name of the inventory.
+
+        Returns
+        -------
+        :class:`mss_dataserver.geometry.inventory.Inventory`
+            The parsed inventory.
+        '''
         import lxml.etree
 
         self.logger.debug("parsing file...\n")
@@ -158,6 +173,40 @@ class InventoryXmlParser:
 
     def instance_to_xml(self, instance, root, name, attributes, tags, attr_map, converter, element_handler = {}):
         ''' Translate an inventory object into a xml element.
+
+        Parameters
+        ----------
+        instance: object
+            An instance of a :class:`mss_dataserver.geometry.inventory` class.
+
+        root: :class:`etree.Element` or :class:`etree.Subelement`
+            The XML root.
+
+        name: str
+            The name of the XML element.
+
+        attributes: :obj:`list` of str 
+            The attributes of the XML element.
+
+        tags: :obj:`list` of str 
+            The tags of the XML element.
+
+        attr_map: :obj:`dict`
+            The mapping of the XML attributes to instance attributes.
+
+        converter: :obj:`dict`
+            A dictionary with functions used to convert attributes before adding them 
+            to the XML element.
+
+        element_handler: :obj:`dict`
+            A dictionary with functions used to handle attributes before adding them 
+            to the XML element. A handler can be used if a simple conversion using the 
+            converter is not sufficient.
+
+        Returns
+        -------
+        :class:`etree.SubElement`
+            The created XML element.
         '''
         attrib = {}
         for cur_key in attributes:
@@ -189,6 +238,16 @@ class InventoryXmlParser:
 
     def clean_time_string(self, value):
         ''' Remove running and big bang string from time string.
+
+        Parameters
+        ----------
+        value: str 
+            The time string to clean.
+
+        Returns
+        -------
+        str
+            The cleaned time string.
         '''
         if value == 'big bang':
             value = ''
@@ -199,6 +258,19 @@ class InventoryXmlParser:
 
     def handle_element_pz(self, name, value, root):
         ''' Convert a list of complex values to a list of xml tree elements.
+        
+        The new XML elements are added in place to the root element.
+
+        Parameters
+        ----------
+        name: str 
+            The name of the XML element.
+
+        value: :obj:`list` of complex 
+            The complex values to convert.
+
+        root: :class:`etree.SubElement`
+            The root of the XML element.        
         '''
         for cur_pz in value:
             element = etree.SubElement(root, name)
@@ -208,6 +280,15 @@ class InventoryXmlParser:
 
     def export_xml(self, inventory, filename):
         ''' Export an inventory to xml file.
+
+        Parameters
+        ----------
+        inventory: :class:`mss_dataserver.geometry.inventory.Inventory`
+            The inventory to convert.
+
+        filename: str 
+            The path to the file to which to save the XML file.
+
         '''
         root = etree.Element('inventory', name = inventory.name)
 
@@ -512,12 +593,14 @@ class InventoryXmlParser:
     def process_sensors(self, inventory, sensors):
         ''' Process the extracted sensor tags.
 
+        The sensors are added in place to the passed inventory.
+
         Parameters
         ----------
-        inventory : :class:`~psysmon.packages.geometry.inventory.Inventory`
+        inventory: :class:`mss_dataserver.geometry.inventory.Inventory`
             The inventory to which to add the parsed sensors.
 
-        sensors : xml sensor nodes
+        sensors: :obj:`list` of :class:`etree.SubElement`
             The xml sensor nodes parsed using the findall method.
 
         '''
@@ -543,10 +626,10 @@ class InventoryXmlParser:
 
         Parameters
         ----------
-        sensor : :class:`~psysmon.packages.geometry.inventory.Sensor`
+        sensor: :class:`mss_dataserver.geometry.inventory.Sensor`
             The sensor to which to add the components.
 
-        components : xml component nodes
+        components: :obj:`list` of :class:`etree.SubElement`
             The xml component nodes parsed using the findall method.
         '''
         for cur_component in components:
@@ -568,6 +651,14 @@ class InventoryXmlParser:
 
     def process_component_parameters(self, component, parameters):
         ''' Process the component_parameter nodes of a component.
+
+        Parameters
+        ----------
+        component: :class:`mss_dataserver.geometry.inventory.SensorComponent`
+            The sensor component to which to add the parameters.
+
+        components: :obj:`list` of :class:`etree.SubElement`
+            The xml sensor component parameter nodes parsed using the findall method.
         '''
         for cur_parameter in parameters:
             content = self.parse_node(cur_parameter)
@@ -588,6 +679,13 @@ class InventoryXmlParser:
     def process_response_paz(self, parameter, response_paz):
         ''' Process the response_paz nodes of a component_paramter.
 
+        Parameters
+        ----------
+        parameter: :class:`mss_dataserver.geometry.inventory.SensorComponentParameter`
+            The sensor component parameter to which to add the response information.
+
+        response_paz: :obj:`list` of :class:`etree.SubElement`
+            The xml transfer function response nodes parsed using the findall method.
         '''
         for cur_paz in response_paz:
             content = self.parse_node(cur_paz)
@@ -608,6 +706,14 @@ class InventoryXmlParser:
 
     def process_complex_zero(self, parameter, zeros):
         ''' Process the complex_zero nodes in a response_paz.
+
+        Parameters
+        ----------
+        parameter: :class:`mss_dataserver.geometry.inventory.SensorComponentParameter`
+            The sensor component parameter to which to add the complex zeros.
+
+        zeros: :obj:`list` of :class:`etree.SubElement`
+            The xml transfer function complex zeros nodes parsed using the findall method.
         '''
         for cur_zero in zeros:
             self.logger.debug('Adding zero to the parameter %s', parameter)
@@ -617,6 +723,14 @@ class InventoryXmlParser:
 
     def process_complex_pole(self, parameter, poles):
         ''' Process the complex_poles nodes in a response_paz.
+
+        Parameters
+        ----------
+        parameter: :class:`mss_dataserver.geometry.inventory.SensorComponentParameter`
+            The sensor component parameter to which to add the complex poles.
+
+        poles: :obj:`list` of :class:`etree.SubElement`
+            The xml transfer function complex poles nodes parsed using the findall method.
         '''
         for cur_pole in poles:
             pole = cur_pole.text.replace(' ', '')
@@ -629,10 +743,10 @@ class InventoryXmlParser:
 
         Parameters
         ----------
-        inventory : :class:`~psysmon.packages.geometry.inventory.Inventory`
+        inventory: :class:`mss_dataserver.geometry.inventory.Inventory`
             The inventory to which to add the parsed sensors.
 
-        recorders : xml recorder nodes
+        recorders: :obj:`list` of :class:`etree.SubElement`
             The xml recorder nodes parsed using the findall method.
 
         '''
@@ -660,10 +774,10 @@ class InventoryXmlParser:
 
         Parameters
         ----------
-        recorder : :class:`~psysmon.packages.geometry.inventory.Recorder`
+        recorder: :class:`mss_dataserver.geometry.inventory.Recorder`
             The recorder to which to add the streams.
 
-        streams : xml stream nodes
+        streams: :obj:`list` of :class:`etree.SubElement`
             The xml stream nodes parsed using the findall method.
 
         '''
@@ -694,6 +808,13 @@ class InventoryXmlParser:
     def process_stream_parameters(self, stream, parameters):
         ''' Process the stream_parameter nodes of a recorder stream.
 
+        Parameters
+        ----------
+        stream: :class:`mss_dataserver.geometry.inventory.RecorderStream`
+            The recorder to which to add the streams.
+
+        streams: :obj:`list` of :class:`etree.SubElement`
+            The xml recorder stream parameter nodes parsed using the findall method.
         '''
         for cur_parameter in parameters:
             content = self.parse_node(cur_parameter)
@@ -708,6 +829,13 @@ class InventoryXmlParser:
     def process_assigned_components(self, stream, components):
         ''' Process the components assigned to a recorder stream.
 
+        Parameters
+        ----------
+        stream: :class:`mss_dataserver.geometry.inventory.RecorderStream`
+            The recorder to which to add the streams.
+
+        components: :obj:`list` of :class:`etree.SubElement`
+            The xml sensor component nodes parsed using the findall method.
         '''
         for cur_component in components:
             content = self.parse_node(cur_component)
@@ -728,10 +856,10 @@ class InventoryXmlParser:
 
         Parameters
         ----------
-        inventory : :class:`~psysmon.packages.geometry.inventory.Inventory`
+        inventory: :class:`mss_dataserver.geometry.inventory.Inventory`
             The inventory to which to add the parsed sensors.
 
-        networks : xml network nodes
+        networks: :obj:`list` of :class:`etree.SubElement`
             The xml network nodes parsed using the findall method.
         '''
         self.logger.debug("Processing the networks.")
@@ -759,10 +887,10 @@ class InventoryXmlParser:
 
         Parameters
         ----------
-        inventory : :class:`~psysmon.packages.geometry.inventory.Inventory`
+        inventory: :class:`mss_dataserver.geometry.inventory.Inventory`
             The inventory to which to add the parsed sensors.
 
-        arrays : xml array nodes
+        arrays: :obj:`list` of :class:`etree.SubElement`
             The xml array nodes parsed using the findall method.
         '''
         self.logger.debug("Processing the networks.")
@@ -799,10 +927,10 @@ class InventoryXmlParser:
 
         Parameters
         ----------
-        network : :class:`~psysmon.packages.geometry.inventory.Network`
+        network: :class:`mss_dataserver.geometry.inventory.Network`
             The network to which to add the stations.
 
-        stations : xml station nodes
+        stations: :obj:`list` of :class:`etree.SubElement`
             The xml station nodes parsed using the findall method.
         '''
         for cur_station in stations:
@@ -835,10 +963,10 @@ class InventoryXmlParser:
 
         Parameters
         ----------
-        station : :class:`~psysmon.packages.geometry.inventory.Station`
+        station: :class:`mss_dataserver.geometry.inventory.Station`
             The station to which to add the channels.
 
-        channels : xml channel nodes
+        channels: :obj:`list` of :class:`etree.SubElement`
             The xml channel nodes parsed using the findall method.
         '''
         for cur_channel in channels:
@@ -864,10 +992,10 @@ class InventoryXmlParser:
 
         Parameters
         ----------
-        channel : :class:`~psysmon.packages.geometry.inventory.Channel`
+        channel: :class:`mss_dataserver.geometry.inventory.Channel`
             The channel to which to add the streams.
 
-        streams : xml stream nodes
+        streams: :obj:`list` of :class:`etree.SubElement`
             The xml stream nodes parsed using the findall method.
         '''
         for cur_stream in streams:
@@ -887,6 +1015,21 @@ class InventoryXmlParser:
 
 
     def get_node_text(self, xml_element, tag):
+        ''' Get the text of a XML node.
+
+        Parameters
+        ----------
+        xml_element: :class:`etree.SubElement`
+            The XML element to search.
+
+        tag: str 
+            The tag to search in the XML element.
+
+        Returns
+        -------
+        str 
+            The node text.
+        '''
         node = xml_element.find(tag)
         if node is not None:
             return node.text
@@ -894,6 +1037,18 @@ class InventoryXmlParser:
             return None
 
     def parse_node(self, xml_element):
+        ''' Parse a XML node.
+
+        Parameters
+        ----------
+        xml_element: :class:`etree.SubElement`
+            The XML element to search.
+
+        Returns
+        -------
+        :obj:`dict` of str 
+            The content of the node as a dictionary.
+        '''
         node_content = {}
         for cur_node in list(xml_element):
             if cur_node.text is not None:
@@ -904,6 +1059,21 @@ class InventoryXmlParser:
         return node_content
 
     def keys_complete(self, node_content, required_keys):
+        ''' Check if a node contains all required keys.
+
+        Parameters
+        ----------
+        node_content: :obj:`dict` of str 
+            The content of a node as a dictionary.
+
+        required_keys: :obj:`dict` of str 
+            The keys which are mandatory for the node.
+
+        Returns
+        -------
+        :obj:`list` of str 
+            The missing keys.
+        '''
         missing_keys = []
         for cur_key in required_keys:
             if cur_key in node_content:
@@ -915,14 +1085,33 @@ class InventoryXmlParser:
 
 
     def check_completeness(self, node, content, node_type):
-            missing_attrib = self.keys_complete(node.attrib, self.required_attributes[node_type])
-            missing_keys = self.keys_complete(content, self.required_tags[node_type]);
-            if not missing_keys and not missing_attrib:
-                self.logger.debug(node_type + " xml content:")
-                self.logger.debug("%s", content)
-                return True
-            else:
-                self.logger.error("Not all required fields present!\nMissing Keys:\n")
-                self.logger.error("%s", missing_keys)
-                self.logger.error("%s", missing_attrib)
-                raise RuntimeError("Not all required fieds for node %s present." % node_type)
+        ''' Check the completeness of a XML node.
+
+        Parameters
+        ----------
+        node: :class:`etree.SubElement`
+            The XML node to check.
+
+        content: :obj:`dict` of str 
+            The content of a node as a dictionary.
+
+        node_type: str 
+            The type of the node.
+
+        Returns
+        -------
+        boolean
+            True, if the node has passed all checks.
+
+        '''
+        missing_attrib = self.keys_complete(node.attrib, self.required_attributes[node_type])
+        missing_keys = self.keys_complete(content, self.required_tags[node_type]);
+        if not missing_keys and not missing_attrib:
+            self.logger.debug(node_type + " xml content:")
+            self.logger.debug("%s", content)
+            return True
+        else:
+            self.logger.error("Not all required fields present!\nMissing Keys:\n")
+            self.logger.error("%s", missing_keys)
+            self.logger.error("%s", missing_attrib)
+            raise RuntimeError("Not all required fieds for node %s present." % node_type)
