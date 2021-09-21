@@ -342,9 +342,9 @@ def pgv_to_intensity(pgv = None):
     #pgv = np.hstack([pgv_low, pgv_high])
     #intensity = np.hstack([intensity_low, intensity_high])
 
-    pgv = np.zeros(pgv.size)
-    pgv[low_ind] = pgv_low
-    pgv[high_ind] = pgv_high
+    intensity = np.zeros(pgv.size)
+    intensity[low_ind] = intensity_low
+    intensity[high_ind] = intensity_high
 
     return np.hstack([10**pgv[:, np.newaxis],
                       intensity[:, np.newaxis]])
