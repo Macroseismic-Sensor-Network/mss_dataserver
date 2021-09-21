@@ -331,14 +331,20 @@ def pgv_to_intensity(pgv = None):
     d_high = 7
     kink = np.log10(1e-3)
 
-    pgv_low = pgv[pgv <= kink]
+    low_ind = np.argwhere(pgv <= kink)
+    pgv_low = pgv[low_ind]
     intensity_low = d_low + k_low * pgv_low
 
-    pgv_high = pgv[pgv > kink]
+    high_ind = np.argwhere(pgv > kink)
+    pgv_high = pgv[high_ind]
     intensity_high = d_high + k_high * pgv_high
 
-    pgv = np.hstack([pgv_low, pgv_high])
-    intensity = np.hstack([intensity_low, intensity_high])
+    #pgv = np.hstack([pgv_low, pgv_high])
+    #intensity = np.hstack([intensity_low, intensity_high])
+
+    pgv = np.zeros(pgv.size)
+    pgv[low_ind] = pgv_low
+    pgv[high_ind] = pgv_high
 
     return np.hstack([10**pgv[:, np.newaxis],
                       intensity[:, np.newaxis]])
