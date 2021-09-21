@@ -99,6 +99,9 @@ class MapPlotter(object):
                                  11: 'XI',
                                  12: 'XII'}
 
+        # The plot mode ['pgv', 'intensity']
+        self.mode = 'pgv'
+
 
     def set_event(self, public_id):
         ''' Set the event to process.
@@ -112,9 +115,12 @@ class MapPlotter(object):
                                              directory = self.supplement_dir)
 
         
-    def init_map(self, utm_zone=33):
+    def init_map(self, utm_zone=33, mode = 'pgv'):
         ''' Initialize the map plot.
         '''
+        # Set the mode.
+        self.mode = mode
+        
         # Set the projection.
         self.projection = ccrs.UTM(zone=utm_zone)
 
@@ -156,7 +162,11 @@ class MapPlotter(object):
                            zorder = 1)
 
         # Add the colorbar.
-        self.draw_pgv_colorbar()
+        if self.mode == 'pgv':
+            self.draw_pgv_colorbar()
+        elif self.mode == 'intensity':
+            self.draw_intensity_colorbar()
+            
 
         # Add the MSS logo.
         logo_filepath = os.path.join(self.map_dir, 'mss_logo.png')
@@ -271,6 +281,100 @@ class MapPlotter(object):
             ax_inset.get_yaxis().set_visible(False)
             ax_inset.set_facecolor((1, 1, 1, 0.4))
 
+
+    def draw_intensity_colorbar(self):
+        ''' Draw the intensity colorbar.
+        '''
+        # Create the inset axes.
+        cb_bounds = [0.58, 0.08, 0.4, 0.05]
+        ax_inset = self.ax.inset_axes(bounds = cb_bounds)
+
+        intensity_to_plot = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+        intensity_pgv = util.intensity_to_pgv(intensity_to_plot)
+
+        ticks = intensity_pgv[:, 1]
+        ticks[0] = 0.001e-3
+        ticks_log = np.log10(ticks)
+        cb = matplotlib.colorbar.ColorbarBase(ax_inset,
+                                              cmap = self.cmap,
+                                              norm = self.norm,
+                                              ticks = [],
+                                              orientation = 'horizontal',
+                                              extend = 'both')
+
+        for cur_x in ticks_log[1:]:
+            cb.ax.axvline(x = cur_x,
+                          color = 'k',
+                          linewidth = 0.5)
+        
+        cb.ax.tick_params(labelsize = 8)
+        #cb.ax.set_xlabel('PGV [mm/s]',
+        #                 loc = 'right',
+        #                 fontsize = 8)
+        cb.ax.xaxis.tick_top()
+        #ticks_intensity = intensity_pgv[:, 0]
+        #tick_labels = ["{0:.3f}".format(x) for x in ticks_intensity]
+        tick_labels = []
+        cb.set_ticklabels(tick_labels)
+        #cb.ax.set_xticklabels(tick_labels, rotation = 90)
+        self.cb = cb
+
+        height = 0.03
+        intensity_bounds = [cb_bounds[0],
+                            cb_bounds[1] - height,
+                            cb_bounds[2],
+                            height]
+        ax_inset = self.ax.inset_axes(bounds = intensity_bounds,
+                                      xlim = cb.ax.get_xlim())
+        
+        
+
+        # Add the intensity label:
+        xlim = ax_inset.get_xlim()
+        ax_inset.text(x = xlim[0] + 0.1,
+                      y = 0.45,
+                      s = 'intensity: ',
+                      ha = 'left',
+                      va = 'center',
+                      fontsize = 6)
+        ax_inset.set_xlabel('Intensity',
+                            loc = 'right',
+                            fontsize = 8)
+       
+        for k, cur_intensity_pgv in enumerate(intensity_pgv):
+            if k == len(intensity_pgv) - 1:
+                break
+
+            if np.log10(cur_intensity_pgv[1]) >= xlim[1]:
+                break
+           
+            if k > 0:
+                ax_inset.axvline(np.log10(cur_intensity_pgv[1]),
+                                 color = 'black',
+                                 linewidth = 0.5)
+                cur_x = (np.log10(intensity_pgv[k + 1][1]) + np.log10(cur_intensity_pgv[1])) / 2
+   
+            if k == 0:
+                cur_x = (np.log10(intensity_pgv[k + 1][1]) + np.log10(0.01e-3)) / 2
+            elif np.log10(intensity_pgv[k +1][1]) >= xlim[1]:
+                cur_x = (np.log10(cur_intensity_pgv[1]) + xlim[1]) / 2
+
+            #ax_inset.axvline(cur_x, color = 'gray')
+            #cur_label = '{intensity:.0f}'.format(intensity = cur_intensity_pgv[0])
+            cur_label = self.intensity_labels[int(cur_intensity_pgv[0])]
+            ax_inset.text(cur_x,
+                          y = 0.45,
+                          s = cur_label,
+                          ha = 'center',
+                          va = 'center',
+                          fontsize = 6)
+            #ax_inset.set_axis_off()
+            #ax_inset.set_frame_on(True)
+            #ax_inset.get_xaxis().set_visible(False)
+            ax_inset.set_xticks([])
+            ax_inset.get_yaxis().set_visible(False)
+            ax_inset.set_facecolor((1, 1, 1, 0.4))
+            
 
     def draw_voronoi_cells(self, df, use_sa = False):
         ''' Draw PGV Voronoi cells.
@@ -706,8 +810,12 @@ class MapPlotter(object):
                     cur_mask = np.isclose(cur_name, pgv_intensity[:, 1])
                     if np.any(cur_mask) and (len(cur_split) > 0):
                         cur_intensity = int(pgv_intensity[cur_mask, 0][0])
-                        cur_label = '{pgv} ({intensity})'.format(pgv = np.round(cur_name * 1000, 3),
-                                                                 intensity = self.intensity_labels[cur_intensity])
+                        if self.mode == 'pgv':
+                            cur_label = '{pgv} ({intensity})'.format(pgv = np.round(cur_name * 1000, 3),
+                                                                     intensity = self.intensity_labels[cur_intensity])
+                        elif self.mode == 'intensity':
+                            cur_label = '{intensity}'.format(intensity = self.intensity_labels[cur_intensity])
+                            
                         longest_ind = np.argmax([x.length for x in cur_split])
                             
                         cur_geom = cur_split[longest_ind]
