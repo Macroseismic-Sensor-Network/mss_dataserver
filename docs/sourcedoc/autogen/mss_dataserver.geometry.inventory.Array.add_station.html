@@ -208,9 +208,15 @@
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>station</strong> (<a class="reference internal" href="mss_dataserver.geometry.inventory.Station.html#mss_dataserver.geometry.inventory.Station" title="mss_dataserver.geometry.inventory.Station"><code class="xref py py-class docutils literal notranslate"><span class="pre">Station</span></code></a>) – The station instance to add to the network.</p></li>
-<li><p><strong>start_time</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.core.utcdatetime.UTCDateTime</span></code>) – The time from which on the stream has been operating at the channel.</p></li>
-<li><p><strong>end_time</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.core.utcdatetime.UTCDateTime</span></code>) – The time up to which the stream has been operating at the channel. “None” if the channel is still running.</p></li>
+<li><p><strong>start_time</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code>) – The time from which on the stream has been operating at the channel.</p></li>
+<li><p><strong>end_time</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code>) – The time up to which the stream has been operating at the channel. “None” if the channel is still running.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The added station.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Station.html#mss_dataserver.geometry.inventory.Station" title="mss_dataserver.geometry.inventory.Station"><code class="xref py py-class docutils literal notranslate"><span class="pre">Station</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -233,7 +239,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

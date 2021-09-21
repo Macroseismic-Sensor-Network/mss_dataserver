@@ -210,13 +210,19 @@ the stream for the specified time-span.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>serial</strong> (<em>String</em>) – The serial number of the sensor which holds the component.</p></li>
-<li><p><strong>model</strong> (<em>String</em>) – The model of the sensor which holds the component.</p></li>
-<li><p><strong>producer</strong> (<em>String</em>) – The producer of the sensor which holds the component.</p></li>
-<li><p><strong>name</strong> (<em>String</em>) – The name of the component.</p></li>
+<li><p><strong>serial</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The serial number of the sensor which holds the component.</p></li>
+<li><p><strong>model</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The model of the sensor which holds the component.</p></li>
+<li><p><strong>producer</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The producer of the sensor which holds the component.</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name of the component.</p></li>
 <li><p><strong>start_time</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.core.utcdatetime.UTCDateTime</span></code>) – The time from which on the sensor has been operating at the station.</p></li>
 <li><p><strong>end_time</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.core.utcdatetime.UTCDateTime</span></code>) – The time up to which the sensor has been operating at the station. “None” if the station is still running.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>:class:`SensorComponent`</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>The sensor component added to the stream.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -239,7 +245,7 @@ the stream for the specified time-span.</p>
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

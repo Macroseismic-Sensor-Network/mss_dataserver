@@ -182,6 +182,8 @@
 <span class="c1">#</span>
 <span class="c1"># Copyright 2021 Stefan Mertl</span>
 <span class="c1">##############################################################################</span>
+<span class="sd">&#39;&#39;&#39; Utilities to plot maps.</span>
+<span class="sd">&#39;&#39;&#39;</span>
 
 <span class="kn">import</span> <span class="nn">dateutil</span>
 <span class="kn">import</span> <span class="nn">logging</span>
@@ -202,6 +204,23 @@
 
 <div class="viewcode-block" id="MapPlotter"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.map_plotter.MapPlotter.html#mss_dataserver.postprocess.map_plotter.MapPlotter">[docs]</a><span class="k">class</span> <span class="nc">MapPlotter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Create map images and movies using mssds geojson data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    supplement_dir: str </span>
+<span class="sd">        The directory where the supplement data is saved.</span>
+
+<span class="sd">    map_dir: str </span>
+<span class="sd">        The directory where the map data is saved.</span>
+
+<span class="sd">    output_dir: str </span>
+<span class="sd">        The directory where to save the computed map images.</span>
+
+<span class="sd">    basemap: str </span>
+<span class="sd">        The filename of the background map in geotiff file format.</span>
+
+<span class="sd">    boundary: str </span>
+<span class="sd">        The filename of the network boundary in geojson file format.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="MapPlotter.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.map_plotter.MapPlotter.__init__.html#mss_dataserver.postprocess.map_plotter.MapPlotter.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">supplement_dir</span><span class="p">,</span> <span class="n">map_dir</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span>
@@ -262,6 +281,11 @@
 
 <div class="viewcode-block" id="MapPlotter.set_event"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.map_plotter.MapPlotter.set_event.html#mss_dataserver.postprocess.map_plotter.MapPlotter.set_event">[docs]</a>    <span class="k">def</span> <span class="nf">set_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">public_id</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Set the event to process.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        public_id: str </span>
+<span class="sd">            The public id of the event.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">event_public_id</span> <span class="o">=</span> <span class="n">public_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">event_dir</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">event_dir_from_publicid</span><span class="p">(</span><span class="n">public_id</span><span class="p">)</span>
@@ -274,6 +298,11 @@
         
 <div class="viewcode-block" id="MapPlotter.init_map"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.map_plotter.MapPlotter.init_map.html#mss_dataserver.postprocess.map_plotter.MapPlotter.init_map">[docs]</a>    <span class="k">def</span> <span class="nf">init_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">utm_zone</span><span class="o">=</span><span class="mi">33</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Initialize the map plot.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        utm_zone: int </span>
+<span class="sd">            The UTM zone number.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># Set the projection.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">projection</span> <span class="o">=</span> <span class="n">ccrs</span><span class="o">.</span><span class="n">UTM</span><span class="p">(</span><span class="n">zone</span><span class="o">=</span><span class="n">utm_zone</span><span class="p">)</span>
@@ -434,6 +463,15 @@
 
 <div class="viewcode-block" id="MapPlotter.draw_voronoi_cells"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.map_plotter.MapPlotter.draw_voronoi_cells.html#mss_dataserver.postprocess.map_plotter.MapPlotter.draw_voronoi_cells">[docs]</a>    <span class="k">def</span> <span class="nf">draw_voronoi_cells</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">use_sa</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Draw PGV Voronoi cells.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        df: :class:`geopandas.GeoDataFrame`</span>
+<span class="sd">            The dataframe used to compute the voronoi cells.</span>
+
+<span class="sd">        use_sa: bool</span>
+<span class="sd">            True: used the station correction factors.</span>
+<span class="sd">            False: don&#39;t use the station correction factors.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">cmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmap</span>
         <span class="n">norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span>
@@ -522,6 +560,18 @@
 <div class="viewcode-block" id="MapPlotter.draw_station_pgv"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.map_plotter.MapPlotter.draw_station_pgv.html#mss_dataserver.postprocess.map_plotter.MapPlotter.draw_station_pgv">[docs]</a>    <span class="k">def</span> <span class="nf">draw_station_pgv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">use_sa</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                          <span class="n">max_dia</span> <span class="o">=</span> <span class="mi">3</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Draw the max pgv values of the stations.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        df: :class:`geopandas.GeoDataFrame`</span>
+<span class="sd">            The dataframe used to compute the station pgv.</span>
+
+<span class="sd">        use_sa: bool</span>
+<span class="sd">            True: used the station correction factors.</span>
+<span class="sd">            False: don&#39;t use the station correction factors.</span>
+
+<span class="sd">        max_dia: float </span>
+<span class="sd">            The maximum marker diameter [mm].</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">cmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmap</span>
         <span class="n">norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span>
@@ -645,6 +695,24 @@
                        <span class="n">show_max_level</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                        <span class="n">add_annotation</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; The the maximum pgv marker in the colorbar axes.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        df: :class:`geopandas.GeoDataFrame`</span>
+<span class="sd">            The dataframe used to compute the pgv level.</span>
+
+<span class="sd">        use_sa: bool</span>
+<span class="sd">            True: used the station correction factors.</span>
+<span class="sd">            False: don&#39;t use the station correction factors.</span>
+
+<span class="sd">        max_event_pgv: float </span>
+<span class="sd">            The maximum PGV of the event.</span>
+
+<span class="sd">        show_max_level: bool</span>
+<span class="sd">            If True, the maximum level is shown.</span>
+
+<span class="sd">        add_annotation: bool</span>
+<span class="sd">            If True, the annotation is added.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cb</span><span class="o">.</span><span class="n">ax</span>
         <span class="n">artists</span> <span class="o">=</span> <span class="p">[]</span>
@@ -725,6 +793,20 @@
                                  <span class="n">add_annotation</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
                                  <span class="n">data_col</span> <span class="o">=</span> <span class="s1">&#39;pgv_min_log&#39;</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; The the maximum pgv markers in the colorbar axes.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        df: :class:`geopandas.GeoDataFrame`</span>
+<span class="sd">            The dataframe used to compute the detection pgv level.</span>
+
+<span class="sd">        max_event_pgv: float </span>
+<span class="sd">            The maximum PGV of the event.</span>
+
+<span class="sd">        add_annotation: bool</span>
+<span class="sd">            If True, the annotation is added.</span>
+
+<span class="sd">        data_col: str </span>
+<span class="sd">            The data column of the df used for the pgv data.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cb</span><span class="o">.</span><span class="n">ax</span>
         <span class="n">artists</span> <span class="o">=</span> <span class="p">[]</span>
@@ -774,6 +856,14 @@
     
 <div class="viewcode-block" id="MapPlotter.draw_contours"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.map_plotter.MapPlotter.draw_contours.html#mss_dataserver.postprocess.map_plotter.MapPlotter.draw_contours">[docs]</a>    <span class="k">def</span> <span class="nf">draw_contours</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">draw_labels</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Draw the PGV contours.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        df: :class:`geopandas.GeoDataFrame`</span>
+<span class="sd">            The dataframe used to compute the contours.</span>
+
+<span class="sd">        draw_labels: bool</span>
+<span class="sd">            If True, the contour labels are plotted.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">cmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmap</span>
         <span class="n">norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span>
@@ -884,7 +974,7 @@
 
 <div class="viewcode-block" id="MapPlotter.draw_contours_working"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.map_plotter.MapPlotter.draw_contours_working.html#mss_dataserver.postprocess.map_plotter.MapPlotter.draw_contours_working">[docs]</a>    <span class="k">def</span> <span class="nf">draw_contours_working</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">draw_labels</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                       <span class="n">draw_fat_contours</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Draw the PGV contours.</span>
+        <span class="sd">&#39;&#39;&#39; Deprecated. Draw the PGV contours.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">cmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmap</span>
         <span class="n">norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span>
@@ -940,6 +1030,14 @@
 
 <div class="viewcode-block" id="MapPlotter.draw_simplices"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.map_plotter.MapPlotter.draw_simplices.html#mss_dataserver.postprocess.map_plotter.MapPlotter.draw_simplices">[docs]</a>    <span class="k">def</span> <span class="nf">draw_simplices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">data_col</span> <span class="o">=</span> <span class="s1">&#39;pgv_min_log&#39;</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Draw the detection simplices. </span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        df: :class:`geopandas.GeoDataFrame`</span>
+<span class="sd">            The dataframe used to compute the pgv level.</span>
+
+<span class="sd">        data_col: str </span>
+<span class="sd">            The data columne in df used for the PGV data.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">cmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmap</span>
         <span class="n">norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span>
@@ -1105,6 +1203,24 @@
 <div class="viewcode-block" id="MapPlotter.create_movie"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.map_plotter.MapPlotter.create_movie.html#mss_dataserver.postprocess.map_plotter.MapPlotter.create_movie">[docs]</a>    <span class="k">def</span> <span class="nf">create_movie</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_dir</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span>
                      <span class="n">img_name</span><span class="p">,</span> <span class="n">video_name</span><span class="p">,</span> <span class="n">file_ext</span> <span class="o">=</span> <span class="s1">&#39;png&#39;</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Create a movie using ffmpeg.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        image_dir: str </span>
+<span class="sd">            The directory where the input images used to create the movie are saved.</span>
+
+<span class="sd">        output_dir: str </span>
+<span class="sd">            The directory where to save the movie.</span>
+
+<span class="sd">        img_name: str </span>
+<span class="sd">            The base name of the image files. The complete search string is built </span>
+<span class="sd">            using &#39;{public_id}_{name}_*.{ext}&#39;.</span>
+
+<span class="sd">        video_name: str</span>
+<span class="sd">            The base name of the video output file.</span>
+
+<span class="sd">        file_ext: str </span>
+<span class="sd">            The file extension of the input images.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">img_filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">image_dir</span><span class="p">,</span>
                                     <span class="s1">&#39;</span><span class="si">{public_id}</span><span class="s1">_</span><span class="si">{name}</span><span class="s1">_*.</span><span class="si">{ext}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">public_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_public_id</span><span class="p">,</span>
@@ -1610,7 +1726,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

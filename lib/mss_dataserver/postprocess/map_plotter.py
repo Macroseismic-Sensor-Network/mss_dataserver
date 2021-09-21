@@ -22,6 +22,8 @@
 #
 # Copyright 2021 Stefan Mertl
 ##############################################################################
+''' Utilities to plot maps.
+'''
 
 import dateutil
 import logging
@@ -42,6 +44,23 @@ import mss_dataserver.postprocess.util as util
 
 class MapPlotter(object):
     ''' Create map images and movies using mssds geojson data.
+
+    Parameters
+    ----------
+    supplement_dir: str 
+        The directory where the supplement data is saved.
+
+    map_dir: str 
+        The directory where the map data is saved.
+
+    output_dir: str 
+        The directory where to save the computed map images.
+
+    basemap: str 
+        The filename of the background map in geotiff file format.
+
+    boundary: str 
+        The filename of the network boundary in geojson file format.
     '''
 
     def __init__(self, supplement_dir, map_dir, output_dir,
@@ -105,6 +124,11 @@ class MapPlotter(object):
 
     def set_event(self, public_id):
         ''' Set the event to process.
+
+        Parameters
+        ----------
+        public_id: str 
+            The public id of the event.
         '''
         self.event_public_id = public_id
         self.event_dir = util.event_dir_from_publicid(public_id)
@@ -117,6 +141,11 @@ class MapPlotter(object):
         
     def init_map(self, utm_zone=33, mode = 'pgv'):
         ''' Initialize the map plot.
+
+        Parameters
+        ----------
+        utm_zone: int 
+            The UTM zone number.
         '''
         # Set the mode.
         self.mode = mode
@@ -378,6 +407,15 @@ class MapPlotter(object):
 
     def draw_voronoi_cells(self, df, use_sa = False):
         ''' Draw PGV Voronoi cells.
+
+        Parameters
+        ----------
+        df: :class:`geopandas.GeoDataFrame`
+            The dataframe used to compute the voronoi cells.
+
+        use_sa: bool
+            True: used the station correction factors.
+            False: don't use the station correction factors.
         '''
         cmap = self.cmap
         norm = self.norm
@@ -466,6 +504,18 @@ class MapPlotter(object):
     def draw_station_pgv(self, df, use_sa = False,
                          max_dia = 3):
         ''' Draw the max pgv values of the stations.
+
+        Parameters
+        ----------
+        df: :class:`geopandas.GeoDataFrame`
+            The dataframe used to compute the station pgv.
+
+        use_sa: bool
+            True: used the station correction factors.
+            False: don't use the station correction factors.
+
+        max_dia: float 
+            The maximum marker diameter [mm].
         '''
         cmap = self.cmap
         norm = self.norm
@@ -589,6 +639,24 @@ class MapPlotter(object):
                        show_max_level = False,
                        add_annotation = True):
         ''' The the maximum pgv marker in the colorbar axes.
+
+        Parameters
+        ----------
+        df: :class:`geopandas.GeoDataFrame`
+            The dataframe used to compute the pgv level.
+
+        use_sa: bool
+            True: used the station correction factors.
+            False: don't use the station correction factors.
+
+        max_event_pgv: float 
+            The maximum PGV of the event.
+
+        show_max_level: bool
+            If True, the maximum level is shown.
+
+        add_annotation: bool
+            If True, the annotation is added.
         '''
         ax = self.cb.ax
         artists = []
@@ -669,6 +737,20 @@ class MapPlotter(object):
                                  add_annotation = True,
                                  data_col = 'pgv_min_log'):
         ''' The the maximum pgv markers in the colorbar axes.
+
+        Parameters
+        ----------
+        df: :class:`geopandas.GeoDataFrame`
+            The dataframe used to compute the detection pgv level.
+
+        max_event_pgv: float 
+            The maximum PGV of the event.
+
+        add_annotation: bool
+            If True, the annotation is added.
+
+        data_col: str 
+            The data column of the df used for the pgv data.
         '''
         ax = self.cb.ax
         artists = []
@@ -718,6 +800,14 @@ class MapPlotter(object):
     
     def draw_contours(self, df, draw_labels = False):
         ''' Draw the PGV contours.
+
+        Parameters
+        ----------
+        df: :class:`geopandas.GeoDataFrame`
+            The dataframe used to compute the contours.
+
+        draw_labels: bool
+            If True, the contour labels are plotted.
         '''
         cmap = self.cmap
         norm = self.norm
@@ -832,7 +922,7 @@ class MapPlotter(object):
 
     def draw_contours_working(self, df, draw_labels = False,
                       draw_fat_contours = False):
-        ''' Draw the PGV contours.
+        ''' Deprecated. Draw the PGV contours.
         '''
         cmap = self.cmap
         norm = self.norm
@@ -888,6 +978,14 @@ class MapPlotter(object):
 
     def draw_simplices(self, df, data_col = 'pgv_min_log'):
         ''' Draw the detection simplices. 
+
+        Parameters
+        ----------
+        df: :class:`geopandas.GeoDataFrame`
+            The dataframe used to compute the pgv level.
+
+        data_col: str 
+            The data columne in df used for the PGV data.
         '''
         cmap = self.cmap
         norm = self.norm
@@ -1053,6 +1151,24 @@ class MapPlotter(object):
     def create_movie(self, image_dir, output_dir,
                      img_name, video_name, file_ext = 'png'):
         ''' Create a movie using ffmpeg.
+
+        Parameters
+        ----------
+        image_dir: str 
+            The directory where the input images used to create the movie are saved.
+
+        output_dir: str 
+            The directory where to save the movie.
+
+        img_name: str 
+            The base name of the image files. The complete search string is built 
+            using '{public_id}_{name}_*.{ext}'.
+
+        video_name: str
+            The base name of the video output file.
+
+        file_ext: str 
+            The file extension of the input images.
         '''
         img_filepath = os.path.join(image_dir,
                                     '{public_id}_{name}_*.{ext}'.format(public_id = self.event_public_id,

@@ -182,6 +182,8 @@
 <span class="c1">#</span>
 <span class="c1"># Copyright 2021 Stefan Mertl</span>
 <span class="c1">##############################################################################</span>
+<span class="sd">&#39;&#39;&#39; Utilities to plot the seismograms.</span>
+<span class="sd">&#39;&#39;&#39;</span>
 
 <span class="kn">import</span> <span class="nn">dateutil</span>
 <span class="kn">import</span> <span class="nn">logging</span>
@@ -198,6 +200,14 @@
 
 <div class="viewcode-block" id="SeismogramPlotter"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.seismogram_plotter.SeismogramPlotter.html#mss_dataserver.postprocess.seismogram_plotter.SeismogramPlotter">[docs]</a><span class="k">class</span> <span class="nc">SeismogramPlotter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Create images of the seismograms.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    supplement_dir: str </span>
+<span class="sd">        The directory where to find the event supplement data.</span>
+
+<span class="sd">    output_dir: str </span>
+<span class="sd">        The directory where to save the seismogram images.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
 <div class="viewcode-block" id="SeismogramPlotter.__init__"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.seismogram_plotter.SeismogramPlotter.__init__.html#mss_dataserver.postprocess.seismogram_plotter.SeismogramPlotter.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">supplement_dir</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
@@ -231,6 +241,14 @@
 
 <div class="viewcode-block" id="SeismogramPlotter.set_event"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.seismogram_plotter.SeismogramPlotter.set_event.html#mss_dataserver.postprocess.seismogram_plotter.SeismogramPlotter.set_event">[docs]</a>    <span class="k">def</span> <span class="nf">set_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">public_id</span><span class="p">,</span> <span class="n">hypocenter</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Set the event to process.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        public_id: str </span>
+<span class="sd">            The public id of the event.</span>
+<span class="sd">        </span>
+<span class="sd">        hypocenter: :obj:`tuple`</span>
+<span class="sd">            The hypocenter of the event [m] (lon, lat, depth).</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">event_public_id</span> <span class="o">=</span> <span class="n">public_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">event_dir</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">event_dir_from_publicid</span><span class="p">(</span><span class="n">public_id</span><span class="p">)</span>
@@ -270,6 +288,14 @@
 
 <div class="viewcode-block" id="SeismogramPlotter.create_figure"><a class="viewcode-back" href="../../../sourcedoc/autogen/mss_dataserver.postprocess.seismogram_plotter.SeismogramPlotter.create_figure.html#mss_dataserver.postprocess.seismogram_plotter.SeismogramPlotter.create_figure">[docs]</a>    <span class="k">def</span> <span class="nf">create_figure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Create a matplotlib figure.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        width: float </span>
+<span class="sd">            The figure width [mm].</span>
+<span class="sd">        </span>
+<span class="sd">        height: float</span>
+<span class="sd">            The figure height [mm].</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">mm_per_inch</span> <span class="o">=</span> <span class="mf">25.4</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="n">mm_per_inch</span><span class="p">,</span>
@@ -284,6 +310,24 @@
                         <span class="n">start</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
                         <span class="n">length</span> <span class="o">=</span> <span class="mi">60</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Plot the seismogram data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        width: float </span>
+<span class="sd">            The figure width [mm].</span>
+
+<span class="sd">        trace_height: float</span>
+<span class="sd">            The height of a seismogram trace [mm].</span>
+
+<span class="sd">        stations_per_panel: int </span>
+<span class="sd">            The number of stations per image.</span>
+
+<span class="sd">        start: float</span>
+<span class="sd">            The time after the minimum available start time to start the plot [s].</span>
+
+<span class="sd">        length: float</span>
+<span class="sd">            The length of the seismogram measured from the minimum available start time [s].</span>
+<span class="sd">            </span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># Load the velocity seismogram data.</span>
         <span class="n">vel_st</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">get_supplement_data</span><span class="p">(</span><span class="n">public_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">event_public_id</span><span class="p">,</span>
@@ -440,7 +484,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

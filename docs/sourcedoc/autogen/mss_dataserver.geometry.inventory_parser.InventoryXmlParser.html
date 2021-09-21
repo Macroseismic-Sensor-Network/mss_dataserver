@@ -191,7 +191,7 @@
 <dt id="mss_dataserver.geometry.inventory_parser.InventoryXmlParser">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.geometry.inventory_parser.</span></code><code class="sig-name descname"><span class="pre">InventoryXmlParser</span></code><a class="reference internal" href="../../_modules/mss_dataserver/geometry/inventory_parser.html#InventoryXmlParser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.geometry.inventory_parser.InventoryXmlParser" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Parse a pSysmon inventory XML file.</p>
+<p>A parser for a geometry inventory XML file in psysmon format.</p>
 </dd></dl>
 
 <div class="section" id="methods">
@@ -206,7 +206,7 @@
 <td><p>Initialize self.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.check_completeness.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.check_completeness" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.check_completeness"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_completeness</span></code></a>(node, content, node_type)</p></td>
-<td><p></p></td>
+<td><p>Check the completeness of a XML node.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.clean_time_string.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.clean_time_string" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.clean_time_string"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clean_time_string</span></code></a>(value)</p></td>
 <td><p>Remove running and big bang string from time string.</p></td>
@@ -215,7 +215,7 @@
 <td><p>Export an inventory to xml file.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.get_node_text.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.get_node_text" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.get_node_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_node_text</span></code></a>(xml_element, tag)</p></td>
-<td><p></p></td>
+<td><p>Get the text of a XML node.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.handle_element_pz.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.handle_element_pz" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.handle_element_pz"><code class="xref py py-obj docutils literal notranslate"><span class="pre">handle_element_pz</span></code></a>(name, value, root)</p></td>
 <td><p>Convert a list of complex values to a list of xml tree elements.</p></td>
@@ -224,13 +224,13 @@
 <td><p>Translate an inventory object into a xml element.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.keys_complete.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.keys_complete" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.keys_complete"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keys_complete</span></code></a>(node_content, required_keys)</p></td>
-<td><p></p></td>
+<td><p>Check if a node contains all required keys.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.parse.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.parse" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.parse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse</span></code></a>(filename[, inventory_name])</p></td>
-<td><p></p></td>
+<td><p>Parse a XML inventory file.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.parse_node.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.parse_node" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.parse_node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_node</span></code></a>(xml_element)</p></td>
-<td><p></p></td>
+<td><p>Parse a XML node.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_arrays.html#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_arrays" title="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.process_arrays"><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_arrays</span></code></a>(inventory, arrays)</p></td>
 <td><p>Process the extracted array nodes.</p></td>
@@ -283,9 +283,9 @@
 <div class="section" id="inheritence-diagram">
 <h2>Inheritence diagram<a class="headerlink" href="#inheritence-diagram" title="Permalink to this headline">¶</a></h2>
 <blockquote>
-<div><div class="graphviz"><img src="../../_images/inheritance-33f1e47320378ec87a8a9cf373826e14da3adf2f.png" alt="Inheritance diagram of mss_dataserver.geometry.inventory_parser.InventoryXmlParser" usemap="#inheritance04ffe30902" class="inheritance graphviz" /></div>
+<div><div class="graphviz"><img src="../../_images/inheritance-f5d5559fbfd87b9d8ba9adf78c0246771f2a42b1.png" alt="Inheritance diagram of mss_dataserver.geometry.inventory_parser.InventoryXmlParser" usemap="#inheritance04ffe30902" class="inheritance graphviz" /></div>
 <map id="inheritance04ffe30902" name="inheritance04ffe30902">
-<area shape="rect" id="node1" href="#mss_dataserver.geometry.inventory_parser.InventoryXmlParser" target="_top" title="Parse a pSysmon inventory XML file." alt="" coords="5,5,440,31"/>
+<area shape="rect" id="node1" href="#mss_dataserver.geometry.inventory_parser.InventoryXmlParser" target="_top" title="A parser for a geometry inventory XML file in psysmon format." alt="" coords="5,5,440,31"/>
 </map></div></blockquote>
 </div>
 </div>
@@ -306,7 +306,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

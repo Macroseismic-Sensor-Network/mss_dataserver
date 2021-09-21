@@ -201,6 +201,15 @@
 <dt id="mss_dataserver.geometry.db_inventory.DbRecorder">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.geometry.db_inventory.</span></code><code class="sig-name descname"><span class="pre">DbRecorder</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/geometry/db_inventory.html#DbRecorder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.geometry.db_inventory.DbRecorder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="mss_dataserver.geometry.inventory.Recorder.html#mss_dataserver.geometry.inventory.Recorder" title="mss_dataserver.geometry.inventory.Recorder"><code class="xref py py-class docutils literal notranslate"><span class="pre">mss_dataserver.geometry.inventory.Recorder</span></code></a></p>
+<p>The database recorder.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>orm</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">mss_data_server.geometry.databaseFactory.GeomRecorder</span></code>) – The sqlalchemy table mapper class.</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>**kwargs</strong> – The keyword arguments passed to the __init__ method of the parent class <code class="xref py py-class docutils literal notranslate"><span class="pre">mss_dataserver.geoemetry.inventory.Recorder</span></code>.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <div class="section" id="properties">
@@ -213,7 +222,7 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">id</span></code></p></td>
-<td><p>The database id.</p></td>
+<td><p>int: The database id.</p></td>
 </tr>
 </tbody>
 </table>
@@ -234,10 +243,10 @@
 <td><p>Add a stream to the recorder.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.db_inventory.DbRecorder.from_inventory_instance.html#mss_dataserver.geometry.db_inventory.DbRecorder.from_inventory_instance" title="mss_dataserver.geometry.db_inventory.DbRecorder.from_inventory_instance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_inventory_instance</span></code></a>(parent_inventory, …)</p></td>
-<td><p></p></td>
+<td><p>Create a <a class="reference internal" href="#mss_dataserver.geometry.db_inventory.DbRecorder" title="mss_dataserver.geometry.db_inventory.DbRecorder"><code class="xref py py-class docutils literal notranslate"><span class="pre">DbRecorder</span></code></a> instance from a <code class="xref py py-class docutils literal notranslate"><span class="pre">mss_data_server.geometry.inventory.Recorder</span></code> instance.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.db_inventory.DbRecorder.from_sqlalchemy_orm.html#mss_dataserver.geometry.db_inventory.DbRecorder.from_sqlalchemy_orm" title="mss_dataserver.geometry.db_inventory.DbRecorder.from_sqlalchemy_orm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_sqlalchemy_orm</span></code></a>(parent_inventory, orm)</p></td>
-<td><p></p></td>
+<td><p>Create a <a class="reference internal" href="#mss_dataserver.geometry.db_inventory.DbRecorder" title="mss_dataserver.geometry.db_inventory.DbRecorder"><code class="xref py py-class docutils literal notranslate"><span class="pre">DbRecorder</span></code></a> instance from a <code class="xref py py-class docutils literal notranslate"><span class="pre">mss_data_server.geometry.databaseFactory.GeomRecorder</span></code> table mapper class.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.db_inventory.DbRecorder.get_stream.html#mss_dataserver.geometry.db_inventory.DbRecorder.get_stream" title="mss_dataserver.geometry.db_inventory.DbRecorder.get_stream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_stream</span></code></a>(**kwargs)</p></td>
 <td><p>Get a stream from the recorder.</p></td>
@@ -257,9 +266,9 @@
 <div class="section" id="inheritence-diagram">
 <h2>Inheritence diagram<a class="headerlink" href="#inheritence-diagram" title="Permalink to this headline">¶</a></h2>
 <blockquote>
-<div><div class="graphviz"><img src="../../_images/inheritance-65044ffa2d06c763d85645e3aba9a3901bfa22a9.png" alt="Inheritance diagram of mss_dataserver.geometry.db_inventory.DbRecorder" usemap="#inheritanceb4a9459004" class="inheritance graphviz" /></div>
+<div><div class="graphviz"><img src="../../_images/inheritance-8967562b64632db0c865292ecfa90a83928cbcdf.png" alt="Inheritance diagram of mss_dataserver.geometry.db_inventory.DbRecorder" usemap="#inheritanceb4a9459004" class="inheritance graphviz" /></div>
 <map id="inheritanceb4a9459004" name="inheritanceb4a9459004">
-<area shape="rect" id="node1" href="#mss_dataserver.geometry.db_inventory.DbRecorder" target="_top" title="mss_dataserver.geometry.db_inventory.DbRecorder" alt="" coords="5,79,361,104"/>
+<area shape="rect" id="node1" href="#mss_dataserver.geometry.db_inventory.DbRecorder" target="_top" title="The database recorder." alt="" coords="5,79,361,104"/>
 <area shape="rect" id="node2" href="mss_dataserver.geometry.inventory.Recorder.html#mss_dataserver.geometry.inventory.Recorder" target="_top" title="A seismic data recorder." alt="" coords="26,5,341,31"/>
 </map></div></blockquote>
 </div>
@@ -281,7 +290,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

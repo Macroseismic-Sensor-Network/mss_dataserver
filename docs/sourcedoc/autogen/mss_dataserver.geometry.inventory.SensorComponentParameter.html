@@ -202,6 +202,27 @@
 <dt id="mss_dataserver.geometry.inventory.SensorComponentParameter">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.geometry.inventory.</span></code><code class="sig-name descname"><span class="pre">SensorComponentParameter</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sensitivity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tf_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tf_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tf_normalization_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tf_normalization_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tf_poles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tf_zeros</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_component</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agency_uri</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">creation_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/geometry/inventory.html#SensorComponentParameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.geometry.inventory.SensorComponentParameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>The parameters of a sensor component.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sensitivity</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The sensor sensitivity.</p></li>
+<li><p><strong>start_time</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code>) – The start time from which the parameters where active.</p></li>
+<li><p><strong>end_time</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code>) – The end time to which the parameters where active.</p></li>
+<li><p><strong>tf_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – DEPRECATED. The type of the transfer function.</p></li>
+<li><p><strong>tf_units</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – DEPRECATED. The units of the transfer function.</p></li>
+<li><p><strong>tf_normalization_factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The normalization factor of the transfer function.</p></li>
+<li><p><strong>tf_normalization_frequency</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The frequency where the normalization factor was measured.</p></li>
+<li><p><strong>tf_poles</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">complex</span></code></a>) – The pole locations of the transfer function.</p></li>
+<li><p><strong>tf_zeros</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">complex</span></code></a>) – The zero locations of the transfer function.</p></li>
+<li><p><strong>parent_component</strong> (<a class="reference internal" href="mss_dataserver.geometry.inventory.SensorComponent.html#mss_dataserver.geometry.inventory.SensorComponent" title="mss_dataserver.geometry.inventory.SensorComponent"><code class="xref py py-class docutils literal notranslate"><span class="pre">SensorComponent</span></code></a>) – The sensor component to which the parameters are related to.</p></li>
+<li><p><strong>author_uri</strong> (<em>string</em>) – The author_uri of the instance.</p></li>
+<li><p><strong>agency_uri</strong> (<em>String</em>) – The agency_uri of the instance.</p></li>
+<li><p><strong>creation_time</strong> (str or <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code>) – The creation time of the instance. A string that can be parsed
+by <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> or a <code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.UTCDateTime</span></code> instance</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <div class="section" id="properties">
@@ -214,19 +235,19 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">end_time_string</span></code></p></td>
-<td><p></p></td>
+<td><p>str: The end time of the active parameter period.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">parent_inventory</span></code></p></td>
-<td><p></p></td>
+<td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.Inventory.html#mss_dataserver.geometry.inventory.Inventory" title="mss_dataserver.geometry.inventory.Inventory"><code class="xref py py-class docutils literal notranslate"><span class="pre">Inventory</span></code></a>: The inventory containing the parameter.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">poles_string</span></code></p></td>
-<td><p></p></td>
+<td><p>str: A string representation of the transfer function poles.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">start_time_string</span></code></p></td>
-<td><p></p></td>
+<td><p>str: The start time of the active parameter period.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">zeros_string</span></code></p></td>
-<td><p></p></td>
+<td><p>str: A string representation of the transfer functin zeros.</p></td>
 </tr>
 </tbody>
 </table>
@@ -247,10 +268,10 @@
 <td><p>Set the transfer function parameters.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.SensorComponentParameter.tf_add_complex_pole.html#mss_dataserver.geometry.inventory.SensorComponentParameter.tf_add_complex_pole" title="mss_dataserver.geometry.inventory.SensorComponentParameter.tf_add_complex_pole"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tf_add_complex_pole</span></code></a>(pole)</p></td>
-<td><p>Add a complec pole to the transfer function PAZ.</p></td>
+<td><p>Add a complex pole to the transfer function.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.inventory.SensorComponentParameter.tf_add_complex_zero.html#mss_dataserver.geometry.inventory.SensorComponentParameter.tf_add_complex_zero" title="mss_dataserver.geometry.inventory.SensorComponentParameter.tf_add_complex_zero"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tf_add_complex_zero</span></code></a>(zero)</p></td>
-<td><p>Add a complex zero to the transfer function PAZ.</p></td>
+<td><p>Add a complex zero to the transfer function.</p></td>
 </tr>
 </tbody>
 </table>
@@ -258,9 +279,9 @@
 <div class="section" id="inheritence-diagram">
 <h2>Inheritence diagram<a class="headerlink" href="#inheritence-diagram" title="Permalink to this headline">¶</a></h2>
 <blockquote>
-<div><div class="graphviz"><img src="../../_images/inheritance-f5e116ff62e59b2e19df239870f4d864903d6fbc.png" alt="Inheritance diagram of mss_dataserver.geometry.inventory.SensorComponentParameter" usemap="#inheritance227e4c538d" class="inheritance graphviz" /></div>
+<div><div class="graphviz"><img src="../../_images/inheritance-5aeef51811b6972fa1fe2ca6c370910d160924d9.png" alt="Inheritance diagram of mss_dataserver.geometry.inventory.SensorComponentParameter" usemap="#inheritance227e4c538d" class="inheritance graphviz" /></div>
 <map id="inheritance227e4c538d" name="inheritance227e4c538d">
-<area shape="rect" id="node1" href="#mss_dataserver.geometry.inventory.SensorComponentParameter" target="_top" title="mss_dataserver.geometry.inventory.SensorComponentParameter" alt="" coords="5,5,449,31"/>
+<area shape="rect" id="node1" href="#mss_dataserver.geometry.inventory.SensorComponentParameter" target="_top" title="The parameters of a sensor component." alt="" coords="5,5,449,31"/>
 </map></div></blockquote>
 </div>
 </div>
@@ -281,7 +302,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

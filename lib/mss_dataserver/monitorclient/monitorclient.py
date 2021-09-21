@@ -62,8 +62,71 @@ class EasySeedLinkClientException(Exception):
 
 
 class MonitorClient(easyseedlink.EasySeedLinkClient):
-    """
-    A custom SeedLink client
+    """ A custom SeedLink client
+
+    Parameters
+    ----------
+    project: :class:`mss_dataserver.core.project.Project`
+        The mss_dataserver project.
+
+    server_url: str 
+        The URL of the server.
+
+    stations: :obj:`list` of :obj:`str`
+        The stations to request from the seedlink server.
+
+    monitor_stream: :class:`obspy.Stream`
+        The stream instance used to save the incoming data.
+
+    stream_lock: :class:`threading.Lock`
+        The lock object used to for thread-save access of the stream data.
+
+    data_dir: str 
+        The data directory.
+
+    event_dir: str 
+        The event directory.
+
+    process_interval: float 
+        The time interval [s] used to process the received data.
+
+    stop_event: :class:`threading.Event`
+        The event used to signal the stopping of the program execution.
+
+    asyncio_loop: :class:`asyncio.EventLoop`
+        The asyncio event loop. Used to stop the loop if an error occurs.
+
+    pgv_sps: float 
+        The samples per second of the PGV data stream.
+
+    autoconnect: boolean
+        The :class:`obspy.easyseedlink.EasySeedLinkClient` autoconnect parameter.
+
+    pgv_archive_time: float
+        The length of the archive stream to keep [s].
+
+    trigger_thr: float 
+        The event trigger threshold [m/s].
+
+    warn_thr: float 
+        The event warning threshold [m/s].
+
+    valid_event_thr: float
+        The threshold to declare an event as a valid event [m/s].
+    
+    felt_thr: float 
+        The threshold above which an event is considered as a felt event [m/s].
+
+    event_archive_timespan: float 
+        The timespan used to load archived events [h].
+
+    min_event_length: float 
+        The minimum length of an event [s]. Events smaller than this value are 
+        ignored.
+
+    min_event_detections: int 
+        The minimum number of detections for an event to be saved in the archive.
+
     """
     def __init__(self, project, server_url, stations,
                  monitor_stream, stream_lock, data_dir, event_dir,
@@ -238,6 +301,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def load_archive_catalogs(self, hours = 48):
         ''' Load the event catalogs of the specified last days.
+
+        Parameters
+        ----------
+        hours: float 
+            The timespan before now to load [h].
         '''
         self.logger.info("Loading archive catalogs for the last %d hours.", hours)
         now = utcdatetime.UTCDateTime()
@@ -262,6 +330,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def trim_archive_catalogs(self, hours = 48):
         ''' Trim the catalogs in the library to the given timespan.
+
+        Parameters
+        ----------
+        hours: float 
+            The timespan before now used to trim the catalogs [h].
         '''
         self.logger.info('Trimming the event catalogs to %d hours from now.',
                          hours)
@@ -330,6 +403,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def save_to_archive(self, key):
         ''' Save data to the JSON archive.
+
+        Parameters
+        ----------
+        key: str 
+            The data key ('current_event', 'event_archive')
         '''
         archive_filename = os.path.join(self.data_dir,
                                         'mss_dataserver_archive.json')
@@ -357,8 +435,17 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     def get_recorder_mappings(self, station_nsl = None):
         ''' Get the mappings of the requested NSLC.
 
-        Return the matching NSLC codes of the MSS units relating their
-        serial numbers to the actual station locations.
+        Parameters
+        ----------
+        station_nsl: :obj:`list` of :obj:`str`
+            The station NSL codes to process. If None, all available stations
+            in the inventory are processed.
+
+        Returns
+        -------
+        :obj:`dict`
+            The matching NSLC codes of the MSS units relating their
+            serial numbers to the actual station locations.
         '''
         recorder_map = {}
         if station_nsl is None:
@@ -401,8 +488,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.select_stream(cur_station[0], cur_station[1], cur_station[2])
 
     def on_data(self, trace):
-        """
-        Override the on_data callback
+        """ Override the on_data callback function.
         """
         #self.logger.debug('Received trace:')
         #self.logger.debug(str(trace))
@@ -420,8 +506,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         #self.logger.debug('Leaving on_data.')
 
     def run(self):
-        """
-        Start streaming data from the SeedLink server.
+        """ Start streaming data from the SeedLink server.
 
         Streams need to be selected using
         :meth:`~.EasySeedLinkClient.select_stream` before this is called.
@@ -513,6 +598,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     async def task_timer(self, callback):
         ''' A timer executing a task at regular intervals.
+
+        Parameters
+        ----------
+        callback: function
+            The function to be called after the given process_interval.
         '''
         self.logger.info('Starting the timer.')
         interval = int(self.process_interval)
@@ -861,6 +951,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     async def compute_pgv(self, stream):
         ''' Compute the PGV values of the stream.
+
+        Parameters
+        ----------
+        stream: :class:`obspy.Stream`
+            The stream used to compute the PGV data.
         '''
         self.logger.info('Computing the PGV.')
         unique_stations = [(x.stats.network, x.stats.station, x.stats.location) for x in stream]
@@ -963,6 +1058,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def convert_to_physical_units(self, stream):
         ''' Convert the counts to physical units.
+
+        Parameters
+        ----------
+        stream: :class:`obspy.Stream`
+            The stream to convert.
         '''
         for tr in stream.traces:
             station = self.inventory.get_station(network = tr.stats.network,
@@ -1106,6 +1206,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def export_event(self, export_event):
         ''' Save the event.
+
+        Parameters
+        ----------
+        export_event: :class:`mss_dataserver.event.core.Event`
+            The event to export.
         '''
         # Get or create the event catalog and add the event to it.
         cat_name = "{0:04d}-{1:02d}-{2:02d}".format(export_event.start_time.year,
@@ -1164,6 +1269,19 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def get_event_supplement_dir(self, public_id, category = None):
         ''' Get the supplement directory of an event.
+
+        Parameters
+        ----------
+        public_id: str 
+            The public ID of the event.
+
+        category: str 
+            The supplement data category.
+
+        Returns
+        -------
+        str 
+            The path to the event supplement data.
         '''
         event_dir = pp_util.event_dir_from_publicid(public_id)
         output_dir = os.path.join(self.supplement_dir,
@@ -1182,6 +1300,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def save_event_supplement(self, export_event):
         ''' Save the supplement data of the event.
+
+        Parameters
+        ----------
+        export_event: :class:`mss_dataserver.event.core.Event`
+            The event for which to export the supplement data.
         '''
         # Build the output directory.
         output_dir = self.get_event_supplement_dir(public_id = export_event.public_id,
@@ -1220,6 +1343,25 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def save_supplement_pgv(self, event, pre_win, post_win, output_dir):
         ''' Save the PGV data supplement.
+
+        Parameters
+        ----------
+        event: :class:`mss_dataserver.event.core.Event`
+            The event for which to export the PGV data.
+
+        pre_win: float
+            The window to add before the start time of the event [s].
+
+        post_win: float
+            The window to add after the end time of the event [s].
+
+        output_dir: str 
+            The path where to save the data.
+
+        Returns
+        -------
+        :class:`obspy.Stream`
+            The exported PGV data stream.
         '''
         start_time = event.start_time - pre_win
         end_time = event.end_time + post_win
@@ -1257,6 +1399,20 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def save_supplement_vel(self, event, pre_win, post_win, output_dir):
         ''' Save the velocity data supplement.
+        
+        Parameters
+        ----------
+        event: :class:`mss_dataserver.event.core.Event`
+            The event for which to export the velocity data.
+
+        pre_win: float
+            The window to add before the start time of the event [s].
+
+        post_win: float
+            The window to add after the end time of the event [s].
+
+        output_dir: str 
+            The path where to save the data.
         '''
         start_time = event.start_time - pre_win
         end_time = event.end_time + post_win
@@ -1291,6 +1447,14 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def save_supplement_inventory(self, event, output_dir):
         ''' Save the supplement inventory data to a json file.
+
+        Parameters
+        ----------
+        event: :class:`mss_dataserver.event.core.Event`
+            The event for which to export the velocity data.
+
+        output_dir: str 
+            The path where to save the data.
         '''
         # Write the inventory to a json file.
         try:
@@ -1323,6 +1487,17 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def save_supplement_metadata(self, event, pgv_stream, output_dir):
         ''' Save the supplement metadata to a json file.
+
+        Parameters
+        ----------
+        event: :class:`mss_dataserver.event.core.Event`
+            The event for which to export the velocity data.
+
+        pgv_stream: :class:`obspy.Stream`
+            The PGV data stream of the event.
+
+        output_dir: str 
+            The path where to save the data.
         '''
         pgv_stream = pgv_stream.slice(starttime = event.start_time,
                                       endtime = event.end_time)
@@ -1386,6 +1561,14 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def save_supplement_detection_data(self, event, output_dir):
         ''' Save the detection data of the event.
+
+        Parameters
+        ----------
+        event: :class:`mss_dataserver.event.core.Event`
+            The event for which to export the velocity data.
+
+        output_dir: str 
+            The path where to save the data.
         '''
         # Convert the time array UTCDateTime instances to timestamps to reduce
         # the size of the json file.
@@ -1424,6 +1607,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def get_current_pgv(self):
         ''' Get the current PGV data.
+
+        Returns
+        -------
+        :obj:`dict`
+            The PGV data as a dictionary.
         '''
         data_dict = {}
         pgv_data = {}
@@ -1476,6 +1664,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def get_pgv_timeseries(self):
         ''' Get the latest PGV timeseries data.
+
+        Returns
+        -------
+        :obj:`dict`
+            The PGV timeseries as a dictonary.
         '''
         pgv_data = {}
         for cur_trace in self.pgv_stream:
@@ -1502,6 +1695,16 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def get_pgv_timeseries_archive(self, nsl_code = None):
         ''' Get the archived PGV timeseries data.
+
+        Parameters
+        ----------
+        nsl_code: :obj:`list` of :obj:`str`
+            A list of NSL codes to process.
+
+        Returns
+        -------
+        :obj:`dict`
+            The PGV data as a dictionary.
         '''
         pgv_data = {}
         with self.archive_lock:
@@ -1545,6 +1748,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def get_current_event(self):
         ''' Return the current event in serializable form.
+
+        Returns
+        -------
+        :obj:`dict`
+            The current event as a dictionary.
         '''
         cur_event = {}
         if self.current_event:
@@ -1570,6 +1778,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def get_event_warning(self):
         ''' Return the current event warning in serializable form.
+
+        Returns
+        -------
+        :obj:`dict`
+            The current event warning as a dictionary.
         '''
         cur_warning = {}
         if self.event_warning:
@@ -1581,6 +1794,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def get_recent_events(self):
         ''' Return the recent events in serializable form.
+
+        Returns
+        -------
+        :obj:`dict`
+            The recent events as a dictionary.
         '''
         recent_event_timespan = self.event_archive_timespan
         now = utcdatetime.UTCDateTime()
@@ -1612,6 +1830,19 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def get_event_by_id(self, ev_id = None, public_id = None):
         ''' Get an event by event id or public id.
+
+        Parameters
+        ----------
+        ev_id: int 
+            The event database id.
+
+        public_id: str 
+            The event public id.
+
+        Returns
+        -------
+        :class:`mss_dataserver.event.core.Event`
+            The event matching the passed id.
         '''
         if ev_id is None and public_id is None:
             self.logger.error("Either the id or the public_id of the event have to be specified.")
@@ -1625,6 +1856,20 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def get_event_supplement(self, public_id, selection):
         ''' Get the detailed data of an event.
+
+        Parameters
+        ----------
+        public_id: str 
+            The public id of the event.
+
+        selection: :obj:`list` of :obj:`dict`
+            The supplement data selection (keys: category, name).
+
+        Returns
+        -------
+        :obj:`dict`
+            A dictionary containing the requested event supplement data.
+            
         '''
         event_supplement = {}
         event_supplement['public_id'] = public_id
@@ -1670,6 +1915,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def get_keydata(self):
         ''' Return the keydata.
+
+        Used for the LWZ display.
+
+        Returns
+        -------
+        :obj:`dict`
+            The keydata as a dictionary.
         '''
         all_stations, triggered_stations = self.get_triggered_stations()
         keydata = {}
@@ -1683,6 +1935,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
     def get_station_metadata(self):
         ''' Get the metadata of the available stations.
+
+        Returns
+        -------
+        :obj:`dict`
+            The station metadata as a dictionary.
         '''
         stations = {}
         for cur_station in self.inventory.get_station():

@@ -203,15 +203,21 @@
 <dl class="py method">
 <dt id="mss_dataserver.geometry.inventory.RecorderStream.get_component">
 <code class="sig-prename descclassname"><span class="pre">RecorderStream.</span></code><code class="sig-name descname"><span class="pre">get_component</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/geometry/inventory.html#RecorderStream.get_component"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.geometry.inventory.RecorderStream.get_component" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get a sensor from the stream.</p>
+<dd><p>Get a component from the stream.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>String</em>) – The name of the component.</p></li>
-<li><p><strong>serial</strong> (<em>String</em>) – The serial of the sensor containing the component.</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name of the component.</p></li>
+<li><p><strong>serial</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The serial of the sensor containing the component.</p></li>
 <li><p><strong>start_time</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">UTCDateTime</span></code>) – The start time of the timespan to return.</p></li>
 <li><p><strong>end_time</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">UTCDateTime</span></code>) – The end time of the timespan to return.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>:class:`SensorComponent`</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>The sensor component matching the search criteria.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -234,7 +240,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

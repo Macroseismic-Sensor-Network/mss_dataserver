@@ -201,6 +201,15 @@
 <dt id="mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">mss_dataserver.geometry.db_inventory.</span></code><code class="sig-name descname"><span class="pre">DbRecorderStreamParameter</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/geometry/db_inventory.html#DbRecorderStreamParameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="mss_dataserver.geometry.inventory.RecorderStreamParameter.html#mss_dataserver.geometry.inventory.RecorderStreamParameter" title="mss_dataserver.geometry.inventory.RecorderStreamParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">mss_dataserver.geometry.inventory.RecorderStreamParameter</span></code></a></p>
+<p>The database recorder stream parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>orm</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">mss_data_server.geometry.databaseFactory.GeomRecorderStreamParameter</span></code>) – The sqlalchemy table mapper class.</p>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><p><strong>**kwargs</strong> – The keyword arguments passed to the __init__ method of the parent class <code class="xref py py-class docutils literal notranslate"><span class="pre">mss_dataserver.geoemetry.inventory.RecorderStreamParameter</span></code>.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <div class="section" id="properties">
@@ -213,19 +222,19 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">end_time_string</span></code></p></td>
-<td><p></p></td>
+<td><p>str: The end time of the parameter.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">id</span></code></p></td>
-<td><p>The database id.</p></td>
+<td><p>int: The database id.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">parent_inventory</span></code></p></td>
-<td><p></p></td>
+<td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Inventory</span></code>: The inventory containing the parameter.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rec_stream_id</span></code></p></td>
-<td><p></p></td>
+<td><p>int: The databases id of the parent recorder stream.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">start_time_string</span></code></p></td>
-<td><p></p></td>
+<td><p>str: The start time of the parameter.</p></td>
 </tr>
 </tbody>
 </table>
@@ -243,10 +252,10 @@
 <td><p>Initialize the instance.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter.from_inventory_instance.html#mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter.from_inventory_instance" title="mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter.from_inventory_instance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_inventory_instance</span></code></a>(…)</p></td>
-<td><p></p></td>
+<td><p>Create a <a class="reference internal" href="#mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter" title="mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">DbRecorderStreamParameter</span></code></a> instance from a <code class="xref py py-class docutils literal notranslate"><span class="pre">mss_data_server.geometry.inventory.RecorderStreamParameter</span></code> instance.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter.from_sqlalchemy_orm.html#mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter.from_sqlalchemy_orm" title="mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter.from_sqlalchemy_orm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_sqlalchemy_orm</span></code></a>(parent_recorder_stream, orm)</p></td>
-<td><p></p></td>
+<td><p>Create a <a class="reference internal" href="#mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter" title="mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">DbRecorderStreamParameter</span></code></a> instance from a <code class="xref py py-class docutils literal notranslate"><span class="pre">mss_data_server.geometry.databaseFactory.GeomRecorderStreamParameter</span></code> table mapper class.</p></td>
 </tr>
 </tbody>
 </table>
@@ -254,9 +263,9 @@
 <div class="section" id="inheritence-diagram">
 <h2>Inheritence diagram<a class="headerlink" href="#inheritence-diagram" title="Permalink to this headline">¶</a></h2>
 <blockquote>
-<div><div class="graphviz"><img src="../../_images/inheritance-3ff33dda37c29185b75fb6089a6dde48fdad2b0f.png" alt="Inheritance diagram of mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter" usemap="#inheritanceda402854c5" class="inheritance graphviz" /></div>
+<div><div class="graphviz"><img src="../../_images/inheritance-d9d919edfa18fddf9ae9bc03a36b055ea26f3a88.png" alt="Inheritance diagram of mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter" usemap="#inheritanceda402854c5" class="inheritance graphviz" /></div>
 <map id="inheritanceda402854c5" name="inheritanceda402854c5">
-<area shape="rect" id="node1" href="#mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter" target="_top" title="mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter" alt="" coords="5,79,476,104"/>
+<area shape="rect" id="node1" href="#mss_dataserver.geometry.db_inventory.DbRecorderStreamParameter" target="_top" title="The database recorder stream parameter." alt="" coords="5,79,476,104"/>
 <area shape="rect" id="node2" href="mss_dataserver.geometry.inventory.RecorderStreamParameter.html#mss_dataserver.geometry.inventory.RecorderStreamParameter" target="_top" title="Parameters of a recorder stream." alt="" coords="26,5,455,31"/>
 </map></div></blockquote>
 </div>
@@ -278,7 +287,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

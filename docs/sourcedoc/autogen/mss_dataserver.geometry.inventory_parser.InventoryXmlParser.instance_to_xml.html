@@ -193,6 +193,29 @@
 <dt id="mss_dataserver.geometry.inventory_parser.InventoryXmlParser.instance_to_xml">
 <code class="sig-prename descclassname"><span class="pre">InventoryXmlParser.</span></code><code class="sig-name descname"><span class="pre">instance_to_xml</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attr_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">converter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_handler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/mss_dataserver/geometry/inventory_parser.html#InventoryXmlParser.instance_to_xml"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mss_dataserver.geometry.inventory_parser.InventoryXmlParser.instance_to_xml" title="Permalink to this definition">¶</a></dt>
 <dd><p>Translate an inventory object into a xml element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>instance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><em>object</em></a>) – An instance of a <a class="reference internal" href="mss_dataserver.geometry.inventory.html#module-mss_dataserver.geometry.inventory" title="mss_dataserver.geometry.inventory"><code class="xref py py-class docutils literal notranslate"><span class="pre">mss_dataserver.geometry.inventory</span></code></a> class.</p></li>
+<li><p><strong>root</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">etree.Element</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">etree.Subelement</span></code>) – The XML root.</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The name of the XML element.</p></li>
+<li><p><strong>attributes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of str) – The attributes of the XML element.</p></li>
+<li><p><strong>tags</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of str) – The tags of the XML element.</p></li>
+<li><p><strong>attr_map</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a>) – The mapping of the XML attributes to instance attributes.</p></li>
+<li><p><strong>converter</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a>) – A dictionary with functions used to convert attributes before adding them
+to the XML element.</p></li>
+<li><p><strong>element_handler</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a>) – A dictionary with functions used to handle attributes before adding them
+to the XML element. A handler can be used if a simple conversion using the
+converter is not sufficient.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The created XML element.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">etree.SubElement</span></code></p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -213,7 +236,7 @@
     <p>
         &#169; Copyright 2021, Stefan Mertl.
       <span class="lastupdated">
-        Last updated on 2021-04-30 14:28.
+        Last updated on 2021-06-01 20:17.
       </span>
 
     </p>

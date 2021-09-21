@@ -22,6 +22,8 @@
 #
 # Copyright 2021 Stefan Mertl
 ##############################################################################
+''' Utilities to plot the seismograms.
+'''
 
 import dateutil
 import logging
@@ -38,6 +40,14 @@ import mss_dataserver.postprocess.util as util
 
 class SeismogramPlotter(object):
     ''' Create images of the seismograms.
+
+    Parameters
+    ----------
+    supplement_dir: str 
+        The directory where to find the event supplement data.
+
+    output_dir: str 
+        The directory where to save the seismogram images.
     '''
 
     def __init__(self, supplement_dir, output_dir):
@@ -71,6 +81,14 @@ class SeismogramPlotter(object):
 
     def set_event(self, public_id, hypocenter = None):
         ''' Set the event to process.
+
+        Parameters
+        ----------
+        public_id: str 
+            The public id of the event.
+        
+        hypocenter: :obj:`tuple`
+            The hypocenter of the event [m] (lon, lat, depth).
         '''
         self.event_public_id = public_id
         self.event_dir = util.event_dir_from_publicid(public_id)
@@ -110,6 +128,14 @@ class SeismogramPlotter(object):
 
     def create_figure(self, width, height):
         ''' Create a matplotlib figure.
+
+        Parameters
+        ----------
+        width: float 
+            The figure width [mm].
+        
+        height: float
+            The figure height [mm].
         '''
         mm_per_inch = 25.4
         fig = plt.figure(figsize = (width / mm_per_inch,
@@ -124,6 +150,24 @@ class SeismogramPlotter(object):
                         start = 10,
                         length = 60):
         ''' Plot the seismogram data.
+
+        Parameters
+        ----------
+        width: float 
+            The figure width [mm].
+
+        trace_height: float
+            The height of a seismogram trace [mm].
+
+        stations_per_panel: int 
+            The number of stations per image.
+
+        start: float
+            The time after the minimum available start time to start the plot [s].
+
+        length: float
+            The length of the seismogram measured from the minimum available start time [s].
+            
         '''
         # Load the velocity seismogram data.
         vel_st = util.get_supplement_data(public_id = self.event_public_id,
