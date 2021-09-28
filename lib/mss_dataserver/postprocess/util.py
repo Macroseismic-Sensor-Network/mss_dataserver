@@ -436,7 +436,7 @@ def reproject_polygons(df, src_proj, dst_proj):
     return df
 
 
-def intensity_to_pgv(intensity = None):
+def intensity_to_pgv(intensity = None, relation = 'version_2'):
     ''' Compute the pgv and intensity values based on the MSS relationship.
 
     Parameters
@@ -452,32 +452,42 @@ def intensity_to_pgv(intensity = None):
     if intensity is None:
         return
 
-    k_low = 0.5
-    d_low = -5      # np.log10(0.00001)
-    k_high = 1
-    d_high = -7
-    kink = 4
+    intensity = np.array(intensity)
 
-    low_ind = np.argwhere(intensity <= kink)
-    intensity_low = intensity[low_ind]
-    pgv_low = d_low + k_low * intensity_low
+    if relation == 'version_1':
+        k_low = 0.5
+        d_low = -5      # np.log10(0.00001)
+        k_high = 1
+        d_high = -7
+        kink = 4
 
-    high_ind = np.argwhere(intensity > kink)
-    intensity_high = intensity[high_ind]
-    pgv_high = d_high + k_high * intensity_high
+        low_ind = np.argwhere(intensity <= kink)
+        intensity_low = intensity[low_ind]
+        pgv_low = d_low + k_low * intensity_low
 
-    #intensity = np.hstack([intensity_low, intensity_high])
-    #intensity_pgv = np.hstack([pgv_low, pgv_high])
-    intensity_pgv = np.zeros(intensity.size)
-    intensity_pgv[low_ind] = pgv_low
-    intensity_pgv[high_ind] = pgv_high
-    intensity_pgv = 10**intensity_pgv
+        high_ind = np.argwhere(intensity > kink)
+        intensity_high = intensity[high_ind]
+        pgv_high = d_high + k_high * intensity_high
 
-    return np.hstack([intensity[:, np.newaxis],
-                      intensity_pgv[:, np.newaxis]])
+        #intensity = np.hstack([intensity_low, intensity_high])
+        #intensity_pgv = np.hstack([pgv_low, pgv_high])
+        intensity_pgv = np.zeros(intensity.size)
+        intensity_pgv[low_ind] = pgv_low
+        intensity_pgv[high_ind] = pgv_high
+        intensity_pgv = 10**intensity_pgv
+
+        int_pgv = np.hstack([intensity[:, np.newaxis],
+                             intensity_pgv[:, np.newaxis]])
+    else:
+        pgv_mm = np.exp((intensity - 3.9) / 0.81)
+        pgv = pgv_mm / 1000
+        int_pgv = np.hstack([intensity[:, np.newaxis],
+                             pgv[:, np.newaxis]])
+
+    return int_pgv
 
 
-def pgv_to_intensity(pgv = None):
+def pgv_to_intensity(pgv = None, relation = 'version_2'):
     ''' Compute the pgv and intensity values based on the MSS relationship.
 
     Parameters
@@ -493,31 +503,41 @@ def pgv_to_intensity(pgv = None):
     if pgv is None:
         return
 
-    pgv = np.log10(pgv)
+    pgv = np.array(pgv)
 
-    k_low = 2
-    d_low = 10
-    k_high = 1
-    d_high = 7
-    kink = np.log10(1e-3)
+    if relation == 'version_1':
+        pgv = np.log10(pgv)
 
-    low_ind = np.argwhere(pgv <= kink)
-    pgv_low = pgv[low_ind]
-    intensity_low = d_low + k_low * pgv_low
+        k_low = 2
+        d_low = 10
+        k_high = 1
+        d_high = 7
+        kink = np.log10(1e-3)
 
-    high_ind = np.argwhere(pgv > kink)
-    pgv_high = pgv[high_ind]
-    intensity_high = d_high + k_high * pgv_high
+        low_ind = np.argwhere(pgv <= kink)
+        pgv_low = pgv[low_ind]
+        intensity_low = d_low + k_low * pgv_low
 
-    #pgv = np.hstack([pgv_low, pgv_high])
-    #intensity = np.hstack([intensity_low, intensity_high])
+        high_ind = np.argwhere(pgv > kink)
+        pgv_high = pgv[high_ind]
+        intensity_high = d_high + k_high * pgv_high
 
-    intensity = np.zeros(pgv.size)
-    intensity[low_ind] = intensity_low
-    intensity[high_ind] = intensity_high
+        #pgv = np.hstack([pgv_low, pgv_high])
+        #intensity = np.hstack([intensity_low, intensity_high])
 
-    return np.hstack([10**pgv[:, np.newaxis],
-                      intensity[:, np.newaxis]])
+        intensity = np.zeros(pgv.size)
+        intensity[low_ind] = intensity_low
+        intensity[high_ind] = intensity_high
+
+        pgv_int = np.hstack([10**pgv[:, np.newaxis],
+                             intensity[:, np.newaxis]])
+    else:
+        pgv_mm = pgv * 1000
+        intensity = 0.81 * np.log(pgv_mm) + 3.9
+        pgv_int = np.hstack([pgv[:, np.newaxis],
+                             intensity[:, np.newaxis]])
+
+    return pgv_int
 
 
 def compute_pgv_krigging(x, y, z,
