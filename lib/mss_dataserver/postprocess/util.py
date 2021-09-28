@@ -96,7 +96,8 @@ def get_supplement_map():
                    'subdir': 'detectiondata'},
            'velocity': {'name': 'velocity',
                         'format': 'miniseed',
-                        'subdir': 'detectiondata'}}
+                        'subdir': 'detectiondata'},
+           }
     supplement_map['detectiondata'] = tmp
 
     # Category detectionsequence.
@@ -129,6 +130,14 @@ def get_supplement_map():
                           'format': 'geojson',
                           'subdir': 'pgvsequence'}}
     supplement_map['pgvsequence'] = tmp
+
+
+    # Category intensity.
+    tmp = {'zamgintensity': {'name': 'zamgintensity',
+                             'format': 'geojson',
+                             'subdir': 'zamgintensity'}
+           }
+    supplement_map['intensity'] = tmp
 
     return supplement_map
 
