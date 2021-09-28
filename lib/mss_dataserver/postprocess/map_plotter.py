@@ -140,7 +140,9 @@ class MapPlotter(object):
                                              directory = self.supplement_dir)
 
         
-    def init_map(self, utm_zone=33, mode = 'pgv', colorbar_pgv_labels = False):
+    def init_map(self, utm_zone=33, mode = 'pgv', colorbar_pgv_labels = False,
+                 draw_basemap = True, draw_colorbar = True, draw_logo = True,
+                 draw_attribution_note = True):
         ''' Initialize the map plot.
 
         Parameters
@@ -196,31 +198,42 @@ class MapPlotter(object):
         self.ax.set_position([0, 0, 1, 1])
 
         # Plot the background map.
-        rasterio.plot.show(basemap,
-                           origin = 'upper',
-                           interpolation = None,
-                           ax = self.ax,
-                           zorder = 1)
+        if draw_basemap:
+            rasterio.plot.show(basemap,
+                               origin = 'upper',
+                               interpolation = None,
+                               ax = self.ax,
+                               zorder = 1)
+        else:
+            rasterio.plot.show(basemap,
+                               origin = 'upper',
+                               interpolation = None,
+                               ax = self.ax,
+                               alpha = 0,
+                               zorder = 1)
 
         # Add the colorbar.
-        if self.mode == 'pgv':
-            self.draw_pgv_colorbar()
-        elif self.mode == 'pgv_categorized':
-            self.draw_pgv_colorbar_categorized(pgv_labels = colorbar_pgv_labels)
-        elif self.mode == 'intensity':
-            self.draw_intensity_colorbar(pgv_labels = colorbar_pgv_labels)
+        if draw_colorbar:
+            if self.mode == 'pgv':
+                self.draw_pgv_colorbar()
+            elif self.mode == 'pgv_categorized':
+                self.draw_pgv_colorbar_categorized(pgv_labels = colorbar_pgv_labels)
+            elif self.mode == 'intensity':
+                self.draw_intensity_colorbar(pgv_labels = colorbar_pgv_labels)
             
 
         # Add the MSS logo.
-        logo_filepath = os.path.join(self.map_dir, 'mss_logo.png')
-        logo = plt.imread(logo_filepath)
-        self.fig.figimage(logo,
-                          origin = 'upper',
-                          yo = 1100,
-                          xo = 15)
+        if draw_logo:
+            logo_filepath = os.path.join(self.map_dir, 'mss_logo.png')
+            logo = plt.imread(logo_filepath)
+            self.fig.figimage(logo,
+                              origin = 'upper',
+                              yo = 1100,
+                              xo = 15)
 
         # Add the attribution.
-        self.draw_attribution_note()
+        if draw_attribution_note:
+            self.draw_attribution_note()
 
         self.ax.set_axis_off()
 
@@ -343,7 +356,8 @@ class MapPlotter(object):
                                               norm = self.norm_qualitative_intensity,
                                               ticks = ticks_log,
                                               orientation = 'horizontal',
-                                              extend = 'both')
+                                              extend = 'both',
+                                              spacing = 'proportional')
 
         for cur_x in ticks_log[1:]:
             cb.ax.axvline(x = cur_x,
@@ -355,14 +369,15 @@ class MapPlotter(object):
         #                 loc = 'right',
         #                 fontsize = 8)
         cb.ax.xaxis.tick_top()
+        ax_ticks = cb.ax.get_xticks()
         if pgv_labels:
-            ax_ticks = cb.ax.get_xticks()
             ticks_mm = 10**ax_ticks * 1000
             tick_labels = ["{0:.2f}".format(x) for x in ticks_mm]
             cb.ax.set_xticklabels(tick_labels, rotation = 90)
         else:
             tick_labels = []
             cb.ax.set_xticklabels(tick_labels)
+            cb.set_ticks([], update_ticks = True)
         self.cb = cb
 
         height = 0.03
@@ -388,9 +403,6 @@ class MapPlotter(object):
                             fontsize = 8)
        
         for k, cur_intensity_pgv in enumerate(intensity_pgv):
-            if k == len(intensity_pgv) - 1:
-                break
-
             if np.log10(cur_intensity_pgv[1]) >= xlim[1]:
                 break
            
@@ -399,7 +411,11 @@ class MapPlotter(object):
                                  color = 'black',
                                  linewidth = 0.5)
                 cur_x = (np.log10(intensity_pgv[k + 1][1]) + np.log10(cur_intensity_pgv[1])) / 2
-   
+
+            # Don't plot the label of the extending intensity.
+            if k == len(ax_ticks) - 1:
+                break
+            
             if k == 0:
                 cur_x = (np.log10(intensity_pgv[k + 1][1]) + xlim[0]) / 2
             elif np.log10(intensity_pgv[k +1][1]) >= xlim[1]:
@@ -833,7 +849,8 @@ class MapPlotter(object):
                                               norm = self.norm_qualitative_intensity,
                                               ticks = ticks_log,
                                               orientation = 'horizontal',
-                                              extend = 'both')
+                                              extend = 'both',
+                                              spacing = 'proportional')
 
         for cur_x in ticks_log[1:]:
             cb.ax.axvline(x = cur_x,
@@ -845,10 +862,11 @@ class MapPlotter(object):
         #                 loc = 'right',
         #                 fontsize = 8)
         cb.ax.xaxis.tick_top()
+        ax_ticks = cb.ax.get_xticks()
         if pgv_labels:
-            ax_ticks = cb.ax.get_xticks()
+            print(10**ax_ticks)
             ticks_mm = 10**ax_ticks * 1000
-            tick_labels = ["{0:.2f}".format(x) for x in ticks_mm]
+            tick_labels = ["{0:.3f}".format(x) if x <= 1e-3 else "{0:.2f}".format(x) for x in ticks_mm]
             cb.ax.set_xticklabels(tick_labels, rotation = 90)
         else:
             tick_labels = []
@@ -867,7 +885,6 @@ class MapPlotter(object):
 
         # Add the intensity label:
         xlim = ax_inset.get_xlim()
-        print(xlim)
         ax_inset.text(x = xlim[0] - 0.01,
                       y = 0.45,
                       s = 'Intensität: ',
@@ -879,9 +896,6 @@ class MapPlotter(object):
                             fontsize = 8)
        
         for k, cur_intensity_pgv in enumerate(intensity_pgv):
-            if k == len(intensity_pgv) - 1:
-                break
-
             if np.log10(cur_intensity_pgv[1]) >= xlim[1]:
                 break
            
@@ -890,7 +904,11 @@ class MapPlotter(object):
                                  color = 'black',
                                  linewidth = 0.5)
                 cur_x = (np.log10(intensity_pgv[k + 1][1]) + np.log10(cur_intensity_pgv[1])) / 2
-   
+
+            # Don't plot the label of the extending intensity.
+            if k == len(ax_ticks) - 1:
+                break
+                
             if k == 0:
                 cur_x = (np.log10(intensity_pgv[k + 1][1]) + xlim[0]) / 2
             elif np.log10(intensity_pgv[k + 1][1]) >= xlim[1]:
@@ -913,7 +931,8 @@ class MapPlotter(object):
             ax_inset.set_facecolor((1, 1, 1, 0.4))
 
     
-    def draw_contours(self, df, draw_labels = False):
+    def draw_contours(self, df, draw_labels = False,
+                      ignore_not_felt = True):
         ''' Draw the PGV contours.
 
         Parameters
@@ -929,16 +948,15 @@ class MapPlotter(object):
         artists = []
 
         # Ignore the contours below the felt threshold.
-        felt = df['pgv'] >= 0.1e-6
-        df = df[felt]
+        if ignore_not_felt:
+            felt = df['pgv'] >= 0.1e-6
+            df = df[felt]
 
         # Remove the rows having no geometry.
         df = df[~df['geometry'].is_empty & df['geometry'].notna()]
       
         if len(df) == 0:
             return
-
-        print(df)
 
         color_list = [cmap(norm(x)) for x in df['pgv_log']]
         pgv_intensity = util.intensity_to_pgv(np.arange(1, 9))
@@ -1709,7 +1727,9 @@ class MapPlotter(object):
                           video_name = 'pgvcontoursequence')
 
         
-    def create_pgv_contour_map(self, draw_contour_labels = True):
+    def create_pgv_contour_map(self, draw_contour_labels = True,
+                               draw_pgv_level = True, draw_event_info = True,
+                               ignore_not_felt = True):
         ''' Create a map of the event pgv contours.
         '''
         # Initialize the map.
@@ -1735,7 +1755,7 @@ class MapPlotter(object):
         # Convert the geopandas dataframe to cartopy projection.
         cont_df = cont_df.to_crs(self.projection.proj4_init)
         # Add the logarithmic pgv values.
-        cont_df["pgv_log"] =  np.log10(cont_df.pgv)
+        cont_df["pgv_log"] = np.log10(cont_df.pgv)
 
         # Read the station pgv data.
         station_pgv_df = util.get_supplement_data(public_id = self.event_public_id,
@@ -1751,25 +1771,28 @@ class MapPlotter(object):
 
         # Draw the pgv contour polygons.
         self.draw_contours(df = cont_df,
-                           draw_labels = draw_contour_labels)
+                           draw_labels = draw_contour_labels,
+                           ignore_not_felt = ignore_not_felt)
 
         # Plot the station max pgv markers.
         self.draw_detection_stations(df = station_pgv_df,
-                                     use_sa = True)
+                                     use_sa = False)
 
         # Draw the max. pgv level indicator in the colorbar axes.
-        self.draw_pgv_level(df = station_pgv_df,
-                            use_sa = True)
+        if draw_pgv_level:
+            self.draw_pgv_level(df = station_pgv_df,
+                                use_sa = True)
 
         # Draw the time information.
         # Draw the public id and the time marker.
-        from_zone = dateutil.tz.gettz('UTC')
-        to_zone = dateutil.tz.gettz('CET')
-        event_start = obspy.UTCDateTime(cont_props['event_start'])
-        event_end = obspy.UTCDateTime(cont_props['event_end'])
-        event_start_local = event_start.datetime.replace(tzinfo = from_zone).astimezone(to_zone)
-        self.draw_time_marker(duration = event_end - event_start,
-                              time = event_start_local,)
+        if draw_event_info:
+            from_zone = dateutil.tz.gettz('UTC')
+            to_zone = dateutil.tz.gettz('CET')
+            event_start = obspy.UTCDateTime(cont_props['event_start'])
+            event_end = obspy.UTCDateTime(cont_props['event_end'])
+            event_start_local = event_start.datetime.replace(tzinfo = from_zone).astimezone(to_zone)
+            self.draw_time_marker(duration = event_end - event_start,
+                                  time = event_start_local,)
 
         # Draw the network boundary.
         self.draw_boundary()
