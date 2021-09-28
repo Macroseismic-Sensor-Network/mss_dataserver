@@ -149,9 +149,9 @@ class EventPostProcessor(object):
             for cur_row in reader:
                 cur_serial = cur_row['serial']
                 cur_amp = float(cur_row['amplification'])
-                cur_snl = cur_row['snl']
-                cur_snl = cur_snl.split(':')
-                cur_nsl = ':'.join([cur_snl[1], cur_snl[0], cur_snl[2]])
+                cur_nsl = cur_row['nsl']
+                #cur_snl = cur_snl.split(':')
+                #cur_nsl = ':'.join([cur_snl[1], cur_snl[0], cur_snl[2]])
                 station_amp[cur_nsl] = {'serial': cur_serial,
                                         'amp': cur_amp}
 
@@ -765,6 +765,7 @@ class EventPostProcessor(object):
 
         # Compute the contours.
         intensity = np.arange(2, 8.1, 0.1)
+        #intensity = np.arange(2, 8.1, 1)
         # Add lower and upper limits to catch all the data below or 
         # above the desired intensity range.
         intensity = np.hstack([[-10], intensity, [20]])
