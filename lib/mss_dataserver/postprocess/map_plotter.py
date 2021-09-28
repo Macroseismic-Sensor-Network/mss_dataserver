@@ -33,6 +33,7 @@ import cartopy.crs as ccrs
 import ffmpeg
 import geopandas
 import matplotlib
+import matplotlib.colors
 import matplotlib.collections as mpl_col
 import matplotlib.pyplot as plt
 import numpy as np
@@ -139,7 +140,7 @@ class MapPlotter(object):
                                              directory = self.supplement_dir)
 
         
-    def init_map(self, utm_zone=33, mode = 'pgv'):
+    def init_map(self, utm_zone=33, mode = 'pgv', colorbar_pgv_labels = False):
         ''' Initialize the map plot.
 
         Parameters
@@ -175,6 +176,17 @@ class MapPlotter(object):
         self.norm = matplotlib.colors.Normalize(vmin = pgv_limits_log[0],
                                                 vmax = pgv_limits_log[1])
 
+
+        # Create the qualitative colormap for intensities.
+        intensity_list = np.array([1, 2, 3, 4, 5, 6, 7])
+        #intensity_limits = util.pgv_to_intensity(pgv_limits)[:, 1]
+        #intensity_list = np.arange(1, intensity_limits[1] + 1, 1)
+        intensity_pgv = util.intensity_to_pgv(intensity_list)
+        color_list = self.cmap(self.norm(np.log10(intensity_pgv[:, 1])))
+        self.cmap_qualitative_intensity = matplotlib.colors.ListedColormap(color_list)
+        self.norm_qualitative_intensity = matplotlib.colors.BoundaryNorm(np.log10(intensity_pgv[:, 1]),
+                                                                         ncolors = len(intensity_list))
+
         # Create the figure and plot the base map.
         self.fig = plt.figure(figsize = (120 / 25.4, 100 / 25.4),
                               dpi = 300)
@@ -193,8 +205,10 @@ class MapPlotter(object):
         # Add the colorbar.
         if self.mode == 'pgv':
             self.draw_pgv_colorbar()
+        elif self.mode == 'pgv_categorized':
+            self.draw_pgv_colorbar_categorized(pgv_labels = colorbar_pgv_labels)
         elif self.mode == 'intensity':
-            self.draw_intensity_colorbar()
+            self.draw_intensity_colorbar(pgv_labels = colorbar_pgv_labels)
             
 
         # Add the MSS logo.
@@ -311,7 +325,7 @@ class MapPlotter(object):
             ax_inset.set_facecolor((1, 1, 1, 0.4))
 
 
-    def draw_intensity_colorbar(self):
+    def draw_intensity_colorbar(self, pgv_labels = False):
         ''' Draw the intensity colorbar.
         '''
         # Create the inset axes.
@@ -325,9 +339,9 @@ class MapPlotter(object):
         ticks[0] = 0.001e-3
         ticks_log = np.log10(ticks)
         cb = matplotlib.colorbar.ColorbarBase(ax_inset,
-                                              cmap = self.cmap,
-                                              norm = self.norm,
-                                              ticks = [],
+                                              cmap = self.cmap_qualitative_intensity,
+                                              norm = self.norm_qualitative_intensity,
+                                              ticks = ticks_log,
                                               orientation = 'horizontal',
                                               extend = 'both')
 
@@ -341,11 +355,14 @@ class MapPlotter(object):
         #                 loc = 'right',
         #                 fontsize = 8)
         cb.ax.xaxis.tick_top()
-        #ticks_intensity = intensity_pgv[:, 0]
-        #tick_labels = ["{0:.3f}".format(x) for x in ticks_intensity]
-        tick_labels = []
-        cb.set_ticklabels(tick_labels)
-        #cb.ax.set_xticklabels(tick_labels, rotation = 90)
+        if pgv_labels:
+            ax_ticks = cb.ax.get_xticks()
+            ticks_mm = 10**ax_ticks * 1000
+            tick_labels = ["{0:.2f}".format(x) for x in ticks_mm]
+            cb.ax.set_xticklabels(tick_labels, rotation = 90)
+        else:
+            tick_labels = []
+            cb.ax.set_xticklabels(tick_labels)
         self.cb = cb
 
         height = 0.03
@@ -360,13 +377,13 @@ class MapPlotter(object):
 
         # Add the intensity label:
         xlim = ax_inset.get_xlim()
-        ax_inset.text(x = xlim[0] + 0.1,
-                      y = 0.45,
-                      s = 'intensity: ',
-                      ha = 'left',
-                      va = 'center',
-                      fontsize = 6)
-        ax_inset.set_xlabel('Intensity',
+        #ax_inset.text(x = xlim[0] - 0.01,
+        #              y = 0.45,
+        #              s = 'Intensität: ',
+        #              ha = 'right',
+        #              va = 'center',
+        #              fontsize = 6)
+        ax_inset.set_xlabel('Intensität',
                             loc = 'right',
                             fontsize = 8)
        
@@ -384,7 +401,7 @@ class MapPlotter(object):
                 cur_x = (np.log10(intensity_pgv[k + 1][1]) + np.log10(cur_intensity_pgv[1])) / 2
    
             if k == 0:
-                cur_x = (np.log10(intensity_pgv[k + 1][1]) + np.log10(0.01e-3)) / 2
+                cur_x = (np.log10(intensity_pgv[k + 1][1]) + xlim[0]) / 2
             elif np.log10(intensity_pgv[k +1][1]) >= xlim[1]:
                 cur_x = (np.log10(cur_intensity_pgv[1]) + xlim[1]) / 2
 
@@ -797,6 +814,104 @@ class MapPlotter(object):
         self.artists.extend(artists)
         return max_event_pgv
 
+
+    def draw_pgv_colorbar_categorized(self, pgv_labels = False):
+        ''' Draw the pgv colorbar using categorized colors.
+        '''
+        # Create the inset axes.
+        cb_bounds = [0.58, 0.08, 0.4, 0.05]
+        ax_inset = self.ax.inset_axes(bounds = cb_bounds)
+
+        intensity_to_plot = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+        intensity_pgv = util.intensity_to_pgv(intensity_to_plot)
+
+        ticks = intensity_pgv[:, 1]
+        ticks[0] = 0.001e-3
+        ticks_log = np.log10(ticks)
+        cb = matplotlib.colorbar.ColorbarBase(ax_inset,
+                                              cmap = self.cmap_qualitative_intensity,
+                                              norm = self.norm_qualitative_intensity,
+                                              ticks = ticks_log,
+                                              orientation = 'horizontal',
+                                              extend = 'both')
+
+        for cur_x in ticks_log[1:]:
+            cb.ax.axvline(x = cur_x,
+                          color = 'k',
+                          linewidth = 0.5)
+        
+        cb.ax.tick_params(labelsize = 8)
+        #cb.ax.set_xlabel('PGV [mm/s]',
+        #                 loc = 'right',
+        #                 fontsize = 8)
+        cb.ax.xaxis.tick_top()
+        if pgv_labels:
+            ax_ticks = cb.ax.get_xticks()
+            ticks_mm = 10**ax_ticks * 1000
+            tick_labels = ["{0:.2f}".format(x) for x in ticks_mm]
+            cb.ax.set_xticklabels(tick_labels, rotation = 90)
+        else:
+            tick_labels = []
+            cb.ax.set_xticklabels(tick_labels)
+        self.cb = cb
+
+        height = 0.03
+        intensity_bounds = [cb_bounds[0],
+                            cb_bounds[1] - height,
+                            cb_bounds[2],
+                            height]
+        ax_inset = self.ax.inset_axes(bounds = intensity_bounds,
+                                      xlim = cb.ax.get_xlim())
+        
+        
+
+        # Add the intensity label:
+        xlim = ax_inset.get_xlim()
+        print(xlim)
+        ax_inset.text(x = xlim[0] - 0.01,
+                      y = 0.45,
+                      s = 'Intensität: ',
+                      ha = 'right',
+                      va = 'center',
+                      fontsize = 6)
+        ax_inset.set_xlabel('PGV [mm/s]',
+                            loc = 'right',
+                            fontsize = 8)
+       
+        for k, cur_intensity_pgv in enumerate(intensity_pgv):
+            if k == len(intensity_pgv) - 1:
+                break
+
+            if np.log10(cur_intensity_pgv[1]) >= xlim[1]:
+                break
+           
+            if k > 0:
+                ax_inset.axvline(np.log10(cur_intensity_pgv[1]),
+                                 color = 'black',
+                                 linewidth = 0.5)
+                cur_x = (np.log10(intensity_pgv[k + 1][1]) + np.log10(cur_intensity_pgv[1])) / 2
+   
+            if k == 0:
+                cur_x = (np.log10(intensity_pgv[k + 1][1]) + xlim[0]) / 2
+            elif np.log10(intensity_pgv[k + 1][1]) >= xlim[1]:
+                cur_x = (np.log10(cur_intensity_pgv[1]) + xlim[1]) / 2
+
+            #ax_inset.axvline(cur_x, color = 'gray')
+            #cur_label = '{intensity:.0f}'.format(intensity = cur_intensity_pgv[0])
+            cur_label = self.intensity_labels[int(cur_intensity_pgv[0])]
+            ax_inset.text(cur_x,
+                          y = 0.45,
+                          s = cur_label,
+                          ha = 'center',
+                          va = 'center',
+                          fontsize = 6)
+            #ax_inset.set_axis_off()
+            #ax_inset.set_frame_on(True)
+            #ax_inset.get_xaxis().set_visible(False)
+            ax_inset.set_xticks([])
+            ax_inset.get_yaxis().set_visible(False)
+            ax_inset.set_facecolor((1, 1, 1, 0.4))
+
     
     def draw_contours(self, df, draw_labels = False):
         ''' Draw the PGV contours.
@@ -818,10 +933,12 @@ class MapPlotter(object):
         df = df[felt]
 
         # Remove the rows having no geometry.
-        df = df[df['geometry'].notna()]
+        df = df[~df['geometry'].is_empty & df['geometry'].notna()]
       
         if len(df) == 0:
             return
+
+        print(df)
 
         color_list = [cmap(norm(x)) for x in df['pgv_log']]
         pgv_intensity = util.intensity_to_pgv(np.arange(1, 9))
@@ -832,7 +949,7 @@ class MapPlotter(object):
                                             facecolor = color_list,
                                             edgecolor = 'None',
                                             linewidth = 0,
-                                            alpha = 0.8,
+                                            alpha = 1.0,
                                             zorder = 3)
         artists.append(cur_artist)
 
@@ -900,7 +1017,7 @@ class MapPlotter(object):
                     cur_mask = np.isclose(cur_name, pgv_intensity[:, 1])
                     if np.any(cur_mask) and (len(cur_split) > 0):
                         cur_intensity = int(pgv_intensity[cur_mask, 0][0])
-                        if self.mode == 'pgv':
+                        if self.mode == 'pgv' or self.mode == 'pgv_categorized':
                             cur_label = '{pgv} ({intensity})'.format(pgv = np.round(cur_name * 1000, 3),
                                                                      intensity = self.intensity_labels[cur_intensity])
                         elif self.mode == 'intensity':
@@ -915,7 +1032,7 @@ class MapPlotter(object):
                                                       ha = 'center',
                                                       va = 'center',
                                                       zorder = 20)
-                        artists.append(cur_artist)        
+                        artists.append(cur_artist)    
         
         self.artists.extend(artists)
 
@@ -1059,8 +1176,13 @@ class MapPlotter(object):
     def draw_detection_stations(self, df, use_sa = False):
         ''' Draw the detecion stations.
         '''
-        cmap = self.cmap
-        norm = self.norm
+        #cmap = self.cmap
+        #norm = self.norm
+
+        cmap = self.cmap_qualitative_intensity
+        norm = self.norm_qualitative_intensity
+
+        
         artists = []
    
         # Get the max pgv of stations with a pgv value.
@@ -1587,7 +1709,7 @@ class MapPlotter(object):
                           video_name = 'pgvcontoursequence')
 
         
-    def create_pgv_contour_map(self):
+    def create_pgv_contour_map(self, draw_contour_labels = True):
         ''' Create a map of the event pgv contours.
         '''
         # Initialize the map.
@@ -1629,11 +1751,11 @@ class MapPlotter(object):
 
         # Draw the pgv contour polygons.
         self.draw_contours(df = cont_df,
-                           draw_labels = True)
+                           draw_labels = draw_contour_labels)
 
         # Plot the station max pgv markers.
         self.draw_detection_stations(df = station_pgv_df,
-                                     use_sa = False)
+                                     use_sa = True)
 
         # Draw the max. pgv level indicator in the colorbar axes.
         self.draw_pgv_level(df = station_pgv_df,
