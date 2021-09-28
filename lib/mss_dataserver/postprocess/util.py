@@ -453,6 +453,7 @@ def intensity_to_pgv(intensity = None, relation = 'version_2'):
         return
 
     intensity = np.array(intensity)
+    intensity_I_pgv = 0.001e-3
 
     if relation == 'version_1':
         k_low = 0.5
@@ -476,11 +477,16 @@ def intensity_to_pgv(intensity = None, relation = 'version_2'):
         intensity_pgv[high_ind] = pgv_high
         intensity_pgv = 10**intensity_pgv
 
+        # Handle the intensity I values.
+        # Set them to a fixed pgv value of 0.001 mm/s.
+        intensity_pgv[intensity <= 1] = intensity_I_pgv
+
         int_pgv = np.hstack([intensity[:, np.newaxis],
                              intensity_pgv[:, np.newaxis]])
     else:
         pgv_mm = np.exp((intensity - 3.9) / 0.81)
         pgv = pgv_mm / 1000
+        pgv[intensity <= 1] = intensity_I_pgv
         int_pgv = np.hstack([intensity[:, np.newaxis],
                              pgv[:, np.newaxis]])
 
@@ -528,12 +534,14 @@ def pgv_to_intensity(pgv = None, relation = 'version_2'):
         intensity = np.zeros(pgv.size)
         intensity[low_ind] = intensity_low
         intensity[high_ind] = intensity_high
+        intensity[intensity < 1] = 1
 
         pgv_int = np.hstack([10**pgv[:, np.newaxis],
                              intensity[:, np.newaxis]])
     else:
         pgv_mm = pgv * 1000
         intensity = 0.81 * np.log(pgv_mm) + 3.9
+        intensity[intensity < 1] = 1
         pgv_int = np.hstack([pgv[:, np.newaxis],
                              intensity[:, np.newaxis]])
 
