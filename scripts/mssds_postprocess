@@ -155,10 +155,11 @@ def process_event(ctx, public_id, no_db, no_meta, no_isoseismal,
 @click.option('--detection-sequence/--no-detection-sequence', default = True, help = 'Enable/disable computation of the detection sequence movie [enabled].')
 @click.option('--pgv-contour-sequence/--no-pgv-contour-sequence', default = True, help = 'Enable/disable computation of the pgv contour sequence movie [disabled].')
 @click.option('--pgv-contour-map/--no-pgv-contour-map', default = True, help = 'Enable/disable computation of the pgv contour map.')
+@click.option('--voronoi-cell-sequence/--no-voronoi-cell-sequence', default = True, help = 'Enable/disable computation of the pgv contour map.')
 def create_maps(ctx, public_id, no_db,
                 pgv_map, detection_sequence,
-                pgv_contour_sequence,
-                pgv_contour_map):
+                pgv_contour_sequence, pgv_contour_map,
+                voronoi_cell_sequence):
     ''' Process an event. '''
 
     logger_name = 'mss_dataserver'
@@ -208,6 +209,13 @@ def create_maps(ctx, public_id, no_db,
             plotter.create_pgv_contour_sequence_movie()
         except Exception:
             logger.exception("Error creating the PGV contour sequence.")
+
+    # Create the voronoi cell sequence images and movie.
+    if voronoi_cell_sequence:
+        try:
+            plotter.create_voronoi_cell_sequence_movie()
+        except Exception:
+            logger.exception("Error creating the voronoi cell sequence.")
 
 
 
