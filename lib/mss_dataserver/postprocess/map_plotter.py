@@ -1194,11 +1194,11 @@ class MapPlotter(object):
     def draw_detection_stations(self, df, use_sa = False):
         ''' Draw the detecion stations.
         '''
-        #cmap = self.cmap
-        #norm = self.norm
+        cmap = self.cmap
+        norm = self.norm
 
-        cmap = self.cmap_qualitative_intensity
-        norm = self.norm_qualitative_intensity
+        #cmap = self.cmap_qualitative_intensity
+        #norm = self.norm_qualitative_intensity
 
         
         artists = []
@@ -1806,3 +1806,116 @@ class MapPlotter(object):
                          bbox_inches = 'tight',
                          pad_inches = 0,)
         self.clear_map()
+
+
+    def create_voronoi_cell_sequence_movie(self, file_format = 'jpg'):
+        ''' Create the movie of the voronoi cell sequence.
+        '''
+        # Initialize the map.
+        if self.fig is None:
+            self.init_map(utm_zone = 33)
+        else:
+            self.clear_map()
+            
+        # Create the output directory.
+        img_output_dir = os.path.join(self.output_dir,
+                                      self.event_dir,
+                                      'pgvvoronoicellsequence',
+                                      'images')
+        if not os.path.exists(img_output_dir):
+            os.makedirs(img_output_dir)
+            
+        movie_output_dir = os.path.join(self.output_dir,
+                                        self.event_dir,
+                                        'pgvvoronoicellsequence',
+                                        'movie')
+        if not os.path.exists(movie_output_dir):
+            os.makedirs(movie_output_dir)
+
+        # Load the pgv voronoi cell sequence data from the geojson file.
+        self.logger.info('Loading the pgv voronoi cell sequence data.')
+        sequ_df = util.get_supplement_data(public_id = self.event_public_id,
+                                           category = 'pgvsequence',
+                                           name = 'pgvvoronoi',
+                                           directory = self.supplement_dir)
+
+        # Convert the geopandas dataframe to cartopy projection.
+        sequ_df = sequ_df.to_crs(self.projection.proj4_init)
+
+        # Add the logarithmic pgv values.
+        sequ_df.insert(3, "pgv_corr", sequ_df.pgv / sequ_df.sa)
+        sequ_df.insert(4, "pgv_log", np.log10(sequ_df.pgv))
+        sequ_df.insert(5, "pgv_corr_log", np.log10(sequ_df.pgv_corr))
+
+        # Load the station pgv sequence data from the geojson file.
+        stat_df = util.get_supplement_data(public_id = self.event_public_id,
+                                           category = 'pgvsequence',
+                                           name = 'pgvstation',
+                                           directory = self.supplement_dir)
+
+        # convert the geopandas dataframe to cartopy projection.
+        stat_df = stat_df.to_crs(self.projection.proj4_init)
+
+        stat_df.insert(4, "pgv_corr", stat_df.pgv / stat_df.sa)
+        stat_df.insert(5, "pgv_log", np.log10(stat_df.pgv))
+        stat_df.insert(6, "pgv_corr_log", np.log10(stat_df.pgv_corr))
+        
+        # Set the time zones for conversion.
+        from_zone = dateutil.tz.gettz('UTC')
+        to_zone = dateutil.tz.gettz('CET')
+        
+        # Iterate through the time groups.
+        time_groups = sequ_df.groupby('time')
+        stat_time_groups = stat_df.groupby('time')
+
+        max_event_pgv = None
+        for cur_name, cur_group in time_groups:
+            cur_time = obspy.UTCDateTime(cur_name)
+            self.logger.info('Processing time frame: %s.', cur_time)
+
+            # Get the related pgvstation frame.
+            cur_stat_df = stat_time_groups.get_group(cur_name)
+            
+            # Convert to local time.
+            cur_time_local = cur_time.datetime.replace(tzinfo = from_zone).astimezone(to_zone)
+
+            # Draw the pgv contour polygons.
+            self.draw_voronoi_cells(df = cur_group,
+                                    use_sa = True)
+
+            # Draw the station markers.
+            # The stations represent individual data points, therefore
+            # the station correction is not applied.
+            self.draw_detection_stations(df = cur_stat_df,
+                                         use_sa = False)
+
+            # Draw the time information.
+            self.draw_time_marker(time = cur_time_local)
+
+            # Draw the network boundary.
+            self.draw_boundary()
+
+            # Draw the PGV level.
+            max_event_pgv = self.draw_pgv_level(df = cur_stat_df,
+                                                max_event_pgv = max_event_pgv,
+                                                use_sa = False,
+                                                show_max_level = True)
+            
+            cur_date_string = cur_time.isoformat().replace(':', '').replace('.', '')
+
+            cur_ext = '.' + file_format
+            cur_filename = self.event_public_id + '_pgvvoronoicellframe_' + cur_date_string + cur_ext
+            cur_filepath = os.path.join(img_output_dir,
+                                        cur_filename)
+            self.fig.savefig(cur_filepath,
+                             dpi = 300,
+                             pil_kwargs = {'quality': 90},
+                             bbox_inches = 'tight',
+                             pad_inches = 0,)
+            self.clear_map()
+            
+        self.create_movie(image_dir = img_output_dir,
+                          output_dir = movie_output_dir,
+                          img_name = 'pgvvoronoicellframe',
+                          video_name = 'pgvvoronoicellsequence',
+                          file_ext = file_format)
