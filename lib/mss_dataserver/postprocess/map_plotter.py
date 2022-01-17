@@ -949,7 +949,9 @@ class MapPlotter(object):
 
         # Ignore the contours below the felt threshold.
         if ignore_not_felt:
-            felt = df['pgv'] >= 0.1e-6
+            pgv_limit = util.intensity_to_pgv(np.array([2]))[0, 1]
+            self.logger.info("Using contours with pgv >= {:f}.".format(pgv_limit))
+            felt = df['pgv'] >= pgv_limit
             df = df[felt]
 
         # Remove the rows having no geometry.
@@ -967,7 +969,7 @@ class MapPlotter(object):
                                             facecolor = color_list,
                                             edgecolor = 'None',
                                             linewidth = 0,
-                                            alpha = 1.0,
+                                            alpha = 0.8,
                                             zorder = 3)
         artists.append(cur_artist)
 
