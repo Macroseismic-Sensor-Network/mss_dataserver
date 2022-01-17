@@ -949,8 +949,8 @@ class MapPlotter(object):
 
         # Ignore the contours below the felt threshold.
         if ignore_not_felt:
-            pgv_limit = util.intensity_to_pgv(np.array([2]))[0, 1]
-            self.logger.info("Using contours with pgv >= {:f}.".format(pgv_limit))
+            pgv_limit = util.intensity_to_pgv(np.array([1.95]))[0, 1]
+            self.logger.info("Using contours with pgv >= {:.10f}.".format(pgv_limit))
             felt = df['pgv'] >= pgv_limit
             df = df[felt]
 
