@@ -506,7 +506,7 @@ class EventPostProcessor(object):
                                        'triggered': triggered},
                                       crs = "epsg:4326",
                                       geometry = 'geom_stat')
-           
+
             # Add the station amplification factors.
             self.add_station_amplification(cur_df)
 
@@ -530,10 +530,21 @@ class EventPostProcessor(object):
                 # Add the rows, that are not present in the last_pgv_df.
                 mask_df = tmp_df.append(cur_df[~cur_df.nsl.isin(last_pgv_df.nsl)],
                                         ignore_index = True)
-                mask = cur_df.pgv_corr < mask_df.pgv_corr
-                    
+
+                # Sort the two dataframes using the nsl.
+                tmp_df = tmp_df.sort_values(by = 'nsl',
+                                            ignore_index = True)
+                mask_df = mask_df.sort_values(by = 'nsl',
+                                              ignore_index = True)
+
+                # Check for correct station snl.
+                if (np.any(tmp_df['nsl'].values != mask_df['nsl'].values)):
+                    raise RuntimeError("The statin SNL codes of the two dataframes to compare are not equal.")
+
+                # Reset the values for the stations, that already had a larger pgv value.
+                mask = cur_df.pgv_corr < mask_df.pgv_corr               
                 cur_df.loc[mask, 'pgv_corr'] = mask_df.loc[mask, 'pgv_corr']
-                
+
                 if np.all(mask):
                     no_change_cnt += 1
                 else:
@@ -549,17 +560,18 @@ class EventPostProcessor(object):
             # Get the rows, that are not available in cur_df and keep them.
             if last_pgv_df is not None:
                 tmp_df = last_pgv_df[~last_pgv_df.nsl.isin(cur_df.nsl)]
-                last_pgv_df = cur_df
-                last_pgv_df.append(tmp_df, ignore_index = True)
+                last_pgv_df = cur_df.copy()
+                last_pgv_df = last_pgv_df.append(tmp_df.copy(),
+                                                 ignore_index = True)
             else:
-                last_pgv_df = cur_df
+                last_pgv_df = cur_df.copy()
            
             # Interpolate to a regular grid using ordinary kriging.
             self.logger.info("Interpolate")
             krig_z, krig_sigmasq, grid_x, grid_y = util.compute_pgv_krigging(x = cur_df.x_utm.values,
                                                                              y = cur_df.y_utm.values,
                                                                              z = np.log10(cur_df.pgv_corr),
-                                                                             nlags = 10,
+                                                                             nlags = 40,
                                                                              verbose = False,
                                                                              enable_plotting = False,
                                                                              weight = True)
