@@ -168,8 +168,13 @@ class MapPlotter(object):
         self.mss_boundary = self.mss_boundary.to_crs(self.projection.proj4_init)
 
         # Configure the colormap.
+        intensity_list = np.array([1, 2, 3, 4, 5, 6, 7])
+        #intensity_limits = util.pgv_to_intensity(pgv_limits)[:, 1]
+        #intensity_list = np.arange(1, intensity_limits[1] + 1, 1)
+        intensity_pgv = util.intensity_to_pgv(intensity_list)
+        
         self.cmap = plt.get_cmap('plasma')
-        upper_limit = 1e-2
+        upper_limit = intensity_pgv[-2, 1] + (intensity_pgv[-1, 1] - intensity_pgv[-2, 1]) * 0.2
         max_pgv = np.max(list(self.meta['metadata']['max_event_pgv'].values()))
         if max_pgv > upper_limit:
             upper_limit = max_pgv
@@ -180,10 +185,6 @@ class MapPlotter(object):
 
 
         # Create the qualitative colormap for intensities.
-        intensity_list = np.array([1, 2, 3, 4, 5, 6, 7])
-        #intensity_limits = util.pgv_to_intensity(pgv_limits)[:, 1]
-        #intensity_list = np.arange(1, intensity_limits[1] + 1, 1)
-        intensity_pgv = util.intensity_to_pgv(intensity_list)
         color_list = self.cmap(self.norm(np.log10(intensity_pgv[:, 1])))
         self.cmap_qualitative_intensity = matplotlib.colors.ListedColormap(color_list)
         self.norm_qualitative_intensity = matplotlib.colors.BoundaryNorm(np.log10(intensity_pgv[:, 1]),
