@@ -588,14 +588,16 @@ class EventPostProcessor(object):
             # Add lower and upper limits to catch all the data below or 
             # above the desired intensity range.
             intensity = np.hstack([[-10], intensity, [20]])
-            intensity_pgv = util.intensity_to_pgv(intensity = intensity)
+            # Use a low intensity_I_pgv value to make sure, that the lowest countour
+            # level captures all PGV values.
+            intensity_pgv = util.intensity_to_pgv(intensity = intensity,
+                                                  intensity_I_pgv = 1e-9)
 
             # Create and delete a figure to prevent pyplot from plotting the
             # contours.
             fig = plt.figure()
             ax = fig.add_subplot(111)
-            cs = ax.contourf(grid_x, grid_y, krig_z, np.log10(intensity_pgv[:, 1]),
-                             vmin = -6, vmax = -2)
+            cs = ax.contourf(grid_x, grid_y, krig_z, np.log10(intensity_pgv[:, 1]))
             contours = util.contourset_to_shapely(cs)
             fig.clear()
             plt.close(fig)
@@ -781,14 +783,16 @@ class EventPostProcessor(object):
         # Add lower and upper limits to catch all the data below or 
         # above the desired intensity range.
         intensity = np.hstack([[-10], intensity, [20]])
-        intensity_pgv = util.intensity_to_pgv(intensity = intensity)
+        # Use a low intensity_I_pgv value to make sure, that the lowest countour
+        # level captures all PGV values.
+        intensity_pgv = util.intensity_to_pgv(intensity = intensity,
+                                              intensity_I_pgv = 1e-9)
 
         # Create and delete a figure to prevent pyplot from plotting the
         # contours.
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        cs = ax.contourf(grid_x, grid_y, krig_z, np.log10(intensity_pgv[:, 1]),
-                         vmin = -6, vmax = -2)
+        cs = ax.contourf(grid_x, grid_y, krig_z, np.log10(intensity_pgv[:, 1]))
         contours = util.contourset_to_shapely(cs)
         fig.clear()
         plt.close(fig)

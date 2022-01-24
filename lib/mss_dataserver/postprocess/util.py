@@ -445,7 +445,8 @@ def reproject_polygons(df, src_proj, dst_proj):
     return df
 
 
-def intensity_to_pgv(intensity = None, relation = 'version_2'):
+def intensity_to_pgv(intensity = None, relation = 'version_2',
+                     intensity_I_pgv = 0.001e-3):
     ''' Compute the pgv and intensity values based on the MSS relationship.
 
     Parameters
@@ -462,7 +463,6 @@ def intensity_to_pgv(intensity = None, relation = 'version_2'):
         return
 
     intensity = np.array(intensity)
-    intensity_I_pgv = 0.001e-3
 
     if relation == 'version_1':
         k_low = 0.5
