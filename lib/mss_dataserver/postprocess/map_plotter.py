@@ -191,7 +191,10 @@ class MapPlotter(object):
                                                                          ncolors = len(intensity_list))
 
         # Create the figure and plot the base map.
-        self.fig = plt.figure(figsize = (120 / 25.4, 100 / 25.4),
+        # The image sizes in pixel.
+        width = 1296
+        height = 1080
+        self.fig = plt.figure(figsize = (width / 300, height / 300),
                               dpi = 300)
         self.ax = plt.axes(projection = self.projection)
 
@@ -255,7 +258,7 @@ class MapPlotter(object):
         ''' Draw the PGV colorbar.
         '''
         # Create the inset axes.
-        cb_bounds = [0.58, 0.08, 0.4, 0.05]
+        cb_bounds = [0.58, 0.10, 0.4, 0.05]
         ax_inset = self.ax.inset_axes(bounds = cb_bounds)
 
         intensity_to_plot = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
@@ -343,7 +346,7 @@ class MapPlotter(object):
         ''' Draw the intensity colorbar.
         '''
         # Create the inset axes.
-        cb_bounds = [0.58, 0.08, 0.4, 0.05]
+        cb_bounds = [0.58, 0.10, 0.4, 0.05]
         ax_inset = self.ax.inset_axes(bounds = cb_bounds)
 
         intensity_to_plot = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
@@ -836,7 +839,7 @@ class MapPlotter(object):
         ''' Draw the pgv colorbar using categorized colors.
         '''
         # Create the inset axes.
-        cb_bounds = [0.58, 0.08, 0.4, 0.05]
+        cb_bounds = [0.58, 0.10, 0.4, 0.05]
         ax_inset = self.ax.inset_axes(bounds = cb_bounds)
 
         intensity_to_plot = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
