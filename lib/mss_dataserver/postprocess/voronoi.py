@@ -138,7 +138,7 @@ def compute_voronoi_geometry(df, boundary = None):
     coord = df.loc[:, ['x', 'y']]
     coord = coord[has_data]
     vor = scipy.spatial.Voronoi(coord_utm[has_data])
-    regions, vertices = voronoi_finite_polygons_2d(vor, radius = 100000)
+    regions, vertices = voronoi_finite_polygons_2d(vor, radius = 50000)
     vertices_wgs84 = compute_wgs84_coordinates(vertices)
 
     region_id = np.arange(len(regions))
@@ -150,7 +150,10 @@ def compute_voronoi_geometry(df, boundary = None):
         cur_poly = shapely.geometry.Polygon(vertices_wgs84[cur_region])
 
         if boundary is not None:
-            cur_poly = cur_poly.intersection(boundary)
+            try:
+                cur_poly = cur_poly.intersection(boundary)
+            except Exception:
+                cur_poly = None
 
         df.at[coord.iloc[k].name, 'geom_vor'] = cur_poly
 
