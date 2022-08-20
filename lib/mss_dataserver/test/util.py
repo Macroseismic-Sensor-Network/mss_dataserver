@@ -27,6 +27,7 @@ import os
 
 import mss_dataserver
 import mss_dataserver.core.project
+import mss_dataserver.core.util
 
 
 def clear_database_tables(db_dialect, db_driver, db_user,
@@ -102,19 +103,84 @@ def clear_project_database_tables(project, tables = None):
 def create_db_test_project():
     ''' Create a project with a database connection to the unit_test database.
     '''
+    # Set the base directories.
     base_dir = os.path.dirname(os.path.abspath(mss_dataserver.__file__))
-    config_file = os.path.join(base_dir, 'test', 'config', 'mss_dataserver_unittest.ini')
-    config = mss_dataserver.core.project.Project.load_configuration(config_file)
+    data_dir = os.path.join(base_dir,
+                            'test',
+                            'data')
+    config_dir = os.path.join(base_dir,
+                              'test',
+                              'config')
+    output_dir = os.path.join(base_dir,
+                              'test',
+                              'output')
+
+    # Adjust the paths of the directories in the config file.
+    config_file = os.path.join(config_dir,
+                               'mss_dataserver_unittest.ini')
+    config = mss_dataserver.core.util.load_configuration(config_file)
     # Update the configuration filepaths.
-    config['project']['inventory_file'] = os.path.join(base_dir, 'test', 'data', config['project']['inventory_file'])
-    config['output']['data_dir'] = os.path.join(base_dir, 'test', 'output', config['output']['data_dir'])
-    config['output']['event_dir'] = os.path.join(base_dir, 'test', 'output', config['output']['event_dir'])
+    config['project']['inventory_file'] = os.path.join(data_dir,
+                                                       config['project']['inventory_file'])
+    config['output']['data_dir'] = os.path.join(output_dir,
+                                                config['output']['data_dir'])
+    config['output']['event_dir'] = os.path.join(output_dir,
+                                                 config['output']['event_dir'])
+    config['log']['log_dir'] = os.path.join(output_dir,
+                                            config['log']['log_dir'])
+    config['postprocess']['data_dir'] = os.path.join(data_dir,
+                                                     config['postprocess']['data_dir'])
+    config['postprocess']['visualization_dir'] = os.path.join(data_dir,
+                                                              config['postprocess']['visualization_dir'])
+
+    # Load the project and create a new database structure.
     project = mss_dataserver.core.project.Project(**config)
     try:
         drop_project_database_tables(project)
-    except Exception as e:
+    except Exception:
         print("Error when dropping the database tables.")
     project.connect_to_db()
     project.create_database_tables()
     project.load_inventory(update_from_xml = True)
+    return project
+
+
+def create_test_project_no_db():
+    ''' Create a project without a database connection.
+
+    The inventory data is read from the xml file.
+    '''
+    # Set the base directories.
+    base_dir = os.path.dirname(os.path.abspath(mss_dataserver.__file__))
+    data_dir = os.path.join(base_dir,
+                            'test',
+                            'data')
+    config_dir = os.path.join(base_dir,
+                              'test',
+                              'config')
+    output_dir = os.path.join(base_dir,
+                              'test',
+                              'output')
+
+    # Adjust the paths of the directories in the config file.
+    config_file = os.path.join(config_dir,
+                               'mss_dataserver_unittest.ini')
+    config = mss_dataserver.core.util.load_configuration(config_file)
+    # Update the configuration filepaths.
+    config['project']['inventory_file'] = os.path.join(data_dir,
+                                                       config['project']['inventory_file'])
+    config['output']['data_dir'] = os.path.join(output_dir,
+                                                config['output']['data_dir'])
+    config['output']['event_dir'] = os.path.join(output_dir,
+                                                 config['output']['event_dir'])
+    config['log']['log_dir'] = os.path.join(output_dir,
+                                            config['log']['log_dir'])
+    config['postprocess']['data_dir'] = os.path.join(data_dir,
+                                                     config['postprocess']['data_dir'])
+    config['postprocess']['visualization_dir'] = os.path.join(data_dir,
+                                                              config['postprocess']['visualization_dir'])
+
+    # Load the project and create a new database structure.
+    project = mss_dataserver.core.project.Project(**config)
+    project.load_inventory_from_xml()
     return project
