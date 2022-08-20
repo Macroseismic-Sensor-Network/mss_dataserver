@@ -123,37 +123,52 @@ def process_event(ctx, public_id, no_db, no_meta, no_isoseismal,
 
     # Compute the metadata supplement.
     if not no_meta:
-        logger.info('Computing the meta supplement.')
-        pp.compute_event_metadata_supplement()
+        try:
+            logger.info('Computing the meta supplement.')
+            pp.compute_event_metadata_supplement()
+        except Exception:
+            logger.exception('Error computing the meta supplement.')
 
     # Compute the isoseismal contours.
     if not no_isoseismal:
-        logger.info('Computing the isoseismal supplement.')
-        pp.compute_isoseismal_supplement()
+        try:
+            logger.info('Computing the isoseismal supplement.')
+            pp.compute_isoseismal_supplement()
+        except Exception:
+            logger.exception('Error computing the isoseismal supplement.')
 
     # Compute the pgv sequence supplement.
     if not no_pgv_sequence:
-        logger.info('Computing the pgv sequence supplement.')
-        pp.compute_pgv_sequence_supplement()
+        try:
+            logger.info('Computing the pgv sequence supplement.')
+            pp.compute_pgv_sequence_supplement()
+        except Exception:
+            logger.exception('Error computing the pgv sequence supplement.')
 
     # Compute the detection sequence supplement.
     if not no_detection_sequence:
-        logger.info('Computing the detection sequence supplement.')
-        pp.compute_detection_sequence_supplement()
+        try:
+            logger.info('Computing the detection sequence supplement.')
+            pp.compute_detection_sequence_supplement()
+        except Exception:
+            logger.exception('Error computing the detection sequence supplement.')
 
     # Compute the pgv contour sequence.
     if not no_pgv_contour_sequence:
-        logger.info('Computing the pgv contour sequence supplement.')
-        pp.compute_pgv_contour_sequence_supplement()
+        try:
+            logger.info('Computing the pgv contour sequence supplement.')
+            pp.compute_pgv_contour_sequence_supplement()
+        except Exception:
+            logger.exception('Error computing the pgv contour sequence supplement.')
 
-
+            
 @cli.command()
 @click.pass_context
 @click.option('--public-id', help = 'The public ID of the event to process.')
 @click.option('--no-db', is_flag = True, help = 'No database available.')
 @click.option('--pgv-map/--no-pgv-map', default = True, help = 'Enable/disable computation of the pgv map [enabled].')
-@click.option('--detection-sequence/--no-detection-sequence', default = True, help = 'Enable/disable computation of the detection sequence movie [enabled].')
-@click.option('--pgv-contour-sequence/--no-pgv-contour-sequence', default = True, help = 'Enable/disable computation of the pgv contour sequence movie [disabled].')
+@click.option('--detection-sequence/--no-detection-sequence', default = True, help = 'Enable/disable computation of the detection sequence movie.')
+@click.option('--pgv-contour-sequence/--no-pgv-contour-sequence', default = True, help = 'Enable/disable computation of the pgv contour sequence movie.')
 @click.option('--pgv-contour-map/--no-pgv-contour-map', default = True, help = 'Enable/disable computation of the pgv contour map.')
 @click.option('--voronoi-cell-sequence/--no-voronoi-cell-sequence', default = True, help = 'Enable/disable computation of the pgv contour map.')
 def create_maps(ctx, public_id, no_db,

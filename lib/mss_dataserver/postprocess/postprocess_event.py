@@ -328,11 +328,17 @@ class EventPostProcessor(object):
                                                   category = 'detectiondata',
                                                   name = 'pgv',
                                                   directory = self.supplement_dir)
+        #print(pgv_stream.__str__(extended=True))
+        pgv_stream.merge()
 
         # Trim the stream.
-        pgv_stream.trim(starttime = meta['start_time'] - 6,
-                        endtime = meta['end_time'] + 6,
+        start_time = meta['start_time'] - 6
+        end_time = meta['end_time'] + 6
+        pgv_stream.trim(starttime = start_time,
+                        endtime = end_time,
                         pad = True)
+        pgv_stream.sort()
+        #print(pgv_stream.__str__(extended=True))
 
         inventory = self.project.inventory
 
@@ -340,6 +346,9 @@ class EventPostProcessor(object):
         station_nsl = [':'.join(x) for x in station_nsl]
         stations = [inventory.get_station(nsl_string = x)[0] for x in station_nsl]
         times = pgv_stream[0].times("utcdatetime")
+        dt = pgv_stream[0].stats.delta
+        ndata = pgv_stream[0].stats.npts
+        times = [start_time + x * dt for x in range(ndata)]
         data = np.array([x.data for x in pgv_stream]).transpose()
 
         # Get the stations with no available data.
@@ -532,14 +541,17 @@ class EventPostProcessor(object):
                                         ignore_index = True)
 
                 # Sort the two dataframes using the nsl.
-                tmp_df = tmp_df.sort_values(by = 'nsl',
+                cur_df = cur_df.sort_values(by = 'nsl',
                                             ignore_index = True)
                 mask_df = mask_df.sort_values(by = 'nsl',
                                               ignore_index = True)
 
                 # Check for correct station snl.
-                if (np.any(tmp_df['nsl'].values != mask_df['nsl'].values)):
-                    raise RuntimeError("The statin SNL codes of the two dataframes to compare are not equal.")
+                if (np.any(cur_df['nsl'].values != mask_df['nsl'].values)):
+                    print(last_pgv_df)
+                    print(cur_df)
+                    print(mask_df)
+                    raise RuntimeError("The station NSL codes of the two dataframes to compare are not equal.")
 
                 # Reset the values for the stations, that already had a larger pgv value.
                 mask = cur_df.pgv_corr < mask_df.pgv_corr               
