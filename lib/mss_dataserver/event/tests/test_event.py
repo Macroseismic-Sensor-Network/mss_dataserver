@@ -30,7 +30,6 @@ Created on May 17, 2011
 '''
 import unittest
 import logging
-import os
 
 from obspy.core.utcdatetime import UTCDateTime
 
@@ -38,6 +37,7 @@ import mss_dataserver
 import mss_dataserver.event.core as ev_core
 from mss_dataserver.event.core import Event
 import mss_dataserver.event.detection as detection
+import mss_dataserver.event.event_type as ev_type
 import mss_dataserver.test.util as test_util
 
 
@@ -94,13 +94,72 @@ class EventTestCase(unittest.TestCase):
         self.assertEqual(event.end_time, UTCDateTime(end_time))
         self.assertTrue(event.changed)
 
+        
     def test_event_type(self):
         ''' Test the event type handling.
         '''
+        name = "Testtype"
+        description = "The description of the event type."
+        author_uri = "test_author"
+        agency_uri = "test_agency"
+        creation_time = UTCDateTime()
+        event_type = ev_type.EventType(name = name,
+                                       description = description,
+                                       author_uri = author_uri,
+                                       agency_uri = agency_uri,
+                                       creation_time = creation_time)
+        self.assertIsInstance(event_type, ev_type.EventType)
+        self.assertEqual(event_type.name, name)
+        self.assertEqual(event_type.description, description)
+        self.assertEqual(event_type.author_uri, author_uri)
+        self.assertEqual(event_type.agency_uri, agency_uri)
+        self.assertEqual(event_type.creation_time, creation_time)
+        self.assertIsNone(event_type.db_id)
+        self.assertIsNone(event_type.parent)
+        
         start_time = '2000-01-01T00:00:00'
         end_time = '2000-01-01T01:00:00'
         event = Event(start_time = start_time, end_time = end_time)
-        print("event_type: {}".format(event.event_type))
+        event.set_event_type(event_type = event_type)
+        self.assertEqual(event.event_type, event_type)
+
+        # Add children to the event type.
+        name = "Testtype"
+        description = "The description of the event type."
+        author_uri = "test_author"
+        agency_uri = "test_agency"
+        creation_time = UTCDateTime()
+        root = ev_type.EventType(name = name,
+                                 description = description,
+                                 author_uri = author_uri,
+                                 agency_uri = agency_uri,
+                                 creation_time = creation_time)
+        
+        name = "Testtype Child 1"
+        description = "The description of child 1."
+        author_uri = "test_author_1"
+        agency_uri = "test_agency_1"
+        creation_time = UTCDateTime()
+        child_1 = ev_type.EventType(name = name,
+                                    description = description,
+                                    author_uri = author_uri,
+                                    agency_uri = agency_uri,
+                                    creation_time = creation_time)
+        root.add_child(child_1)
+
+        name = "Testtype Child 2"
+        description = "The description of child 2."
+        author_uri = "test_author_2"
+        agency_uri = "test_agency_2"
+        creation_time = UTCDateTime()
+        child_2 = ev_type.EventType(name = name,
+                                    description = description,
+                                    author_uri = author_uri,
+                                    agency_uri = agency_uri,
+                                    creation_time = creation_time)
+        root.add_child(child_2)
+        
+        
 
     def test_update_detection(self):
         ''' The the updating of existing detections.

@@ -30,7 +30,6 @@ Created on May 17, 2011
 '''
 import unittest
 import logging
-import os
 
 from obspy.core.utcdatetime import UTCDateTime
 
@@ -38,6 +37,7 @@ import mss_dataserver
 import mss_dataserver.event.core as ev_core
 from mss_dataserver.event.core import Event
 import mss_dataserver.event.detection as detection
+import mss_dataserver.event.event_type as ev_type
 import mss_dataserver.test.util as test_util
 
 
@@ -68,45 +68,101 @@ class EventTestCase(unittest.TestCase):
 
     def tearDown(self):
         pass
+        
 
-    def test_event_creation(self):
-        ''' Test the pSysmon Event class.
-        '''
-        # Test the control of None values of the time limits.
-        self.assertRaises(ValueError, Event,
-                          start_time = None,
-                          end_time = None)
-        self.assertRaises(ValueError, Event,
-                          start_time = '2000-01-01',
-                          end_time = None)
-        self.assertRaises(ValueError, Event,
-                          start_time = None,
-                          end_time = '2000-01-01')
-
-        # Test the control of the time limits.
-        self.assertRaises(ValueError, Event,
-                          start_time = '2000-01-01',
-                          end_time = '1999-01-01')
-        self.assertRaises(ValueError, Event,
-                          start_time = '2000-01-01',
-                          end_time = '2000-01-01')
-
-        # Create an event with valid time limits.
-        start_time = '2000-01-01T00:00:00'
-        end_time = '2000-01-01T01:00:00'
-        event = Event(start_time = start_time, end_time = end_time)
-        self.assertIsInstance(event, Event)
-        self.assertEqual(event.start_time, UTCDateTime(start_time))
-        self.assertEqual(event.end_time, UTCDateTime(end_time))
-        self.assertTrue(event.changed)
-
-    def test_event_type(self):
+    def test_write_event_type_to_database(self):
         ''' Test the event type handling.
         '''
-        start_time = '2000-01-01T00:00:00'
-        end_time = '2000-01-01T01:00:00'
-        event = Event(start_time = start_time, end_time = end_time)
-        print("event_type: {}".format(event.event_type))
+        # The event types in the database are build as a tree structure.
+        # 
+        # Add the event type root.
+        name = "Root"
+        description = "The description of the root event type."
+        author_uri = "test_author"
+        agency_uri = "test_agency"
+        creation_time = UTCDateTime()
+        root = ev_type.EventType(name = name,
+                                 description = description,
+                                 author_uri = author_uri,
+                                 agency_uri = agency_uri,
+                                 creation_time = creation_time)
+        
+        name = "Testtype Child 1"
+        description = "The description of child 1."
+        author_uri = "test_author_1"
+        agency_uri = "test_agency_1"
+        creation_time = UTCDateTime()
+        child_1 = ev_type.EventType(name = name,
+                                    description = description,
+                                    author_uri = author_uri,
+                                    agency_uri = agency_uri,
+                                    creation_time = creation_time)
+        root.add_child(child_1)
+
+        name = "Testtype Child 2"
+        description = "The description of child 2."
+        author_uri = "test_author_2"
+        agency_uri = "test_agency_2"
+        creation_time = UTCDateTime()
+        child_2 = ev_type.EventType(name = name,
+                                    description = description,
+                                    author_uri = author_uri,
+                                    agency_uri = agency_uri,
+                                    creation_time = creation_time)
+        root.add_child(child_2)
+
+        # Add a child to the child_2 event type.
+        name = "Testtype Child 2 - Child 1"
+        description = "The description of child 1 of child 2."
+        author_uri = "test_author_3"
+        agency_uri = "test_agency_3"
+        creation_time = UTCDateTime()
+        child_2_1 = ev_type.EventType(name = name,
+                                      description = description,
+                                      author_uri = author_uri,
+                                      agency_uri = agency_uri,
+                                      creation_time = creation_time)
+        child_2.add_child(child_2_1)
+
+        root.write_to_database(self.project)
+
+        # Test for the database ids.
+        self.assertIsNotNone(root.db_id)
+        self.assertIsNotNone(child_1.db_id)
+        self.assertIsNotNone(child_2.db_id)
+        self.assertIsNotNone(child_2_1.db_id)
+        self.assertEqual(child_1.parent.db_id,
+                         root.db_id)
+        self.assertEqual(child_2.parent.db_id,
+                         root.db_id)
+        self.assertEqual(child_2_1.parent.db_id,
+                         root.event_types[1].db_id)
+        
+        children = [child_1, child_2]
+
+        # Load the event type tree from the database.
+        roots = ev_type.EventType.load_from_db(project = self.project)
+        self.assertEqual(len(roots), 1)
+        self.assertIsInstance(roots[0], ev_type.EventType)
+        self.assertEqual(len(roots[0].event_types), 2)
+        for k, cur_child in enumerate(roots[0].event_types):
+            test_child = children[k]
+            self.assertIsInstance(cur_child, ev_type.EventType)
+            self.assertEqual(cur_child.parent,
+                             roots[0])
+            self.assertEqual(cur_child.name,
+                             test_child.name)
+            self.assertEqual(cur_child.description,
+                             test_child.description)
+
+        # Test for the children of child 2.
+        test_child = roots[0].event_types[1]
+        self.assertEqual(len(test_child.event_types), 1)
+        self.assertEqual(test_child.event_types[0].name,
+                         child_2_1.name)
+        self.assertEqual(test_child.event_types[0].parent,
+                         test_child)
+
 
     def test_update_detection(self):
         ''' The the updating of existing detections.
@@ -146,6 +202,7 @@ class EventTestCase(unittest.TestCase):
         res = event.has_detection([stat1, stat1, stat3])
         self.assertEqual(res, False)
 
+        
     def test_write_event_to_database(self):
         ''' Test the writing of an event to the database.
         '''
@@ -167,6 +224,61 @@ class EventTestCase(unittest.TestCase):
         self.assertEqual(tmp.start_time, event.start_time.timestamp)
         self.assertEqual(tmp.end_time, event.end_time.timestamp)
         self.assertEqual(tmp.creation_time, event.creation_time.isoformat())
+
+        
+    def test_add_event_type_to_event(self):
+        ''' Test the classification of an event.
+        '''
+        # Build the event types tree.
+        name = "Root"
+        description = "The description of the root event type."
+        author_uri = "test_author"
+        agency_uri = "test_agency"
+        creation_time = UTCDateTime()
+        root = ev_type.EventType(name = name,
+                                 description = description,
+                                 author_uri = author_uri,
+                                 agency_uri = agency_uri,
+                                 creation_time = creation_time)
+        
+        name = "Testtype Child 1"
+        description = "The description of child 1."
+        author_uri = "test_author_1"
+        agency_uri = "test_agency_1"
+        creation_time = UTCDateTime()
+        child_1 = ev_type.EventType(name = name,
+                                    description = description,
+                                    author_uri = author_uri,
+                                    agency_uri = agency_uri,
+                                    creation_time = creation_time)
+        root.add_child(child_1)
+        root.write_to_database(self.project)
+
+        # Create an event.
+        start_time = '2000-01-01T00:00:00'
+        end_time = '2000-01-01T01:00:00'
+        creation_time = UTCDateTime()
+        event = Event(start_time = start_time,
+                      end_time = end_time,
+                      creation_time = creation_time)
+        event.set_event_type(child_1)
+        event.write_to_database(self.project)
+
+        # Load the event from database.
+        db_event_orm = self.project.db_tables['event']
+        db_session = self.project.get_db_session()
+        result = db_session.query(db_event_orm).\
+            filter(db_event_orm.id == event.db_id).all()
+        self.assertEqual(len(result), 1)
+        tmp = result[0]
+        loaded_event = Event.from_orm(db_event = tmp,
+                                      inventory = self.project.inventory)
+        db_session.close()
+        self.assertIsInstance(loaded_event.event_type,
+                              ev_type.EventType)
+        self.assertEqual(loaded_event.event_type.name,
+                         child_1.name)
+        
 
     #@unittest.skip("temporary disabled")
     def test_add_detection_to_event(self):
