@@ -35,6 +35,7 @@ import warnings
 import obspy
 import obspy.core.utcdatetime as utcdatetime
 import mss_dataserver.event.detection as detection
+import mss_dataserver.event.event_type as ev_type
 
 #from profilehooks import profile
 
@@ -128,7 +129,6 @@ class Event(object):
 
         # The unique database id.
         self.db_id = db_id
-
 
         # The start time of the event.
         self.start_time = utcdatetime.UTCDateTime(start_time)
@@ -381,6 +381,20 @@ class Event(object):
             return True
         else:
             return False
+
+
+    def set_event_type(self, event_type):
+        ''' Set the event type.
+       
+        Parameters
+        ----------
+        event_type: :class:`mss_dataserver.event.event_type.EventType`
+            The event type to assign.
+        '''
+        if not isinstance(event_type, ev_type.EventType):
+            self.RuntimeError("Wrong event_type class.")
+        else:
+            self.event_type = event_type
         
 
     def assign_channel_to_detections(self, inventory):
@@ -424,6 +438,11 @@ class Event(object):
             else:
                 catalog_id = None
 
+            if self.event_type is not None:
+                event_type_id = self.event_type.db_id
+            else:
+                event_type_id = None
+
             db_session = project.get_db_session()
             try:
                 db_event_orm = project.db_tables['event']
@@ -434,7 +453,7 @@ class Event(object):
                                         pref_origin_id = None,
                                         pref_magnitude_id = None,
                                         pref_focmec_id = None,
-                                        ev_type_id = None,
+                                        ev_type_id = event_type_id,
                                         ev_type_certainty = self.event_type_certainty,
                                         description = self.description,
                                         agency_uri = self.agency_uri,
@@ -581,11 +600,17 @@ class Event(object):
             event_tags = db_event.tags.split(',')
         else:
             event_tags = []
+
+        if db_event.event_type is not None:
+            event_type = ev_type.EventType.from_orm(db_event.event_type)
+        else:
+            event_type = None
+            
         event = cls(start_time = db_event.start_time,
                     end_time = db_event.end_time,
                     db_id = db_event.id,
                     public_id = db_event.public_id,
-                    event_type = db_event.event_type,
+                    event_type = event_type,
                     event_type_certainty = db_event.ev_type_certainty,
                     description = db_event.description,
                     tags = event_tags,
