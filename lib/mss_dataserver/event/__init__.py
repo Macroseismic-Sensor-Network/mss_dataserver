@@ -33,6 +33,7 @@ Database change history.
 
 def databaseFactory(base):
     from sqlalchemy import Column
+    from sqlalchemy import Computed
     from sqlalchemy import Integer
     from sqlalchemy import String
     from sqlalchemy import Text
@@ -81,9 +82,9 @@ def databaseFactory(base):
     ###########################################################################
     # EVENT_TYPE table mapper class
     class EventTypeDb(base):
-        __tablename__  = 'event_type'
+        __tablename__ = 'event_type'
         __table_args__ = (
-                          UniqueConstraint('name'),
+                          UniqueConstraint('p_id_copy', 'name'),
                           {'mysql_engine': 'InnoDB'}
                          )
         _version = '1.0.0'
@@ -99,19 +100,29 @@ def databaseFactory(base):
         agency_uri = Column(String(255), nullable = True)
         author_uri = Column(String(255), nullable = True)
         creation_time = Column(String(30), nullable = True)
+        # Add a generated column to copy the parent_id column.
+        # This column is used for the unique constraint.
+        # A unique constraint with the parent_id column is not working
+        # because every NULL value is seen as a unique value.
+        # The p_id_copy column sets NULL values to 0 to ensure a
+        # working compound unique constraint (p_id_copy, name).
+        p_id_copy = Column(Integer,
+                           Computed("case when parent_id is NULL then 0 else parent_id end"))
 
         children = relationship('EventTypeDb',
                                 cascade = 'all',
                                 backref = backref('parent', remote_side = [id]))
 
 
-        def __init__(self, name, description, agency_uri,
-                     author_uri, creation_time):
+        def __init__(self, name, description = None,
+                     agency_uri = None, author_uri = None,
+                     creation_time = None, parent_id = None ):
             self.name = name
             self.description = description
             self.agency_uri = agency_uri
             self.author_uri = author_uri
             self.creation_time = creation_time
+            self.parent_id = parent_id
 
     tables.append(EventTypeDb)
 
