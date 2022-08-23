@@ -200,6 +200,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # The time interval [s] used to process the received data.
         self.process_interval = process_interval
 
+        # Run the mssds_postprocess command when exporting an event.
+        self.run_mssds_postprocess = True
+
         # The samples per second of the PGV data stream.
         self.pgv_sps = pgv_sps
 
@@ -1256,12 +1259,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.event_archive_changed.set()
 
         # Compute the geojson supplement data.
-        proc_result = subprocess.run(['mssds_postprocess',
-                                      config_filepath,
-                                      'process-event',
-                                      '--public-id',
-                                      export_event.public_id,
-                                      '--no-pgv-contour-sequence'])
+        if self.run_mssds_postprocess:
+            proc_result = subprocess.run(['mssds_postprocess',
+                                          config_filepath,
+                                          'process-event',
+                                          '--public-id',
+                                          export_event.public_id,
+                                          '--no-pgv-contour-sequence'])
 
         # Trim the event catalogs.
         self.trim_archive_catalogs(hours = self.event_archive_timespan)
