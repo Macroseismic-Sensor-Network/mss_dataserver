@@ -59,10 +59,16 @@ class Event(pydantic.BaseModel):
     max_pgv: PositiveFloat
     num_detections: PositiveInt
     triggered_stations: List[constr(regex=r'^\w{1,10}:\w{1,10}:\w{1,4}')]
+    event_class: Optional[constr(max_length=20)] = None
+    event_region: Optional[constr(max_length=20)] = None
+    event_class_mode: Optional[constr(max_length=20)] = None
+    magnitude: Optional[float] = None
     description: Optional[constr(max_length=255)] = None
     comment: Optional[constr(max_length=255)] = None
     state: Optional[constr(max_length=20)] = None
-
+    f_dom: Optional[float] = None
+    foreign_ie: Optional[constr(max_length=10)] = None
+    
 
 class MsgClassEnum(str, enum.Enum):
     ''' The websocket message class enumeration.

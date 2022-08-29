@@ -1811,10 +1811,31 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         with self.project_lock:
             events = self.project.get_events(start_time = request_start)
         cur_archive = {}
+
+        # Test event classification
+        quarry_blasts = ['mss_dsrt_2022-08-24T120921500000',
+                         'mss_dsrt_2022-08-24T115735500000',
+                         'mss_dsrt_2022-08-19T091407500000']
+        
         if len(events) > 0:
             for cur_event in events:
                 self.logger.info('public_id: %s', cur_event.public_id)
                 self.logger.info('triggered_stations: %s', cur_event.triggered_stations)
+                if cur_event.public_id in quarry_blasts:
+                    event_class = 'sprengung'
+                    event_region = 'dürnbach'
+                    event_class_mode = 'überprüft'
+                    magnitude = 1.8
+                    f_dom = None
+                    foreign_id = None
+                else:
+                    event_class = 'unbekannt'
+                    event_region = 'unbekannt'
+                    event_class_mode = 'automatisch'
+                    magnitude = None
+                    f_dom = None
+                    foreign_id = None
+                    
                 cur_archive_event = validation.Event(db_id = cur_event.db_id,
                                                      public_id = cur_event.public_id,
                                                      start_time = cur_event.start_time.isoformat(),
@@ -1825,7 +1846,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                      max_pgv = cur_event.max_pgv,
                                                      state = cur_event.detection_state,
                                                      num_detections = len(cur_event.detections),
-                                                     triggered_stations = cur_event.triggered_stations)
+                                                     triggered_stations = cur_event.triggered_stations,
+                                                     event_class = event_class,
+                                                     event_region = event_region,
+                                                     event_class_mode = event_class_mode,
+                                                     magnitude = magnitude,
+                                                     f_dom = f_dom,
+                                                     foreign_id = foreign_id)
 
                 cur_archive[cur_event.public_id] = cur_archive_event.dict()
 
