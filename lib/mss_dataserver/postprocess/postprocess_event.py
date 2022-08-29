@@ -38,6 +38,7 @@ import obspy
 import pyproj
 import shapely
 
+import mss_dataserver.classify.classifyer as mssds_classifyer
 import mss_dataserver.postprocess.util as util
 import mss_dataserver.postprocess.voronoi as voronoi
 
@@ -169,6 +170,7 @@ class EventPostProcessor(object):
         sorted_sa = [station_amp[row.nsl]['amp'] if row.nsl in station_amp.keys() else np.nan for index, row in df.iterrows()]
         df['sa'] = sorted_sa
 
+        
     def compute_pgv_df(self, meta):
         ''' Create a dataframe of pgv values with station coordinates.
 
@@ -228,8 +230,25 @@ class EventPostProcessor(object):
                               geometry = 'geom_stat')
 
         return df
+    
 
+    def classify_event(self):
+        ''' Classify the event.
 
+        '''
+        # Load the event metadata from the supplement file.
+        meta = self.meta
+
+        # Compute a PGV geodataframe using the event metadata.
+        pgv_df = self.compute_pgv_df(meta)
+
+        pub_id = self.event_public_id
+        classifyer = mssds_classifyer.EventClassifyer(public_id = pub_id,
+                                                      meta = self.meta,
+                                                      pgv_df = pgv_df)
+        classifyer.classify()
+
+    
     def compute_detection_data_df(self, trigger_data):
         ''' Compute the detection frames for a common time.
 
@@ -325,9 +344,9 @@ class EventPostProcessor(object):
 
         # Load the PGV data stream.
         pgv_stream = util.get_supplement_data(self.event_public_id,
-                                                  category = 'detectiondata',
-                                                  name = 'pgv',
-                                                  directory = self.supplement_dir)
+                                              category = 'detectiondata',
+                                              name = 'pgv',
+                                              directory = self.supplement_dir)
         #print(pgv_stream.__str__(extended=True))
         pgv_stream.merge()
 
