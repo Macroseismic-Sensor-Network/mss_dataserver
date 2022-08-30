@@ -116,10 +116,12 @@ def process_event(ctx, public_id, no_db, no_meta, no_isoseismal,
         logger.exception('Error initializing the EventPostProcessor.')
         sys.exit(-1)
 
-    #if pp.event is not None:
-    #    logger.info('Loaded event: %s.', pp.event.public_id)
-    #else:
-    #    logger.info('No event loaded.')
+    # Classify the event.
+    try:
+        logger.info('Running the event classification.')
+        pp.classify_event()
+    except Exception:
+        logger.exception('Error classifying the event.')
 
     # Compute the metadata supplement.
     if not no_meta:
