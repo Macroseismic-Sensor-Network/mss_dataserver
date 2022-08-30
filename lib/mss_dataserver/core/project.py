@@ -32,7 +32,6 @@ import logging
 import os
 
 import sqlalchemy
-import sqlalchemy.ext.declarative
 import sqlalchemy.orm
 
 import mss_dataserver.event as event
@@ -170,6 +169,16 @@ class Project(object):
         '''
         return self.db_inventory
 
+    @property
+    def is_connected_to_db(self):
+        ''' Flag indicating if a valid database connection exists.
+        '''
+        is_connected = False
+        if self.db_base is not None:
+            is_connected = True
+
+        return is_connected
+
 
     def connect_to_db(self):
         ''' Connect to the database.
@@ -193,7 +202,8 @@ class Project(object):
             self.db_engine = sqlalchemy.create_engine(engine_string)
             self.db_engine.echo = False
             self.db_metadata = sqlalchemy.MetaData(self.db_engine)
-            self.db_base = sqlalchemy.ext.declarative.declarative_base(metadata = self.db_metadata)
+            #self.db_base = sqlalchemy.ext.declarative.declarative_base(metadata = self.db_metadata)
+            self.db_base = sqlalchemy.orm.declarative_base(metadata = self.db_metadata)
             self.db_session_class = sqlalchemy.orm.sessionmaker(bind = self.db_engine)
         except Exception:
             logging.exception("Can't connect to the database.")
