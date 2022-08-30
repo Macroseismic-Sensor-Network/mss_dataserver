@@ -39,6 +39,7 @@ import pyproj
 import shapely
 
 import mss_dataserver.classify.classifyer as mssds_classifyer
+import mss_dataserver.event.event_type as ev_type
 import mss_dataserver.postprocess.util as util
 import mss_dataserver.postprocess.voronoi as voronoi
 
@@ -112,6 +113,7 @@ class EventPostProcessor(object):
                                                   directory = self.supplement_dir)
         return self._meta['metadata']
 
+
     def set_event(self, public_id):
         ''' Set the event to process.
 
@@ -120,7 +122,18 @@ class EventPostProcessor(object):
         public_id: str 
             The public id of the event.
         '''
-        #self.event = self.project.load_event_by_id(public_id = public_id)
+        if self.project.is_connected_to_db:
+            # Load the event from the database.
+            self.event = self.project.load_event_by_id(public_id = public_id)
+            if self.event is not None:
+                msg = 'Loaded the event {} from the database.'.format(self.event.public_id)
+                self.logger.info(msg)
+
+            # Load the event types tree from the database.
+            self.event_types = ev_type.EventType.load_from_db(project = self.project)
+            self.logger.debug('event_types: %s',
+                              [x.name for x in self.event_types])
+            
         self.event_public_id = public_id
         self._meta = None
         self._pgv_stream = None
@@ -245,7 +258,10 @@ class EventPostProcessor(object):
         pub_id = self.event_public_id
         classifyer = mssds_classifyer.EventClassifyer(public_id = pub_id,
                                                       meta = self.meta,
-                                                      pgv_df = pgv_df)
+                                                      pgv_df = pgv_df,
+                                                      project = self.project,
+                                                      event = self.event,
+                                                      event_types = self.event_types)
         classifyer.classify()
 
     
