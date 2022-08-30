@@ -1267,6 +1267,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                           export_event.public_id,
                                           '--no-pgv-contour-sequence'])
 
+        # TODO: Update the event based on the results of the post-processing.
+        # Load the event classification from the database.
+        # Load the localization results from the database
+        # Set the event_archive_changed flag after the post-processing.
+
         # Trim the event catalogs.
         self.trim_archive_catalogs(hours = self.event_archive_timespan)
 
@@ -1816,20 +1821,30 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         quarry_blasts = ['mss_dsrt_2022-08-24T120921500000',
                          'mss_dsrt_2022-08-24T115735500000',
                          'mss_dsrt_2022-08-19T091407500000']
+
+        translation = {'blast': 'sprengung',
+                       'earthquake': 'erdbeben',
+                       'noise': 'störsignal'}
         
         if len(events) > 0:
             for cur_event in events:
                 self.logger.info('public_id: %s', cur_event.public_id)
-                self.logger.info('triggered_stations: %s', cur_event.triggered_stations)
+                self.logger.info('triggered_stations: %s',
+                                 cur_event.triggered_stations)
+                
+                
+                if cur_event.event_type is not None:
+                    event_class = translation[cur_event.event_type.name]
+                else:
+                    event_class = 'unbekannt'
+
                 if cur_event.public_id in quarry_blasts:
-                    event_class = 'sprengung'
                     event_region = 'dürnbach'
                     event_class_mode = 'überprüft'
                     magnitude = 1.8
                     f_dom = None
                     foreign_id = None
                 else:
-                    event_class = 'unbekannt'
                     event_region = 'unbekannt'
                     event_class_mode = 'automatisch'
                     magnitude = None
