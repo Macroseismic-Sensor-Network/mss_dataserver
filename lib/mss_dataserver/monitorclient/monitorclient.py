@@ -1255,9 +1255,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.logger.info("Exporting the event data.")
         self.save_event_supplement(export_event)
 
-        # Set the event to notify that the archive has changes.
-        self.event_archive_changed.set()
-
         # Compute the geojson supplement data.
         if self.run_mssds_postprocess:
             proc_result = subprocess.run(['mssds_postprocess',
@@ -1267,13 +1264,23 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                           export_event.public_id,
                                           '--no-pgv-contour-sequence'])
 
-        # TODO: Update the event based on the results of the post-processing.
-        # Load the event classification from the database.
-        # Load the localization results from the database
-        # Set the event_archive_changed flag after the post-processing.
+        # Update the event based on the results of the post-processing.
+        # TODO: Load the localization results from the database
+        public_id = export_event.public_id
+        with self.project_lock:
+            reloaded_event = self.project.load_event_by_id(public_id = public_id)
+        if reloaded_event is not None:
+            # Remove the original event from the catalog.
+            cur_cat.remove_event(export_event)
+            # Add the reloaded event with attributes updated by
+            # the postprocessing to the catalog.
+            cur_cat.add_events([reloaded_event])
 
         # Trim the event catalogs.
         self.trim_archive_catalogs(hours = self.event_archive_timespan)
+
+        # Set the event to notify that the archive has changes.
+        self.event_archive_changed.set()
 
 
     def get_event_supplement_dir(self, public_id, category = None):
