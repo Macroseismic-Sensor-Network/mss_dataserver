@@ -139,8 +139,7 @@ class EventPostProcessor(object):
         self._pgv_stream = None
         self._detection_data = None
 
-
-
+        
     def load_network_boundary(self):
         ''' Load the boundary of the MSS network.
         '''
@@ -150,6 +149,7 @@ class EventPostProcessor(object):
                                          boundary_filename)
         return gpd.read_file(boundary_filepath)
 
+    
     def load_station_amplification(self):
         ''' Load the station amplification data.
         '''
@@ -203,7 +203,7 @@ class EventPostProcessor(object):
             cur_station = inventory.get_station(nsl_string = cur_nsl)[0]
             cur_pgv = meta['max_event_pgv'][cur_nsl]
             cur_trigger = True
-            cur_data = [cur_nsl, cur_station.x, cur_station.y,
+            cur_data = [cur_nsl, cur_station.x, cur_station.y, cur_station.z,
                         cur_station.x_utm, cur_station.y_utm,
                         cur_pgv, cur_trigger]
             pgv_data.append(cur_data)
@@ -212,7 +212,7 @@ class EventPostProcessor(object):
             cur_station = inventory.get_station(nsl_string = cur_nsl)[0]
             cur_pgv = meta['max_network_pgv'][cur_nsl]
             cur_trigger = False
-            cur_data = [cur_nsl, cur_station.x, cur_station.y,
+            cur_data = [cur_nsl, cur_station.x, cur_station.y, cur_station.z,
                         cur_station.x_utm, cur_station.y_utm,
                         cur_pgv, cur_trigger]
             pgv_data.append(cur_data)
@@ -221,22 +221,24 @@ class EventPostProcessor(object):
             cur_station = inventory.get_station(nsl_string = cur_nsl)[0]
             cur_pgv = None
             cur_trigger = False
-            cur_data = [cur_nsl, cur_station.x, cur_station.y,
+            cur_data = [cur_nsl, cur_station.x, cur_station.y, cur_station.z,
                         cur_station.x_utm, cur_station.y_utm,
                         cur_pgv, cur_trigger]
             pgv_data.append(cur_data)
 
         x_coord = [x[1] for x in pgv_data]
         y_coord = [x[2] for x in pgv_data]
+        z_coord = [x[3] for x in pgv_data]
         pgv_data = {'geom_stat': [shapely.geometry.Point([x[0], x[1]]) for x in zip(x_coord, y_coord)],
                     'geom_vor': [shapely.geometry.Polygon([])] * len(pgv_data),
                     'nsl': [x[0] for x in pgv_data],
                     'x': x_coord,
                     'y': y_coord,
-                    'x_utm': [x[3] for x in pgv_data],
-                    'y_utm': [x[4] for x in pgv_data],
-                    'pgv': [x[5] for x in pgv_data],
-                    'triggered': [x[6] for x in pgv_data]}
+                    'z': z_coord,
+                    'x_utm': [x[4] for x in pgv_data],
+                    'y_utm': [x[5] for x in pgv_data],
+                    'pgv': [x[6] for x in pgv_data],
+                    'triggered': [x[7] for x in pgv_data]}
 
         df = gpd.GeoDataFrame(data = pgv_data,
                               crs = 'epsg:4326',
