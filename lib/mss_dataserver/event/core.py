@@ -705,6 +705,19 @@ class Catalog(object):
         self.events.extend(events)
 
 
+    def remove_event(self, event):
+        ''' Remove an event from the catalog.
+        
+        Parameters
+        ----------
+        event : :class: `Event`
+            The event to remove from the catalog.
+        '''
+        if event in self.events:
+            self.events.remove(event)
+            event.parent = None
+
+
     def get_events(self, start_time = None, end_time = None, **kwargs):
         ''' Get events using search criteria passed as keywords.
 
