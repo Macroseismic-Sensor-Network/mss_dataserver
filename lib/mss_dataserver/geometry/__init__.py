@@ -383,7 +383,8 @@ def databaseFactory(base):
         creation_time = Column(String(30))
 
         channels = relationship('GeomChannel')
-        arrays = relationship('GeomStatToArray')
+        arrays = relationship('GeomStatToArray',
+                              viewonly = True)
 
 
         def __init__(self, name, location, x, y, z, coord_system,
