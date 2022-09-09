@@ -193,9 +193,6 @@ class Event(object):
         # The preferred origin of the event.
         self.pref_origin = None
 
-        # The magnitudes of the event.
-        self.magnitudes = []
-
 
     @property
     def rid(self):
@@ -536,7 +533,6 @@ class Event(object):
 
                 # Update the preferred origin id of the event.
                 if self.preferred_origin is not None:
-                    print("Updating the pref_origin_id.")
                     pref_origin_id = self.preferred_origin.db_id
                     db_event.pref_origin_id = pref_origin_id
 
