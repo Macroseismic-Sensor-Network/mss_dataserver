@@ -38,6 +38,8 @@ import obspy
 import pyproj
 import shapely
 
+import mss_dataserver.classify.classifyer as mssds_classifyer
+import mss_dataserver.event.event_type as ev_type
 import mss_dataserver.postprocess.util as util
 import mss_dataserver.postprocess.voronoi as voronoi
 
@@ -111,6 +113,7 @@ class EventPostProcessor(object):
                                                   directory = self.supplement_dir)
         return self._meta['metadata']
 
+
     def set_event(self, public_id):
         ''' Set the event to process.
 
@@ -119,14 +122,24 @@ class EventPostProcessor(object):
         public_id: str 
             The public id of the event.
         '''
-        #self.event = self.project.load_event_by_id(public_id = public_id)
+        if self.project.is_connected_to_db:
+            # Load the event from the database.
+            self.event = self.project.load_event_by_id(public_id = public_id)
+            if self.event is not None:
+                msg = 'Loaded the event {} from the database.'.format(self.event.public_id)
+                self.logger.info(msg)
+
+            # Load the event types tree from the database.
+            self.event_types = ev_type.EventType.load_from_db(project = self.project)
+            self.logger.debug('event_types: %s',
+                              [x.name for x in self.event_types])
+            
         self.event_public_id = public_id
         self._meta = None
         self._pgv_stream = None
         self._detection_data = None
 
-
-
+        
     def load_network_boundary(self):
         ''' Load the boundary of the MSS network.
         '''
@@ -136,6 +149,7 @@ class EventPostProcessor(object):
                                          boundary_filename)
         return gpd.read_file(boundary_filepath)
 
+    
     def load_station_amplification(self):
         ''' Load the station amplification data.
         '''
@@ -169,6 +183,7 @@ class EventPostProcessor(object):
         sorted_sa = [station_amp[row.nsl]['amp'] if row.nsl in station_amp.keys() else np.nan for index, row in df.iterrows()]
         df['sa'] = sorted_sa
 
+        
     def compute_pgv_df(self, meta):
         ''' Create a dataframe of pgv values with station coordinates.
 
@@ -188,7 +203,7 @@ class EventPostProcessor(object):
             cur_station = inventory.get_station(nsl_string = cur_nsl)[0]
             cur_pgv = meta['max_event_pgv'][cur_nsl]
             cur_trigger = True
-            cur_data = [cur_nsl, cur_station.x, cur_station.y,
+            cur_data = [cur_nsl, cur_station.x, cur_station.y, cur_station.z,
                         cur_station.x_utm, cur_station.y_utm,
                         cur_pgv, cur_trigger]
             pgv_data.append(cur_data)
@@ -197,7 +212,7 @@ class EventPostProcessor(object):
             cur_station = inventory.get_station(nsl_string = cur_nsl)[0]
             cur_pgv = meta['max_network_pgv'][cur_nsl]
             cur_trigger = False
-            cur_data = [cur_nsl, cur_station.x, cur_station.y,
+            cur_data = [cur_nsl, cur_station.x, cur_station.y, cur_station.z,
                         cur_station.x_utm, cur_station.y_utm,
                         cur_pgv, cur_trigger]
             pgv_data.append(cur_data)
@@ -206,30 +221,52 @@ class EventPostProcessor(object):
             cur_station = inventory.get_station(nsl_string = cur_nsl)[0]
             cur_pgv = None
             cur_trigger = False
-            cur_data = [cur_nsl, cur_station.x, cur_station.y,
+            cur_data = [cur_nsl, cur_station.x, cur_station.y, cur_station.z,
                         cur_station.x_utm, cur_station.y_utm,
                         cur_pgv, cur_trigger]
             pgv_data.append(cur_data)
 
         x_coord = [x[1] for x in pgv_data]
         y_coord = [x[2] for x in pgv_data]
+        z_coord = [x[3] for x in pgv_data]
         pgv_data = {'geom_stat': [shapely.geometry.Point([x[0], x[1]]) for x in zip(x_coord, y_coord)],
                     'geom_vor': [shapely.geometry.Polygon([])] * len(pgv_data),
                     'nsl': [x[0] for x in pgv_data],
                     'x': x_coord,
                     'y': y_coord,
-                    'x_utm': [x[3] for x in pgv_data],
-                    'y_utm': [x[4] for x in pgv_data],
-                    'pgv': [x[5] for x in pgv_data],
-                    'triggered': [x[6] for x in pgv_data]}
+                    'z': z_coord,
+                    'x_utm': [x[4] for x in pgv_data],
+                    'y_utm': [x[5] for x in pgv_data],
+                    'pgv': [x[6] for x in pgv_data],
+                    'triggered': [x[7] for x in pgv_data]}
 
         df = gpd.GeoDataFrame(data = pgv_data,
                               crs = 'epsg:4326',
                               geometry = 'geom_stat')
 
         return df
+    
 
+    def classify_event(self):
+        ''' Classify the event.
 
+        '''
+        # Load the event metadata from the supplement file.
+        meta = self.meta
+
+        # Compute a PGV geodataframe using the event metadata.
+        pgv_df = self.compute_pgv_df(meta)
+
+        pub_id = self.event_public_id
+        classifyer = mssds_classifyer.EventClassifyer(public_id = pub_id,
+                                                      meta = self.meta,
+                                                      pgv_df = pgv_df,
+                                                      project = self.project,
+                                                      event = self.event,
+                                                      event_types = self.event_types)
+        classifyer.classify()
+
+    
     def compute_detection_data_df(self, trigger_data):
         ''' Compute the detection frames for a common time.
 
@@ -325,9 +362,9 @@ class EventPostProcessor(object):
 
         # Load the PGV data stream.
         pgv_stream = util.get_supplement_data(self.event_public_id,
-                                                  category = 'detectiondata',
-                                                  name = 'pgv',
-                                                  directory = self.supplement_dir)
+                                              category = 'detectiondata',
+                                              name = 'pgv',
+                                              directory = self.supplement_dir)
         #print(pgv_stream.__str__(extended=True))
         pgv_stream.merge()
 

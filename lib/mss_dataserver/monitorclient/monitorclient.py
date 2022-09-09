@@ -200,6 +200,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # The time interval [s] used to process the received data.
         self.process_interval = process_interval
 
+        # Run the mssds_postprocess command when exporting an event.
+        self.run_mssds_postprocess = True
+
         # The samples per second of the PGV data stream.
         self.pgv_sps = pgv_sps
 
@@ -1252,19 +1255,32 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.logger.info("Exporting the event data.")
         self.save_event_supplement(export_event)
 
-        # Set the event to notify that the archive has changes.
-        self.event_archive_changed.set()
-
         # Compute the geojson supplement data.
-        proc_result = subprocess.run(['mssds_postprocess',
-                                      config_filepath,
-                                      'process-event',
-                                      '--public-id',
-                                      export_event.public_id,
-                                      '--no-pgv-contour-sequence'])
+        if self.run_mssds_postprocess:
+            proc_result = subprocess.run(['mssds_postprocess',
+                                          config_filepath,
+                                          'process-event',
+                                          '--public-id',
+                                          export_event.public_id,
+                                          '--no-pgv-contour-sequence'])
+
+        # Update the event based on the results of the post-processing.
+        # TODO: Load the localization results from the database
+        public_id = export_event.public_id
+        with self.project_lock:
+            reloaded_event = self.project.load_event_by_id(public_id = public_id)
+        if reloaded_event is not None:
+            # Remove the original event from the catalog.
+            cur_cat.remove_event(export_event)
+            # Add the reloaded event with attributes updated by
+            # the postprocessing to the catalog.
+            cur_cat.add_events([reloaded_event])
 
         # Trim the event catalogs.
         self.trim_archive_catalogs(hours = self.event_archive_timespan)
+
+        # Set the event to notify that the archive has changes.
+        self.event_archive_changed.set()
 
 
     def get_event_supplement_dir(self, public_id, category = None):
@@ -1807,10 +1823,41 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         with self.project_lock:
             events = self.project.get_events(start_time = request_start)
         cur_archive = {}
+
+        # Test event classification
+        quarry_blasts = ['mss_dsrt_2022-08-24T120921500000',
+                         'mss_dsrt_2022-08-24T115735500000',
+                         'mss_dsrt_2022-08-19T091407500000']
+
+        translation = {'blast': 'sprengung',
+                       'earthquake': 'erdbeben',
+                       'noise': 'störsignal'}
+        
         if len(events) > 0:
             for cur_event in events:
                 self.logger.info('public_id: %s', cur_event.public_id)
-                self.logger.info('triggered_stations: %s', cur_event.triggered_stations)
+                self.logger.info('triggered_stations: %s',
+                                 cur_event.triggered_stations)
+                
+                
+                if cur_event.event_type is not None:
+                    event_class = translation[cur_event.event_type.name]
+                else:
+                    event_class = 'unbekannt'
+
+                if cur_event.public_id in quarry_blasts:
+                    event_region = 'dürnbach'
+                    event_class_mode = 'überprüft'
+                    magnitude = 1.8
+                    f_dom = None
+                    foreign_id = None
+                else:
+                    event_region = 'unbekannt'
+                    event_class_mode = 'automatisch'
+                    magnitude = None
+                    f_dom = None
+                    foreign_id = None
+                    
                 cur_archive_event = validation.Event(db_id = cur_event.db_id,
                                                      public_id = cur_event.public_id,
                                                      start_time = cur_event.start_time.isoformat(),
@@ -1821,7 +1868,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                      max_pgv = cur_event.max_pgv,
                                                      state = cur_event.detection_state,
                                                      num_detections = len(cur_event.detections),
-                                                     triggered_stations = cur_event.triggered_stations)
+                                                     triggered_stations = cur_event.triggered_stations,
+                                                     event_class = event_class,
+                                                     event_region = event_region,
+                                                     event_class_mode = event_class_mode,
+                                                     magnitude = magnitude,
+                                                     f_dom = f_dom,
+                                                     foreign_id = foreign_id)
 
                 cur_archive[cur_event.public_id] = cur_archive_event.dict()
 

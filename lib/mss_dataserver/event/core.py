@@ -114,6 +114,9 @@ class Event(object):
         ''' Instance initialization
 
         '''
+        logger_name = __name__ + "." + self.__class__.__name__
+        self.logger = logging.getLogger(logger_name)
+        
         # Check for correct input arguments.
         # Check for None values in the event limits.
         if start_time is None or end_time is None:
@@ -426,23 +429,23 @@ class Event(object):
         project: :class:`mss_dataserver.core.project.Project`
             The project to use to access the database.
         '''
+        if self.parent is not None:
+            catalog_id = self.parent.db_id
+        else:
+            catalog_id = None
+
+        if self.event_type is not None:
+            event_type_id = self.event_type.db_id
+        else:
+            event_type_id = None
+
+        if self.creation_time is not None:
+            creation_time = self.creation_time.isoformat()
+        else:
+            creation_time = None
+                
         if self.db_id is None:
             # If the db_id is None, insert a new event.
-            if self.creation_time is not None:
-                creation_time = self.creation_time.isoformat()
-            else:
-                creation_time = None
-
-            if self.parent is not None:
-                catalog_id = self.parent.db_id
-            else:
-                catalog_id = None
-
-            if self.event_type is not None:
-                event_type_id = self.event_type.db_id
-            else:
-                event_type_id = None
-
             db_session = project.get_db_session()
             try:
                 db_event_orm = project.db_tables['event']
@@ -456,6 +459,7 @@ class Event(object):
                                         ev_type_id = event_type_id,
                                         ev_type_certainty = self.event_type_certainty,
                                         description = self.description,
+                                        tags = ','.join(self.tags),
                                         agency_uri = self.agency_uri,
                                         author_uri = self.author_uri,
                                         creation_time = creation_time)
@@ -488,26 +492,21 @@ class Event(object):
                 db_event_orm = project.db_tables['event']
                 query = db_session.query(db_event_orm).filter(db_event_orm.id == self.db_id)
                 if db_session.query(query.exists()):
+                    self.logger.debug('event_type_id: %s', event_type_id)
                     db_event = query.scalar()
-                    if self.parent is not None:
-                        db_event.ev_catalog_id = self.parent.db_id
-                    else:
-                        db_event.ev_catalog_id = None
+                    db_event.ev_catalog_id = catalog_id
                     db_event.start_time = self.start_time.timestamp
                     db_event.end_time = self.end_time.timestamp
                     db_event.public_id = self.public_id
                     #db_event.pref_origin_id = self.pref_origin_id
                     #db_event.pref_magnitude_id = self.pref_magnitude_id
                     #db_event.pref_focmec_id = self.pref_focmec_id
-                    db_event.ev_type = self.event_type
+                    db_event.ev_type_id = event_type_id
                     db_event.ev_type_certainty = self.event_type_certainty
                     db_event.tags = ','.join(self.tags)
                     db_event.agency_uri = self.agency_uri
                     db_event.author_uri = self.author_uri
-                    if self.creation_time is not None:
-                        db_event.creation_time = self.creation_time.isoformat()
-                    else:
-                        db_event.creation_time = None
+                    db_event.creation_time = creation_time
 
                     # TODO: Add the handling of changed detections assigned to this
                     # event.
@@ -704,6 +703,19 @@ class Catalog(object):
         for cur_event in events:
             cur_event.parent = self
         self.events.extend(events)
+
+
+    def remove_event(self, event):
+        ''' Remove an event from the catalog.
+        
+        Parameters
+        ----------
+        event : :class: `Event`
+            The event to remove from the catalog.
+        '''
+        if event in self.events:
+            self.events.remove(event)
+            event.parent = None
 
 
     def get_events(self, start_time = None, end_time = None, **kwargs):
@@ -1052,6 +1064,23 @@ class Library(object):
         else:
             return None
 
+        
+    def get_catalog_by_id(self, cat_id):
+        ''' Get a catalog by the database id.
+        '''
+        ret_cat = [x for x in self.catalogs.values() if x.db_id == cat_id]
+        if len(ret_cat) == 0:
+            ret_cat = None
+        elif len(ret_cat) == 1:
+            ret_cat = ret_cat[0]
+        else:
+            cat_names = [x.name for x in ret_cat]
+            msg = 'Multiple events returned with the same id {:d}: {}'.format(cat_id,
+                                                                              cat_names)
+            self.logger.error(msg)
+        return ret_cat
+    
+
     def clear(self):
         ''' Remove all catalogs.
         '''
@@ -1084,7 +1113,8 @@ class Library(object):
         return catalog_names
 
 
-    def load_catalog_from_db(self, project, name, load_events = False):
+    def load_catalog_from_db(self, project, name = None, cat_id = None,
+                             load_events = False):
         ''' Load catalogs from the database.
 
         Parameters
@@ -1095,6 +1125,9 @@ class Library(object):
         name : :obj:`str` of :obj:`list` of :obj:`str`
             The name of the catalog to load from the database.
 
+        cat_id: int
+            The database id of the catalog to load.
+
         load_events: bool
             Load the events from the database.
         '''
@@ -1104,7 +1137,13 @@ class Library(object):
         db_session = project.get_db_session()
         try:
             db_catalog_orm = project.db_tables['event_catalog']
-            query = db_session.query(db_catalog_orm).filter(db_catalog_orm.name.in_(name))
+            query = db_session.query(db_catalog_orm)
+            if name is not None:
+                query = query.filter(db_catalog_orm.name.in_(name))
+
+            if cat_id is not None:
+                query = query.filter(db_catalog_orm.id == cat_id)
+                
             if db_session.query(query.exists()):
                 for cur_db_catalog in query:
                     cur_catalog = Catalog.from_orm(db_catalog = cur_db_catalog,
@@ -1155,8 +1194,19 @@ class Library(object):
                 try:
                     cur_event = Event.from_orm(db_event = cur_orm,
                                                inventory = project.db_inventory)
+                    # Get the parent catalog of the event.
+                    cat_id = cur_orm.ev_catalog_id
+                    if cat_id is not None:
+                        # Load the required catalog from the database to the library.
+                        self.load_catalog_from_db(cat_id = cat_id,
+                                                  project = project)
+                        # Get the catalog from the library.
+                        parent_cat = self.get_catalog_by_id(cat_id = cat_id)
+                        # Set the parent catalog of the event.
+                        cur_event.parent = parent_cat
+                        
                     found_events.append(cur_event)
-                except:
+                except Exception:
                     self.logger.exception("Error when creating an event object from database values for event %d. Skipping this event.", cur_orm.id)
         finally:
             db_session.close()
