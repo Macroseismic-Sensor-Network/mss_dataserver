@@ -139,10 +139,10 @@ def databaseFactory(base):
 
         id = Column(Integer, primary_key = True, autoincrement = True)
         ev_catalog_id = Column(Integer,
-                             ForeignKey('event_catalog.id',
-                                        onupdate = 'cascade',
-                                        ondelete = 'set null'),
-                             nullable = True)
+                               ForeignKey('event_catalog.id',
+                                          onupdate = 'cascade',
+                                          ondelete = 'set null'),
+                               nullable = True)
         start_time = Column(Float(53), nullable = False)
         end_time = Column(Float(53), nullable = False)
         public_id = Column(String(255), nullable = True)
@@ -155,8 +155,25 @@ def databaseFactory(base):
                                        ondelete = 'set null'),
                             nullable = True)
         ev_type_certainty = Column(String(50), nullable = True)
-        pref_origin_id = Column(Integer, nullable = True)
-        pref_magnitude_id = Column(Integer, nullable = True)
+        pref_origin_id = Column(Integer,
+                                nullable = True)
+        pref_magnitude_id = Column(Integer,
+                                   nullable = True)
+        
+        # TODO: Try to find a solution to add foreign key relationships
+        # for the pref_origin and pref_mag.
+        #pref_origin_id = Column(Integer,
+        #                        ForeignKey('origin.id',
+        #                                   onupdate = 'cascade',
+        #                                   ondelete = 'set null'),
+        #                        nullable = True)
+        #pref_magnitude_id = Column(Integer,
+        #                           ForeignKey('magnitude.id',
+        #                                      onupdate = 'cascade',
+        #                                      ondelete = 'set null',
+        #                                      name = 'fk_pref_mag'),
+        #                           nullable = True)
+        
         pref_focmec_id = Column(Integer, nullable = True)
         agency_uri = Column(String(255), nullable = True)
         author_uri = Column(String(255), nullable = True)
@@ -164,12 +181,24 @@ def databaseFactory(base):
 
         detections = relationship('DetectionToEventDb')
         event_type = relationship('EventTypeDb')
+        origins = relationship('Origin',
+                               back_populates = 'event')
+        
+        # TODO: Try to find a solution to add foreign key relationships
+        # for the pref_origin and pref_mag.
+        #pref_origin = relationship('Origin',
+        #                           foreign_keys = [pref_origin_id],
+        #                           post_update = True)
+        #pref_magnitude = relationship('Magnitude',
+        #                              foreign_keys = [pref_magnitude_id],
+        #                              post_update = True)
 
         def __init__(self, ev_catalog_id, start_time, end_time,
                      agency_uri, author_uri, creation_time,
                      public_id = None, description = None, comment = None,
                      tags = None, ev_type_id = None, ev_type_certainty = None,
-                     pref_origin_id = None, pref_magnitude_id = None, pref_focmec_id = None):
+                     pref_origin_id = None, pref_magnitude_id = None,
+                     pref_focmec_id = None):
             self.ev_catalog_id = ev_catalog_id
             self.start_time = start_time
             self.end_time = end_time
