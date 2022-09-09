@@ -22,15 +22,15 @@
 #
 # Copyright 2022 Stefan Mertl
 ##############################################################################
-''' Handling of event types.
+''' 
 
 '''
-
 import obspy
 
+import mss_dataserver.localize.magnitude as mssds_mag
 
 class Origin(object):
-    ''' A type of an event.
+    ''' Anevent origin.
 
     '''
     def __init__(self, time, x, y, z, coord_system, method,
@@ -77,12 +77,50 @@ class Origin(object):
             creation_time = obspy.UTCDateTime()
         self.creation_time = obspy.UTCDateTime(creation_time)
 
+        # The magnitudes related to the origin.
+        self.magnitudes = []
+
+        # The preferred magnitude of the origin.
+        self.pref_magnitude = None
+
 
     @property
     def rid(self):
         ''' str: The resource ID of the event type.
         '''
-        return '/origin/' + self.name
+        return '/origin/' + self.db_id
+
+
+    def add_magnitude(self, mag):
+        ''' Add a magnitude to the origin.
+
+        Parameters
+        ----------
+        mag: :class:`mss_dataserver.localize.magnitude.Magnitude` or :obj:`list` of :class:`mss_dataserver.localize.magnitude.Magnitude`
+            The magnitude or a list of magnitudes to add.
+        '''
+        if type(mag) is list:
+            self.magnitudes.extend(mag)
+            for cur_mag in mag:
+                cur_mag.parent = self
+        else:
+            self.magnitudes.append(mag)
+            mag.parent = self
+
+            
+    def set_preferred_magnitude(self, mag):
+        ''' Set the preferred magnitude.
+        
+        Parameters
+        ----------
+        mag: :class:`mss_dataserver.localize.magnitude.Magnitude`
+            The preferred magnitude.
+        '''
+        if mag not in self.magnitudes:
+            self.logger.error("The preferred magnitude is not available in the origin magnitudes.")
+            return
+
+        self.pref_magnitude = mag
 
     
     def write_to_database(self, project, db_session = None,
@@ -126,6 +164,21 @@ class Origin(object):
                 db_session.add(db_origin)
                 db_session.commit()
                 self.db_id = db_origin.id
+
+                # Add the magnitudes to the database.
+                # This updates the db_id of the magnitudes.
+                if len(self.magnitudes) > 0:
+                    for cur_mag in self.magnitudes:
+                        cur_mag.write_to_database(project = project,
+                                                  db_session = db_session,
+                                                  close_session = False)
+
+                # Update the preferred magnitude id of the origin.
+                if self.pref_magnitude:
+                    pref_mag_id = self.pref_magnitude.db_id
+                    db_origin.pref_magnitude_id = pref_mag_id
+
+                db_session.commit()
             finally:
                 if close_session:
                     db_session.close()
@@ -158,4 +211,19 @@ class Origin(object):
                      author_uri = db_origin.author_uri,
                      creation_time = db_origin.creation_time)
 
-        return origin   
+        # Add the magnitudes to the origin.
+        assigned_mags = [mssds_mag.Magnitude.from_orm(x) for x in db_origin.magnitudes]
+        origin.add_magnitude(mag = assigned_mags)
+
+        # Set the preferred magnitude.
+        if db_origin.pref_magnitude_id is not None:
+            pmid = db_origin.pref_magnitude_id
+            pref_mag = [x for x in assigned_mags if x.db_id == pmid]
+            if len(pref_mag) == 1:
+                pref_mag = pref_mag[0]
+                origin.set_preferred_magnitude(mag = pref_mag)
+            elif len(pref_mag) > 1:
+                cls.logger.error("Multiple magnitudes returned for id %d.",
+                                 pmid)
+
+        return origin
