@@ -64,6 +64,8 @@ def databaseFactory(base):
                         nullable = False)
         comment = Column(String(255),
                          nullable = True)
+        pref_magnitude_id = Column(Integer,
+                                   nullable = True)
         agency_uri = Column(String(20),
                             nullable = True)
         author_uri = Column(String(20),
@@ -78,6 +80,7 @@ def databaseFactory(base):
 
         def __init__(self, event_id, time, x, y, z,
                      coord_system, method, comment = None,
+                     pref_magnitude_id = None,
                      agency_uri = None, author_uri = None,
                      creation_time = None):
             self.ev_id = event_id
@@ -88,6 +91,7 @@ def databaseFactory(base):
             self.coord_system = coord_system
             self.method = method
             self.comment = comment
+            self.pref_magnitude_id = pref_magnitude_id
             self.agency_uri = agency_uri
             self.author_uri = author_uri
             self.creation_time = creation_time
