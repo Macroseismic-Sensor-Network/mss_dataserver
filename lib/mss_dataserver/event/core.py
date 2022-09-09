@@ -36,6 +36,7 @@ import obspy
 import obspy.core.utcdatetime as utcdatetime
 import mss_dataserver.event.detection as detection
 import mss_dataserver.event.event_type as ev_type
+import mss_dataserver.localize.origin as mssds_origin
 
 #from profilehooks import profile
 
@@ -110,7 +111,7 @@ class Event(object):
     def __init__(self, start_time, end_time, db_id = None, public_id = None, event_type = None,
             event_type_certainty = None, description = None, comment = None,
             tags = [], agency_uri = None, author_uri = None, creation_time = None,
-            parent = None, changed = True, detections = None):
+                 parent = None, changed = True, detections = None):
         ''' Instance initialization
 
         '''
@@ -185,6 +186,15 @@ class Event(object):
 
         # The unique public id.
         self._public_id = public_id
+
+        # The origins of the event.
+        self.origins = []
+
+        # The preferred origin of the event.
+        self.pref_origin = None
+
+        # The magnitudes of the event.
+        self.magnitudes = []
 
 
     @property
@@ -385,6 +395,39 @@ class Event(object):
         else:
             return False
 
+        
+    def add_origin(self, origin):
+        ''' Add an origin to the event.
+
+        Parameters
+        ----------
+        origin: :class:`mss_dataserver.localize.origin.Origin` or :obj:`list` of :class:`mss_dataserver.localize.origin.Origin`
+            The origin or a list of origins to add.
+        '''
+        if type(origin) is list:
+            self.origins.extend(origin)
+            for cur_origin in origin:
+                cur_origin.parent = self
+        else:
+            self.origins.append(origin)
+            origin.parent = self
+
+
+    def set_preferred_origin(self, origin):
+        ''' Set the preferred origin.
+
+        Parameters
+        ----------
+        origin: :class:`mss_dataserver.localize.origin.Origin`
+            The preferred origin of the event.
+
+        '''
+        if origin not in self.origins:
+            self.logger.Error("The preferred origin is not available in the event origins.")
+            return
+
+        self.preferred_origin = origin
+
 
     def set_event_type(self, event_type):
         ''' Set the event type.
@@ -469,18 +512,34 @@ class Event(object):
                 db_session.commit()
                 self.db_id = db_event.id
 
-                # Add the detections to the event. Do this after the event got an
-                # id.
+                # Add the detections to the event. Do this after the event
+                # got an id.
                 if len(self.detections) > 0:
                     # Load the detection_orms from the database.
                     detection_table = project.db_tables['detection']
                     d2e_orm_class = project.db_tables['detection_to_event']
+                    id_filter = [x.db_id for x in self.detections]
                     query = db_session.query(detection_table).\
-                            filter(detection_table.id.in_([x.db_id for x in self.detections]))
+                        filter(detection_table.id.in_(id_filter))
                     for cur_detection_orm in query:
                         d2e_orm = d2e_orm_class(ev_id = self.db_id,
                                                 det_id = cur_detection_orm.id)
                         db_event.detections.append(d2e_orm)
+
+                # Add the origins of the event to the database.
+                # This updated the db_id of the origins.
+                if len(self.origins) > 0:
+                    for cur_origin in self.origins:
+                        cur_origin.write_to_database(project = project,
+                                                     db_session = db_session,
+                                                     close_session = False)
+
+                # Update the preferred origin id of the event.
+                if self.preferred_origin is not None:
+                    print("Updating the pref_origin_id.")
+                    pref_origin_id = self.preferred_origin.db_id
+                    db_event.pref_origin_id = pref_origin_id
+
                 db_session.commit()
                 self.changed = False
             finally:
@@ -498,7 +557,7 @@ class Event(object):
                     db_event.start_time = self.start_time.timestamp
                     db_event.end_time = self.end_time.timestamp
                     db_event.public_id = self.public_id
-                    #db_event.pref_origin_id = self.pref_origin_id
+                    db_event.pref_origin_id = pref_origin_id
                     #db_event.pref_magnitude_id = self.pref_magnitude_id
                     #db_event.pref_focmec_id = self.pref_focmec_id
                     db_event.ev_type_id = event_type_id
@@ -508,8 +567,11 @@ class Event(object):
                     db_event.author_uri = self.author_uri
                     db_event.creation_time = creation_time
 
-                    # TODO: Add the handling of changed detections assigned to this
-                    # event.
+                    # TODO: Add the handling of changed detections assigned to
+                    # the event.
+
+                    # TODO: Add the handling of changed origins assigned to
+                    # the event.
 
                     db_session.commit()
                     self.changed = False
@@ -604,7 +666,8 @@ class Event(object):
             event_type = ev_type.EventType.from_orm(db_event.event_type)
         else:
             event_type = None
-            
+
+        assigned_detections = [detection.Detection.from_orm(x.detection, inventory) for x in db_event.detections]
         event = cls(start_time = db_event.start_time,
                     end_time = db_event.end_time,
                     db_id = db_event.id,
@@ -616,9 +679,24 @@ class Event(object):
                     agency_uri = db_event.agency_uri,
                     author_uri = db_event.author_uri,
                     creation_time = db_event.creation_time,
-                    detections = [detection.Detection.from_orm(x.detection, inventory) for x in db_event.detections],
-                    changed = False
-                    )
+                    detections = assigned_detections,
+                    changed = False)
+
+        # Add the origins to the event.
+        assigned_origins = [mssds_origin.Origin.from_orm(x) for x in db_event.origins]
+        event.add_origin(assigned_origins)
+
+        # Set the preferred origin.
+        if db_event.pref_origin_id is not None:
+            poid = db_event.pref_origin_id
+            pref_origin = [x for x in assigned_origins if x.db_id == poid]
+            if len(pref_origin) == 1:
+                pref_origin = pref_origin[0]
+                event.set_preferred_origin(pref_origin)
+            elif len(pref_origin) > 1:
+                cls.logger.error("Multiple event origins returned for id %d.",
+                                 poid)
+
         return event
 
 
