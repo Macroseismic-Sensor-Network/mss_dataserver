@@ -37,6 +37,7 @@ import sqlalchemy.orm
 import mss_dataserver.event as event
 import mss_dataserver.event.core
 import mss_dataserver.geometry as geometry
+import mss_dataserver.localize as localize
 import mss_dataserver.core.database_util as db_util
 import mss_dataserver.geometry.inventory_parser as inventory_parser
 import mss_dataserver.geometry.db_inventory as database_inventory
@@ -224,6 +225,11 @@ class Project(object):
 
         event_tables = event.databaseFactory(self.db_base)
         for cur_table in event_tables:
+            cur_name = cur_table.__table__.name
+            self.db_tables[cur_name] = cur_table
+
+        loc_tables = localize.databaseFactory(self.db_base)
+        for cur_table in loc_tables:
             cur_name = cur_table.__table__.name
             self.db_tables[cur_name] = cur_table
 
