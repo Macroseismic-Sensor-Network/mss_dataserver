@@ -25,6 +25,7 @@
 ''' Handling of event types.
 
 '''
+import logging
 
 import obspy
 
@@ -38,6 +39,10 @@ class EventType(object):
                  creation_time = None):
         ''' Initialize the instance.
         '''
+        # The logger instance.
+        logger_name = __name__ + "." + self.__class__.__name__
+        self.logger = logging.getLogger(logger_name)
+        
         # The parent object holding the event. Most likely this is
         # another EventType instance.
         self.parent = parent
@@ -185,9 +190,8 @@ class EventType(object):
 
         Returns
         -------
-        :class:`EventTypeDb`
-            An instance of the sqlalchemy Table Mapper classe defined in
-            :meth:`mss_dataserver.event.databaseFactory`
+        :class: list of :class:`mss_dataserver.event.event_type.EventType`
+            The event types tree loaded from the database.
         '''
         roots = []
         db_session = project.get_db_session()
@@ -203,4 +207,38 @@ class EventType(object):
             db_session.close()
 
         return roots
-        
+
+
+    @classmethod
+    def from_dict(cls, types_dict, author_uri = None,
+                  agency_uri = None):
+        ''' Convert a dictionary to EventType instances.
+
+        Parameters
+        ----------
+        types_dict: dict
+            The dictionary to convert.
+
+        Returns
+        -------
+        :class: list of `mss_dataserver.event.event_type.EventType`
+            The event type created from the dictionary.
+        '''
+        roots = []
+        for key, item in types_dict.items():
+            creation_time = obspy.UTCDateTime()
+            ev_type = cls(name = key,
+                          description = item['description'],
+                          agency_uri = agency_uri,
+                          author_uri = author_uri,
+                          creation_time = creation_time)
+
+            child_nodes = EventType.from_dict(item['children'])
+            for node in child_nodes:
+                ev_type.add_child(node)
+
+            roots.append(ev_type)
+
+        return roots
+                
+            
