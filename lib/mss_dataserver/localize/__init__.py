@@ -51,7 +51,7 @@ def databaseFactory(base):
                                   ondelete = 'set null'),
                        nullable = True)
         time = Column(Float(53),
-                      nullable = False)
+                      nullable = True)
         x = Column(Float(53),
                    nullable = False)
         y = Column(Float(53),
@@ -78,8 +78,8 @@ def databaseFactory(base):
         magnitudes = relationship('Magnitude',
                                   back_populates = 'origin')
 
-        def __init__(self, event_id, time, x, y, z,
-                     coord_system, method, comment = None,
+        def __init__(self, event_id, x, y, z, coord_system, method,
+                     time = None, comment = None,
                      pref_magnitude_id = None,
                      agency_uri = None, author_uri = None,
                      creation_time = None):
