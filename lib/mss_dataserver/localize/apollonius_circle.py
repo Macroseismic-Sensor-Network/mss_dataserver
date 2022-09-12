@@ -277,15 +277,16 @@ class LocApolloniusCircle(object):
         max_ind = np.unravel_index(max_ind,
                                    self.cell_hit.shape)
         self.hypo_ind = max_ind
-        self.hypo = [self.x_grid[max_ind],
-                     self.y_grid[max_ind],
-                     self.z_grid[max_ind]]
+        self.hypo = [float(self.x_grid[max_ind]),
+                     float(self.y_grid[max_ind]),
+                     float(self.z_grid[max_ind])]
 
         
     def plot_valid_data_selection(self):
         ''' Create the plot showing the valid data thresholds.
         '''
-        prelim_hypodist = np.sqrt(np.sum((self.hypo_prelim - self.stations)**2, axis = 1))
+        prelim_hypodist = np.sqrt(np.sum((self.hypo_prelim - self.stations)**2,
+                                         axis = 1))
 
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
