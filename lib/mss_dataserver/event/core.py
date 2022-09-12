@@ -423,7 +423,7 @@ class Event(object):
             self.logger.Error("The preferred origin is not available in the event origins.")
             return
 
-        self.preferred_origin = origin
+        self.pref_origin = origin
 
 
     def set_event_type(self, event_type):
@@ -532,8 +532,8 @@ class Event(object):
                                                      close_session = False)
 
                 # Update the preferred origin id of the event.
-                if self.preferred_origin is not None:
-                    pref_origin_id = self.preferred_origin.db_id
+                if self.pref_origin is not None:
+                    pref_origin_id = self.pref_origin.db_id
                     db_event.pref_origin_id = pref_origin_id
 
                 db_session.commit()
@@ -553,7 +553,7 @@ class Event(object):
                     db_event.start_time = self.start_time.timestamp
                     db_event.end_time = self.end_time.timestamp
                     db_event.public_id = self.public_id
-                    db_event.pref_origin_id = pref_origin_id
+                    #db_event.pref_origin_id = self.pref_origin_id
                     #db_event.pref_magnitude_id = self.pref_magnitude_id
                     #db_event.pref_focmec_id = self.pref_focmec_id
                     db_event.ev_type_id = event_type_id
@@ -562,6 +562,11 @@ class Event(object):
                     db_event.agency_uri = self.agency_uri
                     db_event.author_uri = self.author_uri
                     db_event.creation_time = creation_time
+
+                    # Update the preferred origin id of the event.
+                    if self.pref_origin is not None:
+                        pref_origin_id = self.pref_origin.db_id
+                        db_event.pref_origin_id = pref_origin_id
 
                     # TODO: Add the handling of changed detections assigned to
                     # the event.
