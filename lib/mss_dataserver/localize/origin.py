@@ -26,6 +26,7 @@
 
 '''
 import obspy
+import pyproj
 
 import mss_dataserver.localize.magnitude as mssds_mag
 
@@ -122,6 +123,34 @@ class Origin(object):
 
         self.pref_magnitude = mag
 
+
+    def convert_to_lonlat(self):
+        ''' Convert the coordinates to longitude and latitude.
+        '''
+        lon, lat = self.get_lonlat()
+        self.x = lon
+        self.y = lat
+        self.coord_system = 'epsg:4326'
+        
+
+    def get_lonlat(self):
+        ''' Get the coordinates as WGS84 longitude latitude tuples.
+
+        Returns
+        -------
+        :obj:`tuple` of float: (Longitude, Latitude)
+        '''
+        dest_sys = "epsg:4326"
+
+        if self.coord_system == dest_sys:
+            return(self.x, self.y)
+
+        src_proj = pyproj.Proj(init=self.coord_system)
+        dst_proj = pyproj.Proj(init=dest_sys)
+
+        lon, lat = pyproj.transform(src_proj, dst_proj, self.x, self.y)
+        return (lon, lat)
+
     
     def write_to_database(self, project, db_session = None,
                           close_session = True):
@@ -144,12 +173,17 @@ class Origin(object):
             else:
                 parent_id = None
 
+            if self.time is not None:
+                time = self.time.timestamp
+            else:
+                time = None
+
             if db_session is None:
                 db_session = project.get_db_session()
             try:
                 db_orm = project.db_tables['origin']
                 db_origin = db_orm(event_id = parent_id,
-                                   time = self.time.timestamp,
+                                   time = time,
                                    x = self.x,
                                    y = self.y,
                                    z = self.z,
@@ -199,8 +233,18 @@ class Origin(object):
         :class:`mss_dataserver.localize.origin.Origin`
             The origin created from the database ORM instance.
         '''
+        if db_origin.time is not None:
+            time = obspy.UTCDateTime(db_origin.time)
+        else:
+            time = None
+
+        if db_origin.creation_time is not None:
+            creation_time = obspy.UTCDateTime(db_origin.creation_time)
+        else:
+            creation_time = None
+            
         origin = cls(db_id = db_origin.id,
-                     time = obspy.UTCDateTime(db_origin.time),
+                     time = time,
                      x = db_origin.x,
                      y = db_origin.y,
                      z = db_origin.z,
@@ -209,7 +253,7 @@ class Origin(object):
                      comment = db_origin.comment,
                      agency_uri = db_origin.agency_uri,
                      author_uri = db_origin.author_uri,
-                     creation_time = db_origin.creation_time)
+                     creation_time = creation_time)
 
         # Add the magnitudes to the origin.
         assigned_mags = [mssds_mag.Magnitude.from_orm(x) for x in db_origin.magnitudes]
