@@ -242,7 +242,7 @@ class Project(object):
             self.logger.info("Creating table %s.", cur_key)
             db_util.db_table_migration(table = cur_table,
                                        engine = self.db_engine,
-                                       prefix = 'dataserver_')
+                                       prefix = '')
         try:
             if self.db_metadata is not None:
                 self.db_metadata.create_all()
