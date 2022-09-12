@@ -39,6 +39,7 @@ import pykrige as pk
 import pyproj
 import shapely
 
+import mss_dataserver.event.event_type as ev_type
 import mss_dataserver.core.json_util as json_util
 
 
@@ -82,15 +83,18 @@ def get_supplement_map():
     tmp = {'detectiondata': {'name': 'detectiondata',
                              'format': 'json',
                              'subdir': 'detectiondata',
-                             'encoder': json_util.SupplementDetectionDataDecoder},
+                             'decoder': json_util.SupplementDetectionDataDecoder,
+                             'encoder': json_util.GeneralFileEncoder},
            'geometryinventory': {'name': 'geometryinventory',
                                  'format': 'json',
                                  'subdir': 'detectiondata',
-                                 'encoder': json_util.GeneralFileDecoder},
+                                 'decoder': json_util.GeneralFileDecoder,
+                                 'encoder': json_util.GeneralFileEncoder},
            'metadata': {'name': 'metadata',
                         'format': 'json',
                         'subdir': 'detectiondata',
-                        'encoder': json_util.GeneralFileDecoder},
+                        'decoder': json_util.GeneralFileDecoder,
+                        'encoder': json_util.GeneralFileEncoder},
            'pgv': {'name': 'pgv',
                    'format': 'miniseed',
                    'subdir': 'detectiondata'},
@@ -99,6 +103,15 @@ def get_supplement_map():
                         'subdir': 'detectiondata'},
            }
     supplement_map['detectiondata'] = tmp
+
+    # Category postprocess.
+    # This are common results from the event postprocessing.
+    tmp = {'metadata': {'name': 'metadata',
+                        'format': 'json',
+                        'subdir': 'pp_meta',
+                        'decoder': json_util.GeneralFileDecoder,
+                        'encoder': json_util.GeneralFileEncoder}}
+    supplement_map['postprocess'] = tmp
 
     # Category detectionsequence.
     tmp = {'simplices': {'name': 'simplices',
@@ -180,7 +193,8 @@ def get_supplement_data(public_id, category, name, directory):
 
         with gzip.open(cur_filepath, 'rt', encoding = 'UTF-8') as json_file:
             cur_data = json.load(json_file,
-                                 cls = supp_data['encoder'])
+                                 cls = supp_data['decoder'])
+            
     elif supp_data['format'] == 'miniseed':
         cur_filename += '.msd.gz'
         cur_filepath = os.path.join(supplement_dir,
@@ -288,7 +302,69 @@ def write_geojson_file(geojson_instance, category, name, output_dir,
     return filepath
 
 
-def save_supplement(public_id, df, output_dir,
+def write_json_file(data, category, name, output_dir, encoder = None,
+                    prefix = None, postfix = None):
+    ''' Write a dictionary to a json file.
+
+    Parameters
+    ----------
+    data: dict
+        The data to export.
+
+    category: str 
+        The supplement data category.
+    
+    name: str 
+        The supplement data name.
+
+    output_dir: str 
+        The directory where to save the geojson file.
+
+    encoder: object
+        The encoder class used to encode the data.
+
+    prefix: str 
+        The filename prefix.
+
+    postfix: str 
+        The filename postfix.
+
+    Returns
+    -------
+    str
+        The filepath of the saved file.
+
+    '''
+    # Write the feature collection to a geojson file.  
+    if prefix is None:
+        prefix = ''
+    else:
+        prefix = prefix + '_'
+
+    if postfix is None:
+        postfix = ''
+    else:
+        postfix = '_' + postfix
+
+    filename = '{prefix}{category}_{name}{postfix}.json.gz'.format(prefix = prefix,
+                                                                   category = category,
+                                                                   name = name,
+                                                                   postfix = postfix)
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    filepath = os.path.join(output_dir,
+                            filename)
+
+    with gzip.open(filepath, 'wt', encoding = 'UTF-8') as json_file:
+        json.dump(data, json_file,
+                  cls = encoder)
+
+    return filepath
+
+
+def save_supplement(public_id, data, output_dir,
                     category, name, props = None):
     ''' Save a geopandas dataframe to geojson file.
 
@@ -297,7 +373,7 @@ def save_supplement(public_id, df, output_dir,
     public_id: str 
         The public id of the event.
 
-    df: :class:`geopandas.GeoDataFrame`
+    data: dict or :class:`geopandas.GeoDataFrame`
         The data to save.
 
     output_dir: str 
@@ -323,27 +399,49 @@ def save_supplement(public_id, df, output_dir,
 
     supplement_sub_dir = supp_map[category][name]['subdir']
     supplement_name = supp_map[category][name]['name']
+    supplement_format = supp_map[category][name]['format']
+    supplement_encoder = supp_map[category][name]['encoder']
     output_dir = os.path.join(output_dir,
                               event_dir,
                               supplement_sub_dir)
 
-    fc = geojson.loads(df.to_json())
+    if supplement_format == 'geojson':
+        fc = geojson.loads(data.to_json())
 
-    # Add foreign members to the feature collection.
-    fc.name = supplement_name
-    fc.properties = {
-        'public_id': public_id,
-        'computation_time': isoformat_tz(obspy.UTCDateTime())
-    }
+        # Add foreign members to the feature collection.
+        fc.name = supplement_name
+        fc.properties = {
+            'public_id': public_id,
+            'computation_time': isoformat_tz(obspy.UTCDateTime())
+        }
 
-    if props is not None:
-        fc.properties.update(props)
+        if props is not None:
+            fc.properties.update(props)
 
-    filepath = write_geojson_file(fc,
-                                  category = category,
-                                  name = supplement_name,
-                                  prefix = public_id,
-                                  output_dir = output_dir)
+        filepath = write_geojson_file(fc,
+                                      category = category,
+                                      name = supplement_name,
+                                      prefix = public_id,
+                                      output_dir = output_dir)
+
+    elif supplement_format == 'json':
+        # Add foreign members to the feature collection.
+        container_data = {}
+        container_data[supplement_name] = data
+        container_data['properties'] = {
+            'public_id': public_id,
+            'computation_time': isoformat_tz(obspy.UTCDateTime())
+        }
+
+        if props is not None:
+            container_data['properties'].update(props)
+
+        filepath = write_json_file(container_data,
+                                   category = category,
+                                   name = supplement_name,
+                                   prefix = public_id,
+                                   output_dir = output_dir,
+                                   encoder = supplement_encoder)
 
     return filepath
 
@@ -616,3 +714,19 @@ def compute_pgv_krigging(x, y, z,
                                            ypoints = grid_y)
     
     return krig_z, krig_sigmasq, grid_x, grid_y
+
+
+def load_eventtypes_from_json(filepath):
+    ''' Load an event types tree from a json file.
+
+    Parameters
+    ----------
+    filepath: String
+        The json file to load.
+    '''
+    with open(filepath) as fid:
+        json_data = json.load(fid)
+
+    event_types = ev_type.EventType.from_dict(json_data)
+    return event_types
+    
