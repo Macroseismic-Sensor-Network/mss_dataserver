@@ -75,17 +75,27 @@ class EventClassifyer(object):
 
         # Write the classificaton to the database.
         if len(classification) == 1:
-            event_type = classification[0]['event_type']
-            event_region = classification[0]['event_region']
-            self.event.set_event_type(event_type)
-            tag = 'region:{}'.format(event_region)
-            if tag not in self.event.tags:
-                self.event.tags.append(tag)
-            tag = 'mode:automatic'
-            if tag not in self.event.tags:
-                self.event.tags.append(tag)
-            self.event.write_to_database(self.project)
+            classification = classification[0]
+            event_type = classification['event_type']
+            event_region = classification['event_region']
+
+            # Set the event classification if an event instance
+            # is available.
+            if self.event is not None:
+                self.event.set_event_type(event_type)
+                tag = 'region:{}'.format(event_region)
+                if tag not in self.event.tags:
+                    self.event.tags.append(tag)
+                tag = 'mode:automatic'
+                if tag not in self.event.tags:
+                    self.event.tags.append(tag)
+
+        if classification:
+            ret_val = classification['event_type']
+        else:
+            ret_val = None
             
+        return ret_val
 
 
     def test_for_quarry_blast(self):
