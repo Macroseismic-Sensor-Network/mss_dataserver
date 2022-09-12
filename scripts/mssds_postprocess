@@ -123,6 +123,13 @@ def process_event(ctx, public_id, no_db, no_meta, no_isoseismal,
     except Exception:
         logger.exception('Error classifying the event.')
 
+    # Localize the event.
+    try:
+        logger.info('Running the event localization.')
+        pp.localize_event()
+    except Exception:
+        logger.exception('Error localizing the event.')
+
     # Compute the metadata supplement.
     if not no_meta:
         try:
