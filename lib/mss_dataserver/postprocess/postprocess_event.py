@@ -26,6 +26,7 @@
 '''
 
 import csv
+import json
 import logging
 import math
 import os
@@ -40,6 +41,7 @@ import shapely
 
 import mss_dataserver.classify.classifyer as mssds_classifyer
 import mss_dataserver.event.event_type as ev_type
+import mss_dataserver.localize.localizer as mssds_localizer
 import mss_dataserver.postprocess.util as util
 import mss_dataserver.postprocess.voronoi as voronoi
 
@@ -76,8 +78,18 @@ class EventPostProcessor(object):
         self.author_uri = self.project.author_uri
         self.agency_uri = self.project.agency_uri
 
-        # The event to process.
+        # The event to process. It is loaded only if a
+        # database is used.
         self.event = None
+
+        # The classification of the current event.
+        # This attribute is needed in the case that no
+        # database is used and therefore no event is loaded.
+        self.event_classification = None
+
+        # The available events types. They are loaded only if a
+        # database is used.
+        self.event_types = None
 
         # The supplement directory.
         self.supplement_dir = self.project.config['output']['event_dir']
@@ -101,6 +113,10 @@ class EventPostProcessor(object):
         self._pgv_stream = None
         self._detection_data = None
 
+        # The postprocess common metadata.
+        self._pp_meta = None
+
+
     @property
     def meta(self):
         ''' :obj:`dict`: The metadata supplement.
@@ -113,6 +129,31 @@ class EventPostProcessor(object):
                                                   directory = self.supplement_dir)
         return self._meta['metadata']
 
+
+    @property
+    def pp_meta(self):
+        ''' :obj:`dict`: The postprocess metadata supplement.
+        '''
+        ret_val = {}
+        if self._pp_meta is None:
+            # Load the event metadata from the supplement file.
+            try:
+                self._pp_meta = util.get_supplement_data(self.event_public_id,
+                                                         category = 'postprocess',
+                                                         name = 'metadata',
+                                                         directory = self.supplement_dir)
+                ret_val = self._pp_meta['metadata']
+            except Exception:
+                self.logger.exception("Couldn't load the metadata file.")
+        else:
+            ret_val = self._pp_meta
+
+        return ret_val
+        
+    @pp_meta.setter
+    def pp_meta(self, value):
+        self._pp_meta = value
+    
 
     def set_event(self, public_id):
         ''' Set the event to process.
@@ -133,6 +174,13 @@ class EventPostProcessor(object):
             self.event_types = ev_type.EventType.load_from_db(project = self.project)
             self.logger.debug('event_types: %s',
                               [x.name for x in self.event_types])
+        else:
+            # TODO: Create an event instance using the supplement data.
+            # Load the event types from the json file.
+            filepath = os.path.join(self.data_dir,
+                                    'event_types.json')
+            event_types = util.load_eventtypes_from_json(filepath)
+            self.event_types = event_types
             
         self.event_public_id = public_id
         self._meta = None
@@ -264,7 +312,117 @@ class EventPostProcessor(object):
                                                       project = self.project,
                                                       event = self.event,
                                                       event_types = self.event_types)
-        classifyer.classify()
+        event_type = classifyer.classify()
+        
+        # Write the classification result to the database.
+        if self.project.is_connected_to_db and self.event is not None:
+            self.event.write_to_database(self.project)
+
+        # Write the classification result to the supplement file.
+        pp_meta = self.pp_meta
+        if event_type is not None:
+            type_dict = {'event_type': event_type.name,
+                         'description': event_type.description}
+        else:
+            type_dict = None
+           
+        tmp = {'classification': type_dict}
+        pp_meta.update(tmp)
+        
+        # Get some event properties to add to the properties.
+        props = {'db_id': meta['db_id'],
+                 'event_start': util.isoformat_tz(meta['start_time']),
+                 'event_end': util.isoformat_tz(meta['end_time']),
+                 'author_uri': self.project.author_uri,
+                 'agency_uri': self.project.agency_uri}
+        
+        filepath = util.save_supplement(self.event_public_id,
+                                        pp_meta,
+                                        output_dir = self.supplement_dir,
+                                        category = 'postprocess',
+                                        name = 'metadata',
+                                        props = props)
+        self.logger.info('Added the classification to the postprocess metadata file %s.', filepath)
+
+        # Save relevant data in the instance.
+        self.pp_meta = pp_meta
+        self.event_classification = event_type
+
+
+    def localize_event(self):
+        ''' Compute the origin of an event.
+
+        '''
+        # Check the event type before running the localization.
+        event_type = self.event_classification
+        types_to_localize = ['blast', 'earthquake']
+        if event_type is None:
+            self.logger.info('No event type set. Ignoring the localization of this event.')
+            return
+
+        if event_type.name not in types_to_localize:
+            self.logger.info('The localilzation of event type %s not supported.',
+                             event_type.name)
+            return
+
+        # Load the event metadata from the supplement file.
+        meta = self.meta
+
+        # Compute a PGV geodataframe using the event metadata.
+        pgv_df = self.compute_pgv_df(meta)
+
+        pub_id = self.event_public_id
+        localizer = mssds_localizer.EventLocalizer(public_id = pub_id,
+                                                   meta = self.meta,
+                                                   pgv_df = pgv_df,
+                                                   project = self.project,
+                                                   event = self.event)
+        # Run the Apollonius localization.
+        localizer.loc_apollonius(dist_exp = -2.2)
+
+        # Write the origins to the database.
+        origins = localizer.origins
+        if self.project.is_connected_to_db:
+            for cur_origin in origins:
+                cur_origin.write_to_database(project = self.project)
+
+        # Set the preferred origin.
+        pref_origin = [x for x in origins if x.method == 'apollonius_circle']
+        if len(pref_origin) >= 1:
+            pref_origin = pref_origin[0]
+            if self.event is not None:
+                self.logger.info('Setting the pref_origin.')
+                self.logger.info('pref_origin.db_id: %d', pref_origin.db_id)
+                self.event.set_preferred_origin(pref_origin)
+                self.event.write_to_database(project = self.project)
+
+        # Write the origins to the postprocess metadata supplement file.
+        pp_meta = self.pp_meta
+        origins_list = []
+        for cur_origin in origins:
+            creation_time = cur_origin.creation_time
+            creation_time = util.isoformat_tz(creation_time)
+            tmp = {'time': cur_origin.time,
+                   'x': cur_origin.x,
+                   'y': cur_origin.y,
+                   'z': cur_origin.z,
+                   'coord_system': cur_origin.coord_system,
+                   'method': cur_origin.method,
+                   'comment': cur_origin.comment,
+                   'agency_uri': cur_origin.agency_uri,
+                   'author_uri': cur_origin.author_uri,
+                   'creation_time': creation_time}
+            origins_list.append(tmp)
+        pp_meta['origins'] = origins_list
+
+        filepath = util.save_supplement(self.event_public_id,
+                                        pp_meta,
+                                        output_dir = self.supplement_dir,
+                                        category = 'postprocess',
+                                        name = 'metadata')
+        self.logger.info('Added the origins to the postprocess metadata file %s.', filepath)
+
+        self.pp_meta = pp_meta
 
     
     def compute_detection_data_df(self, trigger_data):
