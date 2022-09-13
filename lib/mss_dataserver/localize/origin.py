@@ -25,10 +25,12 @@
 ''' 
 
 '''
+import numpy as np
 import obspy
 import pyproj
 
 import mss_dataserver.localize.magnitude as mssds_mag
+
 
 class Origin(object):
     ''' Anevent origin.
@@ -91,6 +93,39 @@ class Origin(object):
         '''
         return '/origin/' + self.db_id
 
+
+    def compute_mss_magnitude(self, stat_coord, amp):
+        ''' Compute the MSS magnitude.
+
+        Parameters
+        ----------
+        stat_coord: array_like
+            The station coordinates [[x, y, z], ...]. N x 3 array.
+        
+        amp: array_like
+           The amplitude values. 1D array with length N.
+
+        Returns
+        -------
+        :class:`Magnitude`
+            The computed magnitude.
+
+        '''
+        hypo = [self.x, self.y, self.z]
+        hypo_dist = np.sqrt(np.sum((stat_coord - hypo)**2,
+                                   axis = 1))
+        mag_mss = mssds_mag.compute_mss_magnitude(amp = amp,
+                                                  hypo_dist = hypo_dist,
+                                                  dist_exp = -2.2)
+
+        creation_time = obspy.UTCDateTime()
+        mag = mssds_mag.Magnitude(mag = mag_mss,
+                                  mag_type = 'm_mss',
+                                  agency_uri = self.agency_uri,
+                                  author_uri = self.author_uri,
+                                  creation_time = creation_time)
+        return mag
+        
 
     def add_magnitude(self, mag):
         ''' Add a magnitude to the origin.
