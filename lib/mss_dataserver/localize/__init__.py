@@ -62,8 +62,12 @@ def databaseFactory(base):
                               nullable = False)
         method = Column(String(255),
                         nullable = False)
+        region = Column(String(100),
+                        nullable = True)
         comment = Column(String(255),
                          nullable = True)
+        tags = Column(String(255),
+                      nullable = True)
         pref_magnitude_id = Column(Integer,
                                    nullable = True)
         agency_uri = Column(String(20),
@@ -79,8 +83,8 @@ def databaseFactory(base):
                                   back_populates = 'origin')
 
         def __init__(self, event_id, x, y, z, coord_system, method,
-                     time = None, comment = None,
-                     pref_magnitude_id = None,
+                     time = None, comment = None, tags = None,
+                     region = None, pref_magnitude_id = None,
                      agency_uri = None, author_uri = None,
                      creation_time = None):
             self.ev_id = event_id
@@ -90,7 +94,9 @@ def databaseFactory(base):
             self.z = z
             self.coord_system = coord_system
             self.method = method
+            self.region = region
             self.comment = comment
+            self.tags = tags
             self.pref_magnitude_id = pref_magnitude_id
             self.agency_uri = agency_uri
             self.author_uri = author_uri
@@ -115,21 +121,28 @@ def databaseFactory(base):
                      nullable = False)
         mag_type = Column(String(20),
                           nullable = False)
-        comment = Column(String(255))
-        agency_uri = Column(String(20))
-        author_uri = Column(String(20))
-        creation_time = Column(String(30))
+        comment = Column(String(255),
+                         nullable = True)
+        tags = Column(String(255),
+                      nullable = True)
+        agency_uri = Column(String(20),
+                            nullable = True)
+        author_uri = Column(String(20),
+                            nullable = True)
+        creation_time = Column(String(30),
+                               nullable = True)
 
         origin = relationship('Origin',
                               back_populates = 'magnitudes')
 
         def __init__(self, origin_id, mag, mag_type,
-                     comment = None, agency_uri = None,
+                     comment = None, tags = None, agency_uri = None,
                      author_uri = None, creation_time = None):
             self.orig_id = origin_id
             self.mag = mag
             self.mag_type = mag_type
             self.comment = comment
+            self.tags = tags
             self.agency_uri = agency_uri
             self.author_uri = author_uri
             self.creation_time = creation_time
