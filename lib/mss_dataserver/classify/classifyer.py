@@ -77,16 +77,12 @@ class EventClassifyer(object):
         if len(classification) == 1:
             classification = classification[0]
             event_type = classification['event_type']
-            event_region = classification['event_region']
 
             # Set the event classification if an event instance
             # is available.
             if self.event is not None:
                 self.event.set_event_type(event_type)
-                tag = 'region:{}'.format(event_region)
-                if tag not in self.event.tags:
-                    self.event.tags.append(tag)
-                tag = 'mode:automatic'
+                tag = 'automatic'
                 if tag not in self.event.tags:
                     self.event.tags.append(tag)
 
