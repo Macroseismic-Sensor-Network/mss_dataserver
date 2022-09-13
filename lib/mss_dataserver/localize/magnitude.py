@@ -22,10 +22,11 @@
 #
 # Copyright 2022 Stefan Mertl
 ##############################################################################
-''' 
+'''
 
 '''
 
+import numpy as np
 import obspy
 
 
@@ -145,3 +146,37 @@ class Magnitude(object):
                      creation_time = db_mag.creation_time)
 
         return origin
+
+
+def compute_mss_magnitude(amp, hypo_dist, dist_exp = -2.2):
+    ''' Compute the mss magnitude.
+
+    Parameters
+    ----------
+    amp: numpy.ndarray
+        The amplitude data [m/s].
+
+    hypo_dist: numpy.ndarray
+        The hypocentral distances [m].
+
+    Returns
+    -------
+    numpy.ndarray
+        The computed magnitudes.
+    '''
+    # Meters per degree on the earth sphere.
+    m_grad = 111195
+
+    # The original magnitude formula is given for the
+    # pgv data is in nm/s and the hypodistance in degree.
+    # Constant factor to change the pgv units to m/s and the
+    # hypodistance units to m.
+    C = np.log10(1e9) - dist_exp * np.log10(1 / m_grad)
+
+    # Compute the MSS magnitude of the stations.
+    mag_mss = np.log10(amp) - dist_exp * np.log10(hypo_dist) + C
+
+    # Compute the overall MSS magnitude.
+    mag_mss = np.round(np.nanmean(mag_mss), 2)
+
+    return mag_mss
