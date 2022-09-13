@@ -371,6 +371,10 @@ class EventPostProcessor(object):
         # Compute a PGV geodataframe using the event metadata.
         pgv_df = self.compute_pgv_df(meta)
 
+        # Eliminate rows without a PGV data.
+        no_data_mask = pgv_df['pgv'].isna()
+        pgv_df = pgv_df[~no_data_mask]
+
         pub_id = self.event_public_id
         localizer = mssds_localizer.EventLocalizer(public_id = pub_id,
                                                    meta = self.meta,
@@ -380,10 +384,22 @@ class EventPostProcessor(object):
         # Run the Apollonius localization.
         localizer.loc_apollonius(dist_exp = -2.2)
 
-        # Write the origins to the database.
+        # Compute the MSS magnitude for the origins.
         origins = localizer.origins
+        stat_coord = pgv_df[['x_utm', 'y_utm', 'z']].values
+        pgv = pgv_df['pgv'].values
+        for cur_origin in origins:
+            mag = cur_origin.compute_mss_magnitude(stat_coord = stat_coord,
+                                                   amp = pgv)
+            cur_origin.add_magnitude(mag)
+            cur_origin.set_preferred_magnitude(mag)
+
+        # Write the origins to the database.
+        # Convert the coordinates to lon/lat before saving them
+        # to the database.
         if self.project.is_connected_to_db:
             for cur_origin in origins:
+                cur_origin.convert_to_lonlat()
                 cur_origin.write_to_database(project = self.project)
 
         # Set the preferred origin.
