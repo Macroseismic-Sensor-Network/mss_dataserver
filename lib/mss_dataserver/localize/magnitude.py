@@ -35,7 +35,7 @@ class Magnitude(object):
 
     '''
     def __init__(self, mag, mag_type, parent = None,
-                 comment = None, db_id = None, agency_uri = None,
+                 comment = None, tags = None, db_id = None, agency_uri = None,
                  author_uri = None, creation_time = None):
         ''' Initialize the instance.
         '''
@@ -54,6 +54,12 @@ class Magnitude(object):
         
         # The comment for the origin.
         self.comment = comment
+
+        # The tags.
+        if tags is not None:
+            self.tags = tags
+        else:
+            self.tags = []
 
         # The agency_uri of the creator.
         self.agency_uri = agency_uri
@@ -109,6 +115,7 @@ class Magnitude(object):
                                 mag = self.mag,
                                 mag_type = self.mag_type,
                                 comment = self.comment,
+                                tags = ','.join(self.tags),
                                 author_uri = self.author_uri,
                                 agency_uri = self.agency_uri,
                                 creation_time = creation_time)
@@ -137,13 +144,24 @@ class Magnitude(object):
         :class:`mss_dataserver.localize.magnitude.Magnitude`
             The magnitude created from the database ORM instance.
         '''
+        if db_mag.creation_time is not None:
+            creation_time = obspy.UTCDateTime(db_mag.creation_time)
+        else:
+            creation_time = None
+
+        if db_mag.tags is not None:
+            tags = db_mag.tags.split(',')
+        else:
+            tags = None
+            
         origin = cls(db_id = db_mag.id,
                      mag = db_mag.mag,
                      mag_type = db_mag.mag_type,
                      comment = db_mag.comment,
                      agency_uri = db_mag.agency_uri,
                      author_uri = db_mag.author_uri,
-                     creation_time = db_mag.creation_time)
+                     tags = tags,
+                     creation_time = creation_time)
 
         return origin
 
