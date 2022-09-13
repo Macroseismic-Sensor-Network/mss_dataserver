@@ -27,6 +27,7 @@
 
 import logging
 
+import numpy as np
 import obspy
 
 import mss_dataserver.localize.apollonius_circle as loc_ap
@@ -146,7 +147,7 @@ class EventLocalizer(object):
                                      z = hypo[2],
                                      coord_system = epsg_code,
                                      method = 'apollonius_circle',
-                                     comment = 'Test comment',
+                                     tags = ['automatic'],
                                      agency_uri = agency_uri,
                                      author_uri = author_uri,
                                      creation_time = creation_time)
@@ -161,3 +162,30 @@ class EventLocalizer(object):
         # Store the used localizer.
         self.localizer = localizer
 
+
+    def assign_region(self, origin):
+        ''' Assign a region string to the origin.
+
+        Parameters
+        ----------
+        origin: :class:`mss_dataserver.localize.origin.Origin`
+            The origin for which the region should be computed.
+        '''
+        inv = self.inventory
+        inv.compute_utm_coordinates()
+        stations = inv.get_station()
+        stat_coord = [[x.x_utm, x.y_utm, x.z] for x in stations]
+        stat_coord = np.array(stat_coord)
+
+        hypo = [origin.x, origin.y, origin.z]
+        hypo_dist = np.sqrt(np.sum((stat_coord - hypo)**2,
+                                   axis = 1))
+
+        # Find the neares station.
+        min_dist_filter = np.argsort(hypo_dist)
+        nearest_station = stations[min_dist_filter[0]]
+
+        # Use the description of the nearest station as the
+        # region.
+        region = nearest_station.description
+        origin.region = region
