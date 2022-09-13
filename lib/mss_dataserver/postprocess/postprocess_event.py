@@ -394,6 +394,10 @@ class EventPostProcessor(object):
             cur_origin.add_magnitude(mag)
             cur_origin.set_preferred_magnitude(mag)
 
+        # Assign the regions to the origins.
+        for cur_origin in origins:
+            localizer.assign_region(cur_origin)
+
         # Write the origins to the database.
         # Convert the coordinates to lon/lat before saving them
         # to the database.
