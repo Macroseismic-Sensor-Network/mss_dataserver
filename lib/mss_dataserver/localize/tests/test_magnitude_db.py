@@ -89,6 +89,8 @@ class MagnitudeTestCase(unittest.TestCase):
                               mssds_mag.Magnitude)
         self.assertEqual(loaded_mag.db_id,
                          mag.db_id)
+        self.assertEqual(loaded_mag.mag,
+                         mag.mag)
         self.assertEqual(loaded_mag.mag_type,
                          mag.mag_type)
         self.assertEqual(loaded_mag.comment,
