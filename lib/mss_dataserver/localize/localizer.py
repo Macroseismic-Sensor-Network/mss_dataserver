@@ -151,9 +151,6 @@ class EventLocalizer(object):
                                      author_uri = author_uri,
                                      creation_time = creation_time)
 
-        # Compute the longitude and latitude of the hypocenter.
-        origin.convert_to_lonlat()
-
         # Add the origin to the event.
         if self.event is not None:
             self.event.add_origin(origin)
