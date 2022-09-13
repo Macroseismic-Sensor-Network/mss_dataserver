@@ -1824,14 +1824,15 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             events = self.project.get_events(start_time = request_start)
         cur_archive = {}
 
-        # Test event classification
-        quarry_blasts = ['mss_dsrt_2022-08-24T120921500000',
-                         'mss_dsrt_2022-08-24T115735500000',
-                         'mss_dsrt_2022-08-19T091407500000']
-
+        # Event type translation.
         translation = {'blast': 'sprengung',
                        'earthquake': 'erdbeben',
                        'noise': 'störsignal'}
+
+        # Public IDs of blast events. Used for testing.
+        blasts = ['mss_dsrt_2022-08-24T120921500000',
+                  'mss_dsrt_2022-08-24T115735500000',
+                  'mss_dsrt_2022-08-19T091407500000']
         
         if len(events) > 0:
             for cur_event in events:
@@ -1839,25 +1840,37 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.logger.info('triggered_stations: %s',
                                  cur_event.triggered_stations)
                 
-                
+                # Set the default values.
+                mag = None
+                event_region = None
+                event_mode = 'undefiniert'
+                event_class = 'undefiniert'
+                f_dom = None
+                foreign_id = None
+
                 if cur_event.event_type is not None:
                     event_class = translation[cur_event.event_type.name]
-                else:
-                    event_class = 'unbekannt'
 
-                if cur_event.public_id in quarry_blasts:
-                    event_region = 'dürnbach'
-                    event_class_mode = 'überprüft'
-                    magnitude = 1.8
-                    f_dom = None
-                    foreign_id = None
-                else:
-                    event_region = 'unbekannt'
-                    event_class_mode = 'automatisch'
-                    magnitude = None
-                    f_dom = None
-                    foreign_id = None
-                    
+                # Get the event mode.
+                if 'automatic' in cur_event.tags:
+                    event_mode = 'automatisch'
+                if 'reviewed' in cur_event.tags:
+                    event_mode = 'überprüft'
+
+                # Get the data from the preferred origin.
+                if cur_event.pref_origin is not None:
+                    self.logger.info('Found a pref_origin.')
+                    pref_origin = cur_event.pref_origin
+                    hypo = [pref_origin.x,
+                            pref_origin.y,
+                            pref_origin.z]
+                    event_region = pref_origin.region
+
+                    if pref_origin.pref_magnitude is not None:
+                        pref_mag = pref_origin.pref_magnitude
+                        mag = pref_mag.mag
+
+                # Construct the event validation instance.
                 cur_archive_event = validation.Event(db_id = cur_event.db_id,
                                                      public_id = cur_event.public_id,
                                                      start_time = cur_event.start_time.isoformat(),
@@ -1871,11 +1884,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                      triggered_stations = cur_event.triggered_stations,
                                                      event_class = event_class,
                                                      event_region = event_region,
-                                                     event_class_mode = event_class_mode,
-                                                     magnitude = magnitude,
+                                                     event_class_mode = event_mode,
+                                                     magnitude = mag,
                                                      f_dom = f_dom,
                                                      foreign_id = foreign_id)
 
+                # Add the event dictionary to events list.
                 cur_archive[cur_event.public_id] = cur_archive_event.dict()
 
         return cur_archive
