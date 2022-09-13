@@ -37,8 +37,9 @@ class Origin(object):
 
     '''
     def __init__(self, time, x, y, z, coord_system, method,
-                 parent = None, comment = None, db_id = None,
-                 agency_uri = None, author_uri = None, creation_time = None):
+                 region = None, parent = None, comment = None, tags = None,
+                 db_id = None, agency_uri = None, author_uri = None,
+                 creation_time = None):
         ''' Initialize the instance.
         '''
         # The parent object holding the event. Most likely this is
@@ -65,9 +66,18 @@ class Origin(object):
 
         # The method used for the creation of the origin.
         self.method = method
+
+        # The assigned region.
+        self.region = region
         
         # The comment for the origin.
         self.comment = comment
+
+        # The tags.
+        if tags is not None:
+            self.tags = tags
+        else:
+            self.tags = []
 
         # The agency_uri of the creator.
         self.agency_uri = agency_uri
@@ -121,6 +131,7 @@ class Origin(object):
         creation_time = obspy.UTCDateTime()
         mag = mssds_mag.Magnitude(mag = mag_mss,
                                   mag_type = 'm_mss',
+                                  tags = ['automatic'],
                                   agency_uri = self.agency_uri,
                                   author_uri = self.author_uri,
                                   creation_time = creation_time)
@@ -224,7 +235,9 @@ class Origin(object):
                                    z = self.z,
                                    coord_system = self.coord_system,
                                    method = self.method,
+                                   region = self.region,
                                    comment = self.comment,
+                                   tags = ','.join(self.tags),
                                    author_uri = self.author_uri,
                                    agency_uri = self.agency_uri,
                                    creation_time = creation_time)
@@ -277,6 +290,11 @@ class Origin(object):
             creation_time = obspy.UTCDateTime(db_origin.creation_time)
         else:
             creation_time = None
+
+        if db_origin.tags is not None:
+            tags = db_origin.tags.split(',')
+        else:
+            tags = None
             
         origin = cls(db_id = db_origin.id,
                      time = time,
@@ -285,7 +303,9 @@ class Origin(object):
                      z = db_origin.z,
                      coord_system = db_origin.coord_system,
                      method = db_origin.method,
+                     region = db_origin.region,
                      comment = db_origin.comment,
+                     tags = tags,
                      agency_uri = db_origin.agency_uri,
                      author_uri = db_origin.author_uri,
                      creation_time = creation_time)
