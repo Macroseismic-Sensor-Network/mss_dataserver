@@ -361,15 +361,23 @@ class EventPostProcessor(object):
             return
 
         if event_type.name not in types_to_localize:
-            self.logger.info('The localilzation of event type %s not supported.',
+            self.logger.info('The localization of event type "%s" not supported or needed.',
                              event_type.name)
             return
 
+        # Special handling of Pfaffenberg blasts.
+        if 'class_region:Steinbruch Pfaffenberg' in self.event.tags:
+            self.logger.info('Automatic localization of blasts in Pfaffenberg is not yet supported.')
+            return
+        
         # Load the event metadata from the supplement file.
         meta = self.meta
 
         # Compute a PGV geodataframe using the event metadata.
         pgv_df = self.compute_pgv_df(meta)
+
+        # Add the station amplification column to the dataframe.
+        self.add_station_amplification(pgv_df)
 
         # Eliminate rows without a PGV data.
         no_data_mask = pgv_df['pgv'].isna()
@@ -388,6 +396,10 @@ class EventPostProcessor(object):
         origins = localizer.origins
         stat_coord = pgv_df[['x_utm', 'y_utm', 'z']].values
         pgv = pgv_df['pgv'].values
+        
+        # Apply the station amplification factors.
+        pgv = pgv / pgv_df['sa'].values
+        
         for cur_origin in origins:
             mag = cur_origin.compute_mss_magnitude(stat_coord = stat_coord,
                                                    amp = pgv)
