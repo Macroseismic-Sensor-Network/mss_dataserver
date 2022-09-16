@@ -28,6 +28,8 @@
 import logging
 
 import numpy as np
+import obspy
+import scipy.spatial
 
 
 class EventClassifyer(object):
@@ -69,13 +71,31 @@ class EventClassifyer(object):
         '''
         msg = 'Classifying event {}.'.format(self.public_id)
         self.logger.info(msg)
+
+        self.classification = []
         
         # Check if the event is a quarry blast.
-        classification = self.test_for_quarry_blast()
+        if len(self.classification) == 0:
+            self.logger.info('Testing for quarry blast.')
+            self.test_for_quarry_blast()
+
+        # Check if the event is a quarry blast in Hainburg.
+        # This quarry needs special treatment because of the
+        # bad station coverage in the area.
+        if len(self.classification) == 0:
+            self.logger.info('Testing for quarry blast Hainburg.')
+            self.test_for_quarry_blast_hainburg()
+
+        # Check if the event is noise.
+        if len(self.classification) == 0:
+            self.logger.info('Testing for noise.')
+            self.test_for_noise()
+
+        self.logger.info(self.classification)
 
         # Write the classificaton to the database.
-        if len(classification) == 1:
-            classification = classification[0]
+        if len(self.classification) == 1:
+            classification = self.classification[0]
             event_type = classification['event_type']
 
             # Set the event classification if an event instance
@@ -86,11 +106,22 @@ class EventClassifyer(object):
                 if tag not in self.event.tags:
                     self.event.tags.append(tag)
 
-        if classification:
+                if 'event_region' in classification:
+                    region = classification['event_region']
+                    tag = 'class_region:' + region.strip()
+                    if tag not in self.event.tags:
+                        self.event.tags.append(tag)
+
+                if 'max_station' in classification:
+                    max_station = classification['max_station']
+                    tag = 'class_maxstat:' + max_station.strip()
+                    if tag not in self.event.tags:
+                        self.event.tags.append(tag)
+
             ret_val = classification['event_type']
         else:
             ret_val = None
-            
+
         return ret_val
 
 
@@ -100,9 +131,9 @@ class EventClassifyer(object):
         # Test for quarry blasts of the quarry
         quarries = {'duernbach': {'nearest_station': 'MSSNet:DUBA:00',
                                   'dist_thr': 3000,
-                                  'region': 'Dürnbach'}}
+                                  'region': 'Steinbruch Dürnbach'}}
 
-        classification = []
+        classification = self.classification
 
         meta = self.meta
         blast_event_type = [x for x in self.event_types[0].event_types if x.name == 'blast']
@@ -134,12 +165,14 @@ class EventClassifyer(object):
             sorted_pgv = sorted(meta['max_event_pgv'].items(),
                                 key = lambda item: item[1],
                                 reverse = True)
+            max_station_nsl = sorted_pgv[0][0]
 
             if (sorted_pgv[0][0]) == nearest_station.nsl_string:
                 max_on_nearest = True
 
             # Check if DUBA was among the first triggered stations.
             min_time_on_nearest = False
+            det_time_nearest = None
             sorted_trigger = sorted(meta['detection_limits'].items(),
                                     key = lambda item: item[1][0])
             min_detection_time = sorted_trigger[0][1][0]
@@ -156,7 +189,8 @@ class EventClassifyer(object):
                 event_type = blast_event_type
                 event_region = quarry['region']
                 res = {'event_type': event_type,
-                       'event_region': event_region}
+                       'event_region': event_region,
+                       'max_station': max_station_nsl}
                 classification.append(res)
 
             # Create the flags dictionary.
@@ -173,9 +207,186 @@ class EventClassifyer(object):
             self.logger.debug('Classification flags: %s',
                               flags)
 
-        return classification
+        self.classification = classification
+
+    
+    def test_for_quarry_blast_hainburg(self):
+        ''' Test for a quarry blast in Hainburg.
+
+        '''
+        project = self.project
+        meta = self.meta
+        blast_event_type = [x for x in self.event_types[0].event_types if x.name == 'blast']
+        blast_event_type = blast_event_type[0]
+        classification = self.classification
+        
+        # The nearest station to the quarry blast location.
+        nearest_stations_nsl = ['MSSNet:HAMG:00',
+                                'MSSNet:HAHN:00',
+                                'MSSNet:DABU:00']
+        
+        nearest_stations = []
+        for cur_nsl in nearest_stations_nsl:
+            cur_stat = project.inventory.get_station(nsl_string = cur_nsl)
+            nearest_stations.extend(cur_stat)
+
+        all_stations = project.inventory.get_station()
+        ref_station = nearest_stations[0]
+        for cur_station in all_stations:
+            ref_coord = [ref_station.x_utm,
+                         ref_station.y_utm]
+            comp_coord = [cur_station.x_utm,
+                          cur_station.y_utm]
+            ref_coord = np.array(ref_coord)
+            comp_coord = np.array(comp_coord)
+            cur_dist = np.linalg.norm(ref_coord - comp_coord)
+            cur_station.rel_dist = cur_dist
+
+        # Check if the nearest_stations are among the triggered stations.
+        tmp = []
+        for cur_stat in nearest_stations:
+            found_match = False
+            if cur_stat.nsl_string in meta['max_event_pgv'].keys():
+                found_match = True
+            tmp.append(found_match)
+        recorded_on_nearest = np.all(tmp)
+
+        # Check if the max. PGV was recorded at one of the nearest stations.
+        max_on_nearest = False
+        sorted_pgv = sorted(meta['max_event_pgv'].items(),
+                            key = lambda item: item[1],
+                            reverse = True)
+        max_station_nsl = sorted_pgv[0][0]
+
+        if (sorted_pgv[0][0]) in nearest_stations_nsl:
+            max_on_nearest = True
+
+        # Check if all nearest stations are above a pgv threshold.
+        thr = 0.1e-3
+        nearest_above_thr = False
+        if recorded_on_nearest:
+            nearest_pgv = [meta['max_event_pgv'][x] for x in nearest_stations_nsl]
+            nearest_pgv = np.array(nearest_pgv)
+            nearest_above_thr = np.all(nearest_pgv >= thr)
+
+        if (recorded_on_nearest and max_on_nearest and nearest_above_thr):
+            event_type = blast_event_type
+            event_region = 'Steinbruch Pfaffenberg'
+            res = {'event_type': event_type,
+                   'event_region': event_region,
+                   'max_station': max_station_nsl}
+            classification.append(res)
+
+        self.classification = classification
 
 
+    def test_for_noise(self):
+        ''' Classify noise signals.
+        '''
+        meta = self.meta
+        pgv_df = self.pgv_df
+        project = self.project
+        noise_event_type = [x for x in self.event_types[0].event_types if x.name == 'noise']
+        noise_event_type = noise_event_type[0]
+        classification = self.classification
+        
+        # Get the station with the maximum pgv value.
+        sorted_pgv = sorted(meta['max_event_pgv'].items(),
+                            key = lambda item: item[1],
+                            reverse = True)
+        max_station_nsl = sorted_pgv[0][0]
+        max_station = project.inventory.get_station(nsl_string = max_station_nsl)
+        max_station = max_station[0]
+
+        # Get the triggered stations.
+        triggered_stations = []
+        for cur_nsl in meta['max_event_pgv'].keys():
+            cur_stat = project.inventory.get_station(nsl_string = cur_nsl)
+            triggered_stations.extend(cur_stat)
+
+        # Compute the relative distances to the reference station.
+        ref_station = max_station
+        for cur_station in triggered_stations:
+            ref_coord = [ref_station.x_utm,
+                         ref_station.y_utm]
+            comp_coord = [cur_station.x_utm,
+                          cur_station.y_utm]
+            ref_coord = np.array(ref_coord)
+            comp_coord = np.array(comp_coord)
+            cur_dist = np.linalg.norm(ref_coord - comp_coord)
+            cur_station.rel_dist = cur_dist
+
+        # Get the voronoi cell neighbors of the reference station.
+        stat_coords = pgv_df[['x_utm', 'y_utm']].values
+        tri = scipy.spatial.Delaunay(stat_coords)
+        indptr, indices = tri.vertex_neighbor_vertices
+
+        ref_ind = (pgv_df['nsl'] == ref_station.nsl_string).values
+        ref_ind = np.argwhere(ref_ind)
+        ref_ind = ref_ind[0][0]
+        neighbor_ind = indices[indptr[ref_ind]:indptr[ref_ind + 1]]
+        neighbor_nsl = pgv_df.iloc[neighbor_ind]['nsl'].values
+        neighbor_coords = pgv_df.iloc[neighbor_ind][['x_utm', 'y_utm']].values
+
+        # Compute the triggered neighbors.
+        triggered_nsl = [x.nsl_string for x in triggered_stations]
+        triggered_neighbors = [x for x in triggered_nsl if x in neighbor_nsl]
+        n_triggered_neighbors = len(triggered_neighbors)
+
+        n_stations = len(meta['max_event_pgv'])
+
+        # The maximum number of detected stations.
+        n_stations_thr = 6
+        
+        # The minimum number of triggered neighbors.
+        n_neighbors_thr = 2
+        
+        # The minimum event length [s].
+        event_length_thr = 6
+        
+        # The maximum allowed distance of the farthest station [m].
+        neighbor_dist = np.sqrt(np.sum((ref_coord - neighbor_coords)**2,
+                                       axis = 1))
+        stat_dist_thr = np.mean(neighbor_dist) + np.std(neighbor_dist)
+
+        is_noise = False
+        if n_stations <= n_stations_thr:
+            event_start = obspy.UTCDateTime(meta['start_time'])
+            event_end = obspy.UTCDateTime(meta['end_time'])
+            event_length = event_end - event_start
+            rel_dist = sorted([x.rel_dist for x in triggered_stations])
+            max_rel_dist = np.max(rel_dist)
+            
+            # Find neighboring stations using the delaunay network
+            stat_coords = pgv_df[['x_utm', 'y_utm']].values
+            tri = scipy.spatial.Delaunay(stat_coords)
+            indptr, indices = tri.vertex_neighbor_vertices
+            
+            ref_ind = (pgv_df['nsl'] == ref_station.nsl_string).values
+            ref_ind = np.argwhere(ref_ind)
+            ref_ind = ref_ind[0][0]
+            neighbor_ind = indices[indptr[ref_ind]:indptr[ref_ind + 1]]
+            neighbor_nsl = pgv_df.iloc[neighbor_ind]['nsl'].values
+            triggered_nsl = [x.nsl_string for x in triggered_stations]
+            triggered_neighbors = [x for x in triggered_nsl if x in neighbor_nsl]
+            n_triggered_neighbors = len(triggered_neighbors)
+            
+            if n_triggered_neighbors <= n_neighbors_thr and event_length >= event_length_thr:
+                is_noise = True
+            elif n_triggered_neighbors <= n_neighbors_thr and max_rel_dist >= stat_dist_thr:
+                is_noise = True
+
+        if is_noise:
+            event_region = max_station.description
+            res = {'event_type': noise_event_type,
+                   'event_region': event_region,
+                   'max_station': max_station_nsl}
+            classification.append(res)
+
+        self.classification = classification
+            
+        
+        
     def compute_station_dist(self, ref_station):
         ''' Compute the distance relative to a reference station.
         '''

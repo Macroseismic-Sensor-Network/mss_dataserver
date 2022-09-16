@@ -1870,6 +1870,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                         pref_mag = pref_origin.pref_magnitude
                         mag = pref_mag.mag
 
+                # Special handling of the Pfaffenberg blast region.
+                self.logger.info('tags: %s', cur_event.tags)
+                if 'class_region:Steinbruch Pfaffenberg' in cur_event.tags:
+                    event_region = 'Steinbruch Pfaffenberg'
+
                 # Construct the event validation instance.
                 cur_archive_event = validation.Event(db_id = cur_event.db_id,
                                                      public_id = cur_event.public_id,
