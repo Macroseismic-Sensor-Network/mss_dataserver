@@ -91,6 +91,9 @@ class EventLocalizer(object):
         # Extract the station coordinates and the pgv data.
         stat_coord = pgv_df[['x_utm', 'y_utm', 'z']].values
         pgv = pgv_df['pgv'].values
+        
+        # Apply the station amplification factors.
+        pgv = pgv / pgv_df['sa'].values
 
         # Create the specific localizer instance.
         localizer = loc_ap.LocApolloniusCircle(stations = stat_coord,
@@ -174,15 +177,15 @@ class EventLocalizer(object):
         inv = self.inventory
         inv.compute_utm_coordinates()
         stations = inv.get_station()
-        stat_coord = [[x.x_utm, x.y_utm, x.z] for x in stations]
+        stat_coord = [[x.x_utm, x.y_utm] for x in stations]
         stat_coord = np.array(stat_coord)
 
-        hypo = [origin.x, origin.y, origin.z]
-        hypo_dist = np.sqrt(np.sum((stat_coord - hypo)**2,
-                                   axis = 1))
+        epi = [origin.x, origin.y]
+        epi_dist = np.sqrt(np.sum((stat_coord - epi)**2,
+                                  axis = 1))
 
         # Find the neares station.
-        min_dist_filter = np.argsort(hypo_dist)
+        min_dist_filter = np.argsort(epi_dist)
         nearest_station = stations[min_dist_filter[0]]
 
         # Use the description of the nearest station as the
