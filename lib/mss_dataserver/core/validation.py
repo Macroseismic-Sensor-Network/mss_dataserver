@@ -60,7 +60,7 @@ class Event(pydantic.BaseModel):
     num_detections: PositiveInt
     triggered_stations: List[constr(regex=r'^\w{1,10}:\w{1,10}:\w{1,4}')]
     event_class: Optional[constr(max_length=20)] = None
-    event_region: Optional[constr(max_length=20)] = None
+    event_region: Optional[constr(max_length=30)] = None
     event_class_mode: Optional[constr(max_length=20)] = None
     magnitude: Optional[float] = None
     description: Optional[constr(max_length=255)] = None
