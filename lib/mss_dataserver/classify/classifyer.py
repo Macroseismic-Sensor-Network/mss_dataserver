@@ -30,6 +30,7 @@ import logging
 import numpy as np
 import obspy
 import scipy.spatial
+import scipy.stats
 
 
 class EventClassifyer(object):
@@ -90,6 +91,11 @@ class EventClassifyer(object):
         if len(self.classification) == 0:
             self.logger.info('Testing for noise.')
             self.test_for_noise()
+
+        # Check if the event is an earthquake.
+        if len(self.classification) == 0:
+            self.logger.info('Testing for earthquake.')
+            self.test_for_earthquake()
 
         self.logger.info(self.classification)
 
@@ -275,6 +281,68 @@ class EventClassifyer(object):
             res = {'event_type': event_type,
                    'event_region': event_region,
                    'max_station': max_station_nsl}
+            classification.append(res)
+
+        self.classification = classification
+
+
+    def test_for_earthquake(self):
+        ''' Classify earthquake signals.
+        '''
+        pgv_df = self.pgv_df
+        project = self.project
+        quake_event_type = [x for x in self.event_types[0].event_types if x.name == 'earthquake']
+        quake_event_type = quake_event_type[0]
+        quake_inside = quake_event_type.get_child('inside network')
+        quake_outside = quake_event_type.get_child('outside network')
+        classification = self.classification
+
+        # Get the triggered data.
+        triggered_mask = pgv_df['triggered']
+        pgv_triggered_df = pgv_df[triggered_mask]
+
+        # Get the number of triggered stations.
+        n_triggered_stations = len(pgv_triggered_df)
+
+        n_stations_thr = 10
+        # Test for enough triggered stations.
+        if n_triggered_stations < n_stations_thr:
+            return
+        
+        # Get the station coordinates.
+        stat_coords = pgv_triggered_df[['x_utm', 'y_utm']].values
+
+        # Apply the station correction.
+        pgv_corr = (pgv_triggered_df['pgv']/pgv_triggered_df['sa']).values
+
+        # Compute a preliminary epicenter.
+        percentile = 90
+        p_epi = np.percentile(pgv_corr, percentile)
+        mask_p_epi = pgv_corr >= p_epi
+        p_epi_stat_coord = stat_coords[mask_p_epi, :]
+        epi_prelim = np.median(p_epi_stat_coord,
+                               axis = 0)
+
+        # Compute the amplitude decay for the preliminary epicenter.
+        prelim_epidist = np.sqrt(np.sum((epi_prelim - stat_coords)**2,
+                                        axis = 1))
+        zero_mask = np.isclose(prelim_epidist, 0)
+        prelim_epidist[zero_mask] = 100
+        # Linear regression of the pgv data.
+        linreg = scipy.stats.linregress(np.log10(prelim_epidist),
+                                        np.log10(pgv_corr))
+
+        linreg_fits = False
+        if (linreg.rvalue <= -0.75) and (linreg.slope <= -1.2 and linreg.slope >= -2.8):
+            linreg_fits = True
+
+        res = {}
+        if linreg_fits:
+            res = {'event_type': quake_inside}
+        else:
+            res = {'event_type': quake_outside}
+
+        if res:
             classification.append(res)
 
         self.classification = classification
