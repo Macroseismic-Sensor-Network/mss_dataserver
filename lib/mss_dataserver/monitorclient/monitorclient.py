@@ -1849,7 +1849,14 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 foreign_id = None
 
                 if cur_event.event_type is not None:
-                    event_class = translation[cur_event.event_type.name]
+                    cur_et = cur_event.event_type
+                    if cur_et.name == 'inside network':
+                        event_class = translation[cur_et.parent.name]
+                    elif cur_et.name == 'outside network':
+                        event_class = translation[cur_et.parent.name]
+                        event_region = 'ausserhalb Netzwerk'
+                    else:
+                        event_class = translation[cur_et.name]
 
                 # Get the event mode.
                 if 'automatic' in cur_event.tags:
