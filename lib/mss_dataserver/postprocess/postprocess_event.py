@@ -305,6 +305,9 @@ class EventPostProcessor(object):
         # Compute a PGV geodataframe using the event metadata.
         pgv_df = self.compute_pgv_df(meta)
 
+        # Add the station amplification column to the dataframe.
+        self.add_station_amplification(pgv_df)
+
         pub_id = self.event_public_id
         classifyer = mssds_classifyer.EventClassifyer(public_id = pub_id,
                                                       meta = self.meta,
@@ -355,14 +358,14 @@ class EventPostProcessor(object):
         '''
         # Check the event type before running the localization.
         event_type = self.event_classification
-        types_to_localize = ['blast', 'earthquake']
+        types_to_localize = ['root-blast', 'root-earthquake-inside network']
         if event_type is None:
             self.logger.info('No event type set. Ignoring the localization of this event.')
             return
 
-        if event_type.name not in types_to_localize:
+        if event_type.full_name not in types_to_localize:
             self.logger.info('The localization of event type "%s" not supported or needed.',
-                             event_type.name)
+                             event_type.full_name)
             return
 
         # Special handling of Pfaffenberg blasts.
@@ -427,6 +430,33 @@ class EventPostProcessor(object):
                 self.logger.info('pref_origin.db_id: %d', pref_origin.db_id)
                 self.event.set_preferred_origin(pref_origin)
                 self.event.write_to_database(project = self.project)
+
+        # Write the origins to the origins geojson supplement data.
+        x_coord = [x.x for x in origins]
+        y_coord = [x.y for x in origins]
+        z_coord = [x.z for x in origins]
+        data = {'geom_origin': [shapely.geometry.Point([x[0], x[1]]) for x in zip(x_coord, y_coord)],
+                'z': z_coord,
+                'method': [x.method for x in origins],
+                'region': [x.region for x in origins]}
+        df = gpd.GeoDataFrame(data = data,
+                              crs = 'epsg:4326',
+                              geometry = 'geom_origin')
+        # Get some event properties to add to the properties of the feature collections.
+        props = {'db_id': meta['db_id'],
+                 'event_start': util.isoformat_tz(meta['start_time']),
+                 'event_end': util.isoformat_tz(meta['end_time']),
+                 'author_uri': self.project.author_uri,
+                 'agency_uri': self.project.agency_uri}
+
+        # Save the origins supplement.
+        filepath = util.save_supplement(self.event_public_id,
+                                        df,
+                                        output_dir = self.supplement_dir,
+                                        category = 'localize',
+                                        name = 'origins',
+                                        props = props)
+        self.logger.info('Saved the origins to file %s.', filepath)
 
         # Write the origins to the postprocess metadata supplement file.
         pp_meta = self.pp_meta
