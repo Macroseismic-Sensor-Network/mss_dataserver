@@ -180,6 +180,10 @@ def get_supplement_data(public_id, category, name, directory):
     supplement_map = get_supplement_map()
     event_dir = event_dir_from_publicid(public_id)
     supp_data = supplement_map[category][name]
+    if 'decoder' in supplement_map[category][name]:
+        supplement_decoder = supplement_map[category][name]['decoder']
+    else:
+        supplement_decoder = None
 
     supplement_dir = os.path.join(directory,
                                   event_dir,
@@ -193,7 +197,7 @@ def get_supplement_data(public_id, category, name, directory):
 
         with gzip.open(cur_filepath, 'rt', encoding = 'UTF-8') as json_file:
             cur_data = json.load(json_file,
-                                 cls = supp_data['decoder'])
+                                 cls = supplement_decoder)
             
     elif supp_data['format'] == 'miniseed':
         cur_filename += '.msd.gz'
@@ -400,7 +404,10 @@ def save_supplement(public_id, data, output_dir,
     supplement_sub_dir = supp_map[category][name]['subdir']
     supplement_name = supp_map[category][name]['name']
     supplement_format = supp_map[category][name]['format']
-    supplement_encoder = supp_map[category][name]['encoder']
+    if 'encoder' in supp_map[category][name]:
+        supplement_encoder = supp_map[category][name]['encoder']
+    else:
+        supplement_encoder = None
     output_dir = os.path.join(output_dir,
                               event_dir,
                               supplement_sub_dir)
