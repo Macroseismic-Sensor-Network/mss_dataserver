@@ -75,9 +75,19 @@ class EventType(object):
     def rid(self):
         ''' str: The resource ID of the event type.
         '''
-        return '/eventtype/' + self.name
+        return '/eventtype/' + self.full_name
 
-    
+
+    @property
+    def full_name(self):
+        ''' str: The full name of the event type, including parents.
+        '''
+        if self.parent:
+            return self.parent.full_name + '-' + self.name
+        else:
+            return self.name
+
+
     def add_child(self, event_type):
         ''' Add a sub event type.
 
@@ -92,6 +102,53 @@ class EventType(object):
         if event_type not in self.event_types:
             event_type.parent = self
             self.event_types.append(event_type)
+
+            
+    def flattened_children(self):
+        ''' Get a flattened list of all children and sub-children.
+        '''
+        flat_children = [self]
+        if len(self.event_types) > 0:
+            [flat_children.extend(x.flattened_children()) for x in self.event_types]
+        return flat_children
+            
+            
+    def get_child(self, name):
+        ''' Get a child with given name.
+        
+        Parameters
+        ----------
+        name: String
+            The name of the child.
+
+        Returns
+        -------
+        :class:`mss_dataserver.event.event_type.EventType`
+            The found event type child.
+        '''
+        found_child = None
+        matching_types = [x for x in self.event_types if x.name == name]
+
+        if len(matching_types) == 1:
+            found_child = matching_types[0]
+            
+        return found_child
+
+    def get_child_by_id(self, id, search_whole = True):
+        ''' Get a child with given database id.
+
+        '''
+        found_child = None
+        if search_whole:
+            search_children = self.flattened_children()
+        else:
+            search_children = self.event_types
+
+        matching_types = [x for x in search_children if x.db_id == id]
+        if len(matching_types) == 1:
+            found_child = matching_types[0]
+
+        return found_child
 
 
     def write_to_database(self, project, db_session = None,

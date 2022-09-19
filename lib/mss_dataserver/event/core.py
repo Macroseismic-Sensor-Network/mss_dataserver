@@ -641,7 +641,7 @@ class Event(object):
         return db_event
 
     @classmethod
-    def from_orm(cls, db_event, inventory):
+    def from_orm(cls, db_event, inventory, ev_type_tree = None):
         ''' Convert a database orm mapper event to a event.
 
         Parameters
@@ -663,8 +663,8 @@ class Event(object):
         else:
             event_tags = []
 
-        if db_event.event_type is not None:
-            event_type = ev_type.EventType.from_orm(db_event.event_type)
+        if db_event.event_type is not None and ev_type_tree is not None:
+            event_type = ev_type_tree[0].get_child_by_id(id = db_event.ev_type_id)
         else:
             event_type = None
 
@@ -1041,7 +1041,7 @@ class Catalog(object):
 
 
     @classmethod
-    def from_orm(cls, db_catalog, inventory, load_events = False):
+    def from_orm(cls, db_catalog, inventory, ev_type_tree = None, load_events = False):
         ''' Convert a database orm mapper catalog to a catalog.
 
         Parameters
@@ -1073,8 +1073,9 @@ class Catalog(object):
         if load_events is True:
             for cur_db_event in db_catalog.events:
                 cur_event = Event.from_orm(db_event = cur_db_event,
-                                           inventory = inventory)
-                catalog.add_events([cur_event,])
+                                           inventory = inventory,
+                                           ev_type_tree = ev_type_tree)
+                catalog.add_events([cur_event])
         return catalog
 
 
@@ -1213,6 +1214,9 @@ class Library(object):
         if isinstance(name, str):
             name = [name, ]
 
+        # Load the event types tree from the database.
+        ev_type_tree = ev_type.EventType.load_from_db(project = project)
+
         db_session = project.get_db_session()
         try:
             db_catalog_orm = project.db_tables['event_catalog']
@@ -1227,7 +1231,8 @@ class Library(object):
                 for cur_db_catalog in query:
                     cur_catalog = Catalog.from_orm(db_catalog = cur_db_catalog,
                                                    load_events = load_events,
-                                                   inventory = project.inventory)
+                                                   inventory = project.inventory,
+                                                   ev_type_tree = ev_type_tree)
                     self.add_catalog(cur_catalog)
         finally:
             db_session.close()
@@ -1259,6 +1264,10 @@ class Library(object):
 
         found_events = []
         db_session = project.get_db_session()
+
+        # Load the event types tree from the database.
+        ev_type_tree = ev_type.EventType.load_from_db(project = project)
+        
         try:
             events_table = project.db_tables['event']
             query = db_session.query(events_table)
@@ -1272,7 +1281,8 @@ class Library(object):
             for cur_orm in query:
                 try:
                     cur_event = Event.from_orm(db_event = cur_orm,
-                                               inventory = project.db_inventory)
+                                               inventory = project.db_inventory,
+                                               ev_type_tree = ev_type_tree)
                     # Get the parent catalog of the event.
                     cat_id = cur_orm.ev_catalog_id
                     if cat_id is not None:
