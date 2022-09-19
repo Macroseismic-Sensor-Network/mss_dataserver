@@ -113,6 +113,14 @@ def get_supplement_map():
                         'encoder': json_util.GeneralFileEncoder}}
     supplement_map['postprocess'] = tmp
 
+
+    # Category localize
+    tmp = {'origins': {'name': 'origins',
+                       'format': 'geojson',
+                       'subdir': 'localize'}}
+    supplement_map['localize'] = tmp
+
+    
     # Category detectionsequence.
     tmp = {'simplices': {'name': 'simplices',
                          'format': 'geojson',
