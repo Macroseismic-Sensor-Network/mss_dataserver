@@ -74,13 +74,17 @@ def cli(ctx, config_file):
 @click.pass_context
 @click.option('--public-id', help = 'The public ID of the event to process.')
 @click.option('--no-db', is_flag = True, help = 'No database available.')
+@click.option('--no-localize', is_flag = True, help = "Don't run the event localization.")
+@click.option('--no-classify', is_flag = True, help = "Don't run the event classification.")
 @click.option('--no-meta', is_flag = True, help = "Don't compute the meta supplement.")
+@click.option('--no-specific', is_flag = True, help = "Don't compute the event type specific supplement.")
 @click.option('--no-isoseismal', is_flag = True, help = "Don't compute the pgv kriging.")
 @click.option('--no-pgv-sequence', is_flag = True, help = "Don't compute the PGV sequence.")
 @click.option('--no-detection-sequence', is_flag = True, help = "Don't compute the detection sequence.")
 @click.option('--no-pgv-contour-sequence', is_flag = True, help = "Don't compute the pgv contour sequence.")
-def process_event(ctx, public_id, no_db, no_meta, no_isoseismal,
-                  no_pgv_sequence, no_detection_sequence,
+def process_event(ctx, public_id, no_db, no_meta, no_specific,
+                  no_localize, no_classify,
+                  no_isoseismal, no_pgv_sequence, no_detection_sequence,
                   no_pgv_contour_sequence):
     ''' Process an event. '''
 
@@ -117,18 +121,20 @@ def process_event(ctx, public_id, no_db, no_meta, no_isoseismal,
         sys.exit(-1)
 
     # Classify the event.
-    try:
-        logger.info('Running the event classification.')
-        pp.classify_event()
-    except Exception:
-        logger.exception('Error classifying the event.')
+    if not no_classify:
+        try:
+            logger.info('Running the event classification.')
+            pp.classify_event()
+        except Exception:
+            logger.exception('Error classifying the event.')
 
     # Localize the event.
-    try:
-        logger.info('Running the event localization.')
-        pp.localize_event()
-    except Exception:
-        logger.exception('Error localizing the event.')
+    if not no_localize:
+        try:
+            logger.info('Running the event localization.')
+            pp.localize_event()
+        except Exception:
+            logger.exception('Error localizing the event.')
 
     # Compute the metadata supplement.
     if not no_meta:
@@ -137,6 +143,15 @@ def process_event(ctx, public_id, no_db, no_meta, no_isoseismal,
             pp.compute_event_metadata_supplement()
         except Exception:
             logger.exception('Error computing the meta supplement.')
+
+    # Compute event specific supplement.
+    if not no_specific:
+        try:
+            logger.info('Computing the event type specific supplement.')
+            pp.compute_event_specific_supplement()
+        except Exception:
+            logger.exception('Error computing the event type specific supplement.')
+        
 
     # Compute the isoseismal contours.
     if not no_isoseismal:
