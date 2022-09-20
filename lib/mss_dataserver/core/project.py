@@ -27,6 +27,7 @@
 '''
 
 import configparser
+import copy
 import json
 import logging
 import os
@@ -157,6 +158,9 @@ class Project(object):
         # The geometry inventory.
         self.db_inventory = None
 
+        # The geometry inventory of third party stations.
+        self.tp_inventory = None
+
         # The events library.
         self.event_library = event.core.Library(name = 'mss events')
 
@@ -263,6 +267,31 @@ class Project(object):
         return self.db_session_class()
 
 
+    def split_inventory(self):
+        ''' Create the third party inventory.
+
+        '''
+        # TODO: Make this an entry in the config file.
+        ignore_stations = ['MSSNet:DUBAM:00']
+
+        # Create the third party inventory.
+        self.tp_inventory = geometry.inventory.Inventory(name = 'third party')
+
+        for cur_stat_nsl in ignore_stations:
+            cur_stat_list = self.inventory.get_station(nsl_string = cur_stat_nsl)
+
+            for cur_stat in cur_stat_list:
+                cur_net_name = cur_stat.network
+                cur_net = self.tp_inventory.get_network(name = cur_net_name)
+                if len(cur_net) == 1:
+                    cur_net = cur_net[0]
+                else:
+                    cur_net = geometry.inventory.Network(name = cur_net_name)
+                    self.tp_inventory.add_network(cur_net)
+                cur_stat.parent_network.remove_station_by_instance(cur_stat)
+                cur_net.add_station(cur_stat)
+            
+        
     def load_inventory(self, update_from_xml = False):
         ''' Load the geometry inventory.
 
@@ -311,6 +340,8 @@ class Project(object):
 
             self.logger.info("Updated the database inventory with data read from %s.", inventory_file)
 
+        self.split_inventory()
+        
 
     def load_inventory_from_xml(self):
         ''' Load the inventory directly from the XML file ignoring the database.
@@ -334,6 +365,7 @@ class Project(object):
                                   inventory_file)
 
         self.db_inventory = xml_inventory
+        self.split_inventory()
 
 
     def get_event_catalog(self, name):
