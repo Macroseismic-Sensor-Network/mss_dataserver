@@ -66,8 +66,9 @@ class Event(pydantic.BaseModel):
     description: Optional[constr(max_length=255)] = None
     comment: Optional[constr(max_length=255)] = None
     state: Optional[constr(max_length=20)] = None
+    pgv_3d: Optional[Dict[str, float]] = None
     f_dom: Optional[float] = None
-    foreign_ie: Optional[constr(max_length=10)] = None
+    foreign_id: Optional[constr(max_length=10)] = None
     
 
 class MsgClassEnum(str, enum.Enum):
