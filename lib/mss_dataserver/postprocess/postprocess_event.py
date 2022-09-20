@@ -37,6 +37,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import obspy
 import pyproj
+import scipy.fft
 import shapely
 
 import mss_dataserver.classify.classifyer as mssds_classifyer
@@ -574,6 +575,122 @@ class EventPostProcessor(object):
                          filepath)
 
 
+    def compute_event_specific_supplement(self):
+        ''' Compute the supplement data depending on the event type.
+
+        '''
+        if self.event.event_type is not None:
+            ev_type = self.event.event_type.name
+            if ev_type == 'blast':
+                if 'class_region:Steinbruch Dürnbach' in self.event.tags:
+                    self.compute_blast_duernbach_supplement()
+
+                
+    def compute_blast_duernbach_supplement(self):
+        ''' Compute the supplement data for a blast at Dürnbach.
+
+        '''
+        public_id = self.event_public_id
+        meta = self.meta
+
+        # Load the velocity seismogram data.
+        vel_st = util.get_supplement_data(public_id = public_id,
+                                          category = 'detectiondata',
+                                          name = 'velocity',
+                                          directory = self.supplement_dir)
+
+        # Fix the miniseed header values.
+        network_map = {'MS': 'MSSNet'}
+        channel_map = {'Hno': 'Hnormal',
+                       'Hpa': 'Hparallel'}
+        for cur_trace in vel_st:
+            cur_net = cur_trace.stats.network
+            cur_chan = cur_trace.stats.channel
+            mapped_net = cur_net
+            mapped_chan = cur_chan
+            
+            if cur_net in network_map.keys():
+                mapped_net = network_map[cur_net]
+        
+            if cur_chan in channel_map.keys():
+                mapped_chan = channel_map[cur_chan]
+        
+            cur_trace.stats.network = mapped_net
+            cur_trace.stats.channel = mapped_chan
+
+        # Get the streams of stations with 3 channels.
+        inv = self.project.inventory
+        stations = inv.get_station()
+        stations_3_chan = [x for x in stations if len(x.channels) >= 3]
+        st_3d = obspy.Stream()
+        for cur_stat in stations_3_chan:
+            cur_st = vel_st.select(network = cur_stat.network,
+                                   station = cur_stat.name,
+                                   location = cur_stat.location)
+            st_3d += cur_st
+
+        # Compute the 3D PGV data.
+        channel_names = ['Hnormal', 'Hparallel', 'Z']
+        st_res_3d = self.compute_resultant(st_3d, channel_names)
+        max_pgv_3d = [(str.join(':', (x.stats.network, x.stats.station, x.stats.location)), np.max(x.data))  for x in st_res_3d]
+        max_pgv_3d = dict(max_pgv_3d)
+
+        # Create the data used for the geojson dataframe.
+        x_coord = [x.x for x in stations_3_chan]
+        y_coord = [x.y for x in stations_3_chan]
+        z_coord = [x.z for x in stations_3_chan]
+        pgv_3d_sorted = [max_pgv_3d[x.nsl_string] for x in stations_3_chan]
+
+        # Get some event properties to add to the supplement properties.
+        props = {'db_id': meta['db_id'],
+                 'event_start': util.isoformat_tz(meta['start_time']),
+                 'event_end': util.isoformat_tz(meta['end_time']),
+                 'author_uri': self.project.author_uri,
+                 'agency_uri': self.project.agency_uri}
+        
+        # Save the PGV 3D supplement data to file.
+        pgv3d_data = {'geom_stat': [shapely.geometry.Point([x[0], x[1]]) for x in zip(x_coord, y_coord)],
+                      'nsl': [x.nsl_string for x in stations_3_chan],
+                      'x': x_coord,
+                      'y': y_coord,
+                      'z': z_coord,
+                      'pgv3d': pgv_3d_sorted}
+        df = gpd.GeoDataFrame(data = pgv3d_data,
+                              crs = 'epsg:4326',
+                              geometry = 'geom_stat')
+        
+        filepath = util.save_supplement(self.event_public_id,
+                                        df,
+                                        output_dir = self.supplement_dir,
+                                        category = 'custom',
+                                        name = 'pgv3d',
+                                        props = props)
+        self.logger.info('Saved the PGV 3D supplement data to file %s.',
+                         filepath)
+        
+
+        # Compute the PSD and the dominant frequencies.
+        psd_data = {}
+        for cur_trace in st_3d:
+            cur_psd_data = self.compute_psd(cur_trace)
+            psd_data[cur_trace.id] = cur_psd_data
+
+        # Compute the dominant frequency.
+        dom_frequ = {}
+        dom_stat_frequ = {}
+        for cur_station in stations_3_chan:
+            cur_psd_keys = [x for x in psd_data.keys() if x.startswith(cur_station.network + '.' + cur_station.name + '.')]
+        cur_df = []
+        for cur_key in cur_psd_keys:
+            cur_nfft = psd_data[cur_key]['n_fft']
+            left_fft = int(np.ceil(cur_nfft / 2.))
+            max_ind = np.argmax(psd_data[cur_key]['psd'][1:left_fft])
+            dom_frequ[cur_key] = psd_data[cur_key]['frequ'][max_ind]
+            cur_df.append(dom_frequ[cur_key])
+
+        dom_stat_frequ[cur_station.nsl_string] = np.mean(cur_df)
+        
+        
     def compute_pgv_sequence_supplement(self):
         ''' Compute the supplement data representing the PGV sequence.
         '''
@@ -1126,3 +1243,66 @@ class EventPostProcessor(object):
         self.logger.info('Saved isoseismal contours to file %s.', filepath)
 
         return df
+
+    
+    def compute_resultant(self, st, channel_names):
+        ''' Compute the resultant of the peak-ground-velocity.
+        '''
+        res_st = obspy.core.Stream()
+        used_streams = []
+        for cur_channel in channel_names:
+            cur_stream = st.select(channel = cur_channel).merge()
+            if len(cur_stream) == 0:
+                self.logger.error("No data found in stream %s for channel %s.",
+                                  st,
+                                  cur_channel)
+                return res_st
+            used_streams.append(cur_stream)
+
+        for cur_traces in zip(*[x.traces for x in used_streams]):
+            cur_data = [x.data for x in cur_traces]
+
+            if len(set([len(x) for x in cur_data])) > 1:
+                self.logger.error("The lenght of the data of the individual traces dont't match. Can't compute the res. PGV for these traces: %s.", [str(x) for x in cur_traces])
+                continue
+
+            cur_data = np.array(cur_data)
+            cur_res = np.sqrt(np.sum(cur_data**2, axis = 0))
+
+            cur_stats = {'network': cur_traces[0].stats['network'],
+                         'station': cur_traces[0].stats['station'],
+                         'location': cur_traces[0].stats['location'],
+                         'channel': 'res_{0:d}d'.format(len(cur_traces)),
+                         'sampling_rate': cur_traces[0].stats['sampling_rate'],
+                         'starttime': cur_traces[0].stats['starttime']}
+            res_trace = obspy.core.Trace(data = cur_res, header = cur_stats)
+            res_st.append(res_trace)
+
+        res_st.split()
+
+        return res_st
+
+    
+    def compute_psd(self, trace):
+        ''' Compute the power spectral density of a trace.
+        '''
+
+        # Compute the power amplitude density spectrum.
+        # As defined by Havskov and Alguacil (page 164), the power density
+        # spectrum can be written as
+        #   P = 2* 1/T * deltaT^2 * abs(F_dft)^2
+        # This is valid for the left-sided fft.
+        #
+        n_fft = len(trace.data)
+        delta_t = 1 / trace.stats.sampling_rate
+        T = (len(trace.data) - 1) * delta_t
+        Y = scipy.fft.fft(trace.data, n_fft)
+        psd = 2 * delta_t**2 / T * np.abs(Y)**2
+        psd = 10 * np.log10(psd)
+        frequ = trace.stats.sampling_rate * np.arange(0, n_fft) / float(n_fft)
+        psd_data = {}
+        psd_data['n_fft'] = n_fft
+        psd_data['psd'] = psd
+        psd_data['frequ'] = frequ
+
+        return psd_data

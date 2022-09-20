@@ -120,6 +120,17 @@ def get_supplement_map():
                        'subdir': 'localize'}}
     supplement_map['localize'] = tmp
 
+
+    # Category custom
+    tmp = {'pgv3d': {'name': 'pgv3d',
+                     'format': 'geojson',
+                     'subdir': 'custom'},
+           'domfrequ': {'name': 'domfrequ',
+                        'format': 'geojson',
+                        'subdir': 'custom'}}
+    supplement_map['custom'] = tmp
+                            
+
     
     # Category detectionsequence.
     tmp = {'simplices': {'name': 'simplices',
