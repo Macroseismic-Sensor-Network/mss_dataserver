@@ -99,7 +99,7 @@ class EventClassifyer(object):
 
         self.logger.info(self.classification)
 
-        # Write the classificaton to the database.
+        # Write the classification to the database.
         if len(self.classification) == 1:
             classification = self.classification[0]
             event_type = classification['event_type']
