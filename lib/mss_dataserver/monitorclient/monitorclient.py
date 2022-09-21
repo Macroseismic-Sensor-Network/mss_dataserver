@@ -1265,10 +1265,19 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                           '--no-pgv-contour-sequence'])
 
         # Update the event based on the results of the post-processing.
-        # TODO: Load the localization results from the database
         public_id = export_event.public_id
         with self.project_lock:
-            reloaded_event = self.project.load_event_by_id(public_id = public_id)
+            # Force a reload of the event from the database.
+            lib = self.project.event_library
+            reloaded_event = lib.load_event_from_db(project = self.project,
+                                                    public_id = public_id)
+            if len(reloaded_event) == 1:
+                reloaded_event = reloaded_event[0]
+            else:
+                self.logger.error("Event with public_id %s couldn't be reloaded from the database.",
+                                  public_id)
+                reloaded_event = None
+
         if reloaded_event is not None:
             # Remove the original event from the catalog.
             cur_cat.remove_event(export_event)
