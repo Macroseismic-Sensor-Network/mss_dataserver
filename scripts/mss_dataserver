@@ -55,6 +55,7 @@ import mss_dataserver.core.validation as validation
 import mss_dataserver.event.event_type as ev_type
 import mss_dataserver.geometry.inventory_parser as inventory_parser
 import mss_dataserver.monitorclient.monitorclient as monitorclient
+import mss_dataserver.postprocess.util as pp_util
 import mss_dataserver.test.util as test_util
 
 # The clients connected to the server.
@@ -897,50 +898,11 @@ def create_eventtype_tree(ctx):
     author_uri = project.author_uri
     agency_uri = project.agency_uri
    
-    name = 'root'
-    description = 'The event types tree root.'
-    creation_time = obspy.UTCDateTime()
-    root = ev_type.EventType(name = name,
-                             description = description,
-                             author_uri = author_uri,
-                             agency_uri = agency_uri,
-                             creation_time = creation_time)
+    filepath = os.path.join(project.data_dir,
+                            'event_types.json')
+    event_types = pp_util.load_eventtypes_from_json(filepath)
 
-    # Create the blast event types.
-    name = 'blast'
-    description = 'A controlled blast from a e.g. quarry or a construction site.'
-    creation_time = obspy.UTCDateTime()
-    blast = ev_type.EventType(name = name,
-                              description = description,
-                              author_uri = author_uri,
-                              agency_uri = agency_uri,
-                              creation_time = creation_time)
-
-    # Create the earthquake event types.
-    name = 'earthquake'
-    description = 'An earthquake.'
-    creation_time = obspy.UTCDateTime()
-    quake = ev_type.EventType(name = name,
-                              description = description,
-                              author_uri = author_uri,
-                              agency_uri = agency_uri,
-                              creation_time = creation_time)
-
-    # Create the noise event types.
-    name = 'noise'
-    description = 'Signals that we are not interested in.'
-    creation_time = obspy.UTCDateTime()
-    noise = ev_type.EventType(name = name,
-                              description = description,
-                              author_uri = author_uri,
-                              agency_uri = agency_uri,
-                              creation_time = creation_time)
-
-    root.add_child(blast)
-    root.add_child(quake)
-    root.add_child(noise)
-
-    root.write_to_database(project)
+    event_types.write_to_database(project)
     logger.info('Created the event types tree successfully.')
 
 
