@@ -1118,7 +1118,6 @@ class Library(object):
         catalog : :class:`Catalog` or list of :class:`Catalog`
             The catalog(s) to add to the library.
         '''
-
         if isinstance(catalog, list):
             for cur_catalog in catalog:
                 self.add_catalog(cur_catalog)
@@ -1285,14 +1284,16 @@ class Library(object):
                                                ev_type_tree = ev_type_tree)
                     # Get the parent catalog of the event.
                     cat_id = cur_orm.ev_catalog_id
-                    if cat_id is not None:
-                        # Load the required catalog from the database to the library.
-                        self.load_catalog_from_db(cat_id = cat_id,
-                                                  project = project)
-                        # Get the catalog from the library.
-                        parent_cat = self.get_catalog_by_id(cat_id = cat_id)
-                        # Set the parent catalog of the event.
-                        cur_event.parent = parent_cat
+
+                    # TODO: Better handling of the event catalog.
+                    #if cat_id is not None:
+                    #    # Load the required catalog from the database to the library.
+                    #    self.load_catalog_from_db(cat_id = cat_id,
+                    #                              project = project)
+                    #    # Get the catalog from the library.
+                    #    parent_cat = self.get_catalog_by_id(cat_id = cat_id)
+                    #    # Set the parent catalog of the event.
+                    #    cur_event.parent = parent_cat
                         
                     found_events.append(cur_event)
                 except Exception:
