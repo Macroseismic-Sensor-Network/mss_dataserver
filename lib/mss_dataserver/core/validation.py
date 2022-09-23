@@ -34,6 +34,7 @@ import enum
 import pydantic
 from pydantic import (
     confloat,
+    conlist,
     constr,
     PositiveInt,
     PositiveFloat,
@@ -62,6 +63,9 @@ class Event(pydantic.BaseModel):
     event_class: Optional[constr(max_length=20)] = None
     event_region: Optional[constr(max_length=30)] = None
     event_class_mode: Optional[constr(max_length=20)] = None
+    hypo: Optional[conlist(float, min_items = 3, max_items = 3)] = None
+    hypo_dist: Optional[Dict[str, float]] = None
+    epi_dist: Optional[Dict[str, float]] = None
     magnitude: Optional[float] = None
     description: Optional[constr(max_length=255)] = None
     comment: Optional[constr(max_length=255)] = None
