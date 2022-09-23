@@ -198,6 +198,18 @@ class Origin(object):
         return (lon, lat)
 
     
+    def get_utm_coordinates(self, dest_epsg):
+        ''' Compute the UTM coordinates of all stations in the inventory.
+        '''
+        proj = pyproj.Proj(init = dest_epsg)
+
+        x, y = proj(self.get_lonlat()[0],
+                    self.get_lonlat()[1])
+
+        return x, y
+
+
+    
     def write_to_database(self, project, db_session = None,
                           close_session = True):
         ''' Write the origin to the database.
