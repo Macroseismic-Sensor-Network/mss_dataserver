@@ -1833,6 +1833,14 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             events = self.project.get_events(start_time = request_start)
         cur_archive = {}
 
+        # The station coordinates.
+        stations = self.inventory.get_station()
+        stat_coord = [[stat.x_utm, stat.y_utm, stat.z] for stat in stations]
+        stat_coord = np.array(stat_coord)
+        stat_nsl = [stat.nsl_string for stat in stations]
+        epsg_code = self.inventory.get_utm_epsg()
+        dest_epsg = 'epsg:' + epsg_code[0][0]
+
         # Event type translation.
         translation = {'blast': 'sprengung',
                        'earthquake': 'erdbeben',
@@ -1850,6 +1858,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                  cur_event.triggered_stations)
                 
                 # Set the default values.
+                hypo = None
+                hypo_dist = None
+                epi_dist = None
                 mag = None
                 event_region = None
                 event_mode = 'undefiniert'
@@ -1891,10 +1902,25 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 if cur_event.pref_origin is not None:
                     self.logger.info('Found a pref_origin.')
                     pref_origin = cur_event.pref_origin
-                    hypo = [pref_origin.x,
-                            pref_origin.y,
+                    hypo_xy = pref_origin.get_utm_coordinates(dest_epsg = dest_epsg)
+                    hypo = [hypo_xy[0],
+                            hypo_xy[1],
                             pref_origin.z]
                     event_region = pref_origin.region
+
+                    # Compute the epi- and hypodistance.
+                    hypo_dist = np.sqrt(np.sum((hypo - stat_coord)**2,
+                                               axis = 1))
+                    hypo_ind = np.argsort(hypo_dist)
+                    epi_dist = np.sqrt(np.sum((hypo[:2] - stat_coord[:, :2])**2,
+                                              axis = 1))
+                    epi_ind = np.argsort(epi_dist)
+
+                    hypo_dist = dict(zip(stat_nsl[hypo_ind], hypo_dist[hypo_ind]))
+                    epi_dist = dict(zip(stat_nsl[epi_ind], epi_dist[epi_ind]))
+                    #hypo_dist_dict = {key: {'hypo_dist': a, 'epi_dist': b} for key, a, b in zip(station_nsl,
+                    #                                                                            hypo_dist,
+                    #                                                                            epi_dist)}
 
                     if pref_origin.pref_magnitude is not None:
                         pref_mag = pref_origin.pref_magnitude
@@ -1920,6 +1946,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                      event_class = event_class,
                                                      event_region = event_region,
                                                      event_class_mode = event_mode,
+                                                     hypo = hypo,
+                                                     hypo_dist = hypo_dist,
+                                                     epi_dist = epi_dist,
                                                      magnitude = mag,
                                                      pgv_3d = pgv_3d,
                                                      f_dom = f_dom,
