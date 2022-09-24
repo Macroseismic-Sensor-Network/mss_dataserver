@@ -898,7 +898,7 @@ def create_eventtype_tree(ctx):
     author_uri = project.author_uri
     agency_uri = project.agency_uri
    
-    filepath = os.path.join(project.data_dir,
+    filepath = os.path.join(project.config['postprocess']['data_dir'],
                             'event_types.json')
     event_types = pp_util.load_eventtypes_from_json(filepath)
 
