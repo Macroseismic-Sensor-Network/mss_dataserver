@@ -1837,7 +1837,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         stations = self.inventory.get_station()
         stat_coord = [[stat.x_utm, stat.y_utm, stat.z] for stat in stations]
         stat_coord = np.array(stat_coord)
-        stat_nsl = [stat.nsl_string for stat in stations]
+        stat_nsl = np.array([stat.nsl_string for stat in stations])
         epsg_code = self.inventory.get_utm_epsg()
         dest_epsg = 'epsg:' + epsg_code[0][0]
 
@@ -1916,8 +1916,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                               axis = 1))
                     epi_ind = np.argsort(epi_dist)
 
-                    hypo_dist = dict(zip(stat_nsl[hypo_ind], hypo_dist[hypo_ind]))
-                    epi_dist = dict(zip(stat_nsl[epi_ind], epi_dist[epi_ind]))
+                    hypo_dist = dict(zip(stat_nsl[hypo_ind],
+                                         hypo_dist[hypo_ind]))
+                    epi_dist = dict(zip(stat_nsl[epi_ind],
+                                        epi_dist[epi_ind]))
                     #hypo_dist_dict = {key: {'hypo_dist': a, 'epi_dist': b} for key, a, b in zip(station_nsl,
                     #                                                                            hypo_dist,
                     #                                                                            epi_dist)}
