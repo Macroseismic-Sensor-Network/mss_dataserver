@@ -894,15 +894,13 @@ def create_eventtype_tree(ctx):
     logger.info('Creating the event types tree in the database.')
     project = ctx.obj['project']
     project.connect_to_db()
-
-    author_uri = project.author_uri
-    agency_uri = project.agency_uri
-   
+    
     filepath = os.path.join(project.config['postprocess']['data_dir'],
                             'event_types.json')
     event_types = pp_util.load_eventtypes_from_json(filepath)
+    root = event_types[0]
 
-    event_types.write_to_database(project)
+    root.write_to_database(project)
     logger.info('Created the event types tree successfully.')
 
 
