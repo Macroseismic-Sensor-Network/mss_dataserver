@@ -623,12 +623,17 @@ class EventPostProcessor(object):
         stations = inv.get_station()
         stations_3_chan = [x for x in stations if len(x.channels) >= 3]
         st_3d = obspy.Stream()
+        stations_with_data = []
         for cur_stat in stations_3_chan:
             cur_st = vel_st.select(network = cur_stat.network,
                                    station = cur_stat.name,
                                    location = cur_stat.location)
-            st_3d += cur_st
+            if len(cur_st) > 0:
+                st_3d += cur_st
+                stations_with_data.append(cur_stat)
 
+        stations_3_chan = stations_with_data
+        
         # Compute the 3D PGV data.
         channel_names = ['Hnormal', 'Hparallel', 'Z']
         st_res_3d = self.compute_resultant(st_3d, channel_names)
