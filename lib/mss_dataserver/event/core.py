@@ -108,9 +108,10 @@ class Event(object):
         using :class:`mss_dataserver.event.delaunay_detection.DelaunayDetector`.
     '''
 
-    def __init__(self, start_time, end_time, db_id = None, public_id = None, event_type = None,
-            event_type_certainty = None, description = None, comment = None,
-            tags = [], agency_uri = None, author_uri = None, creation_time = None,
+    def __init__(self, start_time, end_time, db_id = None, db_cat_id = None,
+                 public_id = None, event_type = None,
+                 event_type_certainty = None, description = None, comment = None,
+                 tags = [], agency_uri = None, author_uri = None, creation_time = None,
                  parent = None, changed = True, detections = None):
         ''' Instance initialization
 
@@ -133,6 +134,9 @@ class Event(object):
 
         # The unique database id.
         self.db_id = db_id
+
+        # The database id of the related catalog.
+        self.db_cat_id = db_cat_id
 
         # The start time of the event.
         self.start_time = utcdatetime.UTCDateTime(start_time)
@@ -472,7 +476,7 @@ class Event(object):
         if self.parent is not None:
             catalog_id = self.parent.db_id
         else:
-            catalog_id = None
+            catalog_id = self.db_cat_id
 
         if self.event_type is not None:
             event_type_id = self.event_type.db_id
@@ -672,6 +676,7 @@ class Event(object):
         event = cls(start_time = db_event.start_time,
                     end_time = db_event.end_time,
                     db_id = db_event.id,
+                    db_cat_id = db_event.ev_catalog_id,
                     public_id = db_event.public_id,
                     event_type = event_type,
                     event_type_certainty = db_event.ev_type_certainty,
