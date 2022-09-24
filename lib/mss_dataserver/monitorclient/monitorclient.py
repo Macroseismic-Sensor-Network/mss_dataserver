@@ -327,7 +327,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 cur_cat = self.project.load_event_catalog(name = cur_name,
                                                           load_events = True)
                 if cur_cat:
-                    self.logger.info("events in catalog: %s", cur_cat.events)
+                    self.logger.info("events in catalog: %s", [x.public_id for x in cur_cat.events])
                 self.logger.info("Catalog keys: %s", self.project.event_library.catalogs.keys())
 
 
