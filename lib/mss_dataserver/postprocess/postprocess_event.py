@@ -326,7 +326,8 @@ class EventPostProcessor(object):
         pp_meta = self.pp_meta
         if event_type is not None:
             type_dict = {'event_type': event_type.name,
-                         'description': event_type.description}
+                         'description': event_type.description,
+                         'event_tags': self.event.tags}
         else:
             type_dict = None
            
