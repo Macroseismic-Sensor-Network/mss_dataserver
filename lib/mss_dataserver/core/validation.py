@@ -71,7 +71,7 @@ class Event(pydantic.BaseModel):
     comment: Optional[constr(max_length=255)] = None
     state: Optional[constr(max_length=20)] = None
     pgv_3d: Optional[Dict[str, float]] = None
-    f_dom: Optional[float] = None
+    f_dom: Optional[Dict[str, float]] = None
     foreign_id: Optional[constr(max_length=10)] = None
     
 
