@@ -683,18 +683,39 @@ class EventPostProcessor(object):
 
         # Compute the dominant frequency.
         dom_frequ = {}
-        dom_stat_frequ = {}
+        dom_stat_frequ = []
         for cur_station in stations_3_chan:
             cur_psd_keys = [x for x in psd_data.keys() if x.startswith(cur_station.network + '.' + cur_station.name + '.')]
-        cur_df = []
-        for cur_key in cur_psd_keys:
-            cur_nfft = psd_data[cur_key]['n_fft']
-            left_fft = int(np.ceil(cur_nfft / 2.))
-            max_ind = np.argmax(psd_data[cur_key]['psd'][1:left_fft])
-            dom_frequ[cur_key] = psd_data[cur_key]['frequ'][max_ind]
-            cur_df.append(dom_frequ[cur_key])
+            cur_df = []
+            for cur_key in cur_psd_keys:
+                cur_nfft = psd_data[cur_key]['n_fft']
+                left_fft = int(np.ceil(cur_nfft / 2.))
+                max_ind = np.argmax(psd_data[cur_key]['psd'][1:left_fft])
+                dom_frequ[cur_key] = psd_data[cur_key]['frequ'][max_ind]
+                cur_df.append(dom_frequ[cur_key])
 
-        dom_stat_frequ[cur_station.nsl_string] = np.mean(cur_df)
+            dom_stat_frequ.append(np.mean(cur_df))
+
+        # Save the dominant frequency supplement data to file.
+        domfrequ_data = {'geom_stat': [shapely.geometry.Point([x[0], x[1]]) for x in zip(x_coord, y_coord)],
+                         'nsl': [x.nsl_string for x in stations_3_chan],
+                         'x': x_coord,
+                         'y': y_coord,
+                         'z': z_coord,
+                         'dom_frequ': dom_stat_frequ}
+        
+        df = gpd.GeoDataFrame(data = domfrequ_data,
+                              crs = 'epsg:4326',
+                              geometry = 'geom_stat')
+        
+        filepath = util.save_supplement(self.event_public_id,
+                                        df,
+                                        output_dir = self.supplement_dir,
+                                        category = 'custom',
+                                        name = 'domfrequ',
+                                        props = props)
+        self.logger.info('Saved the dominant frequency supplement data to file %s.',
+                         filepath)
         
         
     def compute_pgv_sequence_supplement(self):
