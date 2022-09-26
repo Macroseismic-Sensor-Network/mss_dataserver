@@ -1865,7 +1865,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 event_region = None
                 event_mode = 'undefiniert'
                 event_class = 'undefiniert'
-                f_dom = None
+                pgv_3d = None
+                dom_frequ = None
                 foreign_id = None
 
                 # Handle the event region.
@@ -1880,17 +1881,28 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                         event_class = translation[cur_et.name]
 
                 # Load custom event supplement data.
-                pgv_3d = None
                 if cur_event.event_type is not None:
                     cur_et = cur_event.event_type
                     if cur_et.name == 'blast':
                         if 'class_region:Steinbruch Dürnbach' in cur_event.tags:
+                            # Get the PGV-3D data.
                             pgv_3d = pp_util.get_supplement_data(public_id = cur_event.public_id,
                                                                  category = 'custom',
                                                                  name = 'pgv3d',
                                                                  directory = self.supplement_dir)
                             if pgv_3d is not None:
                                 pgv_3d = dict(zip(pgv_3d['nsl'], pgv_3d['pgv3d']))
+
+                            # Get the dominant frequency data.
+                            dom_frequ = pp_util.get_supplement_data(public_id = cur_event.public_id,
+                                                                    category = 'custom',
+                                                                    name = 'domfrequ',
+                                                                    directory = self.supplement_dir)
+
+                            if dom_frequ is not None:
+                                dom_frequ = dict(zip(dom_frequ['nsl'], dom_frequ['dom_frequ']))
+
+                            
 
                 # Get the event mode.
                 if 'automatic' in cur_event.tags:
@@ -1953,7 +1965,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                      epi_dist = epi_dist,
                                                      magnitude = mag,
                                                      pgv_3d = pgv_3d,
-                                                     f_dom = f_dom,
+                                                     f_dom = dom_frequ,
                                                      foreign_id = foreign_id)
 
                 # Add the event dictionary to events list.
