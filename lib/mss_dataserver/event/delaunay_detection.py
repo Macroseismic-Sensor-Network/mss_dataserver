@@ -387,7 +387,7 @@ class DelaunayDetector(object):
         else:
             self.detect_stream = stream.slice(starttime = detect_win_start - self.max_time_window,
                                               endtime = detect_win_end,
-                                              nearest_sample = False)
+                                              nearest_sample = True)
             self.logger.debug("detect_stream: %s", self.detect_stream.__str__(extended = True))
             # Set the last detection end time.
             self.last_detection_start = detect_win_start
