@@ -111,6 +111,11 @@ def process_event(ctx, public_id, no_db, no_meta, no_specific,
         except Exception:
             logger.exception('Error loading the inventory from the XML file.')
             sys.exit(-1)
+
+    # Split the inventory into MSS and third-party stations.
+    # The postprocessing results should ignore the third party
+    # stations by default.
+    project.split_inventory()
         
     # Create the PostProcessor.
     try:
