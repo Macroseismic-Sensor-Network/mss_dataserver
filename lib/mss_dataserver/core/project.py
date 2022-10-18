@@ -275,7 +275,7 @@ class Project(object):
 
         '''
         # TODO: Make this an entry in the config file.
-        ignore_stations = ['MSSNet:DUBAM:00']
+        ignore_stations = self.ignore_stations
 
         # Create the third party inventory.
         self.tp_inventory = geometry.inventory.Inventory(name = 'third party')
