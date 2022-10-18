@@ -208,10 +208,10 @@ class EventClassifyer(object):
             self.logger.debug('Tested for quarry blast: %s; %s',
                               key, quarry)
                               
-            self.logger.debug('Classification result: %s',
-                              res)
-            self.logger.debug('Classification flags: %s',
-                              flags)
+            self.logger.info('Classification result: %s',
+                             res)
+            self.logger.info('Classification flags: %s',
+                             flags)
 
         self.classification = classification
 
