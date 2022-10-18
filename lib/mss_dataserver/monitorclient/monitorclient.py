@@ -442,7 +442,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                   data, archive)
 
 
-    def get_recorder_mappings(self, station_nsl = None):
+    def get_recorder_mappings(self, station_nsl = None,
+                              start_time = None, end_time = None):
         ''' Get the mappings of the requested NSLC.
 
         Parameters
@@ -457,6 +458,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             The matching NSLC codes of the MSS units relating their
             serial numbers to the actual station locations.
         '''
+        if start_time is None:
+            start_time = obspy.UTCDateTime()
+                    
         recorder_map = {}
         if station_nsl is None:
             station_list = self.inventory.get_station()
@@ -482,7 +486,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 cur_network = 'AT'
                 
             for cur_channel in station.channels:
-                stream_tb = cur_channel.get_stream(start_time = obspy.UTCDateTime())
+                stream_tb = cur_channel.get_stream(start_time = start_time,
+                                                   end_time = end_time)
+                if len(stream_tb) == 0:
+                    continue
                 cur_loc = stream_tb[0].item.name.split(':')[0]
                 cur_chan = stream_tb[0].item.name.split(':')[1]
 
@@ -1550,6 +1557,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             cur_nsl = '{0:s}:{1:s}:{2:s}'.format(cur_trace.stats.network,
                                                  cur_trace.stats.station,
                                                  cur_trace.stats.location)
+
+            # Don't add the data of the ignored stations.
+            if cur_nsl in self.project.ignore_stations:
+                continue
 
             # Handle eventually masked trace data.
             if isinstance(cur_trace.data, np.ma.MaskedArray):
