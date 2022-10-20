@@ -249,9 +249,16 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.inventory = self.project.inventory
         self.inventory.compute_utm_coordinates()
 
-        # The delaunay detector instance.
+        # Prepare the detector initialization.
+        # Get the stations that should be used for the detetin.
+        # Remove stations listed in the ignore list (e.g. third party
+        # stations).
+        ignore_stations = self.project.ignore_stations
         all_stations = self.inventory.get_station()
-        self.detector = event_ddet.DelaunayDetector(network_stations = all_stations,
+        network_stations = [x for x in all_stations if x.nsl_string not in ignore_stations]
+        
+        # The delaunay detector instance.
+        self.detector = event_ddet.DelaunayDetector(network_stations = network_stations,
                                                     trigger_thr = self.trigger_thr,
                                                     window_length = 10,
                                                     safety_time = 20,
@@ -435,7 +442,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                   data, archive)
 
 
-    def get_recorder_mappings(self, station_nsl = None):
+    def get_recorder_mappings(self, station_nsl = None,
+                              start_time = None, end_time = None):
         ''' Get the mappings of the requested NSLC.
 
         Parameters
@@ -450,6 +458,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             The matching NSLC codes of the MSS units relating their
             serial numbers to the actual station locations.
         '''
+        if start_time is None:
+            start_time = obspy.UTCDateTime()
+                    
         recorder_map = {}
         if station_nsl is None:
             station_list = self.inventory.get_station()
@@ -467,12 +478,22 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 station_list.append(cur_station)
 
         for station in station_list:
+            cur_network = 'XX'
+
+            # TODO: Make the recorder mappings an option in the config file.
+            # Special handling of the DUBAM stations.
+            if station.nsl_string in ['MSSNet:DUBAM:00']:
+                cur_network = 'AT'
+                
             for cur_channel in station.channels:
-                stream_tb = cur_channel.get_stream(start_time = obspy.UTCDateTime())
+                stream_tb = cur_channel.get_stream(start_time = start_time,
+                                                   end_time = end_time)
+                if len(stream_tb) == 0:
+                    continue
                 cur_loc = stream_tb[0].item.name.split(':')[0]
                 cur_chan = stream_tb[0].item.name.split(':')[1]
 
-                cur_key = ('XX',
+                cur_key = (cur_network,
                            stream_tb[0].item.serial,
                            cur_loc,
                            cur_chan)
@@ -689,7 +710,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.logger.info("No event warning issued.")
         self.logger.info("Finished the event warning computation.")
 
-    def detect_event(self):
+        
+    def detect_event(self, export = True):
         ''' Run the Voronoi event detection.
         '''
         self.logger.info('Running the event detection.')
@@ -727,7 +749,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                     self.logger.info("PGV of single detection event too small: %s", cur_pgv_dict)
                                     rejected = True
                                    
-                            if not rejected:
+                            if export and not rejected:
                                 # Save the event and its metadata in a thread to
                                 # prevent blocking the data acquisition.
                                 # TODO: Copy the event before exporting it. Deepcopy
@@ -743,6 +765,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                 # execution of the export thread.
                                 self.export_event_thread = export_event_thread
                                 self.logger.info("Continue the program execution.")
+                            elif not export and not rejected:
+                                self.logger.warning("Export flag not set. The event is not exported.")
                         else:
                             rejected = True
                            
@@ -763,7 +787,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.logger.warning("Failed to initialize the detection run.")
 
 
-    async def process_monitor_stream(self):
+    async def process_monitor_stream(self, export = True):
         ''' Process the data in the monitor stream.
 
         '''
@@ -852,7 +876,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             try:
                 # TODO. Detecting the event is CPU intensive. Try to find a way
                 # to move the detection to another process.
-                self.detect_event()
+                self.detect_event(export = export)
             except Exception as e:
                 self.logger.exception("Error computing the event detection.")
 
@@ -1533,6 +1557,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             cur_nsl = '{0:s}:{1:s}:{2:s}'.format(cur_trace.stats.network,
                                                  cur_trace.stats.station,
                                                  cur_trace.stats.location)
+
+            # Don't add the data of the ignored stations.
+            if cur_nsl in self.project.ignore_stations:
+                continue
 
             # Handle eventually masked trace data.
             if isinstance(cur_trace.data, np.ma.MaskedArray):

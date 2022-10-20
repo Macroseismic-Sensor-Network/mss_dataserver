@@ -167,6 +167,9 @@ class Project(object):
         # The detections library.
         self.detection_library = event.detection.Library(name = 'mss detections')
 
+        # TODO: Make this an entry in the config file.
+        self.ignore_stations = ['MSSNet:DUBAM:00']
+
 
     @property
     def inventory(self):
@@ -272,7 +275,7 @@ class Project(object):
 
         '''
         # TODO: Make this an entry in the config file.
-        ignore_stations = ['MSSNet:DUBAM:00']
+        ignore_stations = self.ignore_stations
 
         # Create the third party inventory.
         self.tp_inventory = geometry.inventory.Inventory(name = 'third party')
@@ -340,7 +343,7 @@ class Project(object):
 
             self.logger.info("Updated the database inventory with data read from %s.", inventory_file)
 
-        self.split_inventory()
+        #self.split_inventory()
         
 
     def load_inventory_from_xml(self):
@@ -365,7 +368,7 @@ class Project(object):
                                   inventory_file)
 
         self.db_inventory = xml_inventory
-        self.split_inventory()
+        #self.split_inventory()
 
 
     def get_event_catalog(self, name):

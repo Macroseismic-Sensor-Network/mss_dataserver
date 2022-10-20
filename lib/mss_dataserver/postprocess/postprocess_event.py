@@ -320,7 +320,10 @@ class EventPostProcessor(object):
         
         # Write the classification result to the database.
         if self.project.is_connected_to_db and self.event is not None:
+            self.logger.info('Writing the classification to the database.')
             self.event.write_to_database(self.project)
+        elif self.event is not None and not self.project.is_connected_to_db:
+            self.logger.warning('No database connection available. Event not written to the database.')
 
         # Write the classification result to the supplement file.
         pp_meta = self.pp_meta
@@ -621,7 +624,9 @@ class EventPostProcessor(object):
 
         # Get the streams of stations with 3 channels.
         inv = self.project.inventory
+        tp_inv = self.project.tp_inventory
         stations = inv.get_station()
+        stations.extend(tp_inv.get_station())
         stations_3_chan = [x for x in stations if len(x.channels) >= 3]
         st_3d = obspy.Stream()
         stations_with_data = []
