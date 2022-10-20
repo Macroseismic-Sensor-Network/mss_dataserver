@@ -348,9 +348,12 @@ class LocApolloniusCircle(object):
                 color = 'r')
         
         fig.colorbar(pcm,
-                     ax = ax)
+                     ax = ax,
+                     label = 'cellhit')
         #ax.set_aspect('equal')
         ax.axis('equal')
+        ax.set_xlabel('X [m]')
+        ax.set_ylabel('Y [m]')
 
         return fig
 
@@ -388,13 +391,13 @@ class LocApolloniusCircle(object):
         vmin = np.log10(np.min(self.amp_valid))
         vmax = np.log10(np.max(self.amp_valid))
         # Plot the main stations.
-        ax.scatter(self.stations_main[:, 0],
-                   self.stations_main[:, 1],
-                   marker = '^',
-                   s = 20,
-                   c = np.log10(self.amp_main),
-                   vmin = vmin,
-                   vmax = vmax)
+        scat_main = ax.scatter(self.stations_main[:, 0],
+                               self.stations_main[:, 1],
+                               marker = '^',
+                               s = 20,
+                               c = np.log10(self.amp_main),
+                               vmin = vmin,
+                               vmax = vmax)
 
         n_main = len(self.stations_main)
         stat_ref = self.stations_valid[n_main:, :]
@@ -419,6 +422,10 @@ class LocApolloniusCircle(object):
 
         ylim = [np.min(stat_valid[:, 1]) - border,
                 np.max(stat_valid[:, 1]) + border]
+
+        fig.colorbar(scat_main,
+                     ax = ax,
+                     label = 'PGV [dB rel. to 1 m/s]')
         
         ax.axis('equal')
         
