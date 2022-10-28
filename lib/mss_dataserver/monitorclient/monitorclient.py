@@ -117,9 +117,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     felt_thr: float 
         The threshold above which an event is considered as a felt event [m/s].
 
-    event_archive_timespan: float 
-        The timespan used to load archived events [h].
-
     min_event_length: float 
         The minimum length of an event [s]. Events smaller than this value are 
         ignored.
@@ -278,8 +275,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # Load the archived data.
         # The timespan to load in hours.
-        self.event_archive_timespan = event_archive_timespan
-        self.load_archive_catalogs(hours = self.event_archive_timespan)
+        processing_start = obspy.UTCDateTime('2018-08-01T00:00')
+        self.archive_limits = {'start': processing_start,
+                               'recent_timespan': event_archive_timespan}
+        full_timespan = obspy.UTCDateTime() - processing_start
+        full_timespan = np.ceil(full_timespan / 3600)
+        self.load_archive_catalogs(hours = full_timespan)
 
     def reset(self):
         ''' Reset the monitorclient to an initial state.
@@ -294,7 +295,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.current_event = None
 
         self.project.event_library.clear()
-        self.load_archive_catalogs(hours = self.event_archive_timespan)
+        processing_start = self.archive_limits['start']
+        full_timespan = obspy.UTCDateTime() - processing_start
+        full_timespan = np.ceil(full_timespan / 3600)
+        self.load_archive_catalogs(hours = full_timespan)
         self.detector.reset()
 
 
@@ -329,13 +333,14 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             cur_name = "{0:04d}-{1:02d}-{2:02d}".format(cur_cat_date.year,
                                                         cur_cat_date.month,
                                                         cur_cat_date.day)
-            self.logger.info("Requesting catalog %s.", cur_name)
+            self.logger.info("Loading catalog %s.", cur_name)
             with self.project_lock:
                 cur_cat = self.project.load_event_catalog(name = cur_name,
                                                           load_events = True)
                 if cur_cat:
-                    self.logger.info("events in catalog: %s", [x.public_id for x in cur_cat.events])
-                self.logger.info("Catalog keys: %s", self.project.event_library.catalogs.keys())
+                    self.logger.debug("events in catalog: %s", [x.public_id for x in cur_cat.events])
+                    self.logger.info("Loaded %d events.", len(cur_cat.events))
+                self.logger.debug("Catalog keys: %s", self.project.event_library.catalogs.keys())
 
 
     def trim_archive_catalogs(self, hours = 48):
@@ -1310,7 +1315,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             cur_cat.add_events([reloaded_event])
 
         # Trim the event catalogs.
-        self.trim_archive_catalogs(hours = self.event_archive_timespan)
+        # Changed to work with the whole catalog. Trimming is no
+        # longer needed.
+        #timespan_to_load = self.archive_timespans['full']
+        #self.trim_archive_catalogs(hours = timespan_to_load)
 
         # Set the event to notify that the archive has changes.
         self.event_archive_changed.set()
@@ -1853,10 +1861,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         :obj:`dict`
             The recent events as a dictionary.
         '''
-        recent_event_timespan = self.event_archive_timespan
-        now = utcdatetime.UTCDateTime()
-        today = utcdatetime.UTCDateTime(now.timestamp // 86400 * 86400)
-        request_start = today - recent_event_timespan * 3600
+        #recent_event_timespan = self.archive_timespans['full']
+        #now = utcdatetime.UTCDateTime()
+        #today = utcdatetime.UTCDateTime(now.timestamp // 86400 * 86400)
+        #request_start = today - recent_event_timespan * 3600
+        request_start = self.archive_limits['start']
         with self.project_lock:
             events = self.project.get_events(start_time = request_start)
         cur_archive = {}
@@ -1881,9 +1890,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         
         if len(events) > 0:
             for cur_event in events:
-                self.logger.info('public_id: %s', cur_event.public_id)
-                self.logger.info('triggered_stations: %s',
-                                 cur_event.triggered_stations)
+                #self.logger.info('public_id: %s', cur_event.public_id)
+                #self.logger.info('triggered_stations: %s',
+                #                 cur_event.triggered_stations)
                 
                 # Set the default values.
                 hypo = None
@@ -1918,7 +1927,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                                  category = 'custom',
                                                                  name = 'pgv3d',
                                                                  directory = self.supplement_dir)
+                        
                             if pgv_3d is not None:
+                                no_data_mask = pgv_3d['pgv3d'].isna()
+                                pgv_3d = pgv_3d[~no_data_mask]
                                 pgv_3d = dict(zip(pgv_3d['nsl'], pgv_3d['pgv3d']))
 
                             # Get the dominant frequency data.
@@ -1928,6 +1940,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                                     directory = self.supplement_dir)
 
                             if dom_frequ is not None:
+                                no_data_mask = dom_frequ['dom_frequ'].isna()
+                                dom_frequ = dom_frequ[~no_data_mask]
                                 dom_frequ = dict(zip(dom_frequ['nsl'], dom_frequ['dom_frequ']))
 
                             
