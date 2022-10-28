@@ -747,6 +747,16 @@ class EventPostProcessor(object):
         #print(pgv_stream.__str__(extended=True))
 
         inventory = self.project.inventory
+        tp_inventory = self.project.tp_inventory
+
+        # Remove third party stations from the pgv stream.
+        for cur_station in tp_inventory.get_station():
+            # Don't use the network. It is truncated in pgv_stream loaded from
+            # the miniseed file.
+            st_to_remove = pgv_stream.select(station = cur_station.name,
+                                             location = cur_station.location)
+            for cur_tr in st_to_remove:
+                pgv_stream.remove(cur_tr)
 
         station_nsl = [('MSSNet', x.stats.station, x.stats.location) for x in pgv_stream]
         station_nsl = [':'.join(x) for x in station_nsl]
@@ -879,6 +889,16 @@ class EventPostProcessor(object):
                         pad = True)
 
         inventory = self.project.inventory
+        tp_inventory = self.project.tp_inventory
+
+        # Remove third party stations from the pgv stream.
+        for cur_station in tp_inventory.get_station():
+            # Don't use the network. It is truncated in pgv_stream loaded from
+            # the miniseed file.
+            st_to_remove = pgv_stream.select(station = cur_station.name,
+                                             location = cur_station.location)
+            for cur_tr in st_to_remove:
+                pgv_stream.remove(cur_tr)
 
         station_nsl = [('MSSNet', x.stats.station, x.stats.location) for x in pgv_stream]
         station_nsl = [':'.join(x) for x in station_nsl]
