@@ -117,9 +117,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     felt_thr: float 
         The threshold above which an event is considered as a felt event [m/s].
 
-    event_archive_timespan: float 
-        The timespan used to load archived events [h].
-
     min_event_length: float 
         The minimum length of an event [s]. Events smaller than this value are 
         ignored.
@@ -279,11 +276,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # Load the archived data.
         # The timespan to load in hours.
         processing_start = obspy.UTCDateTime('2018-08-01T00:00')
+        self.archive_limits = {'start': processing_start,
+                               'recent_timespan': event_archive_timespan}
         full_timespan = obspy.UTCDateTime() - processing_start
         full_timespan = np.ceil(full_timespan / 3600)
-        self.archive_timespans = {'full': full_timespan,
-                                  'recent': 24 * 7}
-        self.event_archive_timespan = event_archive_timespan
         self.load_archive_catalogs(hours = full_timespan)
 
     def reset(self):
@@ -299,8 +295,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.current_event = None
 
         self.project.event_library.clear()
-        timespan_to_load = self.archive_timespans['full']
-        self.load_archive_catalogs(hours = timespan_to_load)
+        processing_start = self.archive_limits['start']
+        full_timespan = obspy.UTCDateTime() - processing_start
+        full_timespan = np.ceil(full_timespan / 3600)
+        self.load_archive_catalogs(hours = full_timespan)
         self.detector.reset()
 
 
@@ -1317,8 +1315,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             cur_cat.add_events([reloaded_event])
 
         # Trim the event catalogs.
-        timespan_to_load = self.archive_timespans['full']
-        self.trim_archive_catalogs(hours = timespan_to_load)
+        # Changed to work with the whole catalog. Trimming is no
+        # longer needed.
+        #timespan_to_load = self.archive_timespans['full']
+        #self.trim_archive_catalogs(hours = timespan_to_load)
 
         # Set the event to notify that the archive has changes.
         self.event_archive_changed.set()
@@ -1861,10 +1861,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         :obj:`dict`
             The recent events as a dictionary.
         '''
-        recent_event_timespan = self.archive_timespans['full']
-        now = utcdatetime.UTCDateTime()
-        today = utcdatetime.UTCDateTime(now.timestamp // 86400 * 86400)
-        request_start = today - recent_event_timespan * 3600
+        #recent_event_timespan = self.archive_timespans['full']
+        #now = utcdatetime.UTCDateTime()
+        #today = utcdatetime.UTCDateTime(now.timestamp // 86400 * 86400)
+        #request_start = today - recent_event_timespan * 3600
+        request_start = self.archive_limits['start']
         with self.project_lock:
             events = self.project.get_events(start_time = request_start)
         cur_archive = {}
