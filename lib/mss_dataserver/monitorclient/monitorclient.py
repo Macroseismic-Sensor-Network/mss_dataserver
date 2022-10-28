@@ -2130,7 +2130,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             The station metadata as a dictionary.
         '''
         stations = {}
-        for cur_station in self.inventory.get_station():
+        ignore_stations = self.project.ignore_stations
+        all_stations = self.inventory.get_station()
+        network_stations = [x for x in all_stations if x.nsl_string not in ignore_stations]
+        for cur_station in network_stations:
             active_streams = []
             for cur_channel in cur_station.channels:
                 cur_streams = cur_channel.get_stream(start_time = obspy.UTCDateTime())
