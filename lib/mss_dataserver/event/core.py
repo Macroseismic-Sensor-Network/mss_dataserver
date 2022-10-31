@@ -502,6 +502,7 @@ class Event(object):
                                         pref_focmec_id = None,
                                         ev_type_id = event_type_id,
                                         ev_type_certainty = self.event_type_certainty,
+                                        comment = self.comment,
                                         description = self.description,
                                         tags = ','.join(self.tags),
                                         agency_uri = self.agency_uri,
@@ -563,6 +564,8 @@ class Event(object):
                     db_event.ev_type_id = event_type_id
                     db_event.ev_type_certainty = self.event_type_certainty
                     db_event.tags = ','.join(self.tags)
+                    db_event.comment = self.comment
+                    db_event.description = self.description
                     db_event.agency_uri = self.agency_uri
                     db_event.author_uri = self.author_uri
                     db_event.creation_time = creation_time
@@ -680,6 +683,7 @@ class Event(object):
                     public_id = db_event.public_id,
                     event_type = event_type,
                     event_type_certainty = db_event.ev_type_certainty,
+                    comment = db_event.comment,
                     description = db_event.description,
                     tags = event_tags,
                     agency_uri = db_event.agency_uri,
