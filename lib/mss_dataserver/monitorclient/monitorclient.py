@@ -132,7 +132,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                  trigger_thr = 0.01e-3, warn_thr = 0.01e-3,
                  valid_event_thr = 0.1e-3, felt_thr = 0.1e-3,
                  event_archive_timespan = 48, min_event_length = 2,
-                 min_event_detections = 2):
+                 min_event_detections = 2, load_events = True):
         ''' Initialize the instance.
         '''
         easyseedlink.EasySeedLinkClient.__init__(self,
@@ -278,11 +278,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         processing_start = obspy.UTCDateTime('2018-08-01T00:00')
         self.archive_limits = {'start': processing_start,
                                'recent_timespan': event_archive_timespan}
-        full_timespan = obspy.UTCDateTime() - processing_start
-        full_timespan = np.ceil(full_timespan / 3600)
-        self.load_archive_catalogs(hours = full_timespan)
+        if load_events:
+            full_timespan = obspy.UTCDateTime() - processing_start
+            full_timespan = np.ceil(full_timespan / 3600)
+            self.load_archive_catalogs(hours = full_timespan)
 
-    def reset(self):
+    def reset(self, reload_events = True):
         ''' Reset the monitorclient to an initial state.
         '''
         self.monitor_stream.clear()
@@ -294,11 +295,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.event_triggered = False
         self.current_event = None
 
-        self.project.event_library.clear()
-        processing_start = self.archive_limits['start']
-        full_timespan = obspy.UTCDateTime() - processing_start
-        full_timespan = np.ceil(full_timespan / 3600)
-        self.load_archive_catalogs(hours = full_timespan)
+        if reload_events:
+            self.project.event_library.clear()
+            processing_start = self.archive_limits['start']
+            full_timespan = obspy.UTCDateTime() - processing_start
+            full_timespan = np.ceil(full_timespan / 3600)
+            self.load_archive_catalogs(hours = full_timespan)
         self.detector.reset()
 
 
@@ -328,11 +330,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                             julday = start_time.julday)
         n_days = np.ceil((now - start_day) / 86400)
         n_days = int(n_days)
-        for k in range(n_days):
-            cur_cat_date = now - k * 86400
-            cur_name = "{0:04d}-{1:02d}-{2:02d}".format(cur_cat_date.year,
-                                                        cur_cat_date.month,
-                                                        cur_cat_date.day)
+        available_catalogs = self.project.get_event_catalog_names()
+        start_cat_name = "{0:04d}-{1:02d}-{2:02d}".format(start_day.year,
+                                                          start_day.month,
+                                                          start_day.day)
+        cats_to_load = [x for x in available_catalogs if x >= start_cat_name]
+        for cur_name in cats_to_load:
             self.logger.info("Loading catalog %s.", cur_name)
             with self.project_lock:
                 cur_cat = self.project.load_event_catalog(name = cur_name,
@@ -716,7 +719,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.logger.info("Finished the event warning computation.")
 
         
-    def detect_event(self, export = True):
+    def detect_event(self, export = True, write_to_db = True):
         ''' Run the Voronoi event detection.
         '''
         self.logger.info('Running the event detection.')
@@ -761,9 +764,11 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                 # throws an error "TypeError: can't pickle
                                 # _thread.RLock objects".
                                 export_event = self.current_event
+                                kwargs = {'export_event': export_event,
+                                          'write_to_db': write_to_db}
                                 export_event_thread = threading.Thread(name = 'export_event',
                                                                        target = self.export_event,
-                                                                       args = (export_event, ))
+                                                                       kwargs = kwargs)
                                 self.logger.info("Starting the export_event_thread.")
                                 export_event_thread.start()
                                 # TODO: Add some kind of event signaling to track the
@@ -792,7 +797,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.logger.warning("Failed to initialize the detection run.")
 
 
-    async def process_monitor_stream(self, export = True):
+    async def process_monitor_stream(self, export = True, write_to_db = True):
         ''' Process the data in the monitor stream.
 
         '''
@@ -881,7 +886,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             try:
                 # TODO. Detecting the event is CPU intensive. Try to find a way
                 # to move the detection to another process.
-                self.detect_event(export = export)
+                self.detect_event(export = export,
+                                  write_to_db = write_to_db)
             except Exception as e:
                 self.logger.exception("Error computing the event detection.")
 
@@ -1236,7 +1242,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.logger.debug("vel_archive_stream: %s", self.vel_archive_stream)
 
 
-    def export_event(self, export_event):
+    def export_event(self, export_event = True, write_to_db = True):
         ''' Save the event.
 
         Parameters
@@ -1263,22 +1269,23 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 cur_det_cat = self.project.load_detection_catalog(name = cat_name)
             cur_det_cat.add_detections(export_event.detections)
 
-            # Write the detections to the database. This has to be done
-            # separately. Adding the detection to the event and then
-            # writing the event to the database doesn't write the
-            # detections to the database.
-            # TODO: An error occured, because the detection already had
-            # a database id assigned, and the write_to_database method
-            # tried to update the existing detection. This part of the
-            # method is not yet working, thus an error was thrown. This
-            # should not happen, because only fresh detections with no
-            # database id should be available at this point!!!!!
-            for cur_detection in export_event.detections:
-                cur_detection.write_to_database(self.project)
+            if write_to_db:
+                # Write the detections to the database. This has to be done
+                # separately. Adding the detection to the event and then
+                # writing the event to the database doesn't write the
+                # detections to the database.
+                # TODO: An error occured, because the detection already had
+                # a database id assigned, and the write_to_database method
+                # tried to update the existing detection. This part of the
+                # method is not yet working, thus an error was thrown. This
+                # should not happen, because only fresh detections with no
+                # database id should be available at this point!!!!!
+                for cur_detection in export_event.detections:
+                    cur_detection.write_to_database(self.project)
 
-            # Write the event to the database.
-            self.logger.info("Writing the event to the database.")
-            export_event.write_to_database(self.project)
+                # Write the event to the database.
+                self.logger.info("Writing the event to the database.")
+                export_event.write_to_database(self.project)
 
         # Export the event data to disk files.
         self.logger.info("Exporting the event data.")
@@ -1293,26 +1300,26 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                           export_event.public_id,
                                           '--no-pgv-contour-sequence'])
 
-        # Update the event based on the results of the post-processing.
-        public_id = export_event.public_id
-        with self.project_lock:
-            # Force a reload of the event from the database.
-            lib = self.project.event_library
-            reloaded_event = lib.load_event_from_db(project = self.project,
-                                                    public_id = public_id)
-            if len(reloaded_event) == 1:
-                reloaded_event = reloaded_event[0]
-            else:
-                self.logger.error("Event with public_id %s couldn't be reloaded from the database.",
-                                  public_id)
-                reloaded_event = None
+            # Update the event based on the results of the post-processing.
+            public_id = export_event.public_id
+            with self.project_lock:
+                # Force a reload of the event from the database.
+                lib = self.project.event_library
+                reloaded_event = lib.load_event_from_db(project = self.project,
+                                                        public_id = public_id)
+                if len(reloaded_event) == 1:
+                    reloaded_event = reloaded_event[0]
+                else:
+                    self.logger.error("Event with public_id %s couldn't be reloaded from the database.",
+                                      public_id)
+                    reloaded_event = None
 
-        if reloaded_event is not None:
-            # Remove the original event from the catalog.
-            cur_cat.remove_event(export_event)
-            # Add the reloaded event with attributes updated by
-            # the postprocessing to the catalog.
-            cur_cat.add_events([reloaded_event])
+            if reloaded_event is not None:
+                # Remove the original event from the catalog.
+                cur_cat.remove_event(export_event)
+                # Add the reloaded event with attributes updated by
+                # the postprocessing to the catalog.
+                cur_cat.add_events([reloaded_event])
 
         # Trim the event catalogs.
         # Changed to work with the whole catalog. Trimming is no
