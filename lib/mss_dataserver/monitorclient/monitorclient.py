@@ -1951,7 +1951,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                 dom_frequ = dom_frequ[~no_data_mask]
                                 dom_frequ = dict(zip(dom_frequ['nsl'], dom_frequ['dom_frequ']))
 
-                            
+                            # Get the foreign_id from the tags.
+                            f_id_tag = [x for x in cur_event.tags if x.startswith('foreign_id')]
+                            if len(f_id_tag) == 1:
+                                f_id_tag = f_id_tag[0]
+                                name, f_id = f_id_tag.split(':')
+                                foreign_id = f_id.strip()
 
                 # Get the event mode.
                 if 'automatic' in cur_event.tags:
