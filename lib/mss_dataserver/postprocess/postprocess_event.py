@@ -86,6 +86,7 @@ class EventPostProcessor(object):
         # The classification of the current event.
         # This attribute is needed in the case that no
         # database is used and therefore no event is loaded.
+        # TODO: Create an event instance also when running without database.
         self.event_classification = None
 
         # The available events types. They are loaded only if a
@@ -170,6 +171,7 @@ class EventPostProcessor(object):
             if self.event is not None:
                 msg = 'Loaded the event {} from the database.'.format(self.event.public_id)
                 self.logger.info(msg)
+                self.logger.debug('event type: %s', self.event.event_type.full_name)
 
             # Load the event types tree from the database.
             self.event_types = ev_type.EventType.load_from_db(project = self.project)
@@ -362,7 +364,11 @@ class EventPostProcessor(object):
 
         '''
         # Check the event type before running the localization.
-        event_type = self.event_classification
+        if self.event is not None:
+            event_type = self.event.event_type
+        else:
+            event_type = self.event_classification
+            
         types_to_localize = ['root-blast', 'root-earthquake-inside network']
         if event_type is None:
             self.logger.info('No event type set. Ignoring the localization of this event.')
