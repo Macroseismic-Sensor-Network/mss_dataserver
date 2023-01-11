@@ -171,7 +171,6 @@ class EventPostProcessor(object):
             if self.event is not None:
                 msg = 'Loaded the event {} from the database.'.format(self.event.public_id)
                 self.logger.info(msg)
-                self.logger.debug('event type: %s', self.event.event_type.full_name)
 
             # Load the event types tree from the database.
             self.event_types = ev_type.EventType.load_from_db(project = self.project)
