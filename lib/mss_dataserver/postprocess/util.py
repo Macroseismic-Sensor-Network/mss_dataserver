@@ -755,4 +755,23 @@ def load_eventtypes_from_json(filepath):
 
     event_types = ev_type.EventType.from_dict(json_data)
     return event_types
-    
+
+
+def get_extended_colorbar_xlims(cb):
+    ''' Get the data limits of a colorbar including the extension patches.
+
+    Paramters
+    ---------
+    cb: matplotlib colorbar
+        The colorbar for which to get the data limits.
+
+    '''
+    inv = cb.ax.transLimits.inverted()
+    lower_ext = cb._extend_patches[0]
+    upper_ext = cb._extend_patches[1]
+    data_points = inv.transform(lower_ext.get_path().vertices)
+    lower_lim = np.min(data_points[:, 0])
+    data_points = inv.transform(upper_ext.get_path().vertices)
+    upper_lim = np.max(data_points[:, 0])
+    extended_cb_xlim = [lower_lim, upper_lim]
+    return extended_cb_xlim

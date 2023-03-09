@@ -283,17 +283,19 @@ class MapPlotter(object):
         tick_labels = ["{0:.3f}".format(x) for x in ticks_mm]
         cb.set_ticklabels(tick_labels)
         cb.ax.set_xticklabels(tick_labels, rotation = 90)
-        self.cb = cb      
+        self.cb = cb
 
         height = 0.03
         intensity_bounds = [cb_bounds[0],
                             cb_bounds[1] - height,
                             cb_bounds[2],
                             height]
+
+        # Get the x limits of the colorbar including the extension arrows.
+        extended_cb_xlim = util.get_extended_colorbar_xlims(cb)
+        
         ax_inset = self.ax.inset_axes(bounds = intensity_bounds,
-                                      xlim = cb.ax.get_xlim())
-        
-        
+                                      xlim = extended_cb_xlim)
 
         # Add the intensity label:
         xlim = ax_inset.get_xlim()
@@ -340,7 +342,7 @@ class MapPlotter(object):
             ax_inset.set_xticks([])
             ax_inset.get_yaxis().set_visible(False)
             ax_inset.set_facecolor((1, 1, 1, 0.4))
-
+        
 
     def draw_intensity_colorbar(self, pgv_labels = False):
         ''' Draw the intensity colorbar.
