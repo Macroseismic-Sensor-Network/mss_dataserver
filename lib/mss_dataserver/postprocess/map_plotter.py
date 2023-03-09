@@ -980,7 +980,7 @@ class MapPlotter(object):
         artists.append(cur_artist)
 
         import shapely
-        mss_boundary = self.mss_boundary.geometry[0][0]
+        mss_boundary = self.mss_boundary.geometry[0].geoms[0]
         mss_boundary_shrink = mss_boundary.buffer(-100)
         mss_boundary_split = mss_boundary.buffer(-120)
         #geometries = geometries[1:3]
@@ -1016,8 +1016,9 @@ class MapPlotter(object):
             
             for k, cur_geom in enumerate(geometries):
                 if not cur_geom.within(mss_boundary):
-                    cur_split = shapely.ops.split(cur_geom.boundary, mss_boundary_split.boundary)
-                    cur_split = [x for x in cur_split if x.within(mss_boundary_shrink)]
+                    cur_split = shapely.ops.split(cur_geom.boundary,
+                                                  mss_boundary_split.boundary)
+                    cur_split = [x for x in cur_split.geoms if x.within(mss_boundary_shrink)]
                     edgecolor = 'k'
                 else:
                     cur_split = [cur_geom.exterior]
