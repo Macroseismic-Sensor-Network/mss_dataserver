@@ -258,7 +258,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.detector = event_ddet.DelaunayDetector(network_stations = network_stations,
                                                     trigger_thr = self.trigger_thr,
                                                     window_length = 10,
-                                                    safety_time = 20,
+                                                    safety_time = 40,
                                                     p_vel = 3500,
                                                     min_trigger_window = 3,
                                                     max_edge_length = 40000,
@@ -741,7 +741,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         now = obspy.UTCDateTime()
         with self.archive_lock:
             working_stream = self.pgv_archive_stream.copy()
-        self.logger.debug("event detection working_stream: %s", working_stream)
+        self.logger.info("event detection working_stream: %s",
+                         str(working_stream.__str__(extended = True)))
 
         # Run the Delaunay detection.
         self.detector.init_detection_run(stream = working_stream)
@@ -832,17 +833,16 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             process_end_time = now - (now.timestamp % self.process_interval)
             process_end_time -= process_delay
             self.logger.info('Now: %s.', now.isoformat())
-            self.logger.info('Processing end time: %s.', process_end_time.isoformat())
             with self.stream_lock:
                 for cur_trace in self.monitor_stream:
-                    #sec_remain = cur_trace.stats.endtime.timestamp % self.process_interval
-                    #cur_end_time = obspy.UTCDateTime(round(cur_trace.stats.endtime.timestamp - sec_remain))
-                    #cur_end_time = cur_end_time - cur_trace.stats.delta
+                    sec_remain = cur_trace.stats.endtime.timestamp % self.process_interval
+                    cur_end_time = obspy.UTCDateTime(round(cur_trace.stats.endtime.timestamp - sec_remain))
+                    cur_end_time = cur_end_time - cur_trace.stats.delta
 
-                    cur_end_time = process_end_time
+                    #cur_end_time = process_end_time
                     
-                    self.logger.debug("Computed end_time: %s.",
-                                      cur_end_time.isoformat())
+                    self.logger.info("Computed end_time: %s.",
+                                     cur_end_time.isoformat())
 
                     if (cur_end_time <= cur_trace.stats.starttime):
                         self.logger.warning("The trace %s starttime %s is larger than the process end time %s.",
