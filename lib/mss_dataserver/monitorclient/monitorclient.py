@@ -838,7 +838,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                     self.logger.debug("Computed end_time: %s.",
                                       cur_end_time.isoformat())
 
-                    if (cur_end_time <= cur_trace.stats.startime):
+                    if (cur_end_time <= cur_trace.stats.starttime):
                         self.logger.warning("The trace %s starttime %s is larger than the process end time %s.",
                                             cur_trace.id,
                                             cur_trace.stats.starttime.isoformat(),
@@ -2023,7 +2023,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                         mag = pref_mag.mag
 
                 # Special handling of the Pfaffenberg blast region.
-                self.logger.info('tags: %s', cur_event.tags)
+                self.logger.debug('tags: %s', cur_event.tags)
                 if 'class_region:Steinbruch Pfaffenberg' in cur_event.tags:
                     event_region = 'Steinbruch Pfaffenberg'
 
