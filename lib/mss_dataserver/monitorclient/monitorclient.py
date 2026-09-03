@@ -281,7 +281,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         if load_events:
             full_timespan = obspy.UTCDateTime() - processing_start
             full_timespan = np.ceil(full_timespan / 3600)
-            self.load_archive_catalogs(hours = full_timespan)
+            last_year = obspy.UTCDateTime() - (365 * 24 * 3600)
+            last_year = np.ceil(last_year / 3600)
+            self.load_archive_catalogs(hours = last_year)
 
     def reset(self, reload_events = True):
         ''' Reset the monitorclient to an initial state.
@@ -300,7 +302,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             processing_start = self.archive_limits['start']
             full_timespan = obspy.UTCDateTime() - processing_start
             full_timespan = np.ceil(full_timespan / 3600)
-            self.load_archive_catalogs(hours = full_timespan)
+            last_year = obspy.UTCDateTime() - (365 * 24 * 3600)
+            last_year = np.ceil(last_year / 3600)
+            self.load_archive_catalogs(hours = last_year)
         self.detector.reset()
 
 
