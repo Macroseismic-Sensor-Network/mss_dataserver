@@ -775,18 +775,35 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # The minimum length of a trace to be added to the process stream [s].
         process_min_length = 10
 
+        # The time to delay the processing [s].
+        # This is needed to wait for data with latency which was introduced by
+        # the geosphere data handling.
+        process_delay = 30
+        
         if monitor_stream_length > 0:
-            #now = obspy.UTCDateTime()
-            #process_end_time = now - now.timestamp % self.process_interval
-            #logger.debug('Trimming to end time: %s.', process_end_time)
+            now = obspy.UTCDateTime()
+            process_end_time = now - (now.timestamp % self.process_interval)
+            process_end_time -= process_delay
+            self.logger.info('Now: %s.', now.isoformat())
+            self.logger.info('Processing end time: %s.', process_end_time.isoformat())
             with self.stream_lock:
                 for cur_trace in self.monitor_stream:
-                    sec_remain = cur_trace.stats.endtime.timestamp % self.process_interval
-                    cur_end_time = obspy.UTCDateTime(round(cur_trace.stats.endtime.timestamp - sec_remain))
-                    cur_end_time = cur_end_time - cur_trace.stats.delta
+                    #sec_remain = cur_trace.stats.endtime.timestamp % self.process_interval
+                    #cur_end_time = obspy.UTCDateTime(round(cur_trace.stats.endtime.timestamp - sec_remain))
+                    #cur_end_time = cur_end_time - cur_trace.stats.delta
 
+                    cur_end_time = process_end_time
+                    
                     self.logger.debug("Computed end_time: %s.",
                                       cur_end_time.isoformat())
+
+                    if (cur_end_time <= cur_trace.stats.startime):
+                        self.logger.warning("The trace %s starttime %s is larger than the process end time %s.",
+                                            cur_trace.id,
+                                            cur_trace.stats.starttime.isoformat(),
+                                            cur_end_time.isoformat())
+                        continue
+                    
                     # Check if the trace length is larger xx seconds.
                     if (cur_end_time - cur_trace.stats.starttime) < process_min_length - cur_trace.stats.delta:
                         self.logger.debug("The process trace of %s with length %f would be smaller than %f seconds.",
