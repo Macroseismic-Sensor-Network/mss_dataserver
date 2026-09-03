@@ -117,9 +117,6 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
     felt_thr: float 
         The threshold above which an event is considered as a felt event [m/s].
 
-    event_archive_timespan: float 
-        The timespan used to load archived events [h].
-
     min_event_length: float 
         The minimum length of an event [s]. Events smaller than this value are 
         ignored.
@@ -135,7 +132,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                  trigger_thr = 0.01e-3, warn_thr = 0.01e-3,
                  valid_event_thr = 0.1e-3, felt_thr = 0.1e-3,
                  event_archive_timespan = 48, min_event_length = 2,
-                 min_event_detections = 2):
+                 min_event_detections = 2, load_events = True):
         ''' Initialize the instance.
         '''
         easyseedlink.EasySeedLinkClient.__init__(self,
@@ -200,6 +197,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # The time interval [s] used to process the received data.
         self.process_interval = process_interval
 
+        # Run the mssds_postprocess command when exporting an event.
+        self.run_mssds_postprocess = True
+
         # The samples per second of the PGV data stream.
         self.pgv_sps = pgv_sps
 
@@ -246,9 +246,16 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.inventory = self.project.inventory
         self.inventory.compute_utm_coordinates()
 
-        # The delaunay detector instance.
+        # Prepare the detector initialization.
+        # Get the stations that should be used for the detetin.
+        # Remove stations listed in the ignore list (e.g. third party
+        # stations).
+        ignore_stations = self.project.ignore_stations
         all_stations = self.inventory.get_station()
-        self.detector = event_ddet.DelaunayDetector(network_stations = all_stations,
+        network_stations = [x for x in all_stations if x.nsl_string not in ignore_stations]
+        
+        # The delaunay detector instance.
+        self.detector = event_ddet.DelaunayDetector(network_stations = network_stations,
                                                     trigger_thr = self.trigger_thr,
                                                     window_length = 10,
                                                     safety_time = 20,
@@ -268,10 +275,15 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         # Load the archived data.
         # The timespan to load in hours.
-        self.event_archive_timespan = event_archive_timespan
-        self.load_archive_catalogs(hours = self.event_archive_timespan)
+        processing_start = obspy.UTCDateTime('2018-08-01T00:00')
+        self.archive_limits = {'start': processing_start,
+                               'recent_timespan': event_archive_timespan}
+        if load_events:
+            full_timespan = obspy.UTCDateTime() - processing_start
+            full_timespan = np.ceil(full_timespan / 3600)
+            self.load_archive_catalogs(hours = full_timespan)
 
-    def reset(self):
+    def reset(self, reload_events = True):
         ''' Reset the monitorclient to an initial state.
         '''
         self.monitor_stream.clear()
@@ -283,8 +295,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.event_triggered = False
         self.current_event = None
 
-        self.project.event_library.clear()
-        self.load_archive_catalogs(hours = self.event_archive_timespan)
+        if reload_events:
+            self.project.event_library.clear()
+            processing_start = self.archive_limits['start']
+            full_timespan = obspy.UTCDateTime() - processing_start
+            full_timespan = np.ceil(full_timespan / 3600)
+            self.load_archive_catalogs(hours = full_timespan)
         self.detector.reset()
 
 
@@ -314,18 +330,20 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                             julday = start_time.julday)
         n_days = np.ceil((now - start_day) / 86400)
         n_days = int(n_days)
-        for k in range(n_days):
-            cur_cat_date = now - k * 86400
-            cur_name = "{0:04d}-{1:02d}-{2:02d}".format(cur_cat_date.year,
-                                                        cur_cat_date.month,
-                                                        cur_cat_date.day)
-            self.logger.info("Requesting catalog %s.", cur_name)
+        available_catalogs = self.project.get_event_catalog_names()
+        start_cat_name = "{0:04d}-{1:02d}-{2:02d}".format(start_day.year,
+                                                          start_day.month,
+                                                          start_day.day)
+        cats_to_load = [x for x in available_catalogs if x >= start_cat_name]
+        for cur_name in cats_to_load:
+            self.logger.info("Loading catalog %s.", cur_name)
             with self.project_lock:
                 cur_cat = self.project.load_event_catalog(name = cur_name,
                                                           load_events = True)
                 if cur_cat:
-                    self.logger.info("events in catalog: %s", cur_cat.events)
-                self.logger.info("Catalog keys: %s", self.project.event_library.catalogs.keys())
+                    self.logger.debug("events in catalog: %s", [x.public_id for x in cur_cat.events])
+                    self.logger.info("Loaded %d events.", len(cur_cat.events))
+                self.logger.debug("Catalog keys: %s", self.project.event_library.catalogs.keys())
 
 
     def trim_archive_catalogs(self, hours = 48):
@@ -432,7 +450,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                   data, archive)
 
 
-    def get_recorder_mappings(self, station_nsl = None):
+    def get_recorder_mappings(self, station_nsl = None,
+                              start_time = None, end_time = None):
         ''' Get the mappings of the requested NSLC.
 
         Parameters
@@ -447,6 +466,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             The matching NSLC codes of the MSS units relating their
             serial numbers to the actual station locations.
         '''
+        if start_time is None:
+            start_time = obspy.UTCDateTime()
+                    
         recorder_map = {}
         if station_nsl is None:
             station_list = self.inventory.get_station()
@@ -464,12 +486,22 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 station_list.append(cur_station)
 
         for station in station_list:
+            cur_network = 'XX'
+
+            # TODO: Make the recorder mappings an option in the config file.
+            # Special handling of the DUBAM stations.
+            if station.nsl_string in ['MSSNet:DUBAM:00']:
+                cur_network = 'AT'
+                
             for cur_channel in station.channels:
-                stream_tb = cur_channel.get_stream(start_time = obspy.UTCDateTime())
+                stream_tb = cur_channel.get_stream(start_time = start_time,
+                                                   end_time = end_time)
+                if len(stream_tb) == 0:
+                    continue
                 cur_loc = stream_tb[0].item.name.split(':')[0]
                 cur_chan = stream_tb[0].item.name.split(':')[1]
 
-                cur_key = ('XX',
+                cur_key = (cur_network,
                            stream_tb[0].item.serial,
                            cur_loc,
                            cur_chan)
@@ -686,7 +718,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.logger.info("No event warning issued.")
         self.logger.info("Finished the event warning computation.")
 
-    def detect_event(self):
+        
+    def detect_event(self, export = True, write_to_db = True):
         ''' Run the Voronoi event detection.
         '''
         self.logger.info('Running the event detection.')
@@ -724,22 +757,26 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                     self.logger.info("PGV of single detection event too small: %s", cur_pgv_dict)
                                     rejected = True
                                    
-                            if not rejected:
+                            if export and not rejected:
                                 # Save the event and its metadata in a thread to
                                 # prevent blocking the data acquisition.
                                 # TODO: Copy the event before exporting it. Deepcopy
                                 # throws an error "TypeError: can't pickle
                                 # _thread.RLock objects".
                                 export_event = self.current_event
+                                kwargs = {'export_event': export_event,
+                                          'write_to_db': write_to_db}
                                 export_event_thread = threading.Thread(name = 'export_event',
                                                                        target = self.export_event,
-                                                                       args = (export_event, ))
+                                                                       kwargs = kwargs)
                                 self.logger.info("Starting the export_event_thread.")
                                 export_event_thread.start()
                                 # TODO: Add some kind of event signaling to track the
                                 # execution of the export thread.
                                 self.export_event_thread = export_event_thread
                                 self.logger.info("Continue the program execution.")
+                            elif not export and not rejected:
+                                self.logger.warning("Export flag not set. The event is not exported.")
                         else:
                             rejected = True
                            
@@ -760,7 +797,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             self.logger.warning("Failed to initialize the detection run.")
 
 
-    async def process_monitor_stream(self):
+    async def process_monitor_stream(self, export = True, write_to_db = True):
         ''' Process the data in the monitor stream.
 
         '''
@@ -866,7 +903,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             try:
                 # TODO. Detecting the event is CPU intensive. Try to find a way
                 # to move the detection to another process.
-                self.detect_event()
+                self.detect_event(export = export,
+                                  write_to_db = write_to_db)
             except Exception as e:
                 self.logger.exception("Error computing the event detection.")
 
@@ -1221,7 +1259,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 self.logger.debug("vel_archive_stream: %s", self.vel_archive_stream)
 
 
-    def export_event(self, export_event):
+    def export_event(self, export_event = True, write_to_db = True):
         ''' Save the event.
 
         Parameters
@@ -1248,40 +1286,66 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 cur_det_cat = self.project.load_detection_catalog(name = cat_name)
             cur_det_cat.add_detections(export_event.detections)
 
-            # Write the detections to the database. This has to be done
-            # separately. Adding the detection to the event and then
-            # writing the event to the database doesn't write the
-            # detections to the database.
-            # TODO: An error occured, because the detection already had
-            # a database id assigned, and the write_to_database method
-            # tried to update the existing detection. This part of the
-            # method is not yet working, thus an error was thrown. This
-            # should not happen, because only fresh detections with no
-            # database id should be available at this point!!!!!
-            for cur_detection in export_event.detections:
-                cur_detection.write_to_database(self.project)
+            if write_to_db:
+                # Write the detections to the database. This has to be done
+                # separately. Adding the detection to the event and then
+                # writing the event to the database doesn't write the
+                # detections to the database.
+                # TODO: An error occured, because the detection already had
+                # a database id assigned, and the write_to_database method
+                # tried to update the existing detection. This part of the
+                # method is not yet working, thus an error was thrown. This
+                # should not happen, because only fresh detections with no
+                # database id should be available at this point!!!!!
+                for cur_detection in export_event.detections:
+                    cur_detection.write_to_database(self.project)
 
-            # Write the event to the database.
-            self.logger.info("Writing the event to the database.")
-            export_event.write_to_database(self.project)
+                # Write the event to the database.
+                self.logger.info("Writing the event to the database.")
+                export_event.write_to_database(self.project)
 
         # Export the event data to disk files.
         self.logger.info("Exporting the event data.")
         self.save_event_supplement(export_event)
 
-        # Set the event to notify that the archive has changes.
-        self.event_archive_changed.set()
-
         # Compute the geojson supplement data.
-        proc_result = subprocess.run(['mssds_postprocess',
-                                      config_filepath,
-                                      'process-event',
-                                      '--public-id',
-                                      export_event.public_id,
-                                      '--no-pgv-contour-sequence'])
+        if self.run_mssds_postprocess:
+            proc_result = subprocess.run(['mssds_postprocess',
+                                          config_filepath,
+                                          'process-event',
+                                          '--public-id',
+                                          export_event.public_id,
+                                          '--no-pgv-contour-sequence'])
+
+            # Update the event based on the results of the post-processing.
+            public_id = export_event.public_id
+            with self.project_lock:
+                # Force a reload of the event from the database.
+                lib = self.project.event_library
+                reloaded_event = lib.load_event_from_db(project = self.project,
+                                                        public_id = public_id)
+                if len(reloaded_event) == 1:
+                    reloaded_event = reloaded_event[0]
+                else:
+                    self.logger.error("Event with public_id %s couldn't be reloaded from the database.",
+                                      public_id)
+                    reloaded_event = None
+
+            if reloaded_event is not None:
+                # Remove the original event from the catalog.
+                cur_cat.remove_event(export_event)
+                # Add the reloaded event with attributes updated by
+                # the postprocessing to the catalog.
+                cur_cat.add_events([reloaded_event])
 
         # Trim the event catalogs.
-        self.trim_archive_catalogs(hours = self.event_archive_timespan)
+        # Changed to work with the whole catalog. Trimming is no
+        # longer needed.
+        #timespan_to_load = self.archive_timespans['full']
+        #self.trim_archive_catalogs(hours = timespan_to_load)
+
+        # Set the event to notify that the archive has changes.
+        self.event_archive_changed.set()
 
 
     def get_event_supplement_dir(self, public_id, category = None):
@@ -1525,6 +1589,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             cur_nsl = '{0:s}:{1:s}:{2:s}'.format(cur_trace.stats.network,
                                                  cur_trace.stats.station,
                                                  cur_trace.stats.location)
+
+            # Don't add the data of the ignored stations.
+            if cur_nsl in self.project.ignore_stations:
+                continue
 
             # Handle eventually masked trace data.
             if isinstance(cur_trace.data, np.ma.MaskedArray):
@@ -1817,17 +1885,138 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         :obj:`dict`
             The recent events as a dictionary.
         '''
-        recent_event_timespan = self.event_archive_timespan
-        now = utcdatetime.UTCDateTime()
-        today = utcdatetime.UTCDateTime(now.timestamp // 86400 * 86400)
-        request_start = today - recent_event_timespan * 3600
+        #recent_event_timespan = self.archive_timespans['full']
+        #now = utcdatetime.UTCDateTime()
+        #today = utcdatetime.UTCDateTime(now.timestamp // 86400 * 86400)
+        #request_start = today - recent_event_timespan * 3600
+        request_start = self.archive_limits['start']
         with self.project_lock:
             events = self.project.get_events(start_time = request_start)
         cur_archive = {}
+
+        # The station coordinates.
+        stations = self.inventory.get_station()
+        stat_coord = [[stat.x_utm, stat.y_utm, stat.z] for stat in stations]
+        stat_coord = np.array(stat_coord)
+        stat_nsl = np.array([stat.nsl_string for stat in stations])
+        epsg_code = self.inventory.get_utm_epsg()
+        dest_epsg = 'epsg:' + epsg_code[0][0]
+
+        # Event type translation.
+        translation = {'blast': 'sprengung',
+                       'earthquake': 'erdbeben',
+                       'noise': 'störsignal'}
+
+        # Public IDs of blast events. Used for testing.
+        blasts = ['mss_dsrt_2022-08-24T120921500000',
+                  'mss_dsrt_2022-08-24T115735500000',
+                  'mss_dsrt_2022-08-19T091407500000']
+        
         if len(events) > 0:
             for cur_event in events:
-                self.logger.info('public_id: %s', cur_event.public_id)
-                self.logger.info('triggered_stations: %s', cur_event.triggered_stations)
+                #self.logger.info('public_id: %s', cur_event.public_id)
+                #self.logger.info('triggered_stations: %s',
+                #                 cur_event.triggered_stations)
+                
+                # Set the default values.
+                hypo = None
+                hypo_dist = None
+                epi_dist = None
+                mag = None
+                event_region = None
+                event_mode = 'undefiniert'
+                event_class = 'undefiniert'
+                pgv_3d = None
+                dom_frequ = None
+                foreign_id = None
+
+                # Handle the event region.
+                if cur_event.event_type is not None:
+                    cur_et = cur_event.event_type
+                    if cur_et.name == 'inside network':
+                        event_class = translation[cur_et.parent.name]
+                    elif cur_et.name == 'outside network':
+                        event_class = translation[cur_et.parent.name]
+                        event_region = 'ausserhalb Netzwerk'
+                    else:
+                        event_class = translation[cur_et.name]
+
+                # Load custom event supplement data.
+                if cur_event.event_type is not None:
+                    cur_et = cur_event.event_type
+                    if cur_et.name == 'blast':
+                        if 'class_region:Steinbruch Dürnbach' in cur_event.tags:
+                            # Get the PGV-3D data.
+                            pgv_3d = pp_util.get_supplement_data(public_id = cur_event.public_id,
+                                                                 category = 'custom',
+                                                                 name = 'pgv3d',
+                                                                 directory = self.supplement_dir)
+                        
+                            if pgv_3d is not None:
+                                no_data_mask = pgv_3d['pgv3d'].isna()
+                                pgv_3d = pgv_3d[~no_data_mask]
+                                pgv_3d = dict(zip(pgv_3d['nsl'], pgv_3d['pgv3d']))
+
+                            # Get the dominant frequency data.
+                            dom_frequ = pp_util.get_supplement_data(public_id = cur_event.public_id,
+                                                                    category = 'custom',
+                                                                    name = 'domfrequ',
+                                                                    directory = self.supplement_dir)
+
+                            if dom_frequ is not None:
+                                no_data_mask = dom_frequ['dom_frequ'].isna()
+                                dom_frequ = dom_frequ[~no_data_mask]
+                                dom_frequ = dict(zip(dom_frequ['nsl'], dom_frequ['dom_frequ']))
+
+                            # Get the foreign_id from the tags.
+                            f_id_tag = [x for x in cur_event.tags if x.startswith('foreign_id')]
+                            if len(f_id_tag) == 1:
+                                f_id_tag = f_id_tag[0]
+                                name, f_id = f_id_tag.split(':')
+                                foreign_id = f_id.strip()
+
+                # Get the event mode.
+                if 'automatic' in cur_event.tags:
+                    event_mode = 'automatisch'
+                if 'reviewed' in cur_event.tags:
+                    event_mode = 'überprüft'
+
+                # Get the data from the preferred origin.
+                if cur_event.pref_origin is not None:
+                    self.logger.info('Found a pref_origin.')
+                    pref_origin = cur_event.pref_origin
+                    hypo_xy = pref_origin.get_utm_coordinates(dest_epsg = dest_epsg)
+                    hypo = [hypo_xy[0],
+                            hypo_xy[1],
+                            pref_origin.z]
+                    event_region = pref_origin.region
+
+                    # Compute the epi- and hypodistance.
+                    hypo_dist = np.sqrt(np.sum((hypo - stat_coord)**2,
+                                               axis = 1))
+                    hypo_ind = np.argsort(hypo_dist)
+                    epi_dist = np.sqrt(np.sum((hypo[:2] - stat_coord[:, :2])**2,
+                                              axis = 1))
+                    epi_ind = np.argsort(epi_dist)
+
+                    hypo_dist = dict(zip(stat_nsl[hypo_ind],
+                                         hypo_dist[hypo_ind]))
+                    epi_dist = dict(zip(stat_nsl[epi_ind],
+                                        epi_dist[epi_ind]))
+                    #hypo_dist_dict = {key: {'hypo_dist': a, 'epi_dist': b} for key, a, b in zip(station_nsl,
+                    #                                                                            hypo_dist,
+                    #                                                                            epi_dist)}
+
+                    if pref_origin.pref_magnitude is not None:
+                        pref_mag = pref_origin.pref_magnitude
+                        mag = pref_mag.mag
+
+                # Special handling of the Pfaffenberg blast region.
+                self.logger.info('tags: %s', cur_event.tags)
+                if 'class_region:Steinbruch Pfaffenberg' in cur_event.tags:
+                    event_region = 'Steinbruch Pfaffenberg'
+
+                # Construct the event validation instance.
                 cur_archive_event = validation.Event(db_id = cur_event.db_id,
                                                      public_id = cur_event.public_id,
                                                      start_time = cur_event.start_time.isoformat(),
@@ -1838,8 +2027,19 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                                                      max_pgv = cur_event.max_pgv,
                                                      state = cur_event.detection_state,
                                                      num_detections = len(cur_event.detections),
-                                                     triggered_stations = cur_event.triggered_stations)
+                                                     triggered_stations = cur_event.triggered_stations,
+                                                     event_class = event_class,
+                                                     event_region = event_region,
+                                                     event_class_mode = event_mode,
+                                                     hypo = hypo,
+                                                     hypo_dist = hypo_dist,
+                                                     epi_dist = epi_dist,
+                                                     magnitude = mag,
+                                                     pgv_3d = pgv_3d,
+                                                     f_dom = dom_frequ,
+                                                     foreign_id = foreign_id)
 
+                # Add the event dictionary to events list.
                 cur_archive[cur_event.public_id] = cur_archive_event.dict()
 
         return cur_archive
@@ -1959,7 +2159,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             The station metadata as a dictionary.
         '''
         stations = {}
-        for cur_station in self.inventory.get_station():
+        ignore_stations = self.project.ignore_stations
+        all_stations = self.inventory.get_station()
+        network_stations = [x for x in all_stations if x.nsl_string not in ignore_stations]
+        for cur_station in network_stations:
             active_streams = []
             for cur_channel in cur_station.channels:
                 cur_streams = cur_channel.get_stream(start_time = obspy.UTCDateTime())

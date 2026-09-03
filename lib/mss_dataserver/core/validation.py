@@ -34,6 +34,7 @@ import enum
 import pydantic
 from pydantic import (
     confloat,
+    conlist,
     constr,
     PositiveInt,
     PositiveFloat,
@@ -59,10 +60,20 @@ class Event(pydantic.BaseModel):
     max_pgv: PositiveFloat
     num_detections: PositiveInt
     triggered_stations: List[constr(regex=r'^\w{1,10}:\w{1,10}:\w{1,4}')]
+    event_class: Optional[constr(max_length=20)] = None
+    event_region: Optional[constr(max_length=30)] = None
+    event_class_mode: Optional[constr(max_length=20)] = None
+    hypo: Optional[conlist(float, min_items = 3, max_items = 3)] = None
+    hypo_dist: Optional[Dict[str, float]] = None
+    epi_dist: Optional[Dict[str, float]] = None
+    magnitude: Optional[float] = None
     description: Optional[constr(max_length=255)] = None
     comment: Optional[constr(max_length=255)] = None
     state: Optional[constr(max_length=20)] = None
-
+    pgv_3d: Optional[Dict[str, float]] = None
+    f_dom: Optional[Dict[str, float]] = None
+    foreign_id: Optional[constr(max_length=20)] = None
+    
 
 class MsgClassEnum(str, enum.Enum):
     ''' The websocket message class enumeration.

@@ -36,6 +36,7 @@ import obspy
 import obspy.core.utcdatetime as utcdatetime
 import mss_dataserver.event.detection as detection
 import mss_dataserver.event.event_type as ev_type
+import mss_dataserver.localize.origin as mssds_origin
 
 #from profilehooks import profile
 
@@ -107,13 +108,17 @@ class Event(object):
         using :class:`mss_dataserver.event.delaunay_detection.DelaunayDetector`.
     '''
 
-    def __init__(self, start_time, end_time, db_id = None, public_id = None, event_type = None,
-            event_type_certainty = None, description = None, comment = None,
-            tags = [], agency_uri = None, author_uri = None, creation_time = None,
-            parent = None, changed = True, detections = None):
+    def __init__(self, start_time, end_time, db_id = None, db_cat_id = None,
+                 public_id = None, event_type = None,
+                 event_type_certainty = None, description = None, comment = None,
+                 tags = [], agency_uri = None, author_uri = None, creation_time = None,
+                 parent = None, changed = True, detections = None):
         ''' Instance initialization
 
         '''
+        logger_name = __name__ + "." + self.__class__.__name__
+        self.logger = logging.getLogger(logger_name)
+        
         # Check for correct input arguments.
         # Check for None values in the event limits.
         if start_time is None or end_time is None:
@@ -129,6 +134,9 @@ class Event(object):
 
         # The unique database id.
         self.db_id = db_id
+
+        # The database id of the related catalog.
+        self.db_cat_id = db_cat_id
 
         # The start time of the event.
         self.start_time = utcdatetime.UTCDateTime(start_time)
@@ -182,6 +190,12 @@ class Event(object):
 
         # The unique public id.
         self._public_id = public_id
+
+        # The origins of the event.
+        self.origins = []
+
+        # The preferred origin of the event.
+        self.pref_origin = None
 
 
     @property
@@ -382,6 +396,39 @@ class Event(object):
         else:
             return False
 
+        
+    def add_origin(self, origin):
+        ''' Add an origin to the event.
+
+        Parameters
+        ----------
+        origin: :class:`mss_dataserver.localize.origin.Origin` or :obj:`list` of :class:`mss_dataserver.localize.origin.Origin`
+            The origin or a list of origins to add.
+        '''
+        if type(origin) is list:
+            self.origins.extend(origin)
+            for cur_origin in origin:
+                cur_origin.parent = self
+        else:
+            self.origins.append(origin)
+            origin.parent = self
+
+
+    def set_preferred_origin(self, origin):
+        ''' Set the preferred origin.
+
+        Parameters
+        ----------
+        origin: :class:`mss_dataserver.localize.origin.Origin`
+            The preferred origin of the event.
+
+        '''
+        if origin not in self.origins:
+            self.logger.Error("The preferred origin is not available in the event origins.")
+            return
+
+        self.pref_origin = origin
+
 
     def set_event_type(self, event_type):
         ''' Set the event type.
@@ -426,23 +473,23 @@ class Event(object):
         project: :class:`mss_dataserver.core.project.Project`
             The project to use to access the database.
         '''
+        if self.parent is not None:
+            catalog_id = self.parent.db_id
+        else:
+            catalog_id = self.db_cat_id
+
+        if self.event_type is not None:
+            event_type_id = self.event_type.db_id
+        else:
+            event_type_id = None
+
+        if self.creation_time is not None:
+            creation_time = self.creation_time.isoformat()
+        else:
+            creation_time = None
+                
         if self.db_id is None:
             # If the db_id is None, insert a new event.
-            if self.creation_time is not None:
-                creation_time = self.creation_time.isoformat()
-            else:
-                creation_time = None
-
-            if self.parent is not None:
-                catalog_id = self.parent.db_id
-            else:
-                catalog_id = None
-
-            if self.event_type is not None:
-                event_type_id = self.event_type.db_id
-            else:
-                event_type_id = None
-
             db_session = project.get_db_session()
             try:
                 db_event_orm = project.db_tables['event']
@@ -455,7 +502,9 @@ class Event(object):
                                         pref_focmec_id = None,
                                         ev_type_id = event_type_id,
                                         ev_type_certainty = self.event_type_certainty,
+                                        comment = self.comment,
                                         description = self.description,
+                                        tags = ','.join(self.tags),
                                         agency_uri = self.agency_uri,
                                         author_uri = self.author_uri,
                                         creation_time = creation_time)
@@ -465,18 +514,33 @@ class Event(object):
                 db_session.commit()
                 self.db_id = db_event.id
 
-                # Add the detections to the event. Do this after the event got an
-                # id.
+                # Add the detections to the event. Do this after the event
+                # got an id.
                 if len(self.detections) > 0:
                     # Load the detection_orms from the database.
                     detection_table = project.db_tables['detection']
                     d2e_orm_class = project.db_tables['detection_to_event']
+                    id_filter = [x.db_id for x in self.detections]
                     query = db_session.query(detection_table).\
-                            filter(detection_table.id.in_([x.db_id for x in self.detections]))
+                        filter(detection_table.id.in_(id_filter))
                     for cur_detection_orm in query:
                         d2e_orm = d2e_orm_class(ev_id = self.db_id,
                                                 det_id = cur_detection_orm.id)
                         db_event.detections.append(d2e_orm)
+
+                # Add the origins of the event to the database.
+                # This updated the db_id of the origins.
+                if len(self.origins) > 0:
+                    for cur_origin in self.origins:
+                        cur_origin.write_to_database(project = project,
+                                                     db_session = db_session,
+                                                     close_session = False)
+
+                # Update the preferred origin id of the event.
+                if self.pref_origin is not None:
+                    pref_origin_id = self.pref_origin.db_id
+                    db_event.pref_origin_id = pref_origin_id
+
                 db_session.commit()
                 self.changed = False
             finally:
@@ -488,29 +552,34 @@ class Event(object):
                 db_event_orm = project.db_tables['event']
                 query = db_session.query(db_event_orm).filter(db_event_orm.id == self.db_id)
                 if db_session.query(query.exists()):
+                    self.logger.debug('event_type_id: %s', event_type_id)
                     db_event = query.scalar()
-                    if self.parent is not None:
-                        db_event.ev_catalog_id = self.parent.db_id
-                    else:
-                        db_event.ev_catalog_id = None
+                    db_event.ev_catalog_id = catalog_id
                     db_event.start_time = self.start_time.timestamp
                     db_event.end_time = self.end_time.timestamp
                     db_event.public_id = self.public_id
                     #db_event.pref_origin_id = self.pref_origin_id
                     #db_event.pref_magnitude_id = self.pref_magnitude_id
                     #db_event.pref_focmec_id = self.pref_focmec_id
-                    db_event.ev_type = self.event_type
+                    db_event.ev_type_id = event_type_id
                     db_event.ev_type_certainty = self.event_type_certainty
                     db_event.tags = ','.join(self.tags)
+                    db_event.comment = self.comment
+                    db_event.description = self.description
                     db_event.agency_uri = self.agency_uri
                     db_event.author_uri = self.author_uri
-                    if self.creation_time is not None:
-                        db_event.creation_time = self.creation_time.isoformat()
-                    else:
-                        db_event.creation_time = None
+                    db_event.creation_time = creation_time
 
-                    # TODO: Add the handling of changed detections assigned to this
-                    # event.
+                    # Update the preferred origin id of the event.
+                    if self.pref_origin is not None:
+                        pref_origin_id = self.pref_origin.db_id
+                        db_event.pref_origin_id = pref_origin_id
+
+                    # TODO: Add the handling of changed detections assigned to
+                    # the event.
+
+                    # TODO: Add the handling of changed origins assigned to
+                    # the event.
 
                     db_session.commit()
                     self.changed = False
@@ -579,7 +648,7 @@ class Event(object):
         return db_event
 
     @classmethod
-    def from_orm(cls, db_event, inventory):
+    def from_orm(cls, db_event, inventory, ev_type_tree = None):
         ''' Convert a database orm mapper event to a event.
 
         Parameters
@@ -601,25 +670,43 @@ class Event(object):
         else:
             event_tags = []
 
-        if db_event.event_type is not None:
-            event_type = ev_type.EventType.from_orm(db_event.event_type)
+        if db_event.event_type is not None and ev_type_tree is not None:
+            event_type = ev_type_tree[0].get_child_by_id(id = db_event.ev_type_id)
         else:
             event_type = None
-            
+
+        assigned_detections = [detection.Detection.from_orm(x.detection, inventory) for x in db_event.detections]
         event = cls(start_time = db_event.start_time,
                     end_time = db_event.end_time,
                     db_id = db_event.id,
+                    db_cat_id = db_event.ev_catalog_id,
                     public_id = db_event.public_id,
                     event_type = event_type,
                     event_type_certainty = db_event.ev_type_certainty,
+                    comment = db_event.comment,
                     description = db_event.description,
                     tags = event_tags,
                     agency_uri = db_event.agency_uri,
                     author_uri = db_event.author_uri,
                     creation_time = db_event.creation_time,
-                    detections = [detection.Detection.from_orm(x.detection, inventory) for x in db_event.detections],
-                    changed = False
-                    )
+                    detections = assigned_detections,
+                    changed = False)
+
+        # Add the origins to the event.
+        assigned_origins = [mssds_origin.Origin.from_orm(x) for x in db_event.origins]
+        event.add_origin(assigned_origins)
+
+        # Set the preferred origin.
+        if db_event.pref_origin_id is not None:
+            poid = db_event.pref_origin_id
+            pref_origin = [x for x in assigned_origins if x.db_id == poid]
+            if len(pref_origin) == 1:
+                pref_origin = pref_origin[0]
+                event.set_preferred_origin(pref_origin)
+            elif len(pref_origin) > 1:
+                cls.logger.error("Multiple event origins returned for id %d.",
+                                 poid)
+
         return event
 
 
@@ -704,6 +791,19 @@ class Catalog(object):
         for cur_event in events:
             cur_event.parent = self
         self.events.extend(events)
+
+
+    def remove_event(self, event):
+        ''' Remove an event from the catalog.
+        
+        Parameters
+        ----------
+        event : :class: `Event`
+            The event to remove from the catalog.
+        '''
+        if event in self.events:
+            self.events.remove(event)
+            event.parent = None
 
 
     def get_events(self, start_time = None, end_time = None, **kwargs):
@@ -950,7 +1050,7 @@ class Catalog(object):
 
 
     @classmethod
-    def from_orm(cls, db_catalog, inventory, load_events = False):
+    def from_orm(cls, db_catalog, inventory, ev_type_tree = None, load_events = False):
         ''' Convert a database orm mapper catalog to a catalog.
 
         Parameters
@@ -982,8 +1082,9 @@ class Catalog(object):
         if load_events is True:
             for cur_db_event in db_catalog.events:
                 cur_event = Event.from_orm(db_event = cur_db_event,
-                                           inventory = inventory)
-                catalog.add_events([cur_event,])
+                                           inventory = inventory,
+                                           ev_type_tree = ev_type_tree)
+                catalog.add_events([cur_event])
         return catalog
 
 
@@ -1026,7 +1127,6 @@ class Library(object):
         catalog : :class:`Catalog` or list of :class:`Catalog`
             The catalog(s) to add to the library.
         '''
-
         if isinstance(catalog, list):
             for cur_catalog in catalog:
                 self.add_catalog(cur_catalog)
@@ -1051,6 +1151,23 @@ class Library(object):
             return self.catalogs.pop(name)
         else:
             return None
+
+        
+    def get_catalog_by_id(self, cat_id):
+        ''' Get a catalog by the database id.
+        '''
+        ret_cat = [x for x in self.catalogs.values() if x.db_id == cat_id]
+        if len(ret_cat) == 0:
+            ret_cat = None
+        elif len(ret_cat) == 1:
+            ret_cat = ret_cat[0]
+        else:
+            cat_names = [x.name for x in ret_cat]
+            msg = 'Multiple events returned with the same id {:d}: {}'.format(cat_id,
+                                                                              cat_names)
+            self.logger.error(msg)
+        return ret_cat
+    
 
     def clear(self):
         ''' Remove all catalogs.
@@ -1084,7 +1201,8 @@ class Library(object):
         return catalog_names
 
 
-    def load_catalog_from_db(self, project, name, load_events = False):
+    def load_catalog_from_db(self, project, name = None, cat_id = None,
+                             load_events = False):
         ''' Load catalogs from the database.
 
         Parameters
@@ -1095,21 +1213,34 @@ class Library(object):
         name : :obj:`str` of :obj:`list` of :obj:`str`
             The name of the catalog to load from the database.
 
+        cat_id: int
+            The database id of the catalog to load.
+
         load_events: bool
             Load the events from the database.
         '''
         if isinstance(name, str):
             name = [name, ]
 
+        # Load the event types tree from the database.
+        ev_type_tree = ev_type.EventType.load_from_db(project = project)
+
         db_session = project.get_db_session()
         try:
             db_catalog_orm = project.db_tables['event_catalog']
-            query = db_session.query(db_catalog_orm).filter(db_catalog_orm.name.in_(name))
+            query = db_session.query(db_catalog_orm)
+            if name is not None:
+                query = query.filter(db_catalog_orm.name.in_(name))
+
+            if cat_id is not None:
+                query = query.filter(db_catalog_orm.id == cat_id)
+                
             if db_session.query(query.exists()):
                 for cur_db_catalog in query:
                     cur_catalog = Catalog.from_orm(db_catalog = cur_db_catalog,
                                                    load_events = load_events,
-                                                   inventory = project.inventory)
+                                                   inventory = project.inventory,
+                                                   ev_type_tree = ev_type_tree)
                     self.add_catalog(cur_catalog)
         finally:
             db_session.close()
@@ -1141,6 +1272,10 @@ class Library(object):
 
         found_events = []
         db_session = project.get_db_session()
+
+        # Load the event types tree from the database.
+        ev_type_tree = ev_type.EventType.load_from_db(project = project)
+        
         try:
             events_table = project.db_tables['event']
             query = db_session.query(events_table)
@@ -1154,9 +1289,23 @@ class Library(object):
             for cur_orm in query:
                 try:
                     cur_event = Event.from_orm(db_event = cur_orm,
-                                               inventory = project.db_inventory)
+                                               inventory = project.db_inventory,
+                                               ev_type_tree = ev_type_tree)
+                    # Get the parent catalog of the event.
+                    cat_id = cur_orm.ev_catalog_id
+
+                    # TODO: Better handling of the event catalog.
+                    #if cat_id is not None:
+                    #    # Load the required catalog from the database to the library.
+                    #    self.load_catalog_from_db(cat_id = cat_id,
+                    #                              project = project)
+                    #    # Get the catalog from the library.
+                    #    parent_cat = self.get_catalog_by_id(cat_id = cat_id)
+                    #    # Set the parent catalog of the event.
+                    #    cur_event.parent = parent_cat
+                        
                     found_events.append(cur_event)
-                except:
+                except Exception:
                     self.logger.exception("Error when creating an event object from database values for event %d. Skipping this event.", cur_orm.id)
         finally:
             db_session.close()

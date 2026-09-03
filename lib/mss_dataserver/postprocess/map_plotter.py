@@ -283,17 +283,19 @@ class MapPlotter(object):
         tick_labels = ["{0:.3f}".format(x) for x in ticks_mm]
         cb.set_ticklabels(tick_labels)
         cb.ax.set_xticklabels(tick_labels, rotation = 90)
-        self.cb = cb      
+        self.cb = cb
 
         height = 0.03
         intensity_bounds = [cb_bounds[0],
                             cb_bounds[1] - height,
                             cb_bounds[2],
                             height]
+
+        # Get the x limits of the colorbar including the extension arrows.
+        extended_cb_xlim = util.get_extended_colorbar_xlims(cb)
+        
         ax_inset = self.ax.inset_axes(bounds = intensity_bounds,
-                                      xlim = cb.ax.get_xlim())
-        
-        
+                                      xlim = extended_cb_xlim)
 
         # Add the intensity label:
         xlim = ax_inset.get_xlim()
@@ -340,7 +342,7 @@ class MapPlotter(object):
             ax_inset.set_xticks([])
             ax_inset.get_yaxis().set_visible(False)
             ax_inset.set_facecolor((1, 1, 1, 0.4))
-
+        
 
     def draw_intensity_colorbar(self, pgv_labels = False):
         ''' Draw the intensity colorbar.
@@ -978,7 +980,7 @@ class MapPlotter(object):
         artists.append(cur_artist)
 
         import shapely
-        mss_boundary = self.mss_boundary.geometry[0][0]
+        mss_boundary = self.mss_boundary.geometry[0].geoms[0]
         mss_boundary_shrink = mss_boundary.buffer(-100)
         mss_boundary_split = mss_boundary.buffer(-120)
         #geometries = geometries[1:3]
@@ -1014,8 +1016,9 @@ class MapPlotter(object):
             
             for k, cur_geom in enumerate(geometries):
                 if not cur_geom.within(mss_boundary):
-                    cur_split = shapely.ops.split(cur_geom.boundary, mss_boundary_split.boundary)
-                    cur_split = [x for x in cur_split if x.within(mss_boundary_shrink)]
+                    cur_split = shapely.ops.split(cur_geom.boundary,
+                                                  mss_boundary_split.boundary)
+                    cur_split = [x for x in cur_split.geoms if x.within(mss_boundary_shrink)]
                     edgecolor = 'k'
                 else:
                     cur_split = [cur_geom.exterior]

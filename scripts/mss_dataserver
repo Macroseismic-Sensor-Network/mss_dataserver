@@ -52,8 +52,10 @@ import sqlalchemy.orm
 import mss_dataserver.core.project
 import mss_dataserver.core.util as util
 import mss_dataserver.core.validation as validation
+import mss_dataserver.event.event_type as ev_type
 import mss_dataserver.geometry.inventory_parser as inventory_parser
 import mss_dataserver.monitorclient.monitorclient as monitorclient
+import mss_dataserver.postprocess.util as pp_util
 import mss_dataserver.test.util as test_util
 
 # The clients connected to the server.
@@ -878,6 +880,28 @@ def clear_db_tables(ctx):
         test_util.clear_project_database_tables(project)
     else:
         logger.info('Aborting...everthing stays as it was.')
+
+
+@cli.command()
+@click.pass_context
+def create_eventtype_tree(ctx):
+    ''' Create the event type tree.
+    '''
+    # Get the logging instance.
+    logger_name = 'mss_dataserver'
+    logger = logging.getLogger(logger_name)
+
+    logger.info('Creating the event types tree in the database.')
+    project = ctx.obj['project']
+    project.connect_to_db()
+    
+    filepath = os.path.join(project.config['postprocess']['data_dir'],
+                            'event_types.json')
+    event_types = pp_util.load_eventtypes_from_json(filepath)
+    root = event_types[0]
+
+    root.write_to_database(project)
+    logger.info('Created the event types tree successfully.')
 
 
 if __name__ == '__main__':

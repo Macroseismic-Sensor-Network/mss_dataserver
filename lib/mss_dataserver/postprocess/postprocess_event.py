@@ -26,6 +26,7 @@
 '''
 
 import csv
+import json
 import logging
 import math
 import os
@@ -36,8 +37,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import obspy
 import pyproj
+import scipy.fft
 import shapely
 
+import mss_dataserver.classify.classifyer as mssds_classifyer
+import mss_dataserver.event.event_type as ev_type
+import mss_dataserver.localize.localizer as mssds_localizer
 import mss_dataserver.postprocess.util as util
 import mss_dataserver.postprocess.voronoi as voronoi
 
@@ -74,8 +79,19 @@ class EventPostProcessor(object):
         self.author_uri = self.project.author_uri
         self.agency_uri = self.project.agency_uri
 
-        # The event to process.
+        # The event to process. It is loaded only if a
+        # database is used.
         self.event = None
+
+        # The classification of the current event.
+        # This attribute is needed in the case that no
+        # database is used and therefore no event is loaded.
+        # TODO: Create an event instance also when running without database.
+        self.event_classification = None
+
+        # The available events types. They are loaded only if a
+        # database is used.
+        self.event_types = None
 
         # The supplement directory.
         self.supplement_dir = self.project.config['output']['event_dir']
@@ -99,6 +115,10 @@ class EventPostProcessor(object):
         self._pgv_stream = None
         self._detection_data = None
 
+        # The postprocess common metadata.
+        self._pp_meta = None
+
+
     @property
     def meta(self):
         ''' :obj:`dict`: The metadata supplement.
@@ -111,6 +131,32 @@ class EventPostProcessor(object):
                                                   directory = self.supplement_dir)
         return self._meta['metadata']
 
+
+    @property
+    def pp_meta(self):
+        ''' :obj:`dict`: The postprocess metadata supplement.
+        '''
+        ret_val = {}
+        if self._pp_meta is None:
+            # Load the event metadata from the supplement file.
+            try:
+                self._pp_meta = util.get_supplement_data(self.event_public_id,
+                                                         category = 'postprocess',
+                                                         name = 'metadata',
+                                                         directory = self.supplement_dir)
+                ret_val = self._pp_meta['metadata']
+            except Exception:
+                self.logger.exception("Couldn't load the metadata file.")
+        else:
+            ret_val = self._pp_meta
+
+        return ret_val
+        
+    @pp_meta.setter
+    def pp_meta(self, value):
+        self._pp_meta = value
+    
+
     def set_event(self, public_id):
         ''' Set the event to process.
 
@@ -119,14 +165,31 @@ class EventPostProcessor(object):
         public_id: str 
             The public id of the event.
         '''
-        #self.event = self.project.load_event_by_id(public_id = public_id)
+        if self.project.is_connected_to_db:
+            # Load the event from the database.
+            self.event = self.project.load_event_by_id(public_id = public_id)
+            if self.event is not None:
+                msg = 'Loaded the event {} from the database.'.format(self.event.public_id)
+                self.logger.info(msg)
+
+            # Load the event types tree from the database.
+            self.event_types = ev_type.EventType.load_from_db(project = self.project)
+            self.logger.debug('event_types: %s',
+                              [x.name for x in self.event_types])
+        else:
+            # TODO: Create an event instance using the supplement data.
+            # Load the event types from the json file.
+            filepath = os.path.join(self.data_dir,
+                                    'event_types.json')
+            event_types = util.load_eventtypes_from_json(filepath)
+            self.event_types = event_types
+            
         self.event_public_id = public_id
         self._meta = None
         self._pgv_stream = None
         self._detection_data = None
 
-
-
+        
     def load_network_boundary(self):
         ''' Load the boundary of the MSS network.
         '''
@@ -136,6 +199,7 @@ class EventPostProcessor(object):
                                          boundary_filename)
         return gpd.read_file(boundary_filepath)
 
+    
     def load_station_amplification(self):
         ''' Load the station amplification data.
         '''
@@ -169,6 +233,7 @@ class EventPostProcessor(object):
         sorted_sa = [station_amp[row.nsl]['amp'] if row.nsl in station_amp.keys() else np.nan for index, row in df.iterrows()]
         df['sa'] = sorted_sa
 
+        
     def compute_pgv_df(self, meta):
         ''' Create a dataframe of pgv values with station coordinates.
 
@@ -188,7 +253,7 @@ class EventPostProcessor(object):
             cur_station = inventory.get_station(nsl_string = cur_nsl)[0]
             cur_pgv = meta['max_event_pgv'][cur_nsl]
             cur_trigger = True
-            cur_data = [cur_nsl, cur_station.x, cur_station.y,
+            cur_data = [cur_nsl, cur_station.x, cur_station.y, cur_station.z,
                         cur_station.x_utm, cur_station.y_utm,
                         cur_pgv, cur_trigger]
             pgv_data.append(cur_data)
@@ -197,7 +262,7 @@ class EventPostProcessor(object):
             cur_station = inventory.get_station(nsl_string = cur_nsl)[0]
             cur_pgv = meta['max_network_pgv'][cur_nsl]
             cur_trigger = False
-            cur_data = [cur_nsl, cur_station.x, cur_station.y,
+            cur_data = [cur_nsl, cur_station.x, cur_station.y, cur_station.z,
                         cur_station.x_utm, cur_station.y_utm,
                         cur_pgv, cur_trigger]
             pgv_data.append(cur_data)
@@ -206,30 +271,232 @@ class EventPostProcessor(object):
             cur_station = inventory.get_station(nsl_string = cur_nsl)[0]
             cur_pgv = None
             cur_trigger = False
-            cur_data = [cur_nsl, cur_station.x, cur_station.y,
+            cur_data = [cur_nsl, cur_station.x, cur_station.y, cur_station.z,
                         cur_station.x_utm, cur_station.y_utm,
                         cur_pgv, cur_trigger]
             pgv_data.append(cur_data)
 
         x_coord = [x[1] for x in pgv_data]
         y_coord = [x[2] for x in pgv_data]
+        z_coord = [x[3] for x in pgv_data]
         pgv_data = {'geom_stat': [shapely.geometry.Point([x[0], x[1]]) for x in zip(x_coord, y_coord)],
                     'geom_vor': [shapely.geometry.Polygon([])] * len(pgv_data),
                     'nsl': [x[0] for x in pgv_data],
                     'x': x_coord,
                     'y': y_coord,
-                    'x_utm': [x[3] for x in pgv_data],
-                    'y_utm': [x[4] for x in pgv_data],
-                    'pgv': [x[5] for x in pgv_data],
-                    'triggered': [x[6] for x in pgv_data]}
+                    'z': z_coord,
+                    'x_utm': [x[4] for x in pgv_data],
+                    'y_utm': [x[5] for x in pgv_data],
+                    'pgv': [x[6] for x in pgv_data],
+                    'triggered': [x[7] for x in pgv_data]}
 
         df = gpd.GeoDataFrame(data = pgv_data,
                               crs = 'epsg:4326',
                               geometry = 'geom_stat')
 
         return df
+    
+
+    def classify_event(self):
+        ''' Classify the event.
+
+        '''
+        # Load the event metadata from the supplement file.
+        meta = self.meta
+
+        # Compute a PGV geodataframe using the event metadata.
+        pgv_df = self.compute_pgv_df(meta)
+
+        # Add the station amplification column to the dataframe.
+        self.add_station_amplification(pgv_df)
+
+        pub_id = self.event_public_id
+        classifyer = mssds_classifyer.EventClassifyer(public_id = pub_id,
+                                                      meta = self.meta,
+                                                      pgv_df = pgv_df,
+                                                      project = self.project,
+                                                      event = self.event,
+                                                      event_types = self.event_types)
+        event_type = classifyer.classify()
+        
+        # Write the classification result to the database.
+        if self.project.is_connected_to_db and self.event is not None:
+            self.logger.info('Writing the classification to the database.')
+            self.event.write_to_database(self.project)
+        elif self.event is not None and not self.project.is_connected_to_db:
+            self.logger.warning('No database connection available. Event not written to the database.')
+
+        # Write the classification result to the supplement file.
+        pp_meta = self.pp_meta
+        if event_type is not None:
+            type_dict = {'event_type': event_type.name,
+                         'description': event_type.description,
+                         'event_tags': self.event.tags}
+        else:
+            type_dict = None
+           
+        tmp = {'classification': type_dict}
+        pp_meta.update(tmp)
+        
+        # Get some event properties to add to the properties.
+        props = {'db_id': meta['db_id'],
+                 'event_start': util.isoformat_tz(meta['start_time']),
+                 'event_end': util.isoformat_tz(meta['end_time']),
+                 'author_uri': self.project.author_uri,
+                 'agency_uri': self.project.agency_uri}
+        
+        filepath = util.save_supplement(self.event_public_id,
+                                        pp_meta,
+                                        output_dir = self.supplement_dir,
+                                        category = 'postprocess',
+                                        name = 'metadata',
+                                        props = props)
+        self.logger.info('Added the classification to the postprocess metadata file %s.', filepath)
+
+        # Save relevant data in the instance.
+        self.pp_meta = pp_meta
+        self.event_classification = event_type
 
 
+    def localize_event(self):
+        ''' Compute the origin of an event.
+
+        '''
+        # Check the event type before running the localization.
+        if self.event is not None:
+            event_type = self.event.event_type
+        else:
+            event_type = self.event_classification
+            
+        types_to_localize = ['root-blast', 'root-earthquake-inside network']
+        if event_type is None:
+            self.logger.info('No event type set. Ignoring the localization of this event.')
+            return
+
+        if event_type.full_name not in types_to_localize:
+            self.logger.info('The localization of event type "%s" not supported or needed.',
+                             event_type.full_name)
+            return
+
+        # Special handling of Pfaffenberg blasts.
+        if 'class_region:Steinbruch Pfaffenberg' in self.event.tags:
+            self.logger.info('Automatic localization of blasts in Pfaffenberg is not yet supported.')
+            return
+        
+        # Load the event metadata from the supplement file.
+        meta = self.meta
+
+        # Compute a PGV geodataframe using the event metadata.
+        pgv_df = self.compute_pgv_df(meta)
+
+        # Add the station amplification column to the dataframe.
+        self.add_station_amplification(pgv_df)
+
+        # Eliminate rows without a PGV data.
+        no_data_mask = pgv_df['pgv'].isna()
+        pgv_df = pgv_df[~no_data_mask]
+
+        pub_id = self.event_public_id
+        localizer = mssds_localizer.EventLocalizer(public_id = pub_id,
+                                                   meta = self.meta,
+                                                   pgv_df = pgv_df,
+                                                   project = self.project,
+                                                   event = self.event)
+        # Run the Apollonius localization.
+        localizer.loc_apollonius(dist_exp = -2.2)
+
+        # Compute the MSS magnitude for the origins.
+        origins = localizer.origins
+        stat_coord = pgv_df[['x_utm', 'y_utm', 'z']].values
+        pgv = pgv_df['pgv'].values
+        
+        # Apply the station amplification factors.
+        pgv = pgv / pgv_df['sa'].values
+        
+        for cur_origin in origins:
+            mag = cur_origin.compute_mss_magnitude(stat_coord = stat_coord,
+                                                   amp = pgv)
+            cur_origin.add_magnitude(mag)
+            cur_origin.set_preferred_magnitude(mag)
+
+        # Assign the regions to the origins.
+        for cur_origin in origins:
+            localizer.assign_region(cur_origin)
+
+        # Write the origins to the database.
+        # Convert the coordinates to lon/lat before saving them
+        # to the database.
+        if self.project.is_connected_to_db:
+            for cur_origin in origins:
+                cur_origin.convert_to_lonlat()
+                cur_origin.write_to_database(project = self.project)
+
+        # Set the preferred origin.
+        pref_origin = [x for x in origins if x.method == 'apollonius_circle']
+        if len(pref_origin) >= 1:
+            pref_origin = pref_origin[0]
+            if self.event is not None:
+                self.logger.info('Setting the pref_origin.')
+                self.logger.info('pref_origin.db_id: %d', pref_origin.db_id)
+                self.event.set_preferred_origin(pref_origin)
+                self.event.write_to_database(project = self.project)
+
+        # Write the origins to the origins geojson supplement data.
+        x_coord = [x.x for x in origins]
+        y_coord = [x.y for x in origins]
+        z_coord = [x.z for x in origins]
+        data = {'geom_origin': [shapely.geometry.Point([x[0], x[1]]) for x in zip(x_coord, y_coord)],
+                'z': z_coord,
+                'method': [x.method for x in origins],
+                'region': [x.region for x in origins]}
+        df = gpd.GeoDataFrame(data = data,
+                              crs = 'epsg:4326',
+                              geometry = 'geom_origin')
+        # Get some event properties to add to the properties of the feature collections.
+        props = {'db_id': meta['db_id'],
+                 'event_start': util.isoformat_tz(meta['start_time']),
+                 'event_end': util.isoformat_tz(meta['end_time']),
+                 'author_uri': self.project.author_uri,
+                 'agency_uri': self.project.agency_uri}
+
+        # Save the origins supplement.
+        filepath = util.save_supplement(self.event_public_id,
+                                        df,
+                                        output_dir = self.supplement_dir,
+                                        category = 'localize',
+                                        name = 'origins',
+                                        props = props)
+        self.logger.info('Saved the origins to file %s.', filepath)
+
+        # Write the origins to the postprocess metadata supplement file.
+        pp_meta = self.pp_meta
+        origins_list = []
+        for cur_origin in origins:
+            creation_time = cur_origin.creation_time
+            creation_time = util.isoformat_tz(creation_time)
+            tmp = {'time': cur_origin.time,
+                   'x': cur_origin.x,
+                   'y': cur_origin.y,
+                   'z': cur_origin.z,
+                   'coord_system': cur_origin.coord_system,
+                   'method': cur_origin.method,
+                   'comment': cur_origin.comment,
+                   'agency_uri': cur_origin.agency_uri,
+                   'author_uri': cur_origin.author_uri,
+                   'creation_time': creation_time}
+            origins_list.append(tmp)
+        pp_meta['origins'] = origins_list
+
+        filepath = util.save_supplement(self.event_public_id,
+                                        pp_meta,
+                                        output_dir = self.supplement_dir,
+                                        category = 'postprocess',
+                                        name = 'metadata')
+        self.logger.info('Added the origins to the postprocess metadata file %s.', filepath)
+
+        self.pp_meta = pp_meta
+
+    
     def compute_detection_data_df(self, trigger_data):
         ''' Compute the detection frames for a common time.
 
@@ -317,6 +584,150 @@ class EventPostProcessor(object):
                          filepath)
 
 
+    def compute_event_specific_supplement(self):
+        ''' Compute the supplement data depending on the event type.
+
+        '''
+        if self.event.event_type is not None:
+            ev_type = self.event.event_type.name
+            if ev_type == 'blast':
+                if 'class_region:Steinbruch Dürnbach' in self.event.tags:
+                    self.compute_blast_duernbach_supplement()
+
+                
+    def compute_blast_duernbach_supplement(self):
+        ''' Compute the supplement data for a blast at Dürnbach.
+
+        '''
+        public_id = self.event_public_id
+        meta = self.meta
+
+        # Load the velocity seismogram data.
+        vel_st = util.get_supplement_data(public_id = public_id,
+                                          category = 'detectiondata',
+                                          name = 'velocity',
+                                          directory = self.supplement_dir)
+
+        # Fix the miniseed header values.
+        network_map = {'MS': 'MSSNet'}
+        channel_map = {'Hno': 'Hnormal',
+                       'Hpa': 'Hparallel'}
+        for cur_trace in vel_st:
+            cur_net = cur_trace.stats.network
+            cur_chan = cur_trace.stats.channel
+            mapped_net = cur_net
+            mapped_chan = cur_chan
+            
+            if cur_net in network_map.keys():
+                mapped_net = network_map[cur_net]
+        
+            if cur_chan in channel_map.keys():
+                mapped_chan = channel_map[cur_chan]
+        
+            cur_trace.stats.network = mapped_net
+            cur_trace.stats.channel = mapped_chan
+
+        # Get the streams of stations with 3 channels.
+        inv = self.project.inventory
+        tp_inv = self.project.tp_inventory
+        stations = inv.get_station()
+        stations.extend(tp_inv.get_station())
+        stations_3_chan = [x for x in stations if len(x.channels) >= 3]
+        st_3d = obspy.Stream()
+        stations_with_data = []
+        for cur_stat in stations_3_chan:
+            cur_st = vel_st.select(network = cur_stat.network,
+                                   station = cur_stat.name,
+                                   location = cur_stat.location)
+            if len(cur_st) > 0:
+                st_3d += cur_st
+                stations_with_data.append(cur_stat)
+
+        stations_3_chan = stations_with_data
+        
+        # Compute the 3D PGV data.
+        channel_names = ['Hnormal', 'Hparallel', 'Z']
+        st_res_3d = self.compute_resultant(st_3d, channel_names)
+        max_pgv_3d = [(str.join(':', (x.stats.network, x.stats.station, x.stats.location)), np.max(x.data))  for x in st_res_3d]
+        max_pgv_3d = dict(max_pgv_3d)
+
+        # Create the data used for the geojson dataframe.
+        x_coord = [x.x for x in stations_3_chan]
+        y_coord = [x.y for x in stations_3_chan]
+        z_coord = [x.z for x in stations_3_chan]
+        pgv_3d_sorted = [max_pgv_3d[x.nsl_string] for x in stations_3_chan]
+
+        # Get some event properties to add to the supplement properties.
+        props = {'db_id': meta['db_id'],
+                 'event_start': util.isoformat_tz(meta['start_time']),
+                 'event_end': util.isoformat_tz(meta['end_time']),
+                 'author_uri': self.project.author_uri,
+                 'agency_uri': self.project.agency_uri}
+        
+        # Save the PGV 3D supplement data to file.
+        pgv3d_data = {'geom_stat': [shapely.geometry.Point([x[0], x[1]]) for x in zip(x_coord, y_coord)],
+                      'nsl': [x.nsl_string for x in stations_3_chan],
+                      'x': x_coord,
+                      'y': y_coord,
+                      'z': z_coord,
+                      'pgv3d': pgv_3d_sorted}
+        df = gpd.GeoDataFrame(data = pgv3d_data,
+                              crs = 'epsg:4326',
+                              geometry = 'geom_stat')
+        
+        filepath = util.save_supplement(self.event_public_id,
+                                        df,
+                                        output_dir = self.supplement_dir,
+                                        category = 'custom',
+                                        name = 'pgv3d',
+                                        props = props)
+        self.logger.info('Saved the PGV 3D supplement data to file %s.',
+                         filepath)
+        
+
+        # Compute the PSD and the dominant frequencies.
+        psd_data = {}
+        for cur_trace in st_3d:
+            cur_psd_data = self.compute_psd(cur_trace)
+            psd_data[cur_trace.id] = cur_psd_data
+
+        # Compute the dominant frequency.
+        dom_frequ = {}
+        dom_stat_frequ = []
+        for cur_station in stations_3_chan:
+            cur_psd_keys = [x for x in psd_data.keys() if x.startswith(cur_station.network + '.' + cur_station.name + '.')]
+            cur_df = []
+            for cur_key in cur_psd_keys:
+                cur_nfft = psd_data[cur_key]['n_fft']
+                left_fft = int(np.ceil(cur_nfft / 2.))
+                max_ind = np.argmax(psd_data[cur_key]['psd'][1:left_fft])
+                dom_frequ[cur_key] = psd_data[cur_key]['frequ'][max_ind]
+                cur_df.append(dom_frequ[cur_key])
+
+            dom_stat_frequ.append(np.mean(cur_df))
+
+        # Save the dominant frequency supplement data to file.
+        domfrequ_data = {'geom_stat': [shapely.geometry.Point([x[0], x[1]]) for x in zip(x_coord, y_coord)],
+                         'nsl': [x.nsl_string for x in stations_3_chan],
+                         'x': x_coord,
+                         'y': y_coord,
+                         'z': z_coord,
+                         'dom_frequ': dom_stat_frequ}
+        
+        df = gpd.GeoDataFrame(data = domfrequ_data,
+                              crs = 'epsg:4326',
+                              geometry = 'geom_stat')
+        
+        filepath = util.save_supplement(self.event_public_id,
+                                        df,
+                                        output_dir = self.supplement_dir,
+                                        category = 'custom',
+                                        name = 'domfrequ',
+                                        props = props)
+        self.logger.info('Saved the dominant frequency supplement data to file %s.',
+                         filepath)
+        
+        
     def compute_pgv_sequence_supplement(self):
         ''' Compute the supplement data representing the PGV sequence.
         '''
@@ -325,9 +736,9 @@ class EventPostProcessor(object):
 
         # Load the PGV data stream.
         pgv_stream = util.get_supplement_data(self.event_public_id,
-                                                  category = 'detectiondata',
-                                                  name = 'pgv',
-                                                  directory = self.supplement_dir)
+                                              category = 'detectiondata',
+                                              name = 'pgv',
+                                              directory = self.supplement_dir)
         #print(pgv_stream.__str__(extended=True))
         pgv_stream.merge()
 
@@ -341,6 +752,16 @@ class EventPostProcessor(object):
         #print(pgv_stream.__str__(extended=True))
 
         inventory = self.project.inventory
+        tp_inventory = self.project.tp_inventory
+
+        # Remove third party stations from the pgv stream.
+        for cur_station in tp_inventory.get_station():
+            # Don't use the network. It is truncated in pgv_stream loaded from
+            # the miniseed file.
+            st_to_remove = pgv_stream.select(station = cur_station.name,
+                                             location = cur_station.location)
+            for cur_tr in st_to_remove:
+                pgv_stream.remove(cur_tr)
 
         station_nsl = [('MSSNet', x.stats.station, x.stats.location) for x in pgv_stream]
         station_nsl = [':'.join(x) for x in station_nsl]
@@ -473,6 +894,16 @@ class EventPostProcessor(object):
                         pad = True)
 
         inventory = self.project.inventory
+        tp_inventory = self.project.tp_inventory
+
+        # Remove third party stations from the pgv stream.
+        for cur_station in tp_inventory.get_station():
+            # Don't use the network. It is truncated in pgv_stream loaded from
+            # the miniseed file.
+            st_to_remove = pgv_stream.select(station = cur_station.name,
+                                             location = cur_station.location)
+            for cur_tr in st_to_remove:
+                pgv_stream.remove(cur_tr)
 
         station_nsl = [('MSSNet', x.stats.station, x.stats.location) for x in pgv_stream]
         station_nsl = [':'.join(x) for x in station_nsl]
@@ -869,3 +1300,66 @@ class EventPostProcessor(object):
         self.logger.info('Saved isoseismal contours to file %s.', filepath)
 
         return df
+
+    
+    def compute_resultant(self, st, channel_names):
+        ''' Compute the resultant of the peak-ground-velocity.
+        '''
+        res_st = obspy.core.Stream()
+        used_streams = []
+        for cur_channel in channel_names:
+            cur_stream = st.select(channel = cur_channel).merge()
+            if len(cur_stream) == 0:
+                self.logger.error("No data found in stream %s for channel %s.",
+                                  st,
+                                  cur_channel)
+                return res_st
+            used_streams.append(cur_stream)
+
+        for cur_traces in zip(*[x.traces for x in used_streams]):
+            cur_data = [x.data for x in cur_traces]
+
+            if len(set([len(x) for x in cur_data])) > 1:
+                self.logger.error("The lenght of the data of the individual traces dont't match. Can't compute the res. PGV for these traces: %s.", [str(x) for x in cur_traces])
+                continue
+
+            cur_data = np.array(cur_data)
+            cur_res = np.sqrt(np.sum(cur_data**2, axis = 0))
+
+            cur_stats = {'network': cur_traces[0].stats['network'],
+                         'station': cur_traces[0].stats['station'],
+                         'location': cur_traces[0].stats['location'],
+                         'channel': 'res_{0:d}d'.format(len(cur_traces)),
+                         'sampling_rate': cur_traces[0].stats['sampling_rate'],
+                         'starttime': cur_traces[0].stats['starttime']}
+            res_trace = obspy.core.Trace(data = cur_res, header = cur_stats)
+            res_st.append(res_trace)
+
+        res_st.split()
+
+        return res_st
+
+    
+    def compute_psd(self, trace):
+        ''' Compute the power spectral density of a trace.
+        '''
+
+        # Compute the power amplitude density spectrum.
+        # As defined by Havskov and Alguacil (page 164), the power density
+        # spectrum can be written as
+        #   P = 2* 1/T * deltaT^2 * abs(F_dft)^2
+        # This is valid for the left-sided fft.
+        #
+        n_fft = len(trace.data)
+        delta_t = 1 / trace.stats.sampling_rate
+        T = (len(trace.data) - 1) * delta_t
+        Y = scipy.fft.fft(trace.data, n_fft)
+        psd = 2 * delta_t**2 / T * np.abs(Y)**2
+        psd = 10 * np.log10(psd)
+        frequ = trace.stats.sampling_rate * np.arange(0, n_fft) / float(n_fft)
+        psd_data = {}
+        psd_data['n_fft'] = n_fft
+        psd_data['psd'] = psd
+        psd_data['frequ'] = frequ
+
+        return psd_data

@@ -27,17 +27,18 @@
 '''
 
 import configparser
+import copy
 import json
 import logging
 import os
 
 import sqlalchemy
-import sqlalchemy.ext.declarative
 import sqlalchemy.orm
 
 import mss_dataserver.event as event
 import mss_dataserver.event.core
 import mss_dataserver.geometry as geometry
+import mss_dataserver.localize as localize
 import mss_dataserver.core.database_util as db_util
 import mss_dataserver.geometry.inventory_parser as inventory_parser
 import mss_dataserver.geometry.db_inventory as database_inventory
@@ -157,11 +158,17 @@ class Project(object):
         # The geometry inventory.
         self.db_inventory = None
 
+        # The geometry inventory of third party stations.
+        self.tp_inventory = None
+
         # The events library.
         self.event_library = event.core.Library(name = 'mss events')
 
         # The detections library.
         self.detection_library = event.detection.Library(name = 'mss detections')
+
+        # TODO: Make this an entry in the config file.
+        self.ignore_stations = ['MSSNet:DUBAM:00']
 
 
     @property
@@ -169,6 +176,16 @@ class Project(object):
         ''' The geometry inventory.
         '''
         return self.db_inventory
+
+    @property
+    def is_connected_to_db(self):
+        ''' Flag indicating if a valid database connection exists.
+        '''
+        is_connected = False
+        if self.db_base is not None:
+            is_connected = True
+
+        return is_connected
 
 
     def connect_to_db(self):
@@ -193,7 +210,8 @@ class Project(object):
             self.db_engine = sqlalchemy.create_engine(engine_string)
             self.db_engine.echo = False
             self.db_metadata = sqlalchemy.MetaData(self.db_engine)
-            self.db_base = sqlalchemy.ext.declarative.declarative_base(metadata = self.db_metadata)
+            #self.db_base = sqlalchemy.ext.declarative.declarative_base(metadata = self.db_metadata)
+            self.db_base = sqlalchemy.orm.declarative_base(metadata = self.db_metadata)
             self.db_session_class = sqlalchemy.orm.sessionmaker(bind = self.db_engine)
         except Exception:
             logging.exception("Can't connect to the database.")
@@ -217,6 +235,11 @@ class Project(object):
             cur_name = cur_table.__table__.name
             self.db_tables[cur_name] = cur_table
 
+        loc_tables = localize.databaseFactory(self.db_base)
+        for cur_table in loc_tables:
+            cur_name = cur_table.__table__.name
+            self.db_tables[cur_name] = cur_table
+
 
 
     def create_database_tables(self):
@@ -226,7 +249,7 @@ class Project(object):
             self.logger.info("Creating table %s.", cur_key)
             db_util.db_table_migration(table = cur_table,
                                        engine = self.db_engine,
-                                       prefix = 'dataserver_')
+                                       prefix = '')
         try:
             if self.db_metadata is not None:
                 self.db_metadata.create_all()
@@ -247,6 +270,31 @@ class Project(object):
         return self.db_session_class()
 
 
+    def split_inventory(self):
+        ''' Create the third party inventory.
+
+        '''
+        # TODO: Make this an entry in the config file.
+        ignore_stations = self.ignore_stations
+
+        # Create the third party inventory.
+        self.tp_inventory = geometry.inventory.Inventory(name = 'third party')
+
+        for cur_stat_nsl in ignore_stations:
+            cur_stat_list = self.inventory.get_station(nsl_string = cur_stat_nsl)
+
+            for cur_stat in cur_stat_list:
+                cur_net_name = cur_stat.network
+                cur_net = self.tp_inventory.get_network(name = cur_net_name)
+                if len(cur_net) == 1:
+                    cur_net = cur_net[0]
+                else:
+                    cur_net = geometry.inventory.Network(name = cur_net_name)
+                    self.tp_inventory.add_network(cur_net)
+                cur_stat.parent_network.remove_station_by_instance(cur_stat)
+                cur_net.add_station(cur_stat)
+            
+        
     def load_inventory(self, update_from_xml = False):
         ''' Load the geometry inventory.
 
@@ -295,6 +343,8 @@ class Project(object):
 
             self.logger.info("Updated the database inventory with data read from %s.", inventory_file)
 
+        #self.split_inventory()
+        
 
     def load_inventory_from_xml(self):
         ''' Load the inventory directly from the XML file ignoring the database.
@@ -318,6 +368,7 @@ class Project(object):
                                   inventory_file)
 
         self.db_inventory = xml_inventory
+        #self.split_inventory()
 
 
     def get_event_catalog(self, name):

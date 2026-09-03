@@ -25,6 +25,7 @@
 ''' Handling of event types.
 
 '''
+import logging
 
 import obspy
 
@@ -38,6 +39,10 @@ class EventType(object):
                  creation_time = None):
         ''' Initialize the instance.
         '''
+        # The logger instance.
+        logger_name = __name__ + "." + self.__class__.__name__
+        self.logger = logging.getLogger(logger_name)
+        
         # The parent object holding the event. Most likely this is
         # another EventType instance.
         self.parent = parent
@@ -70,9 +75,19 @@ class EventType(object):
     def rid(self):
         ''' str: The resource ID of the event type.
         '''
-        return '/eventtype/' + self.name
+        return '/eventtype/' + self.full_name
 
-    
+
+    @property
+    def full_name(self):
+        ''' str: The full name of the event type, including parents.
+        '''
+        if self.parent:
+            return self.parent.full_name + '-' + self.name
+        else:
+            return self.name
+
+
     def add_child(self, event_type):
         ''' Add a sub event type.
 
@@ -87,6 +102,53 @@ class EventType(object):
         if event_type not in self.event_types:
             event_type.parent = self
             self.event_types.append(event_type)
+
+            
+    def flattened_children(self):
+        ''' Get a flattened list of all children and sub-children.
+        '''
+        flat_children = [self]
+        if len(self.event_types) > 0:
+            [flat_children.extend(x.flattened_children()) for x in self.event_types]
+        return flat_children
+            
+            
+    def get_child(self, name):
+        ''' Get a child with given name.
+        
+        Parameters
+        ----------
+        name: String
+            The name of the child.
+
+        Returns
+        -------
+        :class:`mss_dataserver.event.event_type.EventType`
+            The found event type child.
+        '''
+        found_child = None
+        matching_types = [x for x in self.event_types if x.name == name]
+
+        if len(matching_types) == 1:
+            found_child = matching_types[0]
+            
+        return found_child
+
+    def get_child_by_id(self, id, search_whole = True):
+        ''' Get a child with given database id.
+
+        '''
+        found_child = None
+        if search_whole:
+            search_children = self.flattened_children()
+        else:
+            search_children = self.event_types
+
+        matching_types = [x for x in search_children if x.db_id == id]
+        if len(matching_types) == 1:
+            found_child = matching_types[0]
+
+        return found_child
 
 
     def write_to_database(self, project, db_session = None,
@@ -185,9 +247,8 @@ class EventType(object):
 
         Returns
         -------
-        :class:`EventTypeDb`
-            An instance of the sqlalchemy Table Mapper classe defined in
-            :meth:`mss_dataserver.event.databaseFactory`
+        :class: list of :class:`mss_dataserver.event.event_type.EventType`
+            The event types tree loaded from the database.
         '''
         roots = []
         db_session = project.get_db_session()
@@ -203,4 +264,38 @@ class EventType(object):
             db_session.close()
 
         return roots
-        
+
+
+    @classmethod
+    def from_dict(cls, types_dict, author_uri = None,
+                  agency_uri = None):
+        ''' Convert a dictionary to EventType instances.
+
+        Parameters
+        ----------
+        types_dict: dict
+            The dictionary to convert.
+
+        Returns
+        -------
+        :class: list of `mss_dataserver.event.event_type.EventType`
+            The event type created from the dictionary.
+        '''
+        roots = []
+        for key, item in types_dict.items():
+            creation_time = obspy.UTCDateTime()
+            ev_type = cls(name = key,
+                          description = item['description'],
+                          agency_uri = agency_uri,
+                          author_uri = author_uri,
+                          creation_time = creation_time)
+
+            child_nodes = EventType.from_dict(item['children'])
+            for node in child_nodes:
+                ev_type.add_child(node)
+
+            roots.append(ev_type)
+
+        return roots
+                
+            

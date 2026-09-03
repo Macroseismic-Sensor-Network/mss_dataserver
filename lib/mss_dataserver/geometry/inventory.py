@@ -1604,9 +1604,18 @@ class RecorderStream(object):
 
         updated_parameters = []
         parameters_to_add = []
+
         for cur_parameter in merge_stream.parameters:
             cur_exist_parameter = self.get_parameter(start_time = cur_parameter.start_time,
                                                      end_time = cur_parameter.end_time)
+
+            # The get_parameters function is not suitable to get the parameters for
+            # updating. A function to get the parameter with exactly the same time settings
+            # is needed.
+            # Set the found parameters to an empty array to force the adding of the parameter.
+            # TODO: Implement a function that returns the correct recorder stream parameter.
+            cur_exist_parameter = []
+            
             if len(cur_exist_parameter) == 1:
                 cur_exist_parameter = cur_exist_parameter[0]
                 cur_key = (cur_exist_parameter.rec_stream_id,
