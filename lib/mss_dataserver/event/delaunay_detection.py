@@ -372,11 +372,11 @@ class DelaunayDetector(object):
             detect_win_start = self.last_detection_end + 1 / sps
 
         min_delta = np.min([x.stats.delta for x in stream])
-        detect_win_end = ((max_end_time.timestamp + min_delta) - self.safety_time) // self.window_length * self.window_length
+        detect_win_end = (((max_end_time.timestamp + min_delta) - self.safety_time) // self.window_length) * self.window_length
         detect_win_end = obspy.UTCDateTime(detect_win_end) - min_delta
-        self.logger.debug("max_time_window: %s", self.max_time_window)
-        self.logger.debug("detect_win_start: %s", detect_win_start)
-        self.logger.debug("detect_win_end: %s", detect_win_end)
+        self.logger.info("max_time_window: %s", self.max_time_window)
+        self.logger.info("detect_win_start: %s", detect_win_start)
+        self.logger.info("detect_win_end: %s", detect_win_end)
 
         if detect_win_end <= detect_win_start:
             self.logger.warning("The detection window end is smaller than the detection window start. Skipping the preparation of the detection stream.")
@@ -388,7 +388,7 @@ class DelaunayDetector(object):
             self.detect_stream = stream.slice(starttime = detect_win_start - self.max_time_window,
                                               endtime = detect_win_end,
                                               nearest_sample = True)
-            self.logger.debug("detect_stream: %s", self.detect_stream.__str__(extended = True))
+            self.logger.info("detect_stream: %s", self.detect_stream.__str__(extended = True))
             # Set the last detection end time.
             self.last_detection_start = detect_win_start
             self.last_detection_end = detect_win_end
