@@ -340,6 +340,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             with self.project_lock:
                 cur_cat = self.project.load_event_catalog(name = cur_name,
                                                           load_events = True)
+                
+                # HOTFIX: Remove unfelt events from the catalog.
+                cur_cat.events = [x for x in cur_cat.events if x.max_pgv >= 0.1e-3]
+
                 if cur_cat:
                     self.logger.debug("events in catalog: %s", [x.public_id for x in cur_cat.events])
                     self.logger.info("Loaded %d events.", len(cur_cat.events))
@@ -1886,12 +1890,16 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             The recent events as a dictionary.
         '''
         #recent_event_timespan = self.archive_timespans['full']
-        #now = utcdatetime.UTCDateTime()
-        #today = utcdatetime.UTCDateTime(now.timestamp // 86400 * 86400)
+        now = utcdatetime.UTCDateTime()
+        today = utcdatetime.UTCDateTime(now.timestamp // 86400 * 86400)
         #request_start = today - recent_event_timespan * 3600
+        self.logger.warning("Start get_recent_events.")
         request_start = self.archive_limits['start']
+        #request_start = today - 150 * 86400
         with self.project_lock:
+            self.logger.warning("Get events from project...")
             events = self.project.get_events(start_time = request_start)
+            self.logger.warning("finished.")
         cur_archive = {}
 
         # The station coordinates.
@@ -1912,6 +1920,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                   'mss_dsrt_2022-08-24T115735500000',
                   'mss_dsrt_2022-08-19T091407500000']
         
+        # HOTFIX: Ignore unfelt events to reduce server load.
+        events = [x for x in events if x.max_pgv >= 0.1e-3]
+
         if len(events) > 0:
             for cur_event in events:
                 #self.logger.info('public_id: %s', cur_event.public_id)
@@ -2042,6 +2053,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 # Add the event dictionary to events list.
                 cur_archive[cur_event.public_id] = cur_archive_event.dict()
 
+        self.logger.warning("End get_recent_event.")
         return cur_archive
 
 
