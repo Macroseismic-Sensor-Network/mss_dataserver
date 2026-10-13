@@ -258,7 +258,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.detector = event_ddet.DelaunayDetector(network_stations = network_stations,
                                                     trigger_thr = self.trigger_thr,
                                                     window_length = 10,
-                                                    safety_time = 20,
+                                                    safety_time = 40,
                                                     p_vel = 3500,
                                                     min_trigger_window = 3,
                                                     max_edge_length = 40000,
@@ -279,9 +279,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.archive_limits = {'start': processing_start,
                                'recent_timespan': event_archive_timespan}
         if load_events:
-            full_timespan = obspy.UTCDateTime() - processing_start
-            full_timespan = np.ceil(full_timespan / 3600)
-            self.load_archive_catalogs(hours = full_timespan)
+            #full_timespan = obspy.UTCDateTime() - processing_start
+            #full_timespan = np.ceil(full_timespan / 3600)
+            now = obspy.UTCDateTime()
+            last_year_timespan = now - (now - (365 * 24 * 3600))
+            last_year_timespan = np.ceil(last_year_timespan / 3600)
+            self.load_archive_catalogs(hours = last_year_timespan)
 
     def reset(self, reload_events = True):
         ''' Reset the monitorclient to an initial state.
@@ -297,10 +300,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         if reload_events:
             self.project.event_library.clear()
-            processing_start = self.archive_limits['start']
-            full_timespan = obspy.UTCDateTime() - processing_start
-            full_timespan = np.ceil(full_timespan / 3600)
-            self.load_archive_catalogs(hours = full_timespan)
+            #processing_start = self.archive_limits['start']
+            #full_timespan = obspy.UTCDateTime() - processing_start
+            #full_timespan = np.ceil(full_timespan / 3600)
+            now = obspy.UTCDateTime()
+            last_year_timespan = now - (now - (365 * 24 * 3600))
+            last_year_timespan = np.ceil(last_year_timespan / 3600)
+            self.load_archive_catalogs(hours = last_year_timespan)
         self.detector.reset()
 
 
@@ -340,6 +346,10 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             with self.project_lock:
                 cur_cat = self.project.load_event_catalog(name = cur_name,
                                                           load_events = True)
+                
+                # HOTFIX: Remove unfelt events from the catalog.
+                cur_cat.events = [x for x in cur_cat.events if x.max_pgv >= 0.1e-3]
+
                 if cur_cat:
                     self.logger.debug("events in catalog: %s", [x.public_id for x in cur_cat.events])
                     self.logger.info("Loaded %d events.", len(cur_cat.events))
@@ -731,7 +741,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         now = obspy.UTCDateTime()
         with self.archive_lock:
             working_stream = self.pgv_archive_stream.copy()
-        self.logger.debug("event detection working_stream: %s", working_stream)
+        self.logger.info("event detection working_stream: %s",
+                         str(working_stream.__str__(extended = True)))
 
         # Run the Delaunay detection.
         self.detector.init_detection_run(stream = working_stream)
@@ -812,18 +823,34 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         # The minimum length of a trace to be added to the process stream [s].
         process_min_length = 10
 
+        # The time to delay the processing [s].
+        # This is needed to wait for data with latency which was introduced by
+        # the geosphere data handling.
+        process_delay = 30
+        
         if monitor_stream_length > 0:
-            #now = obspy.UTCDateTime()
-            #process_end_time = now - now.timestamp % self.process_interval
-            #logger.debug('Trimming to end time: %s.', process_end_time)
+            now = obspy.UTCDateTime()
+            process_end_time = now - (now.timestamp % self.process_interval)
+            process_end_time -= process_delay
+            self.logger.info('Now: %s.', now.isoformat())
             with self.stream_lock:
                 for cur_trace in self.monitor_stream:
                     sec_remain = cur_trace.stats.endtime.timestamp % self.process_interval
                     cur_end_time = obspy.UTCDateTime(round(cur_trace.stats.endtime.timestamp - sec_remain))
                     cur_end_time = cur_end_time - cur_trace.stats.delta
 
-                    self.logger.debug("Computed end_time: %s.",
-                                      cur_end_time.isoformat())
+                    #cur_end_time = process_end_time
+                    
+                    self.logger.info("Computed end_time: %s.",
+                                     cur_end_time.isoformat())
+
+                    if (cur_end_time <= cur_trace.stats.starttime):
+                        self.logger.warning("The trace %s starttime %s is larger than the process end time %s.",
+                                            cur_trace.id,
+                                            cur_trace.stats.starttime.isoformat(),
+                                            cur_end_time.isoformat())
+                        continue
+                    
                     # Check if the trace length is larger xx seconds.
                     if (cur_end_time - cur_trace.stats.starttime) < process_min_length - cur_trace.stats.delta:
                         self.logger.debug("The process trace of %s with length %f would be smaller than %f seconds.",
@@ -1869,12 +1896,16 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             The recent events as a dictionary.
         '''
         #recent_event_timespan = self.archive_timespans['full']
-        #now = utcdatetime.UTCDateTime()
-        #today = utcdatetime.UTCDateTime(now.timestamp // 86400 * 86400)
+        now = utcdatetime.UTCDateTime()
+        today = utcdatetime.UTCDateTime(now.timestamp // 86400 * 86400)
         #request_start = today - recent_event_timespan * 3600
+        self.logger.warning("Start get_recent_events.")
         request_start = self.archive_limits['start']
+        #request_start = today - 150 * 86400
         with self.project_lock:
+            self.logger.warning("Get events from project...")
             events = self.project.get_events(start_time = request_start)
+            self.logger.warning("finished.")
         cur_archive = {}
 
         # The station coordinates.
@@ -1895,6 +1926,9 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                   'mss_dsrt_2022-08-24T115735500000',
                   'mss_dsrt_2022-08-19T091407500000']
         
+        # HOTFIX: Ignore unfelt events to reduce server load.
+        events = [x for x in events if x.max_pgv >= 0.1e-3]
+
         if len(events) > 0:
             for cur_event in events:
                 #self.logger.info('public_id: %s', cur_event.public_id)
@@ -1995,7 +2029,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                         mag = pref_mag.mag
 
                 # Special handling of the Pfaffenberg blast region.
-                self.logger.info('tags: %s', cur_event.tags)
+                self.logger.debug('tags: %s', cur_event.tags)
                 if 'class_region:Steinbruch Pfaffenberg' in cur_event.tags:
                     event_region = 'Steinbruch Pfaffenberg'
 
@@ -2025,6 +2059,7 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
                 # Add the event dictionary to events list.
                 cur_archive[cur_event.public_id] = cur_archive_event.dict()
 
+        self.logger.warning("End get_recent_event.")
         return cur_archive
 
 
