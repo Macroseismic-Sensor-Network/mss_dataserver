@@ -279,12 +279,12 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
         self.archive_limits = {'start': processing_start,
                                'recent_timespan': event_archive_timespan}
         if load_events:
-            #full_timespan = obspy.UTCDateTime() - processing_start
-            #full_timespan = np.ceil(full_timespan / 3600)
-            now = obspy.UTCDateTime()
-            last_year_timespan = now - (now - (365 * 24 * 3600))
-            last_year_timespan = np.ceil(last_year_timespan / 3600)
-            self.load_archive_catalogs(hours = last_year_timespan)
+            full_timespan = obspy.UTCDateTime() - processing_start
+            full_timespan = np.ceil(full_timespan / 3600)
+            #now = obspy.UTCDateTime()
+            #last_year_timespan = now - (now - (365 * 24 * 3600))
+            #last_year_timespan = np.ceil(last_year_timespan / 3600)
+            self.load_archive_catalogs(hours = full_timespan)
 
     def reset(self, reload_events = True):
         ''' Reset the monitorclient to an initial state.
@@ -300,13 +300,13 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
 
         if reload_events:
             self.project.event_library.clear()
-            #processing_start = self.archive_limits['start']
-            #full_timespan = obspy.UTCDateTime() - processing_start
-            #full_timespan = np.ceil(full_timespan / 3600)
-            now = obspy.UTCDateTime()
-            last_year_timespan = now - (now - (365 * 24 * 3600))
-            last_year_timespan = np.ceil(last_year_timespan / 3600)
-            self.load_archive_catalogs(hours = last_year_timespan)
+            processing_start = self.archive_limits['start']
+            full_timespan = obspy.UTCDateTime() - processing_start
+            full_timespan = np.ceil(full_timespan / 3600)
+            #now = obspy.UTCDateTime()
+            #last_year_timespan = now - (now - (365 * 24 * 3600))
+            #last_year_timespan = np.ceil(last_year_timespan / 3600)
+            self.load_archive_catalogs(hours = full_timespan)
         self.detector.reset()
 
 
@@ -1896,8 +1896,8 @@ class MonitorClient(easyseedlink.EasySeedLinkClient):
             The recent events as a dictionary.
         '''
         #recent_event_timespan = self.archive_timespans['full']
-        now = utcdatetime.UTCDateTime()
-        today = utcdatetime.UTCDateTime(now.timestamp // 86400 * 86400)
+        #now = utcdatetime.UTCDateTime()
+        #today = utcdatetime.UTCDateTime(now.timestamp // 86400 * 86400)
         #request_start = today - recent_event_timespan * 3600
         self.logger.warning("Start get_recent_events.")
         request_start = self.archive_limits['start']
